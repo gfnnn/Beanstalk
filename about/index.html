@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Beansprout.ink — About the artist. Botanical and illustrative tattoo." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <title>About — Beansprout.ink</title>
+  <style>
+    .about-page__grid {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: clamp(var(--space-10), 6vw, var(--space-20));
+      align-items: start;
+    }
+    .about-page__image {
+      position: sticky;
+      top: calc(var(--nav-height) + var(--space-8));
+    }
+    .about-page__text {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+    .about-page__text h2 {
+      font-family: var(--font-display);
+      font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+      letter-spacing: 0.02em;
+      line-height: 0.95;
+      color: var(--color-text-primary);
+    }
+    .about-page__text p {
+      font-size: var(--text-base);
+      line-height: 1.85;
+      color: var(--color-text-secondary);
+      max-width: 56ch;
+    }
+    .about-page__divider {
+      width: 40px;
+      height: 1px;
+      background-color: var(--color-accent);
+    }
+    @media (max-width: 800px) {
+      .about-page__grid { grid-template-columns: 1fr; }
+      .about-page__image { position: static; max-width: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="nav is-scrolled" id="nav">
+    <div class="nav__inner">
+      <a href="/" class="nav__logo" aria-label="Beansprout.ink home">
+        <span class="nav__logo-text">Beansprout</span><span class="nav__logo-dot">.ink</span>
+      </a>
+      <nav class="nav__links" aria-label="Main navigation">
+        <a href="/portfolio/" class="nav__link">Work</a>
+        <a href="/about/"     class="nav__link">About</a>
+        <a href="/booking/"   class="nav__link">Booking</a>
+        <a href="/contact/"   class="nav__link">Contact</a>
+        <a href="/booking/"   class="nav__link nav__link--book">Book Now</a>
+      </nav>
+      <a href="/booking/" class="btn btn--accent nav__cta">Book Now</a>
+      <button class="nav__toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-main">
+
+    <section class="page-hero">
+      <div class="container">
+        <span class="section-label">The Artist</span>
+        <h1 class="page-hero__title">About Me</h1>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="about-page__grid">
+          <div class="about-page__image">
+            <div class="gallery__placeholder gallery__placeholder--portrait"></div>
+          </div>
+          <div class="about-page__text">
+            <h2>Botanical roots,<br />inked with intent</h2>
+            <div class="about-page__divider"></div>
+            <p>
+              [Artist bio goes here. Talk about your background, how you got into tattooing,
+              what drives your work, your influences. Keep it personal and honest — clients
+              book artists they connect with as much as the work.]
+            </p>
+            <p>
+              My style is rooted in the natural world — botanicals, fauna, organic forms —
+              rendered with fine line detail and a considered use of negative space. Every
+              piece is custom designed for the person wearing it.
+            </p>
+            <p>
+              Based at [Studio Name], [City]. Bookings open [frequency — e.g. quarterly].
+              Follow on Instagram for the latest flash drops and availability updates.
+            </p>
+            <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;margin-top:var(--space-2)">
+              <a href="/booking/" class="btn btn--accent">Book a Session</a>
+              <a href="#"         class="btn btn--outline" rel="noopener noreferrer">Instagram</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <a href="/" class="nav__logo"><span class="nav__logo-text">Beansprout</span><span class="nav__logo-dot">.ink</span></a>
+          <p class="footer__tagline">Custom tattoo — botanical &amp; illustrative.</p>
+        </div>
+        <nav class="footer__nav" aria-label="Footer navigation">
+          <a href="/portfolio/">Work</a>
+          <a href="/about/">About</a>
+          <a href="/booking/">Booking</a>
+          <a href="/contact/">Contact</a>
+        </nav>
+        <div class="footer__social">
+          <a href="#" class="footer__social-link" rel="noopener noreferrer">Instagram</a>
+          <a href="#" class="footer__social-link" rel="noopener noreferrer">TikTok</a>
+        </div>
+      </div>
+      <div class="footer__bottom"><span>&copy; 2026 Beansprout.ink</span></div>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+/* ── About Snippet ────────────────────────────────────── */
+.about-snippet__inner {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: clamp(var(--space-10), 6vw, var(--space-20));
+  align-items: center;
+}
+
+.about-snippet__image {
+  position: relative;
+}
+
+.about-snippet__image::after {
+  content: '';
+  position: absolute;
+  top: var(--space-5);
+  left: var(--space-5);
+  right: calc(var(--space-5) * -1);
+  bottom: calc(var(--space-5) * -1);
+  border: 1px solid var(--color-accent);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.about-snippet__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+/* ── Booking CTA ──────────────────────────────────────── */
+.booking-cta {
+  background-color: var(--color-surface);
+  border-block: 1px solid var(--color-border);
+}
+
+.booking-cta__inner {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: clamp(var(--space-10), 6vw, var(--space-20));
+  align-items: center;
+}
+
+.booking-cta__title {
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-4xl), 5.5vw, var(--text-7xl));
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+}
+
+.booking-cta__title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.88em;
+  letter-spacing: 0;
+}
+
+.booking-cta__action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 800px) {
+  .about-snippet__inner,
+  .booking-cta__inner {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+
+  .about-snippet__image {
+    max-width: 380px;
+  }
+}
