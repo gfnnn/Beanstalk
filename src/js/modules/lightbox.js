@@ -1,3 +1,5 @@
+import { pauseScroll, resumeScroll } from './lenis.js'
+
 export function initLightbox() {
   const lightbox      = document.getElementById('lightbox')
   if (!lightbox) return
@@ -27,6 +29,7 @@ export function initLightbox() {
     lightbox.classList.add('open')
     lightbox.setAttribute('aria-hidden', 'false')
     document.body.style.overflow = 'hidden'
+    pauseScroll()
     lbClose?.focus()
   }
 
@@ -34,6 +37,7 @@ export function initLightbox() {
     lightbox.classList.remove('open')
     lightbox.setAttribute('aria-hidden', 'true')
     document.body.style.overflow = ''
+    resumeScroll()
   }
 
   function updateLightbox() {

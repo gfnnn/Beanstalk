@@ -1,15 +1,15 @@
-/* ── Specialisms ──────────────────────────────────────── */
+/* ── Specialisms — mobile-first ──────────────────────────────────────────── */
 .specialism-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 .specialism-card {
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 32px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -45,7 +45,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--moss-soft);
-  margin-bottom: 44px;
+  margin-bottom: 36px;
   position: relative;
   z-index: 1;
 }
@@ -67,7 +67,7 @@
 .specialism-title {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1.05;
   letter-spacing: -0.02em;
   margin-bottom: 12px;
@@ -96,25 +96,28 @@
   border-bottom-color: var(--moss);
 }
 
-/* ── Process ──────────────────────────────────────────── */
+@media (min-width: 640px) {
+  .specialism-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .specialism-card { padding: 32px; }
+  .specialism-num  { margin-bottom: 44px; }
+  .specialism-title { font-size: 32px; }
+}
+
+@media (min-width: 1100px) {
+  .specialism-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+
+/* ── Process — mobile-first ──────────────────────────────────────────────── */
 .process-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
+  grid-template-columns: 1fr;
+  gap: 24px;
   position: relative;
 }
 
-/* Horizontal connector line through step numbers */
-.process-grid::before {
-  content: '';
-  position: absolute;
-  top: 84px;
-  left: calc(12.5% + 18px);
-  right: calc(12.5% + 18px);
-  height: 1px;
-  background: var(--line);
-  z-index: 0;
-}
+/* Connector line — desktop only */
+.process-grid::before { display: none; }
 
 .process-step {
   position: relative;
@@ -126,20 +129,20 @@
   font-family: var(--serif);
   font-style: italic;
   font-weight: 300;
-  font-size: 100px;
+  font-size: 80px;
   line-height: 1;
   color: var(--moss-soft);
   letter-spacing: -0.04em;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: block;
 }
 
 .process-title {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: -0.01em;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .process-body {
@@ -148,41 +151,65 @@
   line-height: 1.6;
 }
 
-/* ── Testimonials ─────────────────────────────────────── */
+@media (min-width: 640px) {
+  .process-grid  { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .process-num   { font-size: 100px; margin-bottom: 16px; }
+  .process-title { font-size: 24px; margin-bottom: 10px; }
+}
+
+@media (min-width: 900px) {
+  .process-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  /* Horizontal connector line through step numerals */
+  .process-grid::before {
+    display: block;
+    content: '';
+    position: absolute;
+    top: 84px;
+    left: calc(12.5% + 18px);
+    right: calc(12.5% + 18px);
+    height: 1px;
+    background: var(--line);
+    z-index: 0;
+  }
+}
+
+
+/* ── Testimonials — mobile-first ─────────────────────────────────────────── */
 .testimonials-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .testimonial {
-  padding: 32px 32px 32px 0;
-  border-left: 1px solid var(--line);
-  padding-left: 32px;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--line);
   will-change: transform, opacity;
 }
 .testimonial:first-child {
-  border-left: none;
-  padding-left: 0;
+  border-top: none;
+  padding-top: 0;
 }
 
 .quote-mark {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 68px;
+  font-size: 56px;
   line-height: 0.6;
   color: var(--clay);
   opacity: 0.65;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   display: block;
 }
 
 .quote-text {
   font-family: var(--serif);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 300;
   line-height: 1.5;
   color: var(--ink);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   letter-spacing: -0.01em;
 }
 
@@ -194,9 +221,34 @@
   color: var(--ink-faint);
 }
 
-/* ── Mobile sticky CTA ────────────────────────────────── */
+@media (min-width: 640px) {
+  .quote-mark { font-size: 68px; }
+  .quote-text { font-size: 19px; margin-bottom: 20px; }
+}
+
+@media (min-width: 900px) {
+  .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .testimonial {
+    padding: 32px 32px 32px 32px;
+    border-top: none;
+    border-left: 1px solid var(--line);
+  }
+  .testimonial:first-child {
+    border-left: none;
+    padding-left: 0;
+    border-top: none;
+    padding-top: 32px;
+  }
+}
+
+
+/* ── Mobile sticky CTA ───────────────────────────────────────────────────────
+   Shown by default on mobile. JS adds .visible to slide it up.
+   Hidden entirely at desktop — no hero to scroll past anyway.
+   ─────────────────────────────────────────────────────────────────────────── */
 .mobile-cta {
-  display: none;
+  display: block;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -210,30 +262,9 @@
   transition: transform 300ms var(--ease);
 }
 .mobile-cta.visible { transform: translateY(0); }
-.mobile-cta .btn { width: 100%; justify-content: center; font-size: 16px; padding: 17px; }
+.mobile-cta .btn    { width: 100%; justify-content: center; font-size: 16px; padding: 17px; }
 
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 900px) {
-  .specialism-grid { grid-template-columns: 1fr 1fr; }
-  .process-grid    { grid-template-columns: 1fr 1fr; }
-  .process-grid::before { display: none; }
-}
-
-@media (max-width: 640px) {
-  .specialism-grid    { grid-template-columns: 1fr; }
-  .process-grid       { grid-template-columns: 1fr; }
-  .testimonials-grid  { grid-template-columns: 1fr; }
-
-  .testimonial {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--line);
-    padding-top: 28px;
-  }
-  .testimonial:first-child {
-    border-top: none;
-    padding-top: 0;
-  }
-
-  .mobile-cta { display: block; }
+@media (min-width: 641px) {
+  /* Hide on larger screens — CTA lives in the nav */
+  .mobile-cta { display: none; }
 }

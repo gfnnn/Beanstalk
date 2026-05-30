@@ -1,5 +1,5 @@
 .section {
-  padding: 80px var(--pad-x);
+  padding: 56px var(--pad-x);
 }
 
 .section-alt {
@@ -12,7 +12,7 @@
 .page-main { /* intentionally empty — sticky nav handles offset */ }
 
 .page-hero {
-  padding: 64px var(--pad-x) 48px;
+  padding: 48px var(--pad-x) 36px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -21,7 +21,7 @@
 .page-hero__title {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: clamp(52px, 8vw, 96px);
+  font-size: clamp(44px, 8vw, 96px);
   line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--ink);
@@ -31,19 +31,33 @@
 /* Section header row — eyebrow+title left, optional CTA right */
 .section-head {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 32px;
-  margin-bottom: 48px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 36px;
 }
 
 .section-head-left {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-@media (max-width: 640px) {
-  .section      { padding: 56px var(--pad-x); }
-  .section-head { flex-direction: column; align-items: flex-start; gap: 14px; }
+@media (min-width: 640px) {
+  .section      { padding: 72px var(--pad-x); }
+  .page-hero    { padding: 56px var(--pad-x) 40px; }
+}
+
+@media (min-width: 900px) {
+  .section      { padding: 80px var(--pad-x); }
+  .page-hero    { padding: 64px var(--pad-x) 48px; }
+
+  .section-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+  .section-head-left { gap: 16px; }
 }

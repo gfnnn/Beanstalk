@@ -1,22 +1,24 @@
+/* ── Footer — mobile-first ───────────────────────────────────────────────── */
+
 .footer {
   background: var(--bg-dark);
   color: var(--bg);
-  padding: 80px var(--pad-x) 32px;
+  padding: 56px var(--pad-x) 32px;
 }
 
 .footer-top {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr 1fr;
-  gap: 48px;
-  padding-bottom: 56px;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  padding-bottom: 40px;
   border-bottom: 1px solid rgba(247, 241, 227, 0.1);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .footer-brand .wordmark {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: 50px;
+  font-size: 38px;
   line-height: 1;
   letter-spacing: -0.025em;
   margin-bottom: 12px;
@@ -27,7 +29,7 @@
   font-size: 14px;
   color: rgba(247, 241, 227, 0.5);
   line-height: 1.6;
-  max-width: 250px;
+  max-width: 280px;
 }
 
 .footer-col h4 {
@@ -36,7 +38,7 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--moss-soft);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .footer-col ul {
@@ -49,6 +51,9 @@
   font-size: 14px;
   color: rgba(247, 241, 227, 0.6);
   transition: color var(--dur);
+  /* Ensure tap target */
+  display: inline-block;
+  padding: 2px 0;
 }
 .footer-col a:hover { color: var(--bg); }
 
@@ -56,7 +61,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
@@ -68,12 +73,24 @@
   color: rgba(247, 241, 227, 0.3);
 }
 
-@media (max-width: 900px) {
-  .footer-top { grid-template-columns: 1fr 1fr; }
+/* Extra padding on mobile for the CTA bar */
+@media (max-width: 640px) {
+  .footer { padding-bottom: calc(32px + 72px); }
 }
 
-@media (max-width: 640px) {
-  .footer-top { grid-template-columns: 1fr; gap: 32px; }
-  .footer-brand .wordmark { font-size: 38px; }
-  .footer { padding-bottom: calc(32px + 72px); } /* room for mobile CTA */
+@media (min-width: 640px) {
+  .footer { padding: 72px var(--pad-x) 32px; }
+  .footer-brand .wordmark { font-size: 44px; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; padding-bottom: 48px; }
+}
+
+@media (min-width: 900px) {
+  .footer { padding: 80px var(--pad-x) 32px; }
+  .footer-brand .wordmark { font-size: 50px; }
+  .footer-top {
+    grid-template-columns: 1.8fr 1fr 1fr 1fr;
+    gap: 48px;
+    padding-bottom: 56px;
+    margin-bottom: 28px;
+  }
 }

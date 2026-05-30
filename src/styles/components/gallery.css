@@ -1,27 +1,24 @@
-/* ── Portfolio tiles ──────────────────────────────────── */
+/* ── Portfolio tiles (bento, home page teaser) ───────────────────────────────
+   Mobile:  2-col uniform portrait grid — no spanning (looks cleaner on narrow)
+   Desktop: 3-col bento with tile 1 spanning 2 rows
+   ─────────────────────────────────────────────────────────────────────────── */
+
 .portfolio-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
-.portfolio-grid .tile:nth-child(1) { grid-row: span 2; }
 
+/* Uniform portrait aspect on mobile — removes layout conflicts */
 .tile {
   position: relative;
   overflow: hidden;
   background: var(--bg-alt);
   border-radius: var(--radius);
   cursor: pointer;
+  aspect-ratio: 4 / 5;
   will-change: transform, opacity;
 }
-
-/* Placeholder aspect ratios — swap for real images */
-.tile:nth-child(1) { aspect-ratio: 3 / 5; }
-.tile:nth-child(2) { aspect-ratio: 4 / 3; }
-.tile:nth-child(3) { aspect-ratio: 4 / 3; }
-.tile:nth-child(4) { aspect-ratio: 3 / 2; }
-.tile:nth-child(5) { aspect-ratio: 3 / 2; }
-.tile:nth-child(6) { aspect-ratio: 3 / 2; }
 
 .tile img {
   width: 100%;
@@ -45,16 +42,24 @@
 }
 .tile:hover .tile-overlay { opacity: 1; }
 
+/* Always-visible caption on touch devices (no hover) */
+@media (hover: none) {
+  .tile-overlay {
+    opacity: 1;
+    background: linear-gradient(transparent 55%, rgba(44, 42, 36, 0.55) 100%);
+  }
+}
+
 .tile-meta-title {
   font-family: var(--serif);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 300;
   color: var(--cream);
   margin-bottom: 3px;
 }
 .tile-meta-sub {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(251, 248, 238, 0.6);
@@ -77,9 +82,26 @@
 .gradient-clay  { background: linear-gradient(155deg, #C45A3E, #D8775A);       color: #FBF8EE; }
 .gradient-warm  { background: linear-gradient(155deg, #B8987A, #D5B898);       color: #2C2A24; }
 
-/* ── Masonry (portfolio inner page) ──────────────────── */
+/* Desktop bento — restore varied aspect ratios and span */
+@media (min-width: 900px) {
+  .portfolio-grid { grid-template-columns: repeat(3, 1fr); }
+  .portfolio-grid .tile:nth-child(1) { grid-row: span 2; }
+
+  .tile:nth-child(1) { aspect-ratio: 3 / 5; }
+  .tile:nth-child(2) { aspect-ratio: 4 / 3; }
+  .tile:nth-child(3) { aspect-ratio: 4 / 3; }
+  .tile:nth-child(4) { aspect-ratio: 3 / 2; }
+  .tile:nth-child(5) { aspect-ratio: 3 / 2; }
+  .tile:nth-child(6) { aspect-ratio: 3 / 2; }
+}
+
+
+/* ── Masonry (portfolio inner page) ─────────────────────────────────────────
+   CSS column-count — matches /src/styles/components/masonry.css for the
+   home-page gallery version. This class is for legacy inner pages.
+   ─────────────────────────────────────────────────────────────────────────── */
 .gallery--masonry {
-  columns: 3;
+  columns: 2;
   column-gap: 6px;
 }
 .gallery--masonry .tile {
@@ -90,18 +112,6 @@
 }
 .gallery--masonry .tile-placeholder { aspect-ratio: 3 / 4; }
 
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 900px) {
-  .portfolio-grid { grid-template-columns: 1fr 1fr; }
-  .portfolio-grid .tile:nth-child(1) {
-    grid-row: auto;
-    aspect-ratio: 4 / 3;
-  }
-  .gallery--masonry { columns: 2; }
-}
-
-@media (max-width: 640px) {
-  .portfolio-grid .tile:nth-child(5),
-  .portfolio-grid .tile:nth-child(6) { display: none; }
-  .gallery--masonry { columns: 1; }
+@media (min-width: 900px) {
+  .gallery--masonry { columns: 3; }
 }

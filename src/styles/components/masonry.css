@@ -1,22 +1,19 @@
-/* ── Masonry Grid ────────────────────────────────────────────────────────────
-   CSS column-count masonry — no JS library. 4→3→2 columns responsive.
-   Each .masonry-tile is an <a> with data-style and data-placement attrs.
-   Real images use <img loading="lazy"> at natural proportions (no fixed
-   aspect-ratio) — the mixed heights create the genuine masonry feel.
+/* ── Masonry Grid — mobile-first ─────────────────────────────────────────────
+   2 columns on mobile → 3 tablet → 4 desktop
    ─────────────────────────────────────────────────────────────────────────── */
 
 .grid-wrapper {
-  padding: 32px var(--pad-x) 80px;
+  padding: 24px var(--pad-x) 64px;
 }
 
 .masonry {
-  columns: 4;
-  column-gap: 10px;
+  columns: 2;
+  column-gap: 8px;
 }
 
 .masonry-tile {
   break-inside: avoid;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   display: block;
   position: relative;
   overflow: hidden;
@@ -59,7 +56,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 16px;
+  padding: 14px;
   opacity: 0;
   transition: opacity var(--dur) var(--ease);
 }
@@ -67,10 +64,18 @@
   opacity: 1;
 }
 
+/* Always-visible caption on touch devices */
+@media (hover: none) {
+  .masonry-tile .tile-overlay {
+    opacity: 1;
+    background: linear-gradient(transparent 55%, rgba(44, 42, 36, 0.58) 100%);
+  }
+}
+
 .tile-title {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--cream);
   margin-bottom: 2px;
   line-height: 1.25;
@@ -96,20 +101,18 @@
 .t-dark  { background: linear-gradient(160deg, #3A3A38, #5A5852); color: #DDD3BD; }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .masonry { columns: 3; }
+@media (min-width: 640px) {
+  .grid-wrapper { padding: 28px var(--pad-x) 72px; }
 }
 
-@media (max-width: 900px) {
-  .masonry { columns: 3; }
+@media (min-width: 900px) {
+  .masonry      { columns: 3; column-gap: 10px; }
+  .masonry-tile { margin-bottom: 10px; }
+  .tile-title   { font-size: 15px; }
+  .tile-overlay { padding: 16px; }
+  .grid-wrapper { padding: 32px var(--pad-x) 80px; }
 }
 
-@media (max-width: 640px) {
-  .masonry {
-    columns: 2;
-    column-gap: 6px;
-  }
-  .masonry-tile {
-    margin-bottom: 6px;
-  }
+@media (min-width: 1200px) {
+  .masonry { columns: 4; }
 }

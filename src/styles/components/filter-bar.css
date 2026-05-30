@@ -1,6 +1,6 @@
-/* ── Filter Bar ─────────────────────────────────────────────────────────────
-   Sticky below nav at top: var(--nav-h). Style chips left, controls right.
-   JS adds .stuck when it's pinned (via IntersectionObserver).
+/* ── Filter Bar — mobile-first ───────────────────────────────────────────────
+   Mobile:  wraps to two rows (chips top, controls bottom), auto height
+   Desktop: single row, fixed height, chips left / controls right
    ─────────────────────────────────────────────────────────────────────────── */
 
 .filter-bar {
@@ -10,11 +10,10 @@
   background: var(--bg);
   border-bottom: 1px solid var(--line);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 0 var(--pad-x);
-  height: var(--filter-h);
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px var(--pad-x);
   transition: box-shadow var(--dur) var(--ease);
 }
 .filter-bar.stuck {
@@ -30,6 +29,8 @@
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  flex: 1;
+  min-width: 0;
 }
 .filter-chips::-webkit-scrollbar { display: none; }
 
@@ -37,7 +38,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 9px 14px;
+  min-height: 44px; /* touch target */
   font-family: var(--sans);
   font-size: 13px;
   border: 1px solid var(--line);
@@ -70,12 +72,13 @@
   color: rgba(247, 241, 227, 0.5);
 }
 
-/* ── Right cluster: placement select + sort + active summary ─────────────── */
+/* ── Right cluster ───────────────────────────────────────────────────────── */
 .filter-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
+  width: 100%; /* full-width row on mobile */
 }
 
 .filter-select {
@@ -83,22 +86,23 @@
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: 100px;
-  padding: 7px 32px 7px 14px;
+  padding: 10px 36px 10px 14px;
+  min-height: 44px; /* touch target */
   font-family: var(--sans);
   font-size: 13px;
   color: var(--ink);
   cursor: pointer;
-  /* custom SVG arrow */
+  flex: 1;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='%232C2A24' d='M6 8L0 0h12z'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 8px;
   transition: border-color var(--dur);
 }
-.filter-select:hover { border-color: var(--ink); }
-.filter-select:focus { outline: none; border-color: var(--moss); }
+.filter-select:hover  { border-color: var(--ink); }
+.filter-select:focus  { outline: none; border-color: var(--moss); }
 
-/* Active filter summary — hidden when "All" active */
+/* Active filter summary */
 .filter-summary {
   font-family: var(--mono);
   font-size: 10px;
@@ -108,6 +112,8 @@
   display: none;
   align-items: center;
   gap: 8px;
+  order: -1; /* appears before selects on mobile */
+  width: 100%;
 }
 .filter-summary.visible { display: inline-flex; }
 
@@ -117,25 +123,41 @@
   cursor: pointer;
   text-decoration: underline;
   transition: color var(--dur);
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
 }
 .filter-summary .clear:hover { color: var(--clay); }
 
-/* ── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .filter-bar { gap: 12px; }
-}
-
-@media (max-width: 640px) {
+/* ── Desktop: single-row layout ─────────────────────────────────────────── */
+@media (min-width: 640px) {
   .filter-bar {
-    height: auto;
-    padding: 12px var(--pad-x);
-    flex-wrap: wrap;
-    gap: 10px;
+    align-items: center;
+    flex-wrap: nowrap;
+    height: var(--filter-h);
+    padding: 0 var(--pad-x);
+    justify-content: space-between;
+    gap: 20px;
   }
+
   .filter-right {
-    width: 100%;
+    width: auto;
+    gap: 12px;
   }
+
   .filter-select {
-    flex: 1;
+    flex: none;
+    padding: 7px 32px 7px 14px;
+    min-height: auto;
+  }
+
+  .filter-summary {
+    order: 0;
+    width: auto;
+  }
+
+  .chip {
+    padding: 7px 14px;
+    min-height: auto;
   }
 }
