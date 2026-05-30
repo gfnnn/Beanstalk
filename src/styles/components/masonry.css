@@ -1,0 +1,115 @@
+/* ── Masonry Grid ────────────────────────────────────────────────────────────
+   CSS column-count masonry — no JS library. 4→3→2 columns responsive.
+   Each .masonry-tile is an <a> with data-style and data-placement attrs.
+   Real images use <img loading="lazy"> at natural proportions (no fixed
+   aspect-ratio) — the mixed heights create the genuine masonry feel.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.grid-wrapper {
+  padding: 32px var(--pad-x) 80px;
+}
+
+.masonry {
+  columns: 4;
+  column-gap: 10px;
+}
+
+.masonry-tile {
+  break-inside: avoid;
+  margin-bottom: 10px;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: var(--bg-alt);
+}
+
+.masonry-tile img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 500ms var(--ease);
+}
+.masonry-tile:hover img {
+  transform: scale(1.04);
+}
+
+/* Placeholder — remove when real images are added */
+.tile-placeholder {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 500ms var(--ease);
+}
+.masonry-tile:hover .tile-placeholder {
+  transform: scale(1.04);
+}
+.tile-placeholder svg {
+  width: 32%;
+  opacity: 0.25;
+}
+
+/* Hover overlay */
+.tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(44, 42, 36, 0.72) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.masonry-tile:hover .tile-overlay {
+  opacity: 1;
+}
+
+.tile-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 15px;
+  color: var(--cream);
+  margin-bottom: 2px;
+  line-height: 1.25;
+}
+.tile-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(251, 248, 238, 0.6);
+}
+
+/* ── Placeholder gradient swatches ──────────────────────────────────────── */
+.t-moss  { background: linear-gradient(160deg, #4A5D3F, #6B7E5A); color: #E8E1C9; }
+.t-cream { background: linear-gradient(160deg, #DCC9A4, #EFE3C9); color: #3A3830; }
+.t-ink   { background: linear-gradient(160deg, #2C2A24, #4A4640); color: #CCC5B0; }
+.t-sage  { background: linear-gradient(160deg, #8A9A75, #A5B391); color: #2C2A24; }
+.t-clay  { background: linear-gradient(160deg, #C45A3E, #D8775A); color: #FBF8EE; }
+.t-warm  { background: linear-gradient(160deg, #B8987A, #D5B898); color: #2C2A24; }
+.t-deep  { background: linear-gradient(160deg, #36473F, #56685A); color: #E8E1C9; }
+.t-blush { background: linear-gradient(160deg, #D8B5A0, #E8C8B0); color: #2C2A24; }
+.t-stone { background: linear-gradient(160deg, #9A9085, #B5A898); color: #2C2A24; }
+.t-dark  { background: linear-gradient(160deg, #3A3A38, #5A5852); color: #DDD3BD; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .masonry { columns: 3; }
+}
+
+@media (max-width: 900px) {
+  .masonry { columns: 3; }
+}
+
+@media (max-width: 640px) {
+  .masonry {
+    columns: 2;
+    column-gap: 6px;
+  }
+  .masonry-tile {
+    margin-bottom: 6px;
+  }
+}

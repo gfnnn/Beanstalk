@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- COPY: page title — e.g. "Beansprout — Portfolio · Tattoo Artist Guildford" -->
+  <title>[Portfolio page title]</title>
+  <!-- COPY: meta description — 140–160 chars summarising the portfolio -->
+  <meta name="description" content="[Portfolio meta description — style, placement, Guildford]">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../src/styles/main.css">
+</head>
+<body>
+
+<!-- =========================================================
+     NAV — Portfolio active
+     ========================================================= -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+
+  <!--
+    LOGO — swap placeholder once logo file is ready:
+    <a href="/" aria-label="Beansprout — home">
+      <img src="/images/logo.svg" alt="Beansprout" class="nav-logo-img">
+    </a>
+  -->
+  <a href="/" aria-label="Beansprout — home">
+    <div class="nav-logo-placeholder">logo.svg</div>
+  </a>
+
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/garden" class="active" aria-current="page">Portfolio</a></li>
+    <li><a href="/flash">Flash</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="/services">Services</a></li>
+    <li><a href="/faq">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" id="nav-more-btn"
+              aria-expanded="false" aria-controls="nav-dropdown">
+        More <span class="chevron" aria-hidden="true"></span>
+      </button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare">Aftercare</a></li>
+        <li><a href="/visit">Contact &amp; visit</a></li>
+        <li><a href="/newsletter">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger"
+            aria-label="Open menu" aria-expanded="false"
+            aria-controls="nav-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+</nav>
+
+<!-- Mobile drawer -->
+<div class="nav-drawer" id="nav-drawer"
+     aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/garden" class="active">Portfolio</a>
+  <a href="/flash">Flash</a>
+  <a href="/about">About</a>
+  <a href="/services">Services</a>
+  <a href="/faq">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare">Aftercare</a>
+    <a href="/visit">Contact &amp; visit</a>
+    <a href="/newsletter">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content: center;">Books open</span>
+    <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+
+<!-- =========================================================
+     PAGE HEADER
+     ========================================================= -->
+<header class="page-header">
+
+  <div class="page-header-left">
+    <!-- COPY: eyebrow — e.g. "The Garden · Guildford, Surrey" -->
+    <p class="page-eyebrow">[Portfolio eyebrow — e.g. studio name · location]</p>
+    <!-- COPY: portfolio page H1 — short, poetic, italic word for emphasis -->
+    <h1 class="page-title">[Portfolio <em>title.]</em></h1>
+  </div>
+
+  <div class="page-header-right">
+    <!-- COPY: 1–2 sentence descriptor — what kind of work, who it's for -->
+    <p class="page-descriptor">
+      [Portfolio descriptor — 1–2 sentences about the style and intent of the work shown here.]
+    </p>
+  </div>
+
+</header>
+
+
+<!-- =========================================================
+     FILTER BAR — sticky below nav
+     ========================================================= -->
+<div class="filter-bar" id="filter-bar"
+     role="search" aria-label="Filter portfolio">
+
+  <!-- Style chips — update chip labels and data-filter values to match real categories -->
+  <!-- COPY: chip labels are the style category display names -->
+  <div class="filter-chips" role="group" aria-label="Filter by style">
+
+    <button class="chip active" data-filter="all">
+      All <span class="chip-count" data-count="0">0</span>
+    </button>
+    <!-- COPY: style 1 — e.g. "Fine line" · data-filter="fine-line" -->
+    <button class="chip" data-filter="fine-line">
+      [Style 1] <span class="chip-count" data-count="0">0</span>
+    </button>
+    <!-- COPY: style 2 — e.g. "Botanical" · data-filter="botanical" -->
+    <button class="chip" data-filter="botanical">
+      [Style 2] <span class="chip-count" data-count="0">0</span>
+    </button>
+    <!-- COPY: style 3 — e.g. "Blackwork" · data-filter="blackwork" -->
+    <button class="chip" data-filter="blackwork">
+      [Style 3] <span class="chip-count" data-count="0">0</span>
+    </button>
+    <!-- COPY: style 4 — e.g. "Script" · data-filter="script" -->
+    <button class="chip" data-filter="script">
+      [Style 4] <span class="chip-count" data-count="0">0</span>
+    </button>
+    <!-- COPY: style 5 — e.g. "Colour" · data-filter="colour" -->
+    <button class="chip" data-filter="colour">
+      [Style 5] <span class="chip-count" data-count="0">0</span>
+    </button>
+
+  </div>
+
+  <div class="filter-right">
+
+    <!-- Active filter summary — hidden when all shown, visible when filtered -->
+    <span class="filter-summary" id="filter-summary" aria-live="polite">
+      <span id="summary-text"></span>
+      <span class="clear" id="filter-clear" role="button" tabindex="0">Clear</span>
+    </span>
+
+    <!-- Placement filter — update option labels to match real placement categories -->
+    <!-- COPY: option labels are placement display names -->
+    <select class="filter-select" id="placement-filter"
+            aria-label="Filter by placement">
+      <option value="all">All placements</option>
+      <option value="forearm">[Placement 1 — e.g. Forearm]</option>
+      <option value="wrist">[Placement 2 — e.g. Wrist]</option>
+      <option value="back">[Placement 3 — e.g. Back]</option>
+      <option value="spine">[Placement 4 — e.g. Spine]</option>
+      <option value="leg">[Placement 5 — e.g. Leg]</option>
+      <option value="chest">[Placement 6 — e.g. Chest]</option>
+      <option value="hand">[Placement 7 — e.g. Hand]</option>
+    </select>
+
+    <!-- Sort order -->
+    <!-- COPY: option labels for sort order -->
+    <select class="filter-select filter-sort" id="sort-order"
+            aria-label="Sort order">
+      <option value="newest">[Sort 1 — e.g. Newest first]</option>
+      <option value="oldest">[Sort 2 — e.g. Oldest first]</option>
+    </select>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     MASONRY GRID
+
+     IMPLEMENTATION NOTES:
+     ─────────────────────────────────────────────────────────
+     CSS column-count masonry (not a JS library). Each tile is
+     an <a> with:
+       data-style="[style]"      — matches chip data-filter
+       data-placement="[place]"  — matches placement option value
+
+     REAL IMAGES: replace .tile-placeholder divs with <img>:
+       <img src="/images/tattoos/[slug].jpg"
+            alt="[Style] tattoo of [subject] on [placement]"
+            loading="lazy"
+            width="[naturalW]" height="[naturalH]">
+
+     ALT TEXT FORMULA (follow for SEO consistency):
+       "[Style] tattoo of [subject] on [placement]"
+       e.g. "Fine line botanical tattoo of foxglove on inner forearm"
+
+     TILE URL: /garden/[slug]
+     IMAGE PATH: /images/tattoos/[slug].jpg
+     MAX IMAGE WIDTH: 1200px  |  QUALITY: 80% JPEG or WebP
+
+     LOAD MORE: first 16 tiles shown on load. All tiles are in
+     the DOM — JS reveals the next 16 on button click.
+     ─────────────────────────────────────────────────────────
+     ========================================================= -->
+<main class="grid-wrapper" id="grid-wrapper">
+
+  <div class="masonry" id="masonry-grid" aria-label="Portfolio grid">
+
+    <!--
+      TILE TEMPLATE:
+      ─────────────────────────────────────────────────────
+      <a href="/garden/[slug]" class="masonry-tile"
+         data-style="[style]" data-placement="[placement]">
+        <img src="/images/tattoos/[slug].jpg"
+             alt="[Style] tattoo of [subject] on [placement]"
+             loading="lazy" width="[w]" height="[h]">
+        <div class="tile-overlay">
+          <p class="tile-title">[Title]</p>
+          <p class="tile-sub">[Style] · [Placement]</p>
+        </div>
+      </a>
+      ─────────────────────────────────────────────────────
+      COPY: update tile-title and tile-sub for each piece.
+    -->
+
+    <!-- Tile 01 -->
+    <a href="/garden/[slug-01]" class="masonry-tile"
+       data-style="fine-line" data-placement="forearm">
+      <div class="tile-placeholder t-moss" style="height: 340px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 12C42 32 42 55 50 90C58 55 58 32 50 12Z"/>
+          <path d="M50 32L32 37 M50 52L28 57 M50 72L32 77"/>
+        </svg>
+      </div>
+      <!-- COPY: tile title and sub (style · placement) -->
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 02 -->
+    <a href="/garden/[slug-02]" class="masonry-tile"
+       data-style="blackwork" data-placement="wrist">
+      <div class="tile-placeholder t-ink" style="height: 260px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M28 78C28 52 36 32 50 26C64 32 72 52 72 78"/>
+          <path d="M34 52C40 46 46 46 50 52C54 46 60 46 66 52"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 03 -->
+    <a href="/garden/[slug-03]" class="masonry-tile"
+       data-style="botanical" data-placement="spine">
+      <div class="tile-placeholder t-sage" style="height: 420px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 15C35 30 30 50 38 72C44 88 56 88 62 72C70 50 65 30 50 15Z"/>
+          <path d="M50 38L50 90 M38 55L62 55"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 04 -->
+    <a href="/garden/[slug-04]" class="masonry-tile"
+       data-style="fine-line" data-placement="wrist">
+      <div class="tile-placeholder t-cream" style="height: 300px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="50" cy="50" r="22"/>
+          <path d="M50 28L50 8 M28 50L8 50 M50 72L50 92 M72 50L92 50"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 05 -->
+    <a href="/garden/[slug-05]" class="masonry-tile"
+       data-style="blackwork" data-placement="chest">
+      <div class="tile-placeholder t-dark" style="height: 380px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 84L40 32L50 26L60 32L68 84Z"/>
+          <path d="M36 62L64 62 M40 72L60 72"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 06 -->
+    <a href="/garden/[slug-06]" class="masonry-tile"
+       data-style="botanical" data-placement="forearm">
+      <div class="tile-placeholder t-warm" style="height: 290px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="50" cy="56" r="18"/>
+          <path d="M50 38L50 18 M32 56L50 74L68 56"/>
+          <path d="M38 26L50 18L62 26"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 07 -->
+    <a href="/garden/[slug-07]" class="masonry-tile"
+       data-style="fine-line" data-placement="back">
+      <div class="tile-placeholder t-blush" style="height: 360px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 50C30 35 40 35 50 50C60 65 70 65 80 50 M20 70C30 55 40 55 50 70C60 85 70 85 80 70"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 08 -->
+    <a href="/garden/[slug-08]" class="masonry-tile"
+       data-style="script" data-placement="wrist">
+      <div class="tile-placeholder t-stone" style="height: 240px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M25 60C28 45 35 38 50 38C65 38 72 45 75 60 M30 75L70 75"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 09 -->
+    <a href="/garden/[slug-09]" class="masonry-tile"
+       data-style="botanical" data-placement="leg">
+      <div class="tile-placeholder t-deep" style="height: 440px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 90L50 30L35 15L50 30L65 15 M50 50L40 55 M50 65L60 70"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 10 -->
+    <a href="/garden/[slug-10]" class="masonry-tile"
+       data-style="blackwork" data-placement="forearm">
+      <div class="tile-placeholder t-ink" style="height: 310px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M30 30Q50 10 70 30Q90 50 70 70Q50 90 30 70Q10 50 30 30"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 11 -->
+    <a href="/garden/[slug-11]" class="masonry-tile"
+       data-style="fine-line" data-placement="spine">
+      <div class="tile-placeholder t-moss" style="height: 390px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 10C40 30 40 50 50 90 M50 30L35 35 M50 50L30 55 M50 70L35 75"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 12 -->
+    <a href="/garden/[slug-12]" class="masonry-tile"
+       data-style="colour" data-placement="forearm">
+      <div class="tile-placeholder t-clay" style="height: 270px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="50" cy="50" r="25"/>
+          <path d="M50 25L50 75 M25 50L75 50"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 13 -->
+    <a href="/garden/[slug-13]" class="masonry-tile"
+       data-style="botanical" data-placement="hand">
+      <div class="tile-placeholder t-sage" style="height: 320px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 85L50 30C50 20 40 18 38 26C36 18 26 20 26 30L26 50"/>
+          <path d="M50 30C50 20 60 18 62 26C64 18 74 20 74 30L74 50"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 14 -->
+    <a href="/garden/[slug-14]" class="masonry-tile"
+       data-style="blackwork" data-placement="leg">
+      <div class="tile-placeholder t-dark" style="height: 460px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 15C35 25 30 45 40 65L40 85L60 85L60 65C70 45 65 25 50 15"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 15 -->
+    <a href="/garden/[slug-15]" class="masonry-tile"
+       data-style="fine-line" data-placement="chest">
+      <div class="tile-placeholder t-cream" style="height: 280px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 50L35 30L50 50L65 30L80 50 M25 65L75 65"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!-- Tile 16 -->
+    <a href="/garden/[slug-16]" class="masonry-tile"
+       data-style="botanical" data-placement="back">
+      <div class="tile-placeholder t-warm" style="height: 350px;">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M30 80C35 50 50 30 70 25C60 45 55 65 50 85"/>
+        </svg>
+      </div>
+      <div class="tile-overlay">
+        <p class="tile-title">[Tattoo title]</p>
+        <p class="tile-sub">[Style] · [Placement]</p>
+      </div>
+    </a>
+
+    <!--
+      ADD MORE TILES HERE — tiles beyond the 16th are hidden until
+      "Load more" is clicked. Follow the tile template above.
+      Each new tile needs data-style and data-placement attributes.
+    -->
+
+  </div>
+
+  <!-- Empty state — shown when filters return zero results -->
+  <div class="empty-state" id="empty-state" aria-live="polite">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"
+         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="24" cy="24" r="18"/>
+      <path d="M16 32C18 28 21 26 24 26C27 26 30 28 32 32"/>
+      <circle cx="18" cy="20" r="2" fill="currentColor"/>
+      <circle cx="30" cy="20" r="2" fill="currentColor"/>
+    </svg>
+    <!-- COPY: empty state heading and message -->
+    <h3>[Nothing found heading — e.g. "No work found"]</h3>
+    <p>[Empty state message — e.g. "No pieces match those filters. Try a different style or placement."]</p>
+    <button class="btn btn-outline" id="empty-clear">
+      <!-- COPY: clear filters button label -->
+      [Clear filters label — e.g. "Clear filters"]
+    </button>
+  </div>
+
+</main>
+
+
+<!-- =========================================================
+     LOAD MORE
+     ========================================================= -->
+<div class="load-more" id="load-more-section">
+  <p class="load-more-meta">
+    <!-- COPY: "Showing" / "of" / "pieces" labels -->
+    [Showing label]
+    <strong id="showing-count">16</strong>
+    [of label]
+    <strong id="total-count">16</strong>
+    [pieces label]
+  </p>
+  <div class="load-progress" role="progressbar"
+       aria-valuenow="16" aria-valuemin="0" aria-valuemax="16"
+       aria-label="Portfolio loading progress">
+    <div class="load-progress-fill" id="progress-fill"></div>
+  </div>
+  <!-- COPY: load more button label -->
+  <button class="btn btn-outline" id="load-more-btn">
+    [Load more label — e.g. "Load more work →"]
+  </button>
+</div>
+
+
+<!-- =========================================================
+     LIGHTBOX
+     ========================================================= -->
+<div class="lightbox" id="lightbox"
+     aria-modal="true" role="dialog"
+     aria-label="Image viewer" aria-hidden="true">
+  <div class="lightbox-inner">
+
+    <button class="lightbox-close" id="lightbox-close"
+            aria-label="Close image viewer">✕</button>
+
+    <button class="lightbox-prev" id="lightbox-prev"
+            aria-label="Previous image">←</button>
+    <button class="lightbox-next" id="lightbox-next"
+            aria-label="Next image">→</button>
+
+    <div class="lightbox-img-wrap" id="lightbox-img-wrap">
+      <!--
+        Placeholder — JS replaces this with the clicked tile's image.
+        When real images are wired up, lightbox.js handles the swap.
+      -->
+      <div class="lightbox-placeholder t-moss" id="lightbox-placeholder">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="6" y="8" width="36" height="32" rx="3"/>
+          <circle cx="17" cy="20" r="4"/>
+          <path d="M6 32L16 22L24 30L32 22L42 32"/>
+        </svg>
+      </div>
+
+      <div class="lightbox-caption">
+        <p class="lightbox-caption-title" id="lightbox-title"></p>
+        <p class="lightbox-caption-sub"   id="lightbox-sub"></p>
+      </div>
+    </div>
+
+    <p class="lightbox-counter" id="lightbox-counter">01 / 16</p>
+
+  </div>
+</div>
+
+
+<!-- =========================================================
+     FOOTER
+     ========================================================= -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <!--
+        FOOTER LOGO — swap wordmark with logo image once light variant exists:
+        <img src="/images/logo-light.svg" alt="Beansprout" class="nav-logo-img">
+      -->
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">[Footer studio descriptor — 1–2 lines]</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links">
+      <h4>Site</h4>
+      <ul>
+        <li><a href="/garden">Portfolio</a></li>
+        <li><a href="/flash">Flash</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Pricing</a></li>
+        <li><a href="/faq">FAQ</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Visit links">
+      <h4>Visit</h4>
+      <ul>
+        <li><a href="/visit">Find the studio</a></li>
+        <li><a href="/aftercare">Aftercare</a></li>
+        <li><a href="/visit#access">Accessibility</a></li>
+        <li><a href="/visit#hours">Studio hours</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Social links">
+      <h4>Follow</h4>
+      <ul>
+        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener">TikTok</a></li>
+        <li><a href="/newsletter">Newsletter</a></li>
+        <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <!-- COPY: copyright line and legal links -->
+    <p class="footer-copy">© Beansprout 2026 — [legal tagline]</p>
+    <p class="footer-copy">Privacy · Terms · Cookies</p>
+  </div>
+</footer>
+
+<!-- Mobile sticky CTA — always visible on portfolio (no hero to scroll past) -->
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <!-- COPY: mobile CTA button label -->
+  <a href="/enquire" class="btn btn-primary">[CTA label — e.g. "Start an enquiry →"]</a>
+</div>
+
+
+<script type="module" src="../src/js/main.js"></script>
+</body>
+</html>

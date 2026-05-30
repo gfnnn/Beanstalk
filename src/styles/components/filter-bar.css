@@ -1,0 +1,141 @@
+/* ── Filter Bar ─────────────────────────────────────────────────────────────
+   Sticky below nav at top: var(--nav-h). Style chips left, controls right.
+   JS adds .stuck when it's pinned (via IntersectionObserver).
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.filter-bar {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 var(--pad-x);
+  height: var(--filter-h);
+  transition: box-shadow var(--dur) var(--ease);
+}
+.filter-bar.stuck {
+  box-shadow: 0 4px 20px rgba(44, 42, 36, 0.06);
+}
+
+/* ── Style chips ─────────────────────────────────────────────────────────── */
+.filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--cream);
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur), border-color var(--dur), color var(--dur);
+  flex-shrink: 0;
+}
+.chip:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.chip-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+  transition: color var(--dur);
+}
+.chip.active .chip-count {
+  color: rgba(247, 241, 227, 0.5);
+}
+
+/* ── Right cluster: placement select + sort + active summary ─────────────── */
+.filter-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.filter-select {
+  appearance: none;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 7px 32px 7px 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  /* custom SVG arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='%232C2A24' d='M6 8L0 0h12z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 8px;
+  transition: border-color var(--dur);
+}
+.filter-select:hover { border-color: var(--ink); }
+.filter-select:focus { outline: none; border-color: var(--moss); }
+
+/* Active filter summary — hidden when "All" active */
+.filter-summary {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--moss);
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.filter-summary.visible { display: inline-flex; }
+
+.filter-summary .clear {
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color var(--dur);
+}
+.filter-summary .clear:hover { color: var(--clay); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .filter-bar { gap: 12px; }
+}
+
+@media (max-width: 640px) {
+  .filter-bar {
+    height: auto;
+    padding: 12px var(--pad-x);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .filter-right {
+    width: 100%;
+  }
+  .filter-select {
+    flex: 1;
+  }
+}

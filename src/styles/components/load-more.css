@@ -1,0 +1,70 @@
+/* ── Load More ───────────────────────────────────────────────────────────────
+   Progress bar + "Showing N of N" meta + load more button.
+   JS hides this section entirely when all tiles are visible.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.load-more {
+  text-align: center;
+  padding: 0 var(--pad-x) 80px;
+}
+
+.load-more-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 20px;
+}
+.load-more-meta strong {
+  color: var(--ink);
+  font-weight: 400;
+}
+
+/* Progress bar */
+.load-progress {
+  width: 240px;
+  height: 2px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+  overflow: hidden;
+}
+.load-progress-fill {
+  height: 100%;
+  background: var(--moss-soft);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 400ms var(--ease);
+}
+
+/* ── Empty State ─────────────────────────────────────────────────────────────
+   Shown when active filters return zero results.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.empty-state {
+  display: none;
+  text-align: center;
+  padding: 80px var(--pad-x);
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.empty-state.visible { display: flex; }
+
+.empty-state svg {
+  color: var(--line);
+  margin-bottom: 8px;
+}
+.empty-state h3 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 28px;
+  color: var(--ink);
+}
+.empty-state p {
+  font-size: 15px;
+  color: var(--ink-soft);
+  max-width: 320px;
+  line-height: 1.6;
+}

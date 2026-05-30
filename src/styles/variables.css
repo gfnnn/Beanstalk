@@ -27,6 +27,7 @@
   /* ── Layout ──────────────────────────────────────────── */
   --pad-x:     clamp(20px, 4vw, 48px);
   --nav-h:     65px;
+  --filter-h:  60px;
   --radius-sm: 4px;
   --radius:    8px;
   --radius-lg: 20px;

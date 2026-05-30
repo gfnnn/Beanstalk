@@ -7,7 +7,8 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        home: resolve(__dirname, 'index.html'),
+        home:      resolve(__dirname, 'index.html'),
+        portfolio: resolve(__dirname, 'portfolio/index.html'),
       }
     }
   },
