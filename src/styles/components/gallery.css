@@ -30,17 +30,8 @@
 .gallery__item {
   overflow: hidden;
   background-color: var(--color-surface);
-  opacity: 0;
-  transform: translateY(16px);
-  transition:
-    opacity  var(--dur-slow) var(--ease-out),
-    transform var(--dur-slow) var(--ease-out);
-  transition-delay: var(--item-delay, 0ms);
-}
-
-.gallery__item.is-visible {
-  opacity: 1;
-  transform: translateY(0);
+  /* initial visibility managed by GSAP */
+  will-change: transform, opacity;
 }
 
 .gallery__item--tall  { grid-row: span 2; }
