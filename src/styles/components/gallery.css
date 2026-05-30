@@ -1,89 +1,107 @@
-/* ── Placeholder (replaces real images) ───────────────── */
-.gallery__placeholder {
-  width: 100%;
-  height: 100%;
-  min-height: 280px;
-  background-color: var(--color-surface-raised);
-  background-image:
-    linear-gradient(135deg, var(--color-border) 0%, transparent 55%);
-  transition: transform var(--dur-slow) var(--ease-out);
-}
-
-.gallery__placeholder--portrait {
-  aspect-ratio: 3 / 4;
-  min-height: auto;
-}
-
-.gallery__placeholder--square {
-  aspect-ratio: 1;
-  min-height: auto;
-}
-
-/* ── Bento grid (home preview) ────────────────────────── */
-.gallery--grid {
+/* ── Portfolio tiles ──────────────────────────────────── */
+.portfolio-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 300px 260px;
-  gap: 3px;
+  gap: 6px;
 }
+.portfolio-grid .tile:nth-child(1) { grid-row: span 2; }
 
-.gallery__item {
+.tile {
+  position: relative;
   overflow: hidden;
-  background-color: var(--color-surface);
-  /* initial visibility managed by GSAP */
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  cursor: pointer;
   will-change: transform, opacity;
 }
 
-.gallery__item--tall  { grid-row: span 2; }
-.gallery__item--wide  { grid-column: span 2; }
+/* Placeholder aspect ratios — swap for real images */
+.tile:nth-child(1) { aspect-ratio: 3 / 5; }
+.tile:nth-child(2) { aspect-ratio: 4 / 3; }
+.tile:nth-child(3) { aspect-ratio: 4 / 3; }
+.tile:nth-child(4) { aspect-ratio: 3 / 2; }
+.tile:nth-child(5) { aspect-ratio: 3 / 2; }
+.tile:nth-child(6) { aspect-ratio: 3 / 2; }
 
-.gallery__item:hover .gallery__placeholder {
-  transform: scale(1.04);
-}
-
-/* Image swap: once real <img> or bg-image is used */
-.gallery__item img {
+.tile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--dur-slow) var(--ease-out);
+  transition: transform 500ms var(--ease);
 }
-.gallery__item:hover img { transform: scale(1.04); }
+.tile:hover img { transform: scale(1.04); }
 
-/* ── Masonry (portfolio page) ─────────────────────────── */
-.gallery--masonry {
-  columns: 3;
-  column-gap: 3px;
+/* Hover overlay */
+.tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 45%, rgba(44, 42, 36, 0.68) 100%);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
 }
+.tile:hover .tile-overlay { opacity: 1; }
 
-.gallery--masonry .gallery__item {
-  break-inside: avoid;
+.tile-meta-title {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--cream);
   margin-bottom: 3px;
 }
-
-.gallery--masonry .gallery__placeholder {
-  min-height: auto;
-  aspect-ratio: 3 / 4;
+.tile-meta-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(251, 248, 238, 0.6);
 }
+
+/* Gradient placeholder swatches */
+.tile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile-placeholder svg { width: 36%; height: 36%; opacity: 0.28; }
+
+.gradient-moss  { background: linear-gradient(155deg, #4A5D3F, #6B7E5A 70%); color: #E8E1C9; }
+.gradient-cream { background: linear-gradient(155deg, #DCC9A4, #EFE3C9);       color: #3A3830; }
+.gradient-ink   { background: linear-gradient(155deg, #2C2A24, #4A4640);       color: #CCC5B0; }
+.gradient-sage  { background: linear-gradient(155deg, #8A9A75, #A5B391);       color: #2C2A24; }
+.gradient-clay  { background: linear-gradient(155deg, #C45A3E, #D8775A);       color: #FBF8EE; }
+.gradient-warm  { background: linear-gradient(155deg, #B8987A, #D5B898);       color: #2C2A24; }
+
+/* ── Masonry (portfolio inner page) ──────────────────── */
+.gallery--masonry {
+  columns: 3;
+  column-gap: 6px;
+}
+.gallery--masonry .tile {
+  break-inside: avoid;
+  margin-bottom: 6px;
+  aspect-ratio: unset;
+  border-radius: var(--radius);
+}
+.gallery--masonry .tile-placeholder { aspect-ratio: 3 / 4; }
 
 /* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 960px) {
-  .gallery--grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: auto;
-  }
-  .gallery__item--tall,
-  .gallery__item--wide {
+@media (max-width: 900px) {
+  .portfolio-grid { grid-template-columns: 1fr 1fr; }
+  .portfolio-grid .tile:nth-child(1) {
     grid-row: auto;
-    grid-column: auto;
+    aspect-ratio: 4 / 3;
   }
-}
-
-@media (max-width: 640px) {
-  .gallery--grid    { grid-template-columns: 1fr; }
   .gallery--masonry { columns: 2; }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 640px) {
+  .portfolio-grid .tile:nth-child(5),
+  .portfolio-grid .tile:nth-child(6) { display: none; }
   .gallery--masonry { columns: 1; }
 }

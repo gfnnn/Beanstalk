@@ -1,78 +1,239 @@
-/* ── About Snippet ────────────────────────────────────── */
-.about-snippet__inner {
+/* ── Specialisms ──────────────────────────────────────── */
+.specialism-grid {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: clamp(var(--space-10), 6vw, var(--space-20));
-  align-items: center;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
-.about-snippet__image {
+.specialism-card {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--dur), transform var(--dur) var(--ease);
+  will-change: transform, opacity;
+}
+.specialism-card:hover {
+  border-color: var(--moss);
+  transform: translateY(-2px);
+}
+
+/* Large italic numeral in background */
+.specialism-card::before {
+  content: attr(data-num);
+  position: absolute;
+  top: -18px;
+  right: -6px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 128px;
+  color: var(--bg-alt);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.specialism-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--moss-soft);
+  margin-bottom: 44px;
+  position: relative;
+  z-index: 1;
+}
+
+.specialism-content { position: relative; z-index: 1; }
+
+.specialism-previews {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.specialism-previews .preview {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.specialism-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 32px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.specialism-title em { font-style: italic; color: var(--moss); }
+
+.specialism-body {
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.specialism-link {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+  display: inline-block;
+  transition: color var(--dur), border-color var(--dur);
+}
+.specialism-card:hover .specialism-link {
+  color: var(--moss);
+  border-bottom-color: var(--moss);
+}
+
+/* ── Process ──────────────────────────────────────────── */
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
   position: relative;
 }
 
-.about-snippet__image::after {
+/* Horizontal connector line through step numbers */
+.process-grid::before {
   content: '';
   position: absolute;
-  top: var(--space-5);
-  left: var(--space-5);
-  right: calc(var(--space-5) * -1);
-  bottom: calc(var(--space-5) * -1);
-  border: 1px solid var(--color-accent);
-  z-index: -1;
-  pointer-events: none;
+  top: 84px;
+  left: calc(12.5% + 18px);
+  right: calc(12.5% + 18px);
+  height: 1px;
+  background: var(--line);
+  z-index: 0;
 }
 
-.about-snippet__text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  align-items: flex-start;
+.process-step {
+  position: relative;
+  z-index: 1;
+  will-change: transform, opacity;
 }
 
-/* ── Booking CTA ──────────────────────────────────────── */
-.booking-cta {
-  background-color: var(--color-surface);
-  border-block: 1px solid var(--color-border);
-}
-
-.booking-cta__inner {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: clamp(var(--space-10), 6vw, var(--space-20));
-  align-items: center;
-}
-
-.booking-cta__title {
-  font-family: var(--font-display);
-  font-size: clamp(var(--text-4xl), 5.5vw, var(--text-7xl));
-  line-height: 0.9;
-  letter-spacing: 0.02em;
-  color: var(--color-text-primary);
-}
-
-.booking-cta__title em {
-  font-family: var(--font-serif);
+.process-num {
+  font-family: var(--serif);
   font-style: italic;
-  font-size: 0.88em;
-  letter-spacing: 0;
+  font-weight: 300;
+  font-size: 100px;
+  line-height: 1;
+  color: var(--moss-soft);
+  letter-spacing: -0.04em;
+  margin-bottom: 16px;
+  display: block;
 }
 
-.booking-cta__action {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  align-items: flex-start;
+.process-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
 }
+
+.process-body {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* ── Testimonials ─────────────────────────────────────── */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.testimonial {
+  padding: 32px 32px 32px 0;
+  border-left: 1px solid var(--line);
+  padding-left: 32px;
+  will-change: transform, opacity;
+}
+.testimonial:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.quote-mark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 68px;
+  line-height: 0.6;
+  color: var(--clay);
+  opacity: 0.65;
+  margin-bottom: 18px;
+  display: block;
+}
+
+.quote-text {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--ink);
+  margin-bottom: 20px;
+  letter-spacing: -0.01em;
+}
+
+.quote-credit {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ── Mobile sticky CTA ────────────────────────────────── */
+.mobile-cta {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 180;
+  padding: 14px 20px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  transform: translateY(100%);
+  transition: transform 300ms var(--ease);
+}
+.mobile-cta.visible { transform: translateY(0); }
+.mobile-cta .btn { width: 100%; justify-content: center; font-size: 16px; padding: 17px; }
 
 /* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 800px) {
-  .about-snippet__inner,
-  .booking-cta__inner {
-    grid-template-columns: 1fr;
-    gap: var(--space-10);
+@media (max-width: 900px) {
+  .specialism-grid { grid-template-columns: 1fr 1fr; }
+  .process-grid    { grid-template-columns: 1fr 1fr; }
+  .process-grid::before { display: none; }
+}
+
+@media (max-width: 640px) {
+  .specialism-grid    { grid-template-columns: 1fr; }
+  .process-grid       { grid-template-columns: 1fr; }
+  .testimonials-grid  { grid-template-columns: 1fr; }
+
+  .testimonial {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+  }
+  .testimonial:first-child {
+    border-top: none;
+    padding-top: 0;
   }
 
-  .about-snippet__image {
-    max-width: 380px;
-  }
+  .mobile-cta { display: block; }
 }

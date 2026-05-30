@@ -1,77 +1,66 @@
 .btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-xs);
+  gap: 10px;
+  padding: 15px 26px;
+  font-family: var(--sans);
+  font-size: 15px;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 100px;
+  border: 1.5px solid transparent;
   transition:
-    background-color var(--dur-fast) ease,
-    color           var(--dur-fast) ease,
-    border-color    var(--dur-fast) ease,
-    opacity         var(--dur-fast) ease;
+    transform   var(--dur) var(--ease),
+    background  var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color       var(--dur) var(--ease);
   cursor: pointer;
   white-space: nowrap;
-  text-decoration: none;
   line-height: 1;
+  text-decoration: none;
 }
 
-/* Accent — filled lime */
-.btn--accent {
-  background-color: var(--color-accent);
-  color: var(--color-accent-fg);
-  border-color: var(--color-accent);
+.btn:hover { transform: translateY(-1px); }
+
+/* Primary — clay */
+.btn-primary {
+  background: var(--clay);
+  border-color: var(--clay);
+  color: var(--cream);
 }
-.btn--accent:hover {
-  background-color: var(--color-accent-dim);
-  border-color: var(--color-accent-dim);
+.btn-primary:hover {
+  background: var(--clay-soft);
+  border-color: var(--clay-soft);
 }
 
-/* Outline — ghost with border */
-.btn--outline {
-  background-color: transparent;
-  color: var(--color-text-primary);
-  border-color: var(--color-border);
-}
-.btn--outline:hover {
-  border-color: rgba(240, 237, 232, 0.5);
-}
-
-/* Ghost — text-only with arrow */
-.btn--ghost {
+/* Outline — ink border */
+.btn-outline {
   background: transparent;
-  color: var(--color-text-secondary);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.btn-outline:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* Small */
+.btn-sm { padding: 9px 18px; font-size: 13px; }
+
+/* Ghost — text only with italic serif arrow */
+.btn-ghost {
+  background: transparent;
   border-color: transparent;
-  padding-inline: 0;
-  letter-spacing: 0.08em;
-  gap: var(--space-2);
+  color: var(--ink);
+  padding-left: 0;
+  padding-right: 0;
 }
-.btn--ghost::after {
-  content: '→';
+.btn-ghost:hover { color: var(--moss); }
+
+.btn-ghost .arrow {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
   display: inline-block;
-  transition: transform var(--dur-fast) var(--ease-out);
+  transition: transform var(--dur) var(--ease);
 }
-.btn--ghost:hover {
-  color: var(--color-text-primary);
-}
-.btn--ghost:hover::after {
-  transform: translateX(5px);
-}
-
-/* Sizes */
-.btn--lg {
-  padding: var(--space-4) var(--space-8);
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-}
-
-.btn--sm {
-  padding: var(--space-2) var(--space-4);
-  font-size: 10px;
-}
+.btn-ghost:hover .arrow { transform: translateX(4px); }

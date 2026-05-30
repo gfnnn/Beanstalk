@@ -1,54 +1,75 @@
 export function initNav() {
-  const nav    = document.getElementById('nav')
-  const toggle = nav?.querySelector('.nav__toggle')
-  const links  = nav?.querySelector('.nav__links')
+  const nav       = document.getElementById('main-nav')
+  const hamburger = document.getElementById('nav-hamburger')
+  const drawer    = document.getElementById('nav-drawer')
+  const moreWrap  = document.getElementById('nav-more')
+  const moreBtn   = document.getElementById('nav-more-btn')
+
   if (!nav) return
 
-  // Scrolled state via sentinel
-  const sentinel = document.createElement('div')
-  sentinel.style.cssText = 'position:absolute;top:0;height:1px;width:1px;pointer-events:none'
-  document.body.prepend(sentinel)
+  // ── Scroll state ────────────────────────────────────────
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60)
+  }, { passive: true })
 
-  new IntersectionObserver(
-    ([e]) => nav.classList.toggle('is-scrolled', !e.isIntersecting),
-    { threshold: 0 }
-  ).observe(sentinel)
-
-  // Active link
-  const currentPath = window.location.pathname.replace(/\/$/, '') || '/'
-  nav.querySelectorAll('.nav__link').forEach(link => {
-    const href = link.getAttribute('href')?.replace(/\/$/, '') || ''
+  // ── Active link ─────────────────────────────────────────
+  const currentPath = window.location.pathname
+  nav.querySelectorAll('.nav-links a, .nav-drawer a').forEach(link => {
+    const href = link.getAttribute('href')
     if (href && href !== '/' && currentPath.startsWith(href)) {
-      link.classList.add('is-active')
+      link.classList.add('active')
     }
   })
 
-  // Mobile toggle
-  if (!toggle || !links) return
+  // ── More dropdown ────────────────────────────────────────
+  if (moreBtn && moreWrap) {
+    moreBtn.addEventListener('click', e => {
+      e.stopPropagation()
+      const open = moreWrap.classList.toggle('open')
+      moreBtn.setAttribute('aria-expanded', String(open))
+    })
 
-  const openMenu = () => {
-    links.classList.add('is-open')
-    toggle.classList.add('is-open')
-    toggle.setAttribute('aria-expanded', 'true')
+    document.addEventListener('click', () => {
+      moreWrap.classList.remove('open')
+      moreBtn.setAttribute('aria-expanded', 'false')
+    })
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        moreWrap.classList.remove('open')
+        moreBtn.setAttribute('aria-expanded', 'false')
+      }
+    })
+  }
+
+  // ── Mobile hamburger + drawer ────────────────────────────
+  if (!hamburger || !drawer) return
+
+  const openDrawer = () => {
+    hamburger.classList.add('open')
+    hamburger.setAttribute('aria-expanded', 'true')
+    drawer.classList.add('open')
+    drawer.setAttribute('aria-hidden', 'false')
     document.body.style.overflow = 'hidden'
   }
 
-  const closeMenu = () => {
-    links.classList.remove('is-open')
-    toggle.classList.remove('is-open')
-    toggle.setAttribute('aria-expanded', 'false')
+  const closeDrawer = () => {
+    hamburger.classList.remove('open')
+    hamburger.setAttribute('aria-expanded', 'false')
+    drawer.classList.remove('open')
+    drawer.setAttribute('aria-hidden', 'true')
     document.body.style.overflow = ''
   }
 
-  toggle.addEventListener('click', () => {
-    links.classList.contains('is-open') ? closeMenu() : openMenu()
+  hamburger.addEventListener('click', () => {
+    drawer.classList.contains('open') ? closeDrawer() : openDrawer()
   })
 
-  links.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', closeMenu)
+  drawer.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', closeDrawer)
   })
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeMenu()
+    if (e.key === 'Escape') closeDrawer()
   })
 }

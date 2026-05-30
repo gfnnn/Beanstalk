@@ -1,68 +1,70 @@
 .flash__grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-4);
+  gap: 16px;
 }
 
 .flash__item {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  /* initial visibility managed by GSAP */
+  gap: 10px;
   will-change: transform, opacity;
 }
 
 .flash__image {
   aspect-ratio: 1;
   overflow: hidden;
-  background-color: var(--color-surface-raised);
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  position: relative;
 }
 
-.flash__image .gallery__placeholder {
-  min-height: auto;
-  aspect-ratio: 1;
-  transition: transform var(--dur-slow) var(--ease-out);
+.flash__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms var(--ease);
 }
+.flash__item:hover .flash__image img { transform: scale(1.04); }
 
-.flash__item:hover .gallery__placeholder {
-  transform: scale(1.04);
+/* Placeholder */
+.flash__placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--bg-alt) 0%, var(--cream) 100%);
 }
 
 .flash__info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-inline: var(--space-1);
 }
 
 .flash__name {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  letter-spacing: 0.12em;
-  color: var(--color-text-secondary);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
 .flash__status {
-  font-family: var(--font-body);
+  font-family: var(--mono);
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+.flash__status--available { color: var(--moss); }
+.flash__status--taken     { color: var(--ink-faint); text-decoration: line-through; }
 
-.flash__status--available { color: var(--color-accent); }
-.flash__status--taken {
-  color: var(--color-text-muted);
-  text-decoration: line-through;
+.flash__price {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 
-@media (max-width: 960px) {
-  .flash__grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 480px) {
-  .flash__grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
-  }
-}
+@media (max-width: 900px) { .flash__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .flash__grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }

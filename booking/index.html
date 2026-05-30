@@ -3,59 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Beansprout.ink — Book a custom tattoo session." />
+  <meta name="description" content="Beansprout — book a custom tattoo session in Guildford, Surrey." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
-  <title>Booking — Beansprout.ink</title>
+  <title>Enquire — Beansprout.ink</title>
   <style>
     .booking-layout {
       display: grid;
       grid-template-columns: 1fr 2fr;
-      gap: clamp(var(--space-10), 6vw, var(--space-20));
+      gap: clamp(40px, 6vw, 80px);
       align-items: start;
     }
     .booking-info {
       position: sticky;
-      top: calc(var(--nav-height) + var(--space-8));
+      top: calc(var(--nav-h) + 24px);
       display: flex;
       flex-direction: column;
-      gap: var(--space-6);
+      gap: 24px;
     }
-    .booking-info__title {
-      font-family: var(--font-display);
-      font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
-      line-height: 0.92;
-      letter-spacing: 0.02em;
-      color: var(--color-text-primary);
+    .booking-info h2 {
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: clamp(36px, 4vw, 52px);
+      line-height: 0.97;
+      letter-spacing: -0.025em;
     }
-    .booking-info__title em {
-      font-family: var(--font-serif);
-      font-style: italic;
-      font-size: 0.88em;
-    }
-    .booking-info p {
-      font-size: var(--text-sm);
-      line-height: 1.75;
-      color: var(--color-text-secondary);
-    }
-    .booking-info__list {
+    .booking-info h2 em { font-style: italic; color: var(--moss); }
+    .booking-info p { font-size: 15px; line-height: 1.7; color: var(--ink-soft); }
+    .booking-checklist {
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: 10px;
     }
-    .booking-info__list li {
+    .booking-checklist li {
       display: flex;
-      gap: var(--space-3);
-      font-size: var(--text-xs);
-      letter-spacing: 0.04em;
-      color: var(--color-text-secondary);
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      line-height: 1.4;
     }
-    .booking-info__list li::before {
-      content: '✦';
-      color: var(--color-accent);
+    .booking-checklist li::before {
+      content: '—';
+      color: var(--moss);
       flex-shrink: 0;
+      font-family: var(--mono);
     }
     @media (max-width: 800px) {
       .booking-layout { grid-template-columns: 1fr; }
@@ -65,174 +58,184 @@
 </head>
 <body>
 
-  <header class="nav is-scrolled" id="nav">
-    <div class="nav__inner">
-      <a href="/" class="nav__logo" aria-label="Beansprout.ink home">
-        <span class="nav__logo-text">Beansprout</span><span class="nav__logo-dot">.ink</span>
-      </a>
-      <nav class="nav__links" aria-label="Main navigation">
-        <a href="/portfolio/" class="nav__link">Work</a>
-        <a href="/about/"     class="nav__link">About</a>
-        <a href="/booking/"   class="nav__link">Booking</a>
-        <a href="/contact/"   class="nav__link">Contact</a>
-        <a href="/booking/"   class="nav__link nav__link--book">Book Now</a>
-      </nav>
-      <a href="/booking/" class="btn btn--accent nav__cta">Book Now</a>
-      <button class="nav__toggle" aria-label="Open menu" aria-expanded="false">
-        <span></span><span></span><span></span>
+<nav class="nav scrolled" id="main-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Beansprout — home">
+    <div class="nav-logo-placeholder">logo.svg</div>
+  </a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">
+        More <span class="chevron" aria-hidden="true"></span>
       </button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/contact/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/booking/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/contact/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+<main>
+  <div class="page-hero">
+    <p class="eyebrow">Book a session</p>
+    <h1 class="page-hero__title">Start an <em>enquiry</em></h1>
+  </div>
+
+  <section class="section">
+    <div class="booking-layout">
+
+      <aside class="booking-info">
+        <h2>Let's make<br /><em>something yours</em></h2>
+        <p>Fill in as much detail as you can. I'll get back to you within a few working days to discuss your idea, placement, and pricing before confirming a deposit.</p>
+        <!-- COPY: update open/closed status -->
+        <div class="form__notice">
+          Bookings are currently <strong style="color:var(--moss)">Open</strong>.
+          Next available slots from [Month Year].
+        </div>
+        <ul class="booking-checklist">
+          <li>All designs are custom — no copying other artists' work</li>
+          <li>A non-refundable deposit confirms your booking</li>
+          <li>Reference images are helpful but not required</li>
+          <li>Minimum age 18 — valid ID required on the day</li>
+          <li>Complimentary touch-up within 3 months</li>
+        </ul>
+      </aside>
+
+      <form class="form" name="booking" method="POST" enctype="multipart/form-data">
+        <div class="form__row">
+          <div class="form__field">
+            <label class="form__label" for="name">Name <span>*</span></label>
+            <input class="form__input" type="text" id="name" name="name" placeholder="Your full name" required />
+          </div>
+          <div class="form__field">
+            <label class="form__label" for="email">Email <span>*</span></label>
+            <input class="form__input" type="email" id="email" name="email" placeholder="you@example.com" required />
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__field">
+            <label class="form__label" for="phone">Phone</label>
+            <input class="form__input" type="tel" id="phone" name="phone" placeholder="Optional" />
+          </div>
+          <div class="form__field">
+            <label class="form__label" for="type">Tattoo type <span>*</span></label>
+            <select class="form__select" id="type" name="type" required>
+              <option value="" disabled selected>Select a type</option>
+              <option value="custom">Custom design</option>
+              <option value="flash">Flash design</option>
+              <option value="coverup">Cover-up</option>
+              <option value="addto">Add-to / continuation</option>
+            </select>
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__field">
+            <label class="form__label" for="placement">Placement <span>*</span></label>
+            <input class="form__input" type="text" id="placement" name="placement" placeholder="e.g. upper arm, ribcage" required />
+          </div>
+          <div class="form__field">
+            <label class="form__label" for="size">Approximate size <span>*</span></label>
+            <select class="form__select" id="size" name="size" required>
+              <option value="" disabled selected>Select a size</option>
+              <option value="tiny">Tiny — under 3 cm</option>
+              <option value="small">Small — 3–6 cm</option>
+              <option value="medium">Medium — 6–12 cm</option>
+              <option value="large">Large — 12–20 cm</option>
+              <option value="xlarge">X-Large — 20 cm+</option>
+            </select>
+          </div>
+        </div>
+        <div class="form__field">
+          <label class="form__label" for="description">Describe your idea <span>*</span></label>
+          <textarea class="form__textarea" id="description" name="description" placeholder="Subject matter, mood, any elements you want included — the more detail the better." required></textarea>
+        </div>
+        <div class="form__field">
+          <label class="form__label" for="references">Reference images</label>
+          <label class="form__file-label" for="references">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 1v10M3 6l5-5 5 5M2 13h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Upload references (JPG, PNG — max 10 MB each)
+          </label>
+          <input class="form__file-input" type="file" id="references" name="references" accept="image/*" multiple />
+          <span class="form__hint">Optional. Mood boards, style references, or placement photos welcome.</span>
+        </div>
+        <div class="form__field">
+          <label class="form__label" for="availability">Your availability</label>
+          <textarea class="form__textarea" id="availability" name="availability" style="min-height:90px" placeholder="Weekday afternoons, most weekends — or specific dates if you have them"></textarea>
+        </div>
+        <div class="form__field">
+          <label class="form__label" for="heard">How did you find me?</label>
+          <select class="form__select" id="heard" name="heard">
+            <option value="" disabled selected>Select one</option>
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="friend">Friend / word of mouth</option>
+            <option value="search">Search engine</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary form__submit">Send enquiry →</button>
+      </form>
+
     </div>
-  </header>
+  </section>
+</main>
 
-  <main class="page-main">
-
-    <section class="page-hero">
-      <div class="container">
-        <span class="section-label">Bookings</span>
-        <h1 class="page-hero__title">Book a Session</h1>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="booking-layout">
-
-          <!-- Info sidebar -->
-          <aside class="booking-info">
-            <h2 class="booking-info__title">
-              Let's make<br /><em>something yours</em>
-            </h2>
-            <p>
-              Fill out the form with as much detail as possible. I'll get back to you
-              within a few days to discuss your idea, placement, sizing, and pricing
-              before confirming a deposit.
-            </p>
-            <div class="form__notice">
-              Bookings are currently <strong style="color:var(--color-accent)">Open</strong>.
-              Next available slots from [Month Year].
-            </div>
-            <ul class="booking-info__list">
-              <li>Custom designs only — all artwork is original</li>
-              <li>A non-refundable deposit is required to confirm your booking</li>
-              <li>Reference images are helpful but not required</li>
-              <li>Minimum age 18 — valid ID required on the day</li>
-              <li>Touch-ups within 3 months are complimentary</li>
-            </ul>
-          </aside>
-
-          <!-- Booking form -->
-          <form class="form" name="booking" method="POST" enctype="multipart/form-data">
-            <div class="form__row">
-              <div class="form__field">
-                <label class="form__label" for="name">Name <span>*</span></label>
-                <input class="form__input" type="text"  id="name"  name="name"  placeholder="Your full name"  required />
-              </div>
-              <div class="form__field">
-                <label class="form__label" for="email">Email <span>*</span></label>
-                <input class="form__input" type="email" id="email" name="email" placeholder="you@example.com" required />
-              </div>
-            </div>
-
-            <div class="form__row">
-              <div class="form__field">
-                <label class="form__label" for="phone">Phone</label>
-                <input class="form__input" type="tel" id="phone" name="phone" placeholder="Optional" />
-              </div>
-              <div class="form__field">
-                <label class="form__label" for="type">Tattoo Type <span>*</span></label>
-                <select class="form__select" id="type" name="type" required>
-                  <option value="" disabled selected>Select a type</option>
-                  <option value="custom">Custom Design</option>
-                  <option value="flash">Flash Design</option>
-                  <option value="coverup">Cover-Up</option>
-                  <option value="addto">Add-To / Continuation</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form__row">
-              <div class="form__field">
-                <label class="form__label" for="placement">Placement <span>*</span></label>
-                <input class="form__input" type="text" id="placement" name="placement" placeholder="e.g. upper arm, ribcage" required />
-              </div>
-              <div class="form__field">
-                <label class="form__label" for="size">Approximate Size <span>*</span></label>
-                <select class="form__select" id="size" name="size" required>
-                  <option value="" disabled selected>Select a size</option>
-                  <option value="tiny">Tiny — under 3cm</option>
-                  <option value="small">Small — 3–6cm</option>
-                  <option value="medium">Medium — 6–12cm</option>
-                  <option value="large">Large — 12–20cm</option>
-                  <option value="xlarge">X-Large — 20cm+</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form__field">
-              <label class="form__label" for="description">Describe Your Idea <span>*</span></label>
-              <textarea class="form__textarea" id="description" name="description" placeholder="Tell me about your idea — subject matter, mood, any elements you'd like included. The more detail the better." required></textarea>
-            </div>
-
-            <div class="form__field">
-              <label class="form__label" for="references">Reference Images</label>
-              <label class="form__file-label" for="references">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M8 1v10M3 6l5-5 5 5M2 13h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Upload references (JPG, PNG — max 10MB each)
-              </label>
-              <input class="form__file-input" type="file" id="references" name="references" accept="image/*" multiple />
-              <span class="form__hint">Optional but helpful. Mood boards, style references, or placement photos welcome.</span>
-            </div>
-
-            <div class="form__field">
-              <label class="form__label" for="availability">Your Availability</label>
-              <textarea class="form__textarea" id="availability" name="availability" style="min-height:90px" placeholder="e.g. Weekday afternoons, most weekends — or specific dates if you have them"></textarea>
-            </div>
-
-            <div class="form__field">
-              <label class="form__label" for="heard">How Did You Find Me?</label>
-              <select class="form__select" id="heard" name="heard">
-                <option value="" disabled selected>Select one</option>
-                <option value="instagram">Instagram</option>
-                <option value="tiktok">TikTok</option>
-                <option value="friend">Friend / Word of Mouth</option>
-                <option value="search">Search Engine</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <button type="submit" class="btn btn--accent btn--lg form__submit">Send Request</button>
-          </form>
-
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer__inner">
-        <div class="footer__brand">
-          <a href="/" class="nav__logo"><span class="nav__logo-text">Beansprout</span><span class="nav__logo-dot">.ink</span></a>
-          <p class="footer__tagline">Custom tattoo — botanical &amp; illustrative.</p>
-        </div>
-        <nav class="footer__nav" aria-label="Footer navigation">
-          <a href="/portfolio/">Work</a>
-          <a href="/about/">About</a>
-          <a href="/booking/">Booking</a>
-          <a href="/contact/">Contact</a>
-        </nav>
-        <div class="footer__social">
-          <a href="#" class="footer__social-link" rel="noopener noreferrer">Instagram</a>
-          <a href="#" class="footer__social-link" rel="noopener noreferrer">TikTok</a>
-        </div>
-      </div>
-      <div class="footer__bottom"><span>&copy; 2026 Beansprout.ink</span></div>
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <p class="tagline">[Short studio descriptor]</p>
     </div>
-  </footer>
+    <nav class="footer-col" aria-label="Site links"><h4>Studio</h4><ul>
+      <li><a href="/portfolio/">Portfolio</a></li><li><a href="/flash/">Flash</a></li>
+      <li><a href="/about/">About</a></li><li><a href="/services/">Pricing</a></li><li><a href="/faq/">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit"><h4>Visit</h4><ul>
+      <li><a href="/contact/">Find the studio</a></li><li><a href="/aftercare/">Aftercare</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+  </div>
+</footer>
 
-  <script type="module" src="/src/js/main.js"></script>
+<script type="module" src="/src/js/main.js"></script>
 </body>
 </html>
