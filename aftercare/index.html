@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Tattoo aftercare instructions from Beansprout — second skin and cling film guidance." />
+  <meta property="og:title"       content="Aftercare — Beansprout.ink" />
+  <meta property="og:description" content="How you look after your tattoo shapes how it heals for life. Follow these instructions." />
+  <meta property="og:type"        content="website" />
+  <meta name="theme-color"        content="#F7F1E3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <title>Aftercare — Beansprout</title>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+
+  <!--
+    LOGO — replace placeholder with:
+    <a href="/" aria-label="Beansprout — home">
+      <img src="/images/logo.svg" alt="Beansprout" class="nav-logo-img" />
+    </a>
+  -->
+  <a href="/" aria-label="Beansprout — home">
+    <div class="nav-logo-placeholder">logo.svg</div>
+  </a>
+
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false"
+              aria-controls="nav-dropdown" id="nav-more-btn">
+        More <span class="chevron" aria-hidden="true"></span>
+      </button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/" class="active" aria-current="page">Aftercare</a></li>
+        <li><a href="/contact/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/booking/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger"
+            aria-label="Open menu" aria-expanded="false"
+            aria-controls="nav-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+</nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/" class="active">Aftercare</a>
+    <a href="/contact/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+
+<!-- ══ PAGE HEADER ════════════════════════════════════════════════════════════ -->
+<header class="page-header">
+  <div class="page-header-left">
+    <p class="page-eyebrow">Post-session</p>
+    <h1 class="page-title">After<em>care.</em></h1>
+  </div>
+  <div class="page-header-right">
+    <p class="page-descriptor">
+      How you look after your tattoo in the first few weeks shapes how it heals for the rest of your life. These are the instructions to follow.
+    </p>
+  </div>
+</header>
+
+
+<!-- ══ BANDAGE SELECTOR — sticky tab switcher ════════════════════════════════
+     JS toggles .active on tabs and shows/hides .care-panel.
+     Default: Second Skin (more common case).
+ -->
+<div class="bandage-selector-wrap" id="bandage-selector-wrap">
+  <div class="bandage-selector" role="tablist" aria-label="Select your bandage type">
+
+    <button class="bandage-tab active"
+            id="tab-second-skin"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-second-skin"
+            data-panel="second-skin">
+      <span class="tab-title">Second skin</span>
+      <span class="tab-hint">Transparent film dressing</span>
+    </button>
+
+    <button class="bandage-tab"
+            id="tab-cling-film"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-cling-film"
+            data-panel="cling-film">
+      <span class="tab-title">Cling film</span>
+      <span class="tab-hint">Traditional wrap method</span>
+    </button>
+
+  </div>
+</div>
+
+
+<!-- ══ CARE PANELS ════════════════════════════════════════════════════════════ -->
+
+<!-- ── Panel: Second Skin ─────────────────────────────────────────────────── -->
+<div class="care-panel active"
+     id="panel-second-skin"
+     role="tabpanel"
+     aria-labelledby="tab-second-skin">
+
+  <div class="steps-section">
+
+    <aside class="steps-aside">
+      <p class="steps-label">Second skin</p>
+      <h2 class="steps-aside-title">Transparent<br>film <em>dressing.</em></h2>
+      <p class="steps-aside-note">
+        Second skin (also called Saniderm or Dermalize) is a breathable, waterproof film applied directly after the session. It creates a sealed healing environment and reduces scabbing.
+      </p>
+    </aside>
+
+    <ol class="steps-list" aria-label="Second skin aftercare steps">
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">01</span>
+        <div class="step-content">
+          <p class="step-text">Keep the bandage on for 2–3 days after your tattoo session.</p>
+          <p class="step-note">Some plasma and ink pooling under the film is completely normal during this time — don't be alarmed.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">02</span>
+        <div class="step-content">
+          <p class="step-text">Wash your hands thoroughly with antibacterial soap.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">03</span>
+        <div class="step-content">
+          <p class="step-text">Gently peel off the bandage under running water, pulling upward and away from the tattoo.</p>
+          <p class="step-note">Running water loosens the adhesive — never pull the film dry or at an angle across the tattoo.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">04</span>
+        <div class="step-content">
+          <p class="step-text">Lather a non-scented soap in your hands and gently clean the tattoo to remove plasma and debris.</p>
+          <p class="step-note">Use your fingertips only — no cloths, sponges, or anything with texture.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">05</span>
+        <div class="step-content">
+          <p class="step-text">Rinse with lukewarm (not hot) water and pat dry with a clean paper towel.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">06</span>
+        <div class="step-content">
+          <p class="step-text">Let the tattoo air dry for 20 minutes, then apply a thin layer of tattoo aftercare moisturiser — we recommend <a href="https://uk.palmers.com/cocoa-butter-formula/7-solid-formula-cocoa-butter.html" target="_blank" rel="noopener noreferrer">Palmer's Cocoa Butter</a>.</p>
+          <p class="step-note">Thin is key — too much product suffocates the skin and slows healing.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">07</span>
+        <div class="step-content">
+          <p class="step-text">Repeat this process twice daily for 2–3 weeks.</p>
+        </div>
+      </li>
+
+      <li class="step final">
+        <span class="step-num" aria-hidden="true">08</span>
+        <div class="step-content">
+          <p class="step-text">Continue moisturising regularly after healing to maintain vibrancy.</p>
+        </div>
+      </li>
+
+    </ol>
+
+  </div>
+
+</div><!-- /panel-second-skin -->
+
+
+<!-- ── Panel: Cling Film ───────────────────────────────────────────────────── -->
+<div class="care-panel"
+     id="panel-cling-film"
+     role="tabpanel"
+     aria-labelledby="tab-cling-film">
+
+  <div class="steps-section">
+
+    <aside class="steps-aside">
+      <p class="steps-label">Cling film</p>
+      <h2 class="steps-aside-title">Traditional<br>wrap <em>method.</em></h2>
+      <p class="steps-aside-note">
+        Cling film is a short-term protective wrap applied after the session. Unlike second skin, it needs to be removed promptly — leaving it too long traps moisture and increases infection risk.
+      </p>
+    </aside>
+
+    <ol class="steps-list" aria-label="Cling film aftercare steps">
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">01</span>
+        <div class="step-content">
+          <p class="step-text">When you are ready to apply aftercare, gently remove the cling film as soon as possible.</p>
+          <p class="step-note">Do not leave cling film on for more than a few hours — it doesn't breathe and will trap bacteria.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">02</span>
+        <div class="step-content">
+          <p class="step-text">Wash your hands thoroughly with antibacterial soap.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">03</span>
+        <div class="step-content">
+          <p class="step-text">Lather a non-scented soap in your hands and gently clean the tattoo to remove plasma and debris.</p>
+          <p class="step-note">Use your fingertips only — no cloths, sponges, or anything with texture.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">04</span>
+        <div class="step-content">
+          <p class="step-text">Rinse with lukewarm (not hot) water and pat dry with a clean paper towel.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">05</span>
+        <div class="step-content">
+          <p class="step-text">Let the tattoo air dry for 20 minutes, then apply a thin layer of tattoo aftercare moisturiser — we recommend <a href="https://uk.palmers.com/cocoa-butter-formula/7-solid-formula-cocoa-butter.html" target="_blank" rel="noopener noreferrer">Palmer's Cocoa Butter</a>.</p>
+          <p class="step-note">Thin is key — too much product suffocates the skin and slows healing.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step-num" aria-hidden="true">06</span>
+        <div class="step-content">
+          <p class="step-text">Repeat this process twice daily for 2–4 weeks.</p>
+        </div>
+      </li>
+
+      <li class="step final">
+        <span class="step-num" aria-hidden="true">07</span>
+        <div class="step-content">
+          <p class="step-text">Continue moisturising regularly after healing to maintain vibrancy.</p>
+        </div>
+      </li>
+
+    </ol>
+
+  </div>
+
+</div><!-- /panel-cling-film -->
+
+
+<!-- ══ GENERAL RULES — applies to both methods ════════════════════════════════ -->
+<section class="rules-section" aria-labelledby="rules-heading">
+
+  <div class="rules-header">
+    <p class="rules-eyebrow">Both methods</p>
+    <h2 class="rules-title" id="rules-heading">Keep in <em>mind.</em></h2>
+  </div>
+
+  <div class="rules-grid">
+
+    <div class="rule-item">
+      <svg class="rule-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="14" cy="14" r="10"/>
+        <path d="M14 8v6l4 2"/>
+      </svg>
+      <h3 class="rule-title">No soaking</h3>
+      <p class="rule-body">Avoid baths, swimming, saunas, and hot tubs for 2–3 weeks. Showers are fine — just keep them short and the water lukewarm.</p>
+    </div>
+
+    <div class="rule-item">
+      <svg class="rule-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="14" cy="8" r="4"/>
+        <path d="M8 28C8 22 20 22 20 28"/>
+        <path d="M14 12v6"/>
+        <path d="M10 16h8"/>
+      </svg>
+      <h3 class="rule-title">Don't pick or scratch</h3>
+      <p class="rule-body">Peeling and itching is normal during healing. Picking removes ink and can cause scarring. Let it flake on its own.</p>
+    </div>
+
+    <div class="rule-item">
+      <svg class="rule-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="14" cy="10" r="6"/>
+        <path d="M6 24c0-3 3.6-5 8-5s8 2 8 5"/>
+        <path d="M20 6l4-4 M8 6L4 2"/>
+      </svg>
+      <h3 class="rule-title">Avoid direct sunlight</h3>
+      <p class="rule-body">Sun and UV beds fade ink rapidly during healing. Keep the area covered or out of direct sun for the first 4 weeks. SPF 50 after that, always.</p>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ══ CTA — questions section ════════════════════════════════════════════════ -->
+<section class="aftercare-cta" aria-labelledby="aftercare-cta-heading">
+  <div class="aftercare-cta-text">
+    <h2 id="aftercare-cta-heading">Got a <em>question?</em></h2>
+    <p>Something not covered here, or a concern about how your tattoo is healing? Get in touch — I check in at two weeks for exactly this reason.</p>
+  </div>
+  <div class="aftercare-cta-actions">
+    <a href="/contact/" class="btn btn-primary">Send a message →</a>
+    <a href="/faq/" class="btn btn-ghost">
+      Read the FAQ <span class="arrow">→</span>
+    </a>
+  </div>
+</section>
+
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <p class="tagline">[Short studio descriptor. Style, location, approach.]</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links">
+      <h4>Studio</h4>
+      <ul>
+        <li><a href="/portfolio/">Portfolio</a></li>
+        <li><a href="/flash/">Flash</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/services/">Pricing</a></li>
+        <li><a href="/faq/">FAQ</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Visit links">
+      <h4>Visit</h4>
+      <ul>
+        <li><a href="/contact/">Find the studio</a></li>
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/contact/#access">Accessibility</a></li>
+        <li><a href="/contact/#hours">Studio hours</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Social links">
+      <h4>Follow</h4>
+      <ul>
+        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener noreferrer">TikTok</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+        <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
+  </div>
+</footer>
+
+
+<!-- Mobile sticky CTA -->
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

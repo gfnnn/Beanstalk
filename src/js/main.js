@@ -1,4 +1,5 @@
 import { initNav } from './modules/nav.js'
+import { initAftercare } from './modules/aftercare.js'
 import { initGallery } from './modules/gallery.js'
 import { initLenis } from './modules/lenis.js'
 import { initHeroAnimation, initScrollAnimations } from './modules/animations.js'
@@ -26,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 6. Portfolio page gallery (lightbox etc.) — stub for future
   initGallery()
+
+  // 7. Aftercare page — tab switcher + sticky shadow
+  initAftercare()
 
   // 7. Mobile sticky CTA — portfolio page shows immediately on small screens
   const mobileCta = document.getElementById('mobile-cta')
