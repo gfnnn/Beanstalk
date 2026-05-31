@@ -16,3 +16,7 @@
 @import './components/lightbox.css';
 @import './components/load-more.css';
 @import './components/aftercare.css';
+@import './pages/about.css';
+@import './pages/visit.css';
+@import './pages/faq.css';
+@import './pages/enquire.css';

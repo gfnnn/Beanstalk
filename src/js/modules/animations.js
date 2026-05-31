@@ -163,6 +163,18 @@ export function initScrollAnimations() {
     tl.from(pageTitle, { opacity: 0, y: 28, duration: 0.8 }, pageEye ? '-=0.35' : 0)
   }
 
+  // ── Generic .reveal elements (about, visit, and other inner pages) ──────────
+  document.querySelectorAll('.reveal').forEach(el => {
+    const delay = el.classList.contains('reveal-d3') ? 0.3
+                : el.classList.contains('reveal-d2') ? 0.2
+                : el.classList.contains('reveal-d1') ? 0.1 : 0
+    gsap.from(el, {
+      scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+      opacity: 0, y: 20, duration: 0.7, ease: 'power2.out',
+      delay,
+    })
+  })
+
   // ── Mobile sticky CTA — appears after hero scrolls out (home page only) ───
   const mobileCta = document.getElementById('mobile-cta')
   const hero      = document.querySelector('.hero')
