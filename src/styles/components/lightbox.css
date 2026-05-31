@@ -1,0 +1,188 @@
+/* ── Lightbox — mobile-first ─────────────────────────────────────────────────
+   Mobile:  compact padding, smaller nav buttons, full-width image
+   Desktop: generous padding, 52px buttons at min-width 900px
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44, 42, 36, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms var(--ease);
+  /* Prevent rubber-banding behind the lightbox on iOS */
+  overscroll-behavior: contain;
+}
+.lightbox.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.lightbox-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 56px 52px 72px; /* room for buttons and counter */
+}
+
+/* Image container */
+.lightbox-img-wrap {
+  max-width: 900px;
+  max-height: 80vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.lightbox-img-wrap img {
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+  display: block;
+}
+
+/* Placeholder — remove when real images are in */
+.lightbox-placeholder {
+  width: min(400px, 85vw);
+  height: min(500px, 70vh);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(247, 241, 227, 0.15);
+}
+.lightbox-placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+/* Caption */
+.lightbox-caption {
+  position: absolute;
+  bottom: -44px;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+.lightbox-caption-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 16px;
+  color: rgba(247, 241, 227, 0.85);
+  margin-bottom: 4px;
+}
+.lightbox-caption-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 241, 227, 0.4);
+}
+
+/* Close button */
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(247, 241, 227, 0.2);
+  border-radius: 50%;
+  color: rgba(247, 241, 227, 0.8);
+  font-size: 18px;
+  cursor: pointer;
+  transition: border-color var(--dur), color var(--dur), background var(--dur);
+  background: transparent;
+  font-family: var(--sans);
+}
+.lightbox-close:hover {
+  border-color: rgba(247, 241, 227, 0.6);
+  color: var(--cream);
+  background: rgba(247, 241, 227, 0.08);
+}
+
+/* Prev / Next arrows */
+.lightbox-prev,
+.lightbox-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(247, 241, 227, 0.2);
+  border-radius: 50%;
+  color: rgba(247, 241, 227, 0.8);
+  cursor: pointer;
+  transition:
+    border-color var(--dur),
+    color var(--dur),
+    background var(--dur),
+    transform var(--dur) var(--ease);
+  background: transparent;
+  font-family: var(--serif);
+  font-size: 20px;
+}
+.lightbox-prev { left: 8px; }
+.lightbox-next { right: 8px; }
+.lightbox-prev:hover,
+.lightbox-next:hover {
+  border-color: rgba(247, 241, 227, 0.6);
+  color: var(--cream);
+  background: rgba(247, 241, 227, 0.08);
+  transform: translateY(-50%) scale(1.05);
+}
+
+/* Counter */
+.lightbox-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(247, 241, 227, 0.35);
+  white-space: nowrap;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (min-width: 640px) {
+  .lightbox-inner { padding: 64px 80px; }
+  .lightbox-prev  { left: 16px; }
+  .lightbox-next  { right: 16px; }
+  .lightbox-close { top: 24px; right: 24px; }
+  .lightbox-caption-title { font-size: 18px; }
+  .lightbox-caption { bottom: -48px; }
+}
+
+@media (min-width: 900px) {
+  .lightbox-inner { padding: 64px; }
+
+  .lightbox-prev,
+  .lightbox-next  {
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+  }
+  .lightbox-prev { left: 24px; }
+  .lightbox-next { right: 24px; }
+  .lightbox-close { width: 44px; height: 44px; font-size: 20px; }
+}

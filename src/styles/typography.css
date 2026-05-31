@@ -1,60 +1,47 @@
-.section-label {
-  display: inline-block;
-  font-family: var(--font-body);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.22em;
+/* Shared typographic primitives used across components */
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-accent);
-  margin-bottom: var(--space-4);
+  color: var(--moss);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--moss);
+  flex-shrink: 0;
 }
 
 .section-title {
-  font-family: var(--font-display);
-  font-size: clamp(var(--text-4xl), 5vw, var(--text-6xl));
-  line-height: 0.93;
-  letter-spacing: 0.02em;
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-6);
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .section-title em {
-  font-family: var(--font-serif);
   font-style: italic;
-  font-size: 0.88em;
-  letter-spacing: 0;
-}
-
-.section-subtitle {
-  font-family: var(--font-body);
-  font-size: var(--text-lg);
-  line-height: 1.6;
-  color: var(--color-text-secondary);
-  max-width: 42ch;
-  margin-bottom: var(--space-6);
+  color: var(--moss);
 }
 
 .body-text {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: 1.8;
-  color: var(--color-text-secondary);
-  max-width: 52ch;
+  font-size: 17px;
+  color: var(--ink-soft);
+  line-height: 1.65;
 }
 
-.display-text {
-  font-family: var(--font-display);
-  font-size: clamp(var(--text-5xl), 10vw, var(--text-9xl));
-  line-height: 0.88;
-  letter-spacing: 0.02em;
-  color: var(--color-text-primary);
-}
-
-.serif-text {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: clamp(var(--text-lg), 2vw, var(--text-2xl));
+.serif-note {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 19px;
   line-height: 1.5;
-  color: var(--color-text-secondary);
-  letter-spacing: 0.01em;
+  color: var(--ink-soft);
 }
