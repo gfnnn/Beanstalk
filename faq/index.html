@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beansprout — FAQ</title>
+<!-- COPY: meta description -->
+<meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout tattoo studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ==========================================================================
+   TOKENS — keep in sync across all pages
+   ========================================================================== */
+:root{
+  --bg:#F7F1E3;--bg-alt:#EFE8D6;--bg-dark:#2C2A24;
+  --cream:#FBF8EE;--ink:#2C2A24;--ink-soft:#5C5A52;
+  --ink-faint:#8E8B81;--moss:#4A5D3F;--moss-soft:#8A9A75;
+  --moss-bg:rgba(74,93,63,0.07);
+  --clay:#C45A3E;--clay-soft:#E08C72;
+  --line:rgba(44,42,36,0.14);--line-soft:rgba(44,42,36,0.07);
+  --serif:'Fraunces',Georgia,serif;--sans:'Karla',system-ui,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --pad-x:48px;--nav-h:65px;--radius-sm:4px;--radius:8px;
+  --ease:cubic-bezier(0.16,1,0.3,1);--dur:220ms;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;font-family:var(--sans);font-size:15px;font-weight:500;border-radius:100px;border:1.5px solid transparent;transition:transform var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);cursor:pointer;white-space:nowrap;line-height:1}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--clay);border-color:var(--clay);color:var(--cream)}
+.btn-primary:hover{background:var(--clay-soft);border-color:var(--clay-soft)}
+.btn-outline{background:transparent;border-color:var(--ink);color:var(--ink)}
+.btn-outline:hover{background:var(--ink);color:var(--bg)}
+.btn-sm{padding:9px 18px;font-size:13px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink);padding-left:0;padding-right:0}
+.btn-ghost:hover{color:var(--moss)}
+.btn-ghost .arrow{font-family:var(--serif);font-style:italic;font-size:18px;transition:transform var(--dur) var(--ease);display:inline-block}
+.btn-ghost:hover .arrow{transform:translateX(4px)}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 var(--pad-x);background:var(--bg);border-bottom:1px solid var(--line-soft);transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.nav.scrolled{box-shadow:0 2px 20px rgba(44,42,36,0.07);border-color:var(--line)}
+.nav-logo-placeholder{display:flex;align-items:center;justify-content:center;height:36px;min-width:148px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);background:var(--cream);padding:0 14px;flex-shrink:0}
+.nav-logo-placeholder::before{content:'⬚';font-size:16px;color:var(--line);font-family:sans-serif;margin-right:8px}
+.nav-logo-img{height:36px;width:auto;display:block;flex-shrink:0}
+.nav-links{display:flex;align-items:center;gap:28px;flex:1;justify-content:center}
+.nav-links a{font-size:14px;color:var(--ink-soft);letter-spacing:0.01em;padding-bottom:2px;border-bottom:1px solid transparent;transition:color var(--dur),border-color var(--dur);white-space:nowrap}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a.active{color:var(--moss);border-color:var(--moss)}
+.nav-more{position:relative}
+.nav-more-trigger{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--ink-soft);cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0;transition:color var(--dur)}
+.nav-more-trigger:hover{color:var(--ink)}
+.nav-more-trigger .chevron{display:inline-block;transition:transform var(--dur) var(--ease);font-size:10px;margin-top:1px}
+.nav-more.open .nav-more-trigger .chevron{transform:rotate(180deg)}
+.nav-more-trigger .chevron::after{content:'▾'}
+.nav-dropdown{position:absolute;top:calc(100% + 16px);left:50%;min-width:180px;background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 16px 48px rgba(44,42,36,0.12);padding:8px;opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-6px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.nav-more.open .nav-dropdown{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+.nav-dropdown a{display:block;padding:10px 14px;font-size:14px;color:var(--ink-soft);border-radius:var(--radius-sm);transition:background var(--dur),color var(--dur);white-space:nowrap}
+.nav-dropdown a:hover{background:var(--bg-alt);color:var(--ink)}
+.nav-right{display:flex;align-items:center;gap:20px;flex-shrink:0}
+.status-pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--moss);white-space:nowrap}
+.status-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 0 3px rgba(74,93,63,0.2);animation:pulse 2.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,93,63,0.2)}50%{box-shadow:0 0 0 6px rgba(74,93,63,0.05)}}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;background:none;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:border-color var(--dur)}
+.nav-hamburger:hover{border-color:var(--ink)}
+.nav-hamburger span{display:block;width:100%;height:1.5px;background:var(--ink);border-radius:2px;transition:transform var(--dur) var(--ease),opacity var(--dur);transform-origin:center}
+.nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.nav-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.nav-drawer{display:none;position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;background:var(--bg);z-index:190;flex-direction:column;padding:32px var(--pad-x);overflow-y:auto;opacity:0;transform:translateY(-8px);transition:opacity 250ms var(--ease),transform 250ms var(--ease);pointer-events:none}
+.nav-drawer.open{opacity:1;transform:translateY(0);pointer-events:all}
+.nav-drawer a{font-family:var(--serif);font-weight:300;font-size:36px;letter-spacing:-0.02em;color:var(--ink);padding:16px 0;border-bottom:1px solid var(--line-soft);transition:color var(--dur);display:block}
+.nav-drawer a:hover{color:var(--moss)}
+.nav-drawer a.active{color:var(--moss)}
+.nav-drawer .drawer-secondary{margin-top:24px;display:flex;flex-direction:column}
+.nav-drawer .drawer-secondary a{font-family:var(--sans);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-soft);padding:14px 0}
+.nav-drawer .drawer-bottom{margin-top:auto;padding-top:32px;display:flex;flex-direction:column;gap:12px}
+.nav-drawer .drawer-bottom .btn{justify-content:center;font-size:16px;padding:18px}
+
+/* PAGE HEADER */
+.page-header{padding:clamp(44px,6vw,80px) var(--pad-x) clamp(36px,4vw,56px);border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end}
+.page-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);display:inline-flex;align-items:center;gap:12px;margin-bottom:20px}
+.page-eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.page-title{font-family:var(--serif);font-weight:300;font-size:clamp(48px,6.5vw,96px);line-height:0.97;letter-spacing:-0.03em}
+.page-title em{font-style:italic;color:var(--moss)}
+.page-descriptor{font-family:var(--serif);font-weight:300;font-size:20px;line-height:1.6;color:var(--ink-soft);max-width:min(440px,100%);align-self:end}
+
+/* ==========================================================================
+   FAQ LAYOUT — sidebar + accordion
+   ========================================================================== */
+.faq-shell{
+  display:grid;
+  grid-template-columns:280px 1fr;
+  gap:clamp(32px,4vw,80px);
+  padding:clamp(48px,6vw,80px) var(--pad-x);
+  align-items:start;
+}
+
+/* Aside */
+.faq-aside{
+  position:sticky;
+  top:calc(var(--nav-h) + 24px);
+  display:flex;
+  flex-direction:column;
+  gap:32px;
+}
+
+/* Search */
+.faq-search{position:relative}
+.faq-search input{
+  width:100%;
+  background:var(--cream);
+  border:1px solid var(--line);
+  padding:13px 16px 13px 44px;
+  border-radius:100px;
+  font-family:var(--sans);font-size:14px;color:var(--ink);
+  transition:border-color var(--dur);
+}
+.faq-search input:focus{outline:none;border-color:var(--moss)}
+.faq-search input::placeholder{color:var(--ink-faint)}
+.faq-search::before{
+  content:'';
+  position:absolute;left:16px;top:50%;
+  transform:translateY(-50%);
+  width:16px;height:16px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238E8B81' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M13 13l-3-3'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:contain;
+}
+
+/* Category list */
+.faq-cats-label{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px}
+.faq-cats{}
+.faq-cat{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:13px 0;
+  border-top:1px solid var(--line);
+  font-size:14px;color:var(--ink-soft);
+  cursor:pointer;
+  transition:color var(--dur);
+  background:none;border-left:none;border-right:none;border-bottom:none;
+  width:100%;text-align:left;font-family:var(--sans);
+}
+.faq-cat:last-child{border-bottom:1px solid var(--line)}
+.faq-cat:hover{color:var(--ink)}
+.faq-cat.active{color:var(--moss);font-weight:500}
+.faq-cat .cat-count{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--ink-faint)}
+.faq-cat.active .cat-count{color:var(--moss-soft)}
+
+/* Accordion list */
+.faq-list{display:flex;flex-direction:column}
+
+.faq-item{border-top:1px solid var(--line)}
+.faq-item:last-child{border-bottom:1px solid var(--line)}
+
+.faq-item-trigger{
+  width:100%;
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:24px;
+  padding:24px 0;
+  cursor:pointer;
+  background:none;border:none;text-align:left;
+  font-family:var(--sans);
+}
+.faq-item-trigger:focus-visible{outline:2px solid var(--moss);outline-offset:2px;border-radius:2px}
+
+.faq-question{
+  font-family:var(--serif);font-weight:300;
+  font-size:clamp(18px,2.5vw,24px);
+  line-height:1.25;color:var(--ink);flex:1;
+  transition:color var(--dur);
+}
+.faq-item.open .faq-question{color:var(--moss)}
+
+.faq-marker{
+  font-family:var(--serif);font-style:italic;
+  font-size:32px;font-weight:300;
+  color:var(--moss-soft);line-height:1;flex-shrink:0;
+  transition:transform var(--dur) var(--ease),color var(--dur);
+  display:inline-block;
+}
+.faq-item.open .faq-marker{transform:rotate(45deg);color:var(--moss)}
+
+.faq-answer{
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 400ms var(--ease);
+}
+.faq-item.open .faq-answer{max-height:600px}
+
+.faq-answer-inner{
+  padding-bottom:28px;
+  font-size:16px;color:var(--ink-soft);line-height:1.7;
+  max-width:min(640px,100%);
+}
+.faq-answer-inner p{margin-bottom:12px}
+.faq-answer-inner p:last-child{margin-bottom:0}
+.faq-answer-inner a{color:var(--moss);border-bottom:1px solid rgba(74,93,63,0.35);transition:border-color var(--dur)}
+.faq-answer-inner a:hover{border-color:var(--moss)}
+
+/* Category heading inside the list — shown when filtering */
+.faq-category-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--moss);
+  padding:32px 0 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.faq-category-label::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+
+/* ==========================================================================
+   CTA — bottom of FAQ
+   ========================================================================== */
+.faq-cta{
+  background:var(--bg-alt);
+  border-top:1px solid var(--line);
+  padding:clamp(48px,6vw,80px) var(--pad-x);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:48px;
+  align-items:center;
+}
+.faq-cta-text h2{font-family:var(--serif);font-weight:300;font-size:clamp(32px,4vw,56px);line-height:1;letter-spacing:-0.025em;margin-bottom:14px}
+.faq-cta-text h2 em{font-style:italic;color:var(--moss)}
+.faq-cta-text p{font-size:17px;color:var(--ink-soft);line-height:1.65;max-width:min(420px,100%)}
+.faq-cta-actions{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+
+/* FOOTER */
+.footer{background:var(--bg-dark);color:var(--bg);padding:80px var(--pad-x) 32px}
+.footer-top{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:48px;padding-bottom:56px;border-bottom:1px solid rgba(247,241,227,0.1);margin-bottom:28px}
+.footer-brand .wordmark{font-family:var(--serif);font-weight:300;font-size:50px;line-height:1;letter-spacing:-0.025em;margin-bottom:12px}
+.footer-brand .wordmark em{font-style:italic;color:var(--moss-soft)}
+.footer-brand .tagline{font-size:14px;color:rgba(247,241,227,0.5);line-height:1.6;max-width:250px}
+.footer-col h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss-soft);margin-bottom:18px}
+.footer-col ul{display:flex;flex-direction:column;gap:11px}
+.footer-col a{font-size:14px;color:rgba(247,241,227,0.6);transition:color var(--dur)}
+.footer-col a:hover{color:var(--bg)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.footer-copy{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(247,241,227,0.3)}
+
+/* MOBILE CTA */
+.mobile-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:180;padding:14px 20px;padding-bottom:calc(14px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);transform:translateY(100%);transition:transform 300ms var(--ease)}
+.mobile-cta.visible{transform:translateY(0)}
+.mobile-cta .btn{width:100%;justify-content:center;font-size:16px;padding:17px}
+
+/* RESPONSIVE */
+@media(max-width:1100px){:root{--pad-x:32px}.nav-links{gap:20px}}
+@media(max-width:900px){
+  .nav-links,.nav-more,.status-pill{display:none}
+  .nav-hamburger{display:flex}.nav-drawer{display:flex}
+  .page-header{grid-template-columns:1fr;gap:20px}
+  .faq-shell{grid-template-columns:1fr;gap:0}
+  .faq-aside{position:static;padding-bottom:40px;border-bottom:1px solid var(--line);margin-bottom:0}
+  .faq-cta{grid-template-columns:1fr;gap:32px}
+  .faq-cta-actions{align-items:stretch}
+  .faq-cta-actions .btn{justify-content:center}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  :root{--pad-x:20px}
+  .page-header{padding:44px var(--pad-x) 36px}
+  .page-title{font-size:48px}
+  .faq-shell{padding:40px var(--pad-x) 48px}
+  .faq-item-trigger{padding:20px 0}
+  .faq-cta{padding:48px var(--pad-x)}
+  .footer-top{grid-template-columns:1fr;gap:32px}
+  .footer-brand .wordmark{font-size:38px}
+  .footer{padding-bottom:calc(32px + 80px)}
+  .mobile-cta{display:block}
+}
+@media(max-width:375px){.page-title{font-size:40px}.faq-question{font-size:17px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}.faq-item.open .faq-answer{max-height:none}}
+</style>
+</head>
+<body>
+
+<!-- NAV — FAQ active -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/garden">Portfolio</a></li>
+    <li><a href="/flash">Flash</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="/services">Services</a></li>
+    <li><a href="/faq" class="active" aria-current="page">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">More <span class="chevron" aria-hidden="true"></span></button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare">Aftercare</a></li>
+        <li><a href="/visit">Contact &amp; visit</a></li>
+        <li><a href="/newsletter">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a><a href="/garden">Portfolio</a><a href="/flash">Flash</a>
+  <a href="/about">About</a><a href="/services">Services</a>
+  <a href="/faq" class="active">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare">Aftercare</a><a href="/visit">Contact &amp; visit</a><a href="/newsletter">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div>
+    <!-- COPY: eyebrow label -->
+    <p class="page-eyebrow">Lorem ipsum</p>
+    <!-- COPY: page title -->
+    <h1 class="page-title">Lorem <em>ipsum.</em></h1>
+  </div>
+  <!-- COPY: page descriptor — 1–2 sentences -->
+  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
+</header>
+
+<!-- FAQ SHELL -->
+<div class="faq-shell">
+
+  <!-- ASIDE — search + category nav -->
+  <aside class="faq-aside" aria-label="FAQ navigation">
+
+    <div class="faq-search">
+      <!-- COPY: search placeholder text -->
+      <input type="search" placeholder="Lorem ipsum…" aria-label="Search FAQ" id="faq-search-input">
+    </div>
+
+    <div>
+      <p class="faq-cats-label">Browse by topic</p>
+      <div class="faq-cats" role="list">
+        <!--
+          DEV NOTE: clicking a category button filters the accordion
+          to show only items with matching data-category attribute.
+          JS toggles .active class on the button and shows/hides items.
+
+          COPY: category labels and counts
+        -->
+        <button class="faq-cat active" data-cat="all" role="listitem">
+          <!-- COPY: "All questions" label -->
+          <span>Lorem ipsum</span>
+          <span class="cat-count">00</span>
+        </button>
+        <button class="faq-cat" data-cat="before" role="listitem">
+          <!-- COPY: category 1 label e.g. "Before the appointment" -->
+          <span>Lorem ipsum</span>
+          <span class="cat-count">00</span>
+        </button>
+        <button class="faq-cat" data-cat="ontheday" role="listitem">
+          <!-- COPY: category 2 label e.g. "On the day" -->
+          <span>Lorem ipsum</span>
+          <span class="cat-count">00</span>
+        </button>
+        <button class="faq-cat" data-cat="aftercare" role="listitem">
+          <!-- COPY: category 3 label e.g. "Aftercare" -->
+          <span>Lorem ipsum</span>
+          <span class="cat-count">00</span>
+        </button>
+        <button class="faq-cat" data-cat="pricing" role="listitem">
+          <!-- COPY: category 4 label e.g. "Pricing & deposits" -->
+          <span>Lorem ipsum</span>
+          <span class="cat-count">00</span>
+        </button>
+        <button class="faq-cat" data-cat="policies" role="listitem">
+          <!-- COPY: category 5 label e.g. "Policies" -->
+          <span>Lorem ipsum</span>
+          <span class="cat-count">00</span>
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ACCORDION -->
+  <main id="faq-list" aria-label="Frequently asked questions">
+    <div class="faq-list" id="faq-accordion">
+
+      <!--
+        FAQ ITEM STRUCTURE
+        ──────────────────────────────────────────────────────────────────
+        Each item has:
+          data-category="[cat]"  — matches a .faq-cat button's data-cat
+          data-question="[text]" — used by the search JS to filter by text
+
+        COPY: all question text and answer text needs approved copy.
+        Questions from the original mockup are preserved as prompts below.
+        Answers are lorem ipsum placeholders.
+
+        DEV NOTE: add as many .faq-item elements as needed.
+        Items without a matching category will be hidden when filtering.
+        ──────────────────────────────────────────────────────────────────
+      -->
+
+      <!-- BEFORE THE APPOINTMENT -->
+      <div class="faq-item open" data-category="before" data-question="how far in advance do i need to book">
+        <button class="faq-item-trigger" aria-expanded="true" id="faq-q1" aria-controls="faq-a1">
+          <!-- COPY: question -->
+          <span class="faq-question">How far in advance do I need to book?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a1" role="region" aria-labelledby="faq-q1">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="before" data-question="what if i'm not sure what i want">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q2" aria-controls="faq-a2">
+          <!-- COPY: question -->
+          <span class="faq-question">What if I'm not sure exactly what I want yet?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a2" role="region" aria-labelledby="faq-q2">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.</p>
+            <p>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="before" data-question="will it hurt never been tattooed">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q3" aria-controls="faq-a3">
+          <!-- COPY: question -->
+          <span class="faq-question">Will it hurt? I've never been tattooed before.</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a3" role="region" aria-labelledby="faq-q3">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="before" data-question="what should i do to prep for my appointment">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q4" aria-controls="faq-a4">
+          <!-- COPY: question -->
+          <span class="faq-question">What should I do to prepare for my appointment?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a4" role="region" aria-labelledby="faq-q4">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="before" data-question="can i bring a friend">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q5" aria-controls="faq-a5">
+          <!-- COPY: question -->
+          <span class="faq-question">Can I bring a friend?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a5" role="region" aria-labelledby="faq-q5">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="before" data-question="pregnant breastfeeding medication">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q6" aria-controls="faq-a6">
+          <!-- COPY: question -->
+          <span class="faq-question">I'm pregnant / breastfeeding / on medication — can I still get tattooed?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a6" role="region" aria-labelledby="faq-q6">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ON THE DAY -->
+      <div class="faq-item" data-category="ontheday" data-question="what to expect on the day">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q7" aria-controls="faq-a7">
+          <!-- COPY: question -->
+          <span class="faq-question">What should I expect when I arrive?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a7" role="region" aria-labelledby="faq-q7">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="ontheday" data-question="when will i see the design">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q8" aria-controls="faq-a8">
+          <!-- COPY: question -->
+          <span class="faq-question">When will I see the design?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a8" role="region" aria-labelledby="faq-q8">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="ontheday" data-question="can i change my mind on the day">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q9" aria-controls="faq-a9">
+          <!-- COPY: question -->
+          <span class="faq-question">Can I make changes on the day?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a9" role="region" aria-labelledby="faq-q9">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AFTERCARE -->
+      <div class="faq-item" data-category="aftercare" data-question="how long does healing take">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q10" aria-controls="faq-a10">
+          <!-- COPY: question -->
+          <span class="faq-question">How long does healing take?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a10" role="region" aria-labelledby="faq-q10">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. See the <a href="/aftercare">aftercare page</a> for the full step-by-step guide.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="aftercare" data-question="second skin vs cling film">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q11" aria-controls="faq-a11">
+          <!-- COPY: question -->
+          <span class="faq-question">What's the difference between second skin and cling film?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a11" role="region" aria-labelledby="faq-q11">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore. See the full <a href="/aftercare">aftercare guide</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRICING -->
+      <div class="faq-item" data-category="pricing" data-question="how much does a tattoo cost">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q12" aria-controls="faq-a12">
+          <!-- COPY: question -->
+          <span class="faq-question">How much does a tattoo cost?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a12" role="region" aria-labelledby="faq-q12">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer — link to services page -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Full pricing on the <a href="/services">services page</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="pricing" data-question="how does the deposit work">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q13" aria-controls="faq-a13">
+          <!-- COPY: question -->
+          <span class="faq-question">How does the deposit work?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a13" role="region" aria-labelledby="faq-q13">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- POLICIES -->
+      <div class="faq-item" data-category="policies" data-question="cancellation rescheduling policy">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q14" aria-controls="faq-a14">
+          <!-- COPY: question -->
+          <span class="faq-question">What is the cancellation and rescheduling policy?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a14" role="region" aria-labelledby="faq-q14">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" data-category="policies" data-question="touch ups">
+        <button class="faq-item-trigger" aria-expanded="false" id="faq-q15" aria-controls="faq-a15">
+          <!-- COPY: question -->
+          <span class="faq-question">Do you offer touch-ups?</span>
+          <span class="faq-marker" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-a15" role="region" aria-labelledby="faq-q15">
+          <div class="faq-answer-inner">
+            <!-- COPY: answer -->
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state — shown when search returns no results -->
+      <div id="faq-empty" style="display:none;padding:48px 0;text-align:center">
+        <p style="font-family:var(--serif);font-size:24px;font-weight:300;margin-bottom:12px;color:var(--ink)">Lorem ipsum dolor</p>
+        <!-- COPY: empty search state message -->
+        <p style="color:var(--ink-soft);font-size:15px;margin-bottom:24px">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <a href="/enquire" class="btn btn-outline">Lorem ipsum →</a>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- CTA -->
+<section class="faq-cta">
+  <div class="faq-cta-text">
+    <!-- COPY: CTA heading -->
+    <h2>Lorem ipsum <em>dolor?</em></h2>
+    <!-- COPY: CTA supporting line -->
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+  </div>
+  <div class="faq-cta-actions">
+    <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+    <a href="/aftercare" class="btn btn-ghost">Aftercare guide <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: footer tagline -->
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links"><h4>Site</h4><ul>
+      <li><a href="/garden">Portfolio</a></li><li><a href="/flash">Flash</a></li>
+      <li><a href="/about">About</a></li><li><a href="/services">Pricing</a></li><li><a href="/faq">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+      <li><a href="/visit">Find the studio</a></li><li><a href="/aftercare">Aftercare</a></li>
+      <li><a href="/visit#access">Accessibility</a></li><li><a href="/visit#hours">Studio hours</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">Instagram</a></li>
+      <li><a href="https://tiktok.com/@beansprout.ink" target="_blank" rel="noopener">TikTok</a></li>
+      <li><a href="/newsletter">Newsletter</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© Beansprout 2026 — Lorem ipsum dolor sit amet</p>
+    <p class="footer-copy">Privacy · Terms · Cookies</p>
+  </div>
+</footer>
+
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  /* Nav */
+  const nav=document.getElementById('main-nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>60),{passive:true});
+  const moreWrap=document.getElementById('nav-more'),moreBtn=document.getElementById('nav-more-btn');
+  if(moreBtn){
+    moreBtn.addEventListener('click',e=>{e.stopPropagation();const o=moreWrap.classList.toggle('open');moreBtn.setAttribute('aria-expanded',o)});
+    document.addEventListener('click',()=>{moreWrap.classList.remove('open');moreBtn.setAttribute('aria-expanded','false')});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){moreWrap.classList.remove('open');moreBtn.setAttribute('aria-expanded','false')}});
+  }
+  const hbg=document.getElementById('nav-hamburger'),drw=document.getElementById('nav-drawer');
+  if(hbg&&drw){
+    hbg.addEventListener('click',()=>{const o=hbg.classList.toggle('open');hbg.setAttribute('aria-expanded',o);drw.classList.toggle('open',o);drw.setAttribute('aria-hidden',!o);document.body.style.overflow=o?'hidden':''});
+    drw.querySelectorAll('a').forEach(l=>l.addEventListener('click',()=>{hbg.classList.remove('open');hbg.setAttribute('aria-expanded','false');drw.classList.remove('open');drw.setAttribute('aria-hidden','true');document.body.style.overflow=''}));
+  }
+
+  /* Accordion */
+  const items=document.querySelectorAll('.faq-item');
+  items.forEach(item=>{
+    const trigger=item.querySelector('.faq-item-trigger');
+    if(!trigger) return;
+    trigger.addEventListener('click',()=>{
+      const isOpen=item.classList.contains('open');
+      // Close all
+      items.forEach(i=>{
+        i.classList.remove('open');
+        const t=i.querySelector('.faq-item-trigger');
+        if(t) t.setAttribute('aria-expanded','false');
+      });
+      // Open clicked (if was closed)
+      if(!isOpen){
+        item.classList.add('open');
+        trigger.setAttribute('aria-expanded','true');
+      }
+    });
+    trigger.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();trigger.click()}
+    });
+  });
+
+  /* Category filter */
+  const cats=document.querySelectorAll('.faq-cat');
+  cats.forEach(cat=>{
+    cat.addEventListener('click',()=>{
+      cats.forEach(c=>c.classList.remove('active'));
+      cat.classList.add('active');
+      const chosen=cat.dataset.cat;
+      items.forEach(item=>{
+        const match=chosen==='all'||item.dataset.category===chosen;
+        item.style.display=match?'':'none';
+      });
+      checkEmpty();
+    });
+  });
+
+  /* Search */
+  const searchInput=document.getElementById('faq-search-input');
+  if(searchInput){
+    searchInput.addEventListener('input',()=>{
+      const q=searchInput.value.toLowerCase().trim();
+      // Reset category filter when searching
+      if(q){cats.forEach(c=>c.classList.toggle('active',c.dataset.cat==='all'))}
+      items.forEach(item=>{
+        if(!q){item.style.display='';return}
+        const text=(item.dataset.question||'')+(item.querySelector('.faq-answer-inner')?.textContent||'');
+        item.style.display=text.toLowerCase().includes(q)?'':'none';
+      });
+      checkEmpty();
+    });
+  }
+
+  function checkEmpty(){
+    const empty=document.getElementById('faq-empty');
+    if(!empty) return;
+    const anyVisible=Array.from(items).some(i=>i.style.display!=='none');
+    empty.style.display=anyVisible?'none':'block';
+  }
+
+  /* Mobile CTA */
+  const mc=document.getElementById('mobile-cta');
+  if(mc&&window.innerWidth<640){mc.classList.add('visible');mc.setAttribute('aria-hidden','false')}
+})();
+</script>
+</body>
+</html>

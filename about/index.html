@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beansprout — About</title>
+<!-- COPY: meta description -->
+<meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout tattoo studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ==========================================================================
+   TOKENS — keep in sync across all pages
+   ========================================================================== */
+:root {
+  --bg:        #F7F1E3; --bg-alt:   #EFE8D6; --bg-dark: #2C2A24;
+  --cream:     #FBF8EE; --ink:      #2C2A24; --ink-soft:#5C5A52;
+  --ink-faint: #8E8B81; --moss:     #4A5D3F; --moss-soft:#8A9A75;
+  --moss-bg:   rgba(74,93,63,0.07);
+  --clay:      #C45A3E; --clay-soft:#E08C72;
+  --line:      rgba(44,42,36,0.14); --line-soft:rgba(44,42,36,0.07);
+  --serif:'Fraunces',Georgia,serif; --sans:'Karla',system-ui,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --pad-x:48px; --nav-h:65px; --radius-sm:4px; --radius:8px;
+  --ease:cubic-bezier(0.16,1,0.3,1); --dur:220ms;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;font-family:var(--sans);font-size:15px;font-weight:500;border-radius:100px;border:1.5px solid transparent;transition:transform var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);cursor:pointer;white-space:nowrap;line-height:1}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--clay);border-color:var(--clay);color:var(--cream)}
+.btn-primary:hover{background:var(--clay-soft);border-color:var(--clay-soft)}
+.btn-outline{background:transparent;border-color:var(--ink);color:var(--ink)}
+.btn-outline:hover{background:var(--ink);color:var(--bg)}
+.btn-sm{padding:9px 18px;font-size:13px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink);padding-left:0;padding-right:0}
+.btn-ghost:hover{color:var(--moss)}
+.btn-ghost .arrow{font-family:var(--serif);font-style:italic;font-size:18px;transition:transform var(--dur) var(--ease);display:inline-block}
+.btn-ghost:hover .arrow{transform:translateX(4px)}
+
+/* ==========================================================================
+   NAV
+   ========================================================================== */
+.nav{position:sticky;top:0;z-index:200;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 var(--pad-x);background:var(--bg);border-bottom:1px solid var(--line-soft);transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.nav.scrolled{box-shadow:0 2px 20px rgba(44,42,36,0.07);border-color:var(--line)}
+.nav-logo-placeholder{display:flex;align-items:center;justify-content:center;height:36px;min-width:148px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);background:var(--cream);padding:0 14px;flex-shrink:0}
+.nav-logo-placeholder::before{content:'⬚';font-size:16px;color:var(--line);font-family:sans-serif;margin-right:8px}
+.nav-logo-img{height:36px;width:auto;display:block;flex-shrink:0}
+.nav-links{display:flex;align-items:center;gap:28px;flex:1;justify-content:center}
+.nav-links a{font-size:14px;color:var(--ink-soft);letter-spacing:0.01em;padding-bottom:2px;border-bottom:1px solid transparent;transition:color var(--dur),border-color var(--dur);white-space:nowrap}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a.active{color:var(--moss);border-color:var(--moss)}
+.nav-more{position:relative}
+.nav-more-trigger{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--ink-soft);cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0;transition:color var(--dur)}
+.nav-more-trigger:hover{color:var(--ink)}
+.nav-more-trigger .chevron{display:inline-block;transition:transform var(--dur) var(--ease);font-size:10px;margin-top:1px}
+.nav-more.open .nav-more-trigger .chevron{transform:rotate(180deg)}
+.nav-more-trigger .chevron::after{content:'▾'}
+.nav-dropdown{position:absolute;top:calc(100% + 16px);left:50%;min-width:180px;background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 16px 48px rgba(44,42,36,0.12);padding:8px;opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-6px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.nav-more.open .nav-dropdown{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+.nav-dropdown a{display:block;padding:10px 14px;font-size:14px;color:var(--ink-soft);border-radius:var(--radius-sm);transition:background var(--dur),color var(--dur);white-space:nowrap}
+.nav-dropdown a:hover{background:var(--bg-alt);color:var(--ink)}
+.nav-right{display:flex;align-items:center;gap:20px;flex-shrink:0}
+.status-pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--moss);white-space:nowrap}
+.status-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 0 3px rgba(74,93,63,0.2);animation:pulse 2.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,93,63,0.2)}50%{box-shadow:0 0 0 6px rgba(74,93,63,0.05)}}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;background:none;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:border-color var(--dur)}
+.nav-hamburger:hover{border-color:var(--ink)}
+.nav-hamburger span{display:block;width:100%;height:1.5px;background:var(--ink);border-radius:2px;transition:transform var(--dur) var(--ease),opacity var(--dur);transform-origin:center}
+.nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.nav-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.nav-drawer{display:none;position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;background:var(--bg);z-index:190;flex-direction:column;padding:32px var(--pad-x);overflow-y:auto;opacity:0;transform:translateY(-8px);transition:opacity 250ms var(--ease),transform 250ms var(--ease);pointer-events:none}
+.nav-drawer.open{opacity:1;transform:translateY(0);pointer-events:all}
+.nav-drawer a{font-family:var(--serif);font-weight:300;font-size:36px;letter-spacing:-0.02em;color:var(--ink);padding:16px 0;border-bottom:1px solid var(--line-soft);transition:color var(--dur);display:block}
+.nav-drawer a:hover{color:var(--moss)}
+.nav-drawer a.active{color:var(--moss)}
+.nav-drawer .drawer-secondary{margin-top:24px;display:flex;flex-direction:column}
+.nav-drawer .drawer-secondary a{font-family:var(--sans);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-soft);padding:14px 0}
+.nav-drawer .drawer-bottom{margin-top:auto;padding-top:32px;display:flex;flex-direction:column;gap:12px}
+.nav-drawer .drawer-bottom .btn{justify-content:center;font-size:16px;padding:18px}
+
+/* ==========================================================================
+   PAGE HEADER
+   ========================================================================== */
+.page-header{
+  padding:clamp(44px,6vw,80px) var(--pad-x) clamp(36px,4vw,56px);
+  border-bottom:1px solid var(--line);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+  align-items:end;
+}
+.page-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);display:inline-flex;align-items:center;gap:12px;margin-bottom:20px}
+.page-eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.page-title{font-family:var(--serif);font-weight:300;font-size:clamp(48px,6.5vw,96px);line-height:0.97;letter-spacing:-0.03em}
+.page-title em{font-style:italic;color:var(--moss)}
+.page-descriptor{font-family:var(--serif);font-weight:300;font-size:20px;line-height:1.6;color:var(--ink-soft);max-width:min(440px,100%);align-self:end}
+
+/* ==========================================================================
+   INTRO — portrait left, text right
+   ========================================================================== */
+.intro{
+  display:grid;
+  grid-template-columns:0.85fr 1.15fr;
+  gap:clamp(40px,5vw,80px);
+  padding:clamp(48px,7vw,96px) var(--pad-x);
+  align-items:start;
+}
+
+/* Portrait placeholder — replace with <img> */
+.portrait-wrap{
+  position:relative;
+}
+.portrait-placeholder{
+  aspect-ratio:4/5;
+  background:linear-gradient(155deg,#C8A882,#B8987A 60%,#9A7A5A);
+  border-radius:var(--radius);
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  padding:20px;
+  overflow:hidden;
+}
+.portrait-placeholder::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 30% 25%,rgba(255,255,255,0.15),transparent 55%),
+             radial-gradient(ellipse at 75% 80%,rgba(0,0,0,0.2),transparent 50%);
+}
+.portrait-caption{
+  position:relative;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:rgba(251,248,238,0.7);
+}
+/*
+  DEV NOTE — PORTRAIT IMAGE
+  Replace .portrait-placeholder with:
+  <img src="images/artist-portrait.jpg"
+       alt="[Artist name], Beansprout tattoo studio"
+       class="portrait-img">
+
+  .portrait-img {
+    width: 100%;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: var(--radius);
+    display: block;
+  }
+
+  Recommended: natural, unposed, in-studio. Warm light.
+  Not a professional headshot — something that feels like
+  it was taken mid-session or mid-drawing.
+*/
+
+/* Text column */
+.intro-text{}
+.intro-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);display:inline-flex;align-items:center;gap:12px;margin-bottom:24px}
+.intro-eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.intro-heading{font-family:var(--serif);font-weight:300;font-size:clamp(40px,5vw,64px);line-height:1;letter-spacing:-0.025em;margin-bottom:32px}
+.intro-heading em{font-style:italic;color:var(--moss)}
+
+/* Drop-cap on first paragraph */
+.intro-body p{font-size:17px;color:var(--ink-soft);line-height:1.7;margin-bottom:18px}
+.intro-body p:last-child{margin-bottom:0}
+.intro-body p.lead{font-size:20px;color:var(--ink);line-height:1.55}
+.intro-body p.lead::first-letter{
+  font-family:var(--serif);font-style:italic;
+  font-size:60px;color:var(--moss);
+  float:left;line-height:0.82;
+  padding-right:10px;padding-top:8px;
+}
+
+/* ==========================================================================
+   APPROACH — what I draw / what I don't
+   ========================================================================== */
+.approach{
+  background:var(--bg-alt);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:clamp(48px,6vw,80px) var(--pad-x);
+}
+.approach-header{margin-bottom:48px}
+.approach-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);display:inline-flex;align-items:center;gap:12px;margin-bottom:16px}
+.approach-eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.approach-title{font-family:var(--serif);font-weight:300;font-size:clamp(36px,4.5vw,60px);line-height:1;letter-spacing:-0.025em}
+.approach-title em{font-style:italic;color:var(--moss)}
+.approach-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,4vw,80px)}
+.approach-col h3{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:24px}
+.approach-list{display:flex;flex-direction:column}
+.approach-item{
+  display:flex;align-items:baseline;gap:16px;
+  padding:18px 0;
+  border-top:1px solid var(--line);
+  font-family:var(--serif);font-weight:300;font-size:20px;line-height:1.3;
+}
+.approach-item:last-child{border-bottom:1px solid var(--line)}
+.approach-item .marker{
+  font-family:var(--mono);font-size:12px;
+  flex-shrink:0;
+  margin-top:2px;
+}
+.approach-col.yes  .marker{color:var(--moss)}
+.approach-col.no   .marker{color:var(--clay)}
+
+/* ==========================================================================
+   CREDENTIALS — 4 stat blocks
+   ========================================================================== */
+.credentials{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+  border-bottom:1px solid var(--line);
+}
+.credential{
+  padding:clamp(36px,5vw,64px) var(--pad-x) clamp(36px,5vw,64px) 0;
+  border-right:1px solid var(--line);
+}
+.credential:first-child{padding-left:var(--pad-x)}
+.credential:last-child{border-right:none}
+.cred-number{
+  font-family:var(--serif);font-weight:300;
+  font-size:clamp(48px,6vw,80px);line-height:1;
+  letter-spacing:-0.03em;color:var(--ink);margin-bottom:12px;
+}
+/* COPY: credential labels */
+.cred-label{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint)}
+
+/* ==========================================================================
+   STUDIO GALLERY — 4 square tiles
+   ========================================================================== */
+.studio-section{padding:clamp(48px,6vw,80px) var(--pad-x)}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;margin-bottom:40px}
+.section-head-left{display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);display:inline-flex;align-items:center;gap:12px}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.section-title{font-family:var(--serif);font-weight:300;font-size:clamp(36px,4.5vw,56px);line-height:1;letter-spacing:-0.025em}
+.section-title em{font-style:italic;color:var(--moss)}
+.studio-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.studio-tile{
+  aspect-ratio:1;
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:var(--bg-alt);
+  position:relative;
+}
+/*
+  DEV NOTE — STUDIO IMAGES
+  Replace each .studio-tile-placeholder with:
+  <img src="images/studio/[filename].jpg"
+       alt="[description of what is shown]"
+       loading="lazy">
+
+  Recommended subjects (one each):
+  1. The studio chair and lighting — warm, inviting
+  2. Artist at work — hands drawing or tattooing, close crop
+  3. Equipment detail — clean, organised, reassuring
+  4. Plants / studio atmosphere — the soft, human side
+*/
+.studio-tile-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.studio-tile-placeholder svg{width:36%;opacity:0.25}
+.t-warm{background:linear-gradient(155deg,#B8987A,#D5B898);color:#2C2A24}
+.t-sage{background:linear-gradient(155deg,#8A9A75,#A5B391);color:#2C2A24}
+.t-cream{background:linear-gradient(155deg,#DCC9A4,#EFE3C9);color:#3A3830}
+.t-blush{background:linear-gradient(155deg,#D8B5A0,#E8C8B0);color:#2C2A24}
+
+/* ==========================================================================
+   CTA — bottom call to action
+   ========================================================================== */
+.page-cta{
+  background:var(--bg-alt);
+  border-top:1px solid var(--line);
+  padding:clamp(56px,7vw,96px) var(--pad-x);
+  text-align:center;
+}
+.page-cta h2{font-family:var(--serif);font-weight:300;font-size:clamp(36px,5vw,64px);line-height:1;letter-spacing:-0.025em;margin-bottom:16px}
+.page-cta h2 em{font-style:italic;color:var(--moss)}
+.page-cta p{font-size:18px;color:var(--ink-soft);max-width:min(480px,100%);margin:0 auto 32px;line-height:1.6}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.footer{background:var(--bg-dark);color:var(--bg);padding:80px var(--pad-x) 32px}
+.footer-top{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:48px;padding-bottom:56px;border-bottom:1px solid rgba(247,241,227,0.1);margin-bottom:28px}
+.footer-brand .wordmark{font-family:var(--serif);font-weight:300;font-size:50px;line-height:1;letter-spacing:-0.025em;margin-bottom:12px}
+.footer-brand .wordmark em{font-style:italic;color:var(--moss-soft)}
+.footer-brand .tagline{font-size:14px;color:rgba(247,241,227,0.5);line-height:1.6;max-width:250px}
+.footer-col h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss-soft);margin-bottom:18px}
+.footer-col ul{display:flex;flex-direction:column;gap:11px}
+.footer-col a{font-size:14px;color:rgba(247,241,227,0.6);transition:color var(--dur)}
+.footer-col a:hover{color:var(--bg)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.footer-copy{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(247,241,227,0.3)}
+
+/* ==========================================================================
+   MOBILE CTA
+   ========================================================================== */
+.mobile-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:180;padding:14px 20px;padding-bottom:calc(14px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);transform:translateY(100%);transition:transform 300ms var(--ease)}
+.mobile-cta.visible{transform:translateY(0)}
+.mobile-cta .btn{width:100%;justify-content:center;font-size:16px;padding:17px}
+
+/* ==========================================================================
+   REVEAL ANIMATION
+   ========================================================================== */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 550ms var(--ease),transform 550ms var(--ease)}
+.reveal.in-view{opacity:1;transform:translateY(0)}
+.reveal-d1{transition-delay:100ms}
+.reveal-d2{transition-delay:200ms}
+.reveal-d3{transition-delay:300ms}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media(max-width:1100px){
+  :root{--pad-x:32px}
+  .nav-links{gap:20px}
+  .credentials{grid-template-columns:1fr 1fr}
+  .credential{border-right:none;border-bottom:1px solid var(--line)}
+  .credential:nth-child(odd){border-right:1px solid var(--line)}
+  .credential:nth-child(3),.credential:nth-child(4){border-bottom:none}
+}
+@media(max-width:900px){
+  .nav-links,.nav-more,.status-pill{display:none}
+  .nav-hamburger{display:flex}
+  .nav-drawer{display:flex}
+  .page-header{grid-template-columns:1fr;gap:20px}
+  .intro{grid-template-columns:1fr;gap:40px}
+  .portrait-wrap{max-width:480px}
+  .approach-grid{grid-template-columns:1fr;gap:48px}
+  .studio-grid{grid-template-columns:repeat(2,1fr)}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  :root{--pad-x:20px}
+  .page-header{padding:44px var(--pad-x) 36px}
+  .page-title{font-size:48px}
+  .intro{padding:48px var(--pad-x)}
+  .intro-body p.lead{font-size:17px}
+  .intro-body p.lead::first-letter{font-size:48px}
+  .approach{padding:48px var(--pad-x)}
+  .approach-item{font-size:17px}
+  .credentials{grid-template-columns:1fr 1fr}
+  .credential{padding:32px 16px 32px 0}
+  .credential:first-child{padding-left:0}
+  .studio-section{padding:48px var(--pad-x)}
+  .studio-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+  .page-cta{padding:56px var(--pad-x)}
+  .footer-top{grid-template-columns:1fr;gap:32px}
+  .footer-brand .wordmark{font-size:38px}
+  .footer{padding-bottom:calc(32px + 80px)}
+  .mobile-cta{display:block}
+  .section-head{flex-direction:column;align-items:flex-start;gap:14px}
+}
+@media(max-width:375px){
+  .page-title{font-size:40px}
+  .cred-number{font-size:40px}
+  .approach-item{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV — About active -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <!-- LOGO: replace with <img src="images/logo.svg" alt="Beansprout" class="nav-logo-img"> -->
+  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/garden">Portfolio</a></li>
+    <li><a href="/flash">Flash</a></li>
+    <li><a href="/about" class="active" aria-current="page">About</a></li>
+    <li><a href="/services">Services</a></li>
+    <li><a href="/faq">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">More <span class="chevron" aria-hidden="true"></span></button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare">Aftercare</a></li>
+        <li><a href="/visit">Contact &amp; visit</a></li>
+        <li><a href="/newsletter">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a><a href="/garden">Portfolio</a><a href="/flash">Flash</a>
+  <a href="/about" class="active">About</a><a href="/services">Services</a><a href="/faq">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare">Aftercare</a><a href="/visit">Contact &amp; visit</a><a href="/newsletter">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div>
+    <!-- COPY: eyebrow label -->
+    <p class="page-eyebrow">Lorem ipsum</p>
+    <!-- COPY: page title -->
+    <h1 class="page-title">Lorem <em>ipsum.</em></h1>
+  </div>
+  <!-- COPY: page descriptor — 1–2 sentences about the artist/studio -->
+  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+</header>
+
+<!-- INTRO — portrait + bio text -->
+<section class="intro" aria-labelledby="intro-heading">
+
+  <div class="portrait-wrap">
+    <!--
+      DEV NOTE — PORTRAIT
+      Replace with:
+      <img src="images/artist-portrait.jpg"
+           alt="[Artist name], Beansprout studio"
+           class="portrait-img">
+    -->
+    <div class="portrait-placeholder" role="img" aria-label="Artist portrait placeholder">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
+           stroke="rgba(251,248,238,0.4)" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="32" cy="24" r="12"/>
+        <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24"/>
+      </svg>
+      <span class="portrait-caption"><!-- COPY: studio location label --></span>
+    </div>
+  </div>
+
+  <div class="intro-text">
+    <!-- COPY: greeting / name heading -->
+    <p class="intro-eyebrow">Lorem ipsum</p>
+    <h2 class="intro-heading" id="intro-heading">Lorem ipsum, <em>lorem.</em></h2>
+
+    <div class="intro-body">
+      <!-- COPY: 3–4 paragraphs of artist bio. First paragraph gets the drop-cap. -->
+      <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- APPROACH — what I draw / don't draw -->
+<section class="approach" aria-labelledby="approach-heading">
+
+  <div class="approach-header">
+    <!-- COPY: approach section eyebrow + heading -->
+    <p class="approach-eyebrow">Lorem ipsum</p>
+    <h2 class="approach-title" id="approach-heading">Lorem ipsum <em>dolor.</em></h2>
+  </div>
+
+  <div class="approach-grid">
+
+    <div class="approach-col yes">
+      <!-- COPY: "what I love drawing" column heading -->
+      <h3>Lorem ipsum dolor sit</h3>
+      <ul class="approach-list">
+        <!-- COPY: 6 items — styles, subjects, types of work the artist loves -->
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+      </ul>
+    </div>
+
+    <div class="approach-col no">
+      <!-- COPY: "what I don't take on" column heading -->
+      <h3>Lorem ipsum dolor sit</h3>
+      <ul class="approach-list">
+        <!-- COPY: 6 items — styles/requests the artist declines -->
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- CREDENTIALS -->
+<div class="credentials" aria-label="Studio credentials" role="list">
+  <div class="credential reveal" role="listitem">
+    <!-- COPY: stat 1 number + label -->
+    <div class="cred-number">00</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+  <div class="credential reveal reveal-d1" role="listitem">
+    <!-- COPY: stat 2 number + label -->
+    <div class="cred-number">000+</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+  <div class="credential reveal reveal-d2" role="listitem">
+    <!-- COPY: stat 3 number + label -->
+    <div class="cred-number">0</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+  <div class="credential reveal reveal-d3" role="listitem">
+    <!-- COPY: stat 4 number + label -->
+    <div class="cred-number">000%</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+</div>
+
+<!-- STUDIO GALLERY -->
+<section class="studio-section" aria-labelledby="studio-heading">
+  <div class="section-head">
+    <div class="section-head-left">
+      <!-- COPY: studio section eyebrow + heading -->
+      <p class="eyebrow">Lorem ipsum</p>
+      <h2 class="section-title" id="studio-heading">Lorem <em>ipsum.</em></h2>
+    </div>
+    <!-- COPY: short supporting line beside studio heading -->
+    <p style="font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--ink-soft);max-width:min(360px,100%);font-weight:300">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor.
+    </p>
+  </div>
+
+  <!--
+    DEV NOTE — STUDIO TILES
+    Replace .studio-tile-placeholder with <img> tags.
+    Subjects: studio chair, artist at work (hands), equipment detail, studio atmosphere.
+  -->
+  <div class="studio-grid">
+    <div class="studio-tile reveal">
+      <div class="studio-tile-placeholder t-warm">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="40" width="60" height="40" rx="3"/><path d="M30 40L30 25L50 15L70 25L70 40"/></svg>
+      </div>
+    </div>
+    <div class="studio-tile reveal reveal-d1">
+      <div class="studio-tile-placeholder t-sage">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M50 85L50 50C50 40 40 35 35 25M50 50C50 40 60 35 65 25M50 65C50 55 60 50 70 45"/></svg>
+      </div>
+    </div>
+    <div class="studio-tile reveal reveal-d2">
+      <div class="studio-tile-placeholder t-cream">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="25"/><path d="M30 50L70 50M50 30L50 70"/></svg>
+      </div>
+    </div>
+    <div class="studio-tile reveal reveal-d3">
+      <div class="studio-tile-placeholder t-blush">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M25 75Q50 25 75 75"/><circle cx="50" cy="55" r="6" fill="currentColor"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="page-cta">
+  <!-- COPY: CTA heading -->
+  <h2>Lorem ipsum <em>dolor sit.</em></h2>
+  <!-- COPY: CTA supporting line -->
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+  <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <!-- FOOTER LOGO: replace with <img src="images/logo-light.svg" alt="Beansprout" class="nav-logo-img"> if light variant exists -->
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links"><h4>Site</h4><ul>
+      <li><a href="/garden">Portfolio</a></li><li><a href="/flash">Flash</a></li>
+      <li><a href="/about">About</a></li><li><a href="/services">Pricing</a></li><li><a href="/faq">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+      <li><a href="/visit">Find the studio</a></li><li><a href="/aftercare">Aftercare</a></li>
+      <li><a href="/visit#access">Accessibility</a></li><li><a href="/visit#hours">Studio hours</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">Instagram</a></li>
+      <li><a href="https://tiktok.com/@beansprout.ink" target="_blank" rel="noopener">TikTok</a></li>
+      <li><a href="/newsletter">Newsletter</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© Beansprout 2026 — Lorem ipsum dolor sit amet</p>
+    <p class="footer-copy">Privacy · Terms · Cookies</p>
+  </div>
+</footer>
+
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const nav=document.getElementById('main-nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>60),{passive:true});
+  const moreWrap=document.getElementById('nav-more'),moreBtn=document.getElementById('nav-more-btn');
+  if(moreBtn){
+    moreBtn.addEventListener('click',e=>{e.stopPropagation();const o=moreWrap.classList.toggle('open');moreBtn.setAttribute('aria-expanded',o)});
+    document.addEventListener('click',()=>{moreWrap.classList.remove('open');moreBtn.setAttribute('aria-expanded','false')});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){moreWrap.classList.remove('open');moreBtn.setAttribute('aria-expanded','false')}});
+  }
+  const hbg=document.getElementById('nav-hamburger'),drw=document.getElementById('nav-drawer');
+  if(hbg&&drw){
+    hbg.addEventListener('click',()=>{const o=hbg.classList.toggle('open');hbg.setAttribute('aria-expanded',o);drw.classList.toggle('open',o);drw.setAttribute('aria-hidden',!o);document.body.style.overflow=o?'hidden':''});
+    drw.querySelectorAll('a').forEach(l=>l.addEventListener('click',()=>{hbg.classList.remove('open');hbg.setAttribute('aria-expanded','false');drw.classList.remove('open');drw.setAttribute('aria-hidden','true');document.body.style.overflow=''}));
+  }
+  const reveals=document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');obs.unobserve(e.target)}})},{threshold:0.1,rootMargin:'0px 0px -32px 0px'});
+    reveals.forEach(el=>obs.observe(el));
+  } else { reveals.forEach(el=>el.classList.add('in-view')); }
+  const mc=document.getElementById('mobile-cta');
+  if(mc&&window.innerWidth<640){mc.classList.add('visible');mc.setAttribute('aria-hidden','false')}
+})();
+</script>
+</body>
+</html>
