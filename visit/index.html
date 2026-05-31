@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beansprout — Contact &amp; visit</title>
+<!-- COPY: meta description -->
+<meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Find Beansprout tattoo studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ==========================================================================
+   TOKENS — keep in sync across all pages
+   ========================================================================== */
+:root {
+  --bg:#F7F1E3;--bg-alt:#EFE8D6;--bg-dark:#2C2A24;
+  --cream:#FBF8EE;--ink:#2C2A24;--ink-soft:#5C5A52;
+  --ink-faint:#8E8B81;--moss:#4A5D3F;--moss-soft:#8A9A75;
+  --moss-bg:rgba(74,93,63,0.07);
+  --clay:#C45A3E;--clay-soft:#E08C72;
+  --line:rgba(44,42,36,0.14);--line-soft:rgba(44,42,36,0.07);
+  --serif:'Fraunces',Georgia,serif;--sans:'Karla',system-ui,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --pad-x:48px;--nav-h:65px;--radius-sm:4px;--radius:8px;
+  --ease:cubic-bezier(0.16,1,0.3,1);--dur:220ms;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;font-family:var(--sans);font-size:15px;font-weight:500;border-radius:100px;border:1.5px solid transparent;transition:transform var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);cursor:pointer;white-space:nowrap;line-height:1}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--clay);border-color:var(--clay);color:var(--cream)}
+.btn-primary:hover{background:var(--clay-soft);border-color:var(--clay-soft)}
+.btn-outline{background:transparent;border-color:var(--ink);color:var(--ink)}
+.btn-outline:hover{background:var(--ink);color:var(--bg)}
+.btn-sm{padding:9px 18px;font-size:13px}
+
+/* ==========================================================================
+   NAV
+   ========================================================================== */
+.nav{position:sticky;top:0;z-index:200;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 var(--pad-x);background:var(--bg);border-bottom:1px solid var(--line-soft);transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.nav.scrolled{box-shadow:0 2px 20px rgba(44,42,36,0.07);border-color:var(--line)}
+.nav-logo-placeholder{display:flex;align-items:center;justify-content:center;height:36px;min-width:148px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);background:var(--cream);padding:0 14px;flex-shrink:0}
+.nav-logo-placeholder::before{content:'⬚';font-size:16px;color:var(--line);font-family:sans-serif;margin-right:8px}
+.nav-logo-img{height:36px;width:auto;display:block;flex-shrink:0}
+.nav-links{display:flex;align-items:center;gap:28px;flex:1;justify-content:center}
+.nav-links a{font-size:14px;color:var(--ink-soft);letter-spacing:0.01em;padding-bottom:2px;border-bottom:1px solid transparent;transition:color var(--dur),border-color var(--dur);white-space:nowrap}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a.active{color:var(--moss);border-color:var(--moss)}
+.nav-more{position:relative}
+.nav-more-trigger{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--ink-soft);cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0;transition:color var(--dur)}
+.nav-more-trigger:hover{color:var(--ink)}
+.nav-more-trigger.active{color:var(--moss)}
+.nav-more-trigger .chevron{display:inline-block;transition:transform var(--dur) var(--ease);font-size:10px;margin-top:1px}
+.nav-more.open .nav-more-trigger .chevron{transform:rotate(180deg)}
+.nav-more-trigger .chevron::after{content:'▾'}
+.nav-dropdown{position:absolute;top:calc(100% + 16px);left:50%;min-width:180px;background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 16px 48px rgba(44,42,36,0.12);padding:8px;opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-6px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.nav-more.open .nav-dropdown{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+.nav-dropdown a{display:block;padding:10px 14px;font-size:14px;color:var(--ink-soft);border-radius:var(--radius-sm);transition:background var(--dur),color var(--dur);white-space:nowrap}
+.nav-dropdown a:hover{background:var(--bg-alt);color:var(--ink)}
+.nav-dropdown a.active{color:var(--moss);background:var(--moss-bg)}
+.nav-right{display:flex;align-items:center;gap:20px;flex-shrink:0}
+.status-pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--moss);white-space:nowrap}
+.status-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 0 3px rgba(74,93,63,0.2);animation:pulse 2.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,93,63,0.2)}50%{box-shadow:0 0 0 6px rgba(74,93,63,0.05)}}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;background:none;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:border-color var(--dur)}
+.nav-hamburger:hover{border-color:var(--ink)}
+.nav-hamburger span{display:block;width:100%;height:1.5px;background:var(--ink);border-radius:2px;transition:transform var(--dur) var(--ease),opacity var(--dur);transform-origin:center}
+.nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.nav-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.nav-drawer{display:none;position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;background:var(--bg);z-index:190;flex-direction:column;padding:32px var(--pad-x);overflow-y:auto;opacity:0;transform:translateY(-8px);transition:opacity 250ms var(--ease),transform 250ms var(--ease);pointer-events:none}
+.nav-drawer.open{opacity:1;transform:translateY(0);pointer-events:all}
+.nav-drawer a{font-family:var(--serif);font-weight:300;font-size:36px;letter-spacing:-0.02em;color:var(--ink);padding:16px 0;border-bottom:1px solid var(--line-soft);transition:color var(--dur);display:block}
+.nav-drawer a:hover{color:var(--moss)}
+.nav-drawer a.active{color:var(--moss)}
+.nav-drawer .drawer-secondary{margin-top:24px;display:flex;flex-direction:column}
+.nav-drawer .drawer-secondary a{font-family:var(--sans);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-soft);padding:14px 0}
+.nav-drawer .drawer-bottom{margin-top:auto;padding-top:32px;display:flex;flex-direction:column;gap:12px}
+.nav-drawer .drawer-bottom .btn{justify-content:center;font-size:16px;padding:18px}
+
+/* ==========================================================================
+   PAGE HEADER
+   ========================================================================== */
+.page-header{
+  padding:clamp(44px,6vw,80px) var(--pad-x) clamp(36px,4vw,56px);
+  border-bottom:1px solid var(--line);
+}
+.page-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);display:inline-flex;align-items:center;gap:12px;margin-bottom:20px}
+.page-eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.page-title{font-family:var(--serif);font-weight:300;font-size:clamp(48px,6.5vw,96px);line-height:0.97;letter-spacing:-0.03em;margin-bottom:16px}
+.page-title em{font-style:italic;color:var(--moss)}
+.page-descriptor{font-size:18px;color:var(--ink-soft);line-height:1.6;max-width:min(600px,100%)}
+
+/* ==========================================================================
+   CONTACT SHELL — info column left, map right
+   ========================================================================== */
+.contact-shell{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--line);
+  min-height:clamp(480px,55vw,680px);
+}
+
+/* Info column */
+.contact-info{
+  padding:clamp(48px,6vw,80px) var(--pad-x);
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+}
+.contact-heading{
+  font-family:var(--serif);font-weight:300;
+  font-size:clamp(36px,4vw,54px);
+  line-height:1;letter-spacing:-0.025em;margin-bottom:8px;
+}
+.contact-heading em{font-style:italic;color:var(--moss)}
+.contact-subhead{font-size:15px;color:var(--ink-soft);margin-bottom:clamp(28px,4vw,48px)}
+
+/* Postal address */
+.contact-address{
+  font-family:var(--serif);font-weight:300;
+  font-size:clamp(18px,2vw,24px);
+  line-height:1.6;color:var(--ink);
+  font-style:normal;
+  margin-bottom:clamp(28px,4vw,48px);
+}
+
+/* Contact rows — label / value pairs */
+.contact-rows{display:flex;flex-direction:column;margin-top:auto}
+.contact-row{
+  display:grid;
+  grid-template-columns:130px 1fr;
+  gap:20px;
+  padding:16px 0;
+  border-top:1px solid var(--line);
+  font-size:15px;
+  line-height:1.5;
+}
+.contact-row:last-child{border-bottom:1px solid var(--line)}
+.contact-row-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--ink-faint);
+  padding-top:3px;flex-shrink:0;
+}
+.contact-row-val{color:var(--ink)}
+.contact-row-val strong{display:block;font-weight:600;margin-bottom:3px}
+.contact-row-val span{color:var(--ink-soft);font-size:13px;display:block}
+.contact-row-val a{color:var(--moss);border-bottom:1px solid rgba(74,93,63,0.35);transition:border-color var(--dur)}
+.contact-row-val a:hover{border-color:var(--moss)}
+.booking-note{
+  font-family:var(--serif);font-style:italic;
+  font-size:17px;font-weight:300;color:var(--ink-soft);
+}
+.booking-note a{color:var(--clay);border-bottom:1px solid rgba(196,90,62,0.35)}
+.booking-note a:hover{border-color:var(--clay)}
+
+/* ==========================================================================
+   MAP BLOCK
+   DEV NOTE — MAP
+   Replace the placeholder with a Mapbox GL JS or Leaflet embed:
+     1. Add Mapbox GL JS CSS + script to <head>
+     2. Remove the placeholder gradient styles from .map-block
+     3. The <div id="studio-map"> will fill the block via position:absolute inset:0
+     4. Use a custom warm/low-saturation tile style — the default blue/grey
+        clashes with the studio palette. Export a style from Mapbox Studio or
+        use a community warm style.
+     5. Custom pin: SVG in var(--clay), placed via mapboxgl.Marker()
+     6. Verify coordinates for the exact studio address before launch
+     7. Zoom 15 works well for a single-location city studio
+   ========================================================================== */
+.map-block{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(155deg,#6B7E5A 0%,#8A9A75 45%,#4A5D3F 100%);
+}
+.map-block::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+#studio-map{position:absolute;inset:0;width:100%;height:100%}
+.map-label{
+  position:absolute;top:20px;left:20px;
+  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;
+  text-transform:uppercase;color:rgba(251,248,238,0.7);
+  /* COPY: map label — studio address short form e.g. "12B Wilton Way · E8 1BG" */
+}
+.map-pin{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-100%);
+  color:var(--clay);
+  filter:drop-shadow(0 4px 14px rgba(0,0,0,0.22));
+}
+.map-pin::after{
+  content:'';
+  position:absolute;bottom:-8px;left:50%;
+  transform:translateX(-50%);
+  width:18px;height:5px;
+  background:rgba(0,0,0,0.16);
+  border-radius:50%;
+}
+
+/* ==========================================================================
+   ACCESSIBILITY & STUDIO INFO BLOCK
+   ========================================================================== */
+.access-block{
+  padding:clamp(48px,6vw,80px) var(--pad-x);
+  background:var(--bg-alt);
+  border-bottom:1px solid var(--line);
+}
+.access-eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--moss);
+  display:inline-flex;align-items:center;gap:12px;
+  margin-bottom:40px;
+}
+.access-eyebrow::before{content:'';width:24px;height:1px;background:var(--moss);flex-shrink:0}
+.access-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:clamp(32px,4vw,64px);
+}
+.access-card-heading{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--moss);
+  margin-bottom:20px;
+}
+.access-list{display:flex;flex-direction:column}
+.access-item{
+  display:flex;align-items:baseline;gap:12px;
+  padding:12px 0;
+  border-top:1px solid var(--line);
+  font-size:15px;color:var(--ink-soft);line-height:1.45;
+}
+.access-item:last-child{border-bottom:1px solid var(--line)}
+.access-item::before{
+  content:'◦';
+  color:var(--moss);font-size:13px;
+  flex-shrink:0;margin-top:1px;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.footer{background:var(--bg-dark);color:var(--bg);padding:80px var(--pad-x) 32px}
+.footer-top{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:48px;padding-bottom:56px;border-bottom:1px solid rgba(247,241,227,0.1);margin-bottom:28px}
+.footer-brand .wordmark{font-family:var(--serif);font-weight:300;font-size:50px;line-height:1;letter-spacing:-0.025em;margin-bottom:12px}
+.footer-brand .wordmark em{font-style:italic;color:var(--moss-soft)}
+.footer-brand .tagline{font-size:14px;color:rgba(247,241,227,0.5);line-height:1.6;max-width:250px}
+.footer-col h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss-soft);margin-bottom:18px}
+.footer-col ul{display:flex;flex-direction:column;gap:11px}
+.footer-col a{font-size:14px;color:rgba(247,241,227,0.6);transition:color var(--dur)}
+.footer-col a:hover{color:var(--bg)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.footer-copy{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(247,241,227,0.3)}
+
+/* ==========================================================================
+   MOBILE CTA
+   ========================================================================== */
+.mobile-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:180;padding:14px 20px;padding-bottom:calc(14px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);transform:translateY(100%);transition:transform 300ms var(--ease)}
+.mobile-cta.visible{transform:translateY(0)}
+.mobile-cta .btn{width:100%;justify-content:center;font-size:16px;padding:17px}
+
+/* ==========================================================================
+   REVEAL ANIMATION
+   ========================================================================== */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 550ms var(--ease),transform 550ms var(--ease)}
+.reveal.in-view{opacity:1;transform:translateY(0)}
+.reveal-d1{transition-delay:100ms}
+.reveal-d2{transition-delay:200ms}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media(max-width:1100px){
+  :root{--pad-x:32px}
+  .nav-links{gap:20px}
+}
+@media(max-width:900px){
+  .nav-links,.nav-more,.status-pill{display:none}
+  .nav-hamburger{display:flex}
+  .nav-drawer{display:flex}
+  .contact-shell{grid-template-columns:1fr;min-height:auto}
+  .contact-info{border-right:none;border-bottom:1px solid var(--line)}
+  .contact-rows{margin-top:0;padding-top:clamp(24px,4vw,40px)}
+  .map-block{min-height:420px}
+  .access-grid{grid-template-columns:1fr 1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  :root{--pad-x:20px}
+  .page-header{padding:44px var(--pad-x) 36px}
+  .page-title{font-size:48px}
+  .page-descriptor{max-width:100%}
+  .contact-row{grid-template-columns:1fr;gap:4px}
+  .contact-row-label{padding-top:0}
+  .map-block{min-height:280px}
+  .access-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr;gap:32px}
+  .footer-brand .wordmark{font-size:38px}
+  .footer{padding-bottom:calc(32px + 80px)}
+  .mobile-cta{display:block}
+}
+@media(max-width:375px){
+  .page-title{font-size:40px}
+  .contact-heading{font-size:30px}
+  .contact-address{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV — Contact & visit active (in More dropdown) -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <!-- LOGO: replace with <img src="images/logo.svg" alt="Beansprout" class="nav-logo-img"> -->
+  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/garden">Portfolio</a></li>
+    <li><a href="/flash">Flash</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="/services">Services</a></li>
+    <li><a href="/faq">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger active" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">More <span class="chevron" aria-hidden="true"></span></button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare">Aftercare</a></li>
+        <li><a href="/visit" class="active" aria-current="page">Contact &amp; visit</a></li>
+        <li><a href="/newsletter">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a><a href="/garden">Portfolio</a><a href="/flash">Flash</a>
+  <a href="/about">About</a><a href="/services">Services</a><a href="/faq">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare">Aftercare</a>
+    <a href="/visit" class="active">Contact &amp; visit</a>
+    <a href="/newsletter">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <!-- COPY: eyebrow label e.g. "Appointment only" -->
+  <p class="page-eyebrow">Lorem ipsum</p>
+  <!-- COPY: page title -->
+  <h1 class="page-title">Lorem ipsum <em>dolor.</em></h1>
+  <!-- COPY: descriptor — 1–2 sentences, appointment-only note -->
+  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna. Lorem ipsum dolor sit amet.</p>
+</header>
+
+<!-- CONTACT SHELL -->
+<div class="contact-shell">
+
+  <!-- INFO COLUMN -->
+  <div class="contact-info">
+
+    <!-- COPY: section heading e.g. "Find the studio." -->
+    <h2 class="contact-heading">Lorem ipsum <em>dolor.</em></h2>
+    <!-- COPY: appointment-only sub-note -->
+    <p class="contact-subhead">Lorem ipsum dolor sit amet — lorem ipsum dolor lorem ipsum.</p>
+
+    <!--
+      COPY: studio postal address
+      Use <address> for semantic correctness; font-style reset to normal via inline style.
+    -->
+    <address class="contact-address">
+      Lorem ipsum Studio<br>
+      00X Lorem Ipsum Way<br>
+      London <strong>X0 0XX</strong>
+    </address>
+
+    <!-- Contact rows -->
+    <dl class="contact-rows">
+
+      <!-- Hours — id used by footer anchor /visit#hours -->
+      <div class="contact-row" id="hours">
+        <dt class="contact-row-label"><!-- COPY: label e.g. "Hours" -->Lorem</dt>
+        <dd class="contact-row-val">
+          <!-- COPY: days and hours -->
+          <strong>Lorem · Lorem – Lorem · 00am – 00pm</strong>
+          <!-- COPY: qualification e.g. "By appointment only. No walk-ins." -->
+          <span>Lorem ipsum dolor sit amet. Lorem lorem.</span>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label"><!-- COPY: label e.g. "Getting here" -->Lorem ipsum</dt>
+        <dd class="contact-row-val">
+          <!-- COPY: nearest station + walk time -->
+          <strong>Lorem Lorem · 0 min lorem</strong>
+          <!-- COPY: line/route detail -->
+          <span>Lorem ipsum lorem lorem lorem / Lorem lorem lorem</span>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label">Email</dt>
+        <dd class="contact-row-val">
+          <a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label">Instagram</dt>
+        <dd class="contact-row-val">
+          <a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">@beansprout.ink</a>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label"><!-- COPY: label e.g. "For bookings" -->Lorem ipsum</dt>
+        <dd class="contact-row-val booking-note">
+          <!-- COPY: note directing to enquiry form — keep the link to /enquire -->
+          Lorem ipsum dolor sit amet, consectetur <a href="/enquire">lorem ipsum</a> — lorem ipsum dolor sit amet consectetur lorem ipsum.
+        </dd>
+      </div>
+
+    </dl>
+  </div><!-- /contact-info -->
+
+  <!--
+    MAP BLOCK
+    DEV NOTE — replace this placeholder with a Mapbox GL JS or Leaflet embed:
+
+    1. Add to <head>:
+       <link href='https://api.mapbox.com/mapbox-gl-js/v3/mapbox-gl.css' rel='stylesheet'>
+       <script src='https://api.mapbox.com/mapbox-gl-js/v3/mapbox-gl.js'></script>
+
+    2. Remove the gradient background and ::before grid from .map-block in CSS,
+       or leave them as a loading state behind the map canvas.
+
+    3. Initialise in the <script> block:
+       mapboxgl.accessToken = 'YOUR_TOKEN';
+       const map = new mapboxgl.Map({
+         container: 'studio-map',
+         style: 'mapbox://styles/YOUR_WARM_STYLE',
+         center: [LNG, LAT],  // verify exact studio coordinates
+         zoom: 15,
+         interactive: false,  // static map unless zoom/pan is useful
+       });
+       new mapboxgl.Marker({ color: '#C45A3E' })
+         .setLngLat([LNG, LAT])
+         .addTo(map);
+
+    4. Recommended tile style: export a warm/low-saturation custom style from
+       Mapbox Studio — the default blue-grey clashes with the studio palette.
+       Community alternative: "Stamen Toner Lite" styled warm via CSS filter.
+  -->
+  <div class="map-block" role="img" aria-label="Studio location map">
+    <div id="studio-map"></div>
+    <!-- COPY: map corner label — short address e.g. "12B Wilton Way · E8 1BG" -->
+    <span class="map-label">Lorem Ipsum Way · X0 0XX</span>
+    <div class="map-pin" aria-hidden="true">
+      <svg width="40" height="52" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 0C8.954 0 0 8.954 0 20C0 33.6 20 52 20 52C20 52 40 33.6 40 20C40 8.954 31.046 0 20 0Z" fill="currentColor"/>
+        <circle cx="20" cy="20" r="7" fill="white" fill-opacity="0.9"/>
+      </svg>
+    </div>
+  </div>
+
+</div><!-- /contact-shell -->
+
+<!-- ACCESSIBILITY & STUDIO INFO
+     id="access" used by footer anchor /visit#access -->
+<section class="access-block" id="access" aria-labelledby="access-heading">
+  <!-- COPY: section eyebrow e.g. "The studio" -->
+  <p class="access-eyebrow" id="access-heading">Lorem ipsum</p>
+  <div class="access-grid">
+
+    <div class="access-card reveal">
+      <!-- COPY: card heading e.g. "Accessibility" -->
+      <h3 class="access-card-heading">Lorem ipsum</h3>
+      <ul class="access-list" role="list">
+        <!-- COPY: 5 accessibility facts e.g. step-free, wide doorways, etc. -->
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+      </ul>
+    </div>
+
+    <div class="access-card reveal reveal-d1">
+      <!-- COPY: card heading e.g. "What to expect" -->
+      <h3 class="access-card-heading">Lorem ipsum dolor</h3>
+      <ul class="access-list" role="list">
+        <!-- COPY: 5 "on the day" points e.g. buzz the door, tea available, etc. -->
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+      </ul>
+    </div>
+
+    <div class="access-card reveal reveal-d2">
+      <!-- COPY: card heading e.g. "Sensory notes" -->
+      <h3 class="access-card-heading">Lorem ipsum</h3>
+      <ul class="access-list" role="list">
+        <!-- COPY: 5 sensory/comfort notes e.g. fragrance-free, warm lighting, etc. -->
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <!-- FOOTER LOGO: replace with <img src="images/logo-light.svg" alt="Beansprout" class="nav-logo-img"> if light variant exists -->
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links"><h4>Site</h4><ul>
+      <li><a href="/garden">Portfolio</a></li><li><a href="/flash">Flash</a></li>
+      <li><a href="/about">About</a></li><li><a href="/services">Pricing</a></li><li><a href="/faq">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+      <li><a href="/visit">Find the studio</a></li><li><a href="/aftercare">Aftercare</a></li>
+      <li><a href="/visit#access">Accessibility</a></li><li><a href="/visit#hours">Studio hours</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">Instagram</a></li>
+      <li><a href="https://tiktok.com/@beansprout.ink" target="_blank" rel="noopener">TikTok</a></li>
+      <li><a href="/newsletter">Newsletter</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© Beansprout 2026 — Lorem ipsum dolor sit amet</p>
+    <p class="footer-copy">Privacy · Terms · Cookies</p>
+  </div>
+</footer>
+
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* Nav scroll shadow */
+  const nav=document.getElementById('main-nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>60),{passive:true});
+
+  /* More dropdown */
+  const moreWrap=document.getElementById('nav-more'),moreBtn=document.getElementById('nav-more-btn');
+  if(moreBtn){
+    moreBtn.addEventListener('click',e=>{e.stopPropagation();const o=moreWrap.classList.toggle('open');moreBtn.setAttribute('aria-expanded',o)});
+    document.addEventListener('click',()=>{moreWrap.classList.remove('open');moreBtn.setAttribute('aria-expanded','false')});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){moreWrap.classList.remove('open');moreBtn.setAttribute('aria-expanded','false')}});
+  }
+
+  /* Mobile hamburger */
+  const hbg=document.getElementById('nav-hamburger'),drw=document.getElementById('nav-drawer');
+  if(hbg&&drw){
+    hbg.addEventListener('click',()=>{const o=hbg.classList.toggle('open');hbg.setAttribute('aria-expanded',o);drw.classList.toggle('open',o);drw.setAttribute('aria-hidden',!o);document.body.style.overflow=o?'hidden':''});
+    drw.querySelectorAll('a').forEach(l=>l.addEventListener('click',()=>{hbg.classList.remove('open');hbg.setAttribute('aria-expanded','false');drw.classList.remove('open');drw.setAttribute('aria-hidden','true');document.body.style.overflow=''}));
+  }
+
+  /* Reveal animations */
+  const reveals=document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');obs.unobserve(e.target)}})},{threshold:0.1,rootMargin:'0px 0px -32px 0px'});
+    reveals.forEach(el=>obs.observe(el));
+  } else { reveals.forEach(el=>el.classList.add('in-view')); }
+
+  /* Mobile CTA */
+  const mc=document.getElementById('mobile-cta');
+  if(mc&&window.innerWidth<640){mc.classList.add('visible');mc.setAttribute('aria-hidden','false')}
+
+})();
+</script>
+</body>
+</html>
