@@ -15,25 +15,19 @@
 // checkbox on the form is the record of consent. (A confirm-email flow could be
 // layered on later if double opt-in is wanted.)
 //
-// No npm dependencies: uses the global fetch in Netlify's Node runtime.
+// Abuse protection (CORS allowlist + Blobs rate limiting) is shared with the
+// enquiry function — see ./_shared.js. Uses the global fetch otherwise;
+// @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-}
-
-const reply = (statusCode, body) => ({
-  statusCode,
-  headers: { 'Content-Type': 'application/json', ...CORS },
-  body: JSON.stringify(body),
-})
+import { corsFor, replyWith, clientIp, rateLimit } from './_shared.js'
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 export async function handler(event) {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' }
+  const cors  = corsFor(event)
+  const reply = replyWith(cors)
+
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' }
   if (event.httpMethod !== 'POST')    return reply(405, { error: 'Method not allowed.' })
 
   const { RESEND_API_KEY, RESEND_AUDIENCE_ID } = process.env
@@ -60,6 +54,12 @@ export async function handler(event) {
 
   const first_name = String(fields.first_name || '').trim().slice(0, 80)
 
+  // ── Rate limit — only valid signups count (its own bucket vs. enquiry) ──────
+  const limiter = await rateLimit(clientIp(event), { storeName: 'newsletter-rate' })
+  if (!limiter.ok) {
+    return reply(429, { error: 'You’ve tried a few times already. Please email hello@beansprout.ink and we’ll add you.' })
+  }
+
   // ── Add to the Resend Audience ──────────────────────────────────────────────
   try {
     const res = await fetch(`https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`, {
@@ -69,11 +69,11 @@ export async function handler(event) {
     })
 
     const data = await res.json().catch(() => ({}))
-    if (res.ok) return reply(200, { ok: true })
+    if (res.ok) { await limiter.commit(); return reply(200, { ok: true }) }
 
     // Already subscribed → idempotent success, not an error to the visitor.
     const msg = String((data && (data.message || data.error || data.name)) || '').toLowerCase()
-    if (res.status === 409 || msg.includes('already')) return reply(200, { ok: true, already: true })
+    if (res.status === 409 || msg.includes('already')) { await limiter.commit(); return reply(200, { ok: true, already: true }) }
 
     console.error('Resend audience error', res.status, data)
     return reply(502, { error: 'We couldn’t add you just now. Please try again shortly.' })
