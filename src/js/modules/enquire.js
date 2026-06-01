@@ -53,8 +53,9 @@ export function initEnquire() {
     let ok = true
     required.forEach(el => {
       const field = el.closest('.field')
-      const invalid = el.type === 'radio'
-        ? !step.querySelector(`[name="${el.name}"]:checked`)
+      const invalid =
+        el.type === 'radio'    ? !step.querySelector(`[name="${el.name}"]:checked`)
+        : el.type === 'checkbox' ? !el.checked
         : !el.value.trim()
       if (field) field.classList.toggle('error', invalid)
       if (invalid) ok = false
@@ -73,45 +74,59 @@ export function initEnquire() {
     document.getElementById(id)?.addEventListener('click', () => setStep(i + 1))
   })
 
-  // ── Conditional: cover-up photo in step 3 ─────────────────────────────────
-  document.querySelectorAll('[name="coverup"]').forEach(r => {
-    r.addEventListener('change', () => {
-      const field = document.getElementById('coverup-field')
-      if (field) field.style.display = r.value === 'yes' ? '' : 'none'
+  // ── Pill multi-select cap — honour data-max on a .pill-group ──────────────
+  // When the group is at its limit, unchecked pills are disabled so the user
+  // can't exceed it; deselecting one re-enables the rest. Named so a conditional
+  // that re-reveals a capped group can re-apply it.
+  function enforceCap(group) {
+    const max = parseInt(group.dataset.max, 10)
+    if (!max) return
+    const boxes   = [...group.querySelectorAll('input[type="checkbox"]')]
+    const atLimit = boxes.filter(b => b.checked).length >= max
+    boxes.forEach(b => {
+      b.disabled = atLimit && !b.checked
+      b.closest('.pill')?.classList.toggle('disabled', b.disabled)
     })
+  }
+  document.querySelectorAll('.pill-group[data-max]').forEach(group => {
+    group.querySelectorAll('input[type="checkbox"]')
+      .forEach(b => b.addEventListener('change', () => enforceCap(group)))
+    enforceCap(group)
   })
 
-  // ── Conditional: flash type hides the custom idea + style fields ──────────
-  // A flash ticket is pre-drawn, so the idea description and style picker
-  // don't apply. Custom / unsure keep them visible.
+  // ── Conditional field groups ──────────────────────────────────────────────
+  // Show/hide a group AND keep its inputs out of the submitted payload while
+  // hidden — disabled inputs aren't serialised, so a flash enquiry won't carry
+  // stale custom-only answers (and a "no cover-up" enquiry won't carry a photo).
+  function toggleConditional(field, show) {
+    if (!field) return
+    field.style.display = show ? '' : 'none'
+    field.querySelectorAll('input, textarea, select').forEach(el => {
+      el.disabled = !show
+    })
+    if (show) field.querySelectorAll('.pill-group[data-max]').forEach(enforceCap)
+  }
+
+  // Flash is pre-drawn → hide the custom idea + style/colour fields.
   const ideaField  = document.getElementById('idea-field')
   const styleField = document.getElementById('style-field')
   document.querySelectorAll('[name="tattoo_type"]').forEach(r => {
     r.addEventListener('change', () => {
       const isFlash = r.value === 'flash'
-      if (ideaField)  ideaField.style.display  = isFlash ? 'none' : ''
-      if (styleField) styleField.style.display = isFlash ? 'none' : ''
+      toggleConditional(ideaField,  !isFlash)
+      toggleConditional(styleField, !isFlash)
     })
   })
 
-  // ── Pill multi-select cap — honour data-max on a .pill-group ──────────────
-  // When the group is at its limit, unchecked pills are disabled so the user
-  // can't exceed it; deselecting one re-enables the rest.
-  document.querySelectorAll('.pill-group[data-max]').forEach(group => {
-    const max     = parseInt(group.dataset.max, 10)
-    if (!max) return
-    const boxes   = [...group.querySelectorAll('input[type="checkbox"]')]
-    const enforce = () => {
-      const checked = boxes.filter(b => b.checked).length
-      const atLimit = checked >= max
-      boxes.forEach(b => {
-        b.disabled = atLimit && !b.checked
-        b.closest('.pill')?.classList.toggle('disabled', b.disabled)
-      })
-    }
-    boxes.forEach(b => b.addEventListener('change', enforce))
-    enforce()
+  // Cover-up photo upload (step 3) — only when "yes".
+  const coverupField = document.getElementById('coverup-field')
+  document.querySelectorAll('[name="coverup"]').forEach(r => {
+    r.addEventListener('change', () => {
+      toggleConditional(coverupField, r.value === 'yes')
+    })
   })
+  // Cover-up starts hidden in the markup — disable its inputs to match.
+  toggleConditional(coverupField, false)
 
   // ── File upload preview ────────────────────────────────────────────────────
   const refsInput = document.getElementById('refs')
@@ -150,8 +165,22 @@ export function initEnquire() {
     if (saved > 1 && saved <= TOTAL) setStep(saved)
   } catch (_) {}
 
-  // ── Clear on submit ───────────────────────────────────────────────────────
-  document.getElementById('enquiry-form')?.addEventListener('submit', () => {
+  // ── Validate everything on final submit ───────────────────────────────────
+  // The form is novalidate and only the Next buttons validated steps 1-3, so the
+  // required consent boxes in step 4 (age / policy / deposit) could be bypassed.
+  // Re-check every step on submit; block and jump to the first incomplete one.
+  document.getElementById('enquiry-form')?.addEventListener('submit', e => {
+    let firstBad = null
+    for (let n = 1; n <= TOTAL; n++) {
+      if (!validateStep(n) && firstBad === null) firstBad = n
+    }
+    if (firstBad !== null) {
+      e.preventDefault()
+      setStep(firstBad)
+      document.querySelector(`#step-${firstBad} .field.error`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
     try { sessionStorage.removeItem('beansprout_step') } catch (_) {}
   })
 }
