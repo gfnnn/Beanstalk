@@ -18,8 +18,15 @@ export function initNav() {
     const href = link.getAttribute('href')
     if (href && href !== '/' && currentPath.startsWith(href)) {
       link.classList.add('active')
+      link.setAttribute('aria-current', 'page')
     }
   })
+
+  // If the active link is inside the More dropdown, also mark the trigger
+  const activeDropdownLink = nav.querySelector('.nav-dropdown a.active')
+  if (activeDropdownLink && moreBtn) {
+    moreBtn.classList.add('active')
+  }
 
   // ── More dropdown ────────────────────────────────────────
   if (moreBtn && moreWrap) {

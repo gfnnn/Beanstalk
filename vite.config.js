@@ -14,6 +14,7 @@ export default defineConfig({
         enquire:  resolve(__dirname, 'enquire/index.html'),
         faq:      resolve(__dirname, 'faq/index.html'),
         visit:    resolve(__dirname, 'visit/index.html'),
+        flash:    resolve(__dirname, 'flash/index.html'),
       }
     }
   },
