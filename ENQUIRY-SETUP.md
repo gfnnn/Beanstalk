@@ -24,13 +24,13 @@ Running cost at studio volumes: **£0/month** (Netlify free functions + Resend f
 | File | Role |
 |------|------|
 | `netlify/functions/enquiry.js` | Serverless handler for **both** forms (`kind: enquiry` / `flash`) — validates, emails via Resend, attaches images |
-| `netlify.toml` | Tells Netlify where the function lives + CORS headers |
+| `netlify/functions/_shared.js` | Shared origin-locked CORS + per-IP/daily rate limiting (used by the enquiry **and** newsletter functions) |
+| `netlify.toml` | Tells Netlify where the functions live + the site build settings (CORS is set in the function, not here) |
 | `src/js/modules/config.js` | Shared function URL both forms POST to |
 | `enquire/index.html` · `src/js/modules/enquire.js` | Enquiry form — JS-driven (Formspree removed), honeypot, **downscales images** |
 | `flash/index.html` · `src/js/modules/flash.js` | Flash-claim form — same pipeline (Formspree removed), honeypot |
 | `enquiry-received/index.html` | Success page the enquiry form redirects to |
 | `.github/workflows/deploy.yml` | Builds the site → GitHub Pages (optional, see Part C) |
-| `public/CNAME` | Keeps `beansprout.ink` attached on each Pages deploy |
 | `.env.example` | Template for the build-time + function variables |
 
 There are **3 secrets to set** (all on free accounts) and **1 URL to paste back**. That's it.
@@ -93,9 +93,13 @@ The form needs to know the function URL **at build time** (Vite bakes it in).
      run `npm run build`, and publish `dist/` however you currently do.
    - *(Or skip the env var and hardcode the URL in the `ENQUIRY_FN_URL` fallback
      in `src/js/modules/config.js`.)*
-2. Make sure `beansprout.ink` points at GitHub Pages (the site uses root-absolute
-   paths, so it must be served from the domain root — `public/CNAME` is already
-   set for this). In repo **Settings → Pages**, confirm the custom domain.
+2. **Apex domain is deferred — do not switch it yet.** `beansprout.ink` is still
+   served by the **v1** site; v2 lives at `beansprout.netlify.app` (plus the Pages
+   project URL). There is intentionally **no `public/CNAME`** and no apex A-record
+   for v2 — adding one would take the live site down. Test on the `netlify.app`
+   mirror for now, and switch the apex to v2 only once the copy and real images are
+   done (see the deploy guardrail in `CLAUDE.md`). The site uses root-absolute
+   paths, so when you do switch it must be served from the domain root.
 3. Deploy. Done.
 
 > Until `VITE_ENQUIRY_FN_URL` is set, submitting shows *"The enquiry form isn't
@@ -134,9 +138,11 @@ The form needs to know the function URL **at build time** (Vite bakes it in).
   ~6 MB request cap. HEIC files that the browser can't decode are sent as-is and
   capped at 8 MB each. Limits live at the top of the submit block in
   `enquire.js` and are re-checked server-side in `enquiry.js`.
-- **Spam.** A hidden honeypot field (`_gotcha`) silently drops bot submissions —
-  no paid CAPTCHA needed. If spam ever becomes a problem, add Netlify's built-in
-  form spam filtering or an hCaptcha.
+- **Spam & abuse.** A hidden honeypot field (`_gotcha`) silently drops bot
+  submissions, and the function is origin-locked (CORS allowlist) with per-IP and
+  global-daily rate limiting (`_shared.js`; tunable via the `RATE_*` vars in
+  `.env.example`, state in Netlify Blobs, fails open). No paid CAPTCHA needed. If
+  spam ever still becomes a problem, add Netlify's form spam filtering or hCaptcha.
 - **Field → email mapping.** Each form's layout (required fields, email sections,
   subject) lives in the `FORMS` map in `enquiry.js` — `enquiry` and `flash`. If
   you rename a form field's `name`, update its entry there so it still shows up.

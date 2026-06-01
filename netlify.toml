@@ -1,8 +1,9 @@
 # netlify.toml — Beansprout
 # ──────────────────────────────────────────────────────────────────────────────
-# Netlify hosts ONLY the enquiry function for this project; the site itself is
-# served from GitHub Pages. This file tells Netlify where the function lives and
-# sets CORS headers so the GitHub Pages origin can POST to it.
+# Netlify hosts the serverless functions for this project (enquiry + newsletter);
+# the site itself is served from GitHub Pages. This file tells Netlify where the
+# functions live and how to build the site. CORS is set INSIDE the functions
+# (netlify/functions/_shared.js), not here — see the note further down.
 #
 # Lives at the repo root, alongside package.json.
 # ──────────────────────────────────────────────────────────────────────────────
@@ -19,7 +20,8 @@
   # The function uses `export async function handler` (ES module).
   node_bundler = "esbuild"
 
-# CORS is handled INSIDE the function (netlify/functions/enquiry.js): it echoes an
-# allowlisted Origin per request and answers the OPTIONS preflight itself. We do NOT
-# set Access-Control-Allow-Origin here — a static '*' would conflict with the
-# function's dynamic header (two ACAO values and the browser rejects the response).
+# CORS is handled INSIDE the functions via netlify/functions/_shared.js (shared by
+# both enquiry + newsletter): each echoes an allowlisted Origin per request and
+# answers the OPTIONS preflight itself. We do NOT set Access-Control-Allow-Origin
+# here — a static '*' would conflict with the function's dynamic header (two ACAO
+# values and the browser rejects the response).
