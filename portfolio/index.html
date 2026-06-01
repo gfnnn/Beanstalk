@@ -10,7 +10,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../src/styles/main.css">
+  <meta property="og:title"       content="Portfolio — Beansprout.ink">
+  <meta property="og:description" content="[Portfolio meta description — style, placement, Guildford]">
+  <meta property="og:type"        content="website">
+  <meta name="theme-color"        content="#F7F1E3">
+  <!-- Favicons — /favicon.svg is live now; raster files needed before launch.
+       Generate /favicon.ico (32×32), /apple-touch-icon.png (180×180),
+       /icon-192.png and /icon-512.png from the final logo SVG via
+       realfavicongenerator.net, then drop them in public/. -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest"         href="/site.webmanifest">
+  <meta property="og:url"          content="https://beansprout.ink/portfolio/">
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
+       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
+       Also export 600×315 fallback. -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <link rel="stylesheet" href="/src/styles/main.css">
 </head>
 <body>
 
@@ -31,27 +49,27 @@
 
   <ul class="nav-links" role="list">
     <li><a href="/">Home</a></li>
-    <li><a href="/garden" class="active" aria-current="page">Portfolio</a></li>
-    <li><a href="/flash">Flash</a></li>
-    <li><a href="/about">About</a></li>
-    <li><a href="/services">Services</a></li>
-    <li><a href="/faq">FAQ</a></li>
+    <li><a href="/portfolio/" class="active" aria-current="page">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
     <li class="nav-more" id="nav-more">
       <button class="nav-more-trigger" id="nav-more-btn"
               aria-expanded="false" aria-controls="nav-dropdown">
         More <span class="chevron" aria-hidden="true"></span>
       </button>
       <ul class="nav-dropdown" id="nav-dropdown" role="list">
-        <li><a href="/aftercare">Aftercare</a></li>
-        <li><a href="/visit">Contact &amp; visit</a></li>
-        <li><a href="/newsletter">Newsletter</a></li>
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
       </ul>
     </li>
   </ul>
 
   <div class="nav-right">
     <span class="status-pill">Books open</span>
-    <a href="/enquire" class="btn btn-primary btn-sm">Enquire</a>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
     <button class="nav-hamburger" id="nav-hamburger"
             aria-label="Open menu" aria-expanded="false"
             aria-controls="nav-drawer">
@@ -65,19 +83,19 @@
 <div class="nav-drawer" id="nav-drawer"
      aria-label="Mobile navigation" aria-hidden="true">
   <a href="/">Home</a>
-  <a href="/garden" class="active">Portfolio</a>
-  <a href="/flash">Flash</a>
-  <a href="/about">About</a>
-  <a href="/services">Services</a>
-  <a href="/faq">FAQ</a>
+  <a href="/portfolio/" class="active">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
   <div class="drawer-secondary">
-    <a href="/aftercare">Aftercare</a>
-    <a href="/visit">Contact &amp; visit</a>
-    <a href="/newsletter">Newsletter</a>
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
   </div>
   <div class="drawer-bottom">
     <span class="status-pill" style="justify-content: center;">Books open</span>
-    <a href="/enquire" class="btn btn-primary">Start an enquiry →</a>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
   </div>
 </div>
 
@@ -195,7 +213,7 @@
        "[Style] tattoo of [subject] on [placement]"
        e.g. "Fine line botanical tattoo of foxglove on inner forearm"
 
-     TILE URL: /garden/[slug]
+     TILE URL: /portfolio/[slug]
      IMAGE PATH: /images/tattoos/[slug].jpg
      MAX IMAGE WIDTH: 1200px  |  QUALITY: 80% JPEG or WebP
 
@@ -210,7 +228,7 @@
     <!--
       TILE TEMPLATE:
       ─────────────────────────────────────────────────────
-      <a href="/garden/[slug]" class="masonry-tile"
+      <a href="/portfolio/[slug]/" class="masonry-tile"
          data-style="[style]" data-placement="[placement]">
         <img src="/images/tattoos/[slug].jpg"
              alt="[Style] tattoo of [subject] on [placement]"
@@ -225,7 +243,7 @@
     -->
 
     <!-- Tile 01 -->
-    <a href="/garden/[slug-01]" class="masonry-tile"
+    <a href="/portfolio/[slug-01]" class="masonry-tile"
        data-style="fine-line" data-placement="forearm">
       <div class="tile-placeholder t-moss" style="height: 340px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -241,7 +259,7 @@
     </a>
 
     <!-- Tile 02 -->
-    <a href="/garden/[slug-02]" class="masonry-tile"
+    <a href="/portfolio/[slug-02]" class="masonry-tile"
        data-style="blackwork" data-placement="wrist">
       <div class="tile-placeholder t-ink" style="height: 260px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -256,7 +274,7 @@
     </a>
 
     <!-- Tile 03 -->
-    <a href="/garden/[slug-03]" class="masonry-tile"
+    <a href="/portfolio/[slug-03]" class="masonry-tile"
        data-style="botanical" data-placement="spine">
       <div class="tile-placeholder t-sage" style="height: 420px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -271,7 +289,7 @@
     </a>
 
     <!-- Tile 04 -->
-    <a href="/garden/[slug-04]" class="masonry-tile"
+    <a href="/portfolio/[slug-04]" class="masonry-tile"
        data-style="fine-line" data-placement="wrist">
       <div class="tile-placeholder t-cream" style="height: 300px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -286,7 +304,7 @@
     </a>
 
     <!-- Tile 05 -->
-    <a href="/garden/[slug-05]" class="masonry-tile"
+    <a href="/portfolio/[slug-05]" class="masonry-tile"
        data-style="blackwork" data-placement="chest">
       <div class="tile-placeholder t-dark" style="height: 380px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -301,7 +319,7 @@
     </a>
 
     <!-- Tile 06 -->
-    <a href="/garden/[slug-06]" class="masonry-tile"
+    <a href="/portfolio/[slug-06]" class="masonry-tile"
        data-style="botanical" data-placement="forearm">
       <div class="tile-placeholder t-warm" style="height: 290px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -317,7 +335,7 @@
     </a>
 
     <!-- Tile 07 -->
-    <a href="/garden/[slug-07]" class="masonry-tile"
+    <a href="/portfolio/[slug-07]" class="masonry-tile"
        data-style="fine-line" data-placement="back">
       <div class="tile-placeholder t-blush" style="height: 360px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -331,7 +349,7 @@
     </a>
 
     <!-- Tile 08 -->
-    <a href="/garden/[slug-08]" class="masonry-tile"
+    <a href="/portfolio/[slug-08]" class="masonry-tile"
        data-style="script" data-placement="wrist">
       <div class="tile-placeholder t-stone" style="height: 240px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -345,7 +363,7 @@
     </a>
 
     <!-- Tile 09 -->
-    <a href="/garden/[slug-09]" class="masonry-tile"
+    <a href="/portfolio/[slug-09]" class="masonry-tile"
        data-style="botanical" data-placement="leg">
       <div class="tile-placeholder t-deep" style="height: 440px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -359,7 +377,7 @@
     </a>
 
     <!-- Tile 10 -->
-    <a href="/garden/[slug-10]" class="masonry-tile"
+    <a href="/portfolio/[slug-10]" class="masonry-tile"
        data-style="blackwork" data-placement="forearm">
       <div class="tile-placeholder t-ink" style="height: 310px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -373,7 +391,7 @@
     </a>
 
     <!-- Tile 11 -->
-    <a href="/garden/[slug-11]" class="masonry-tile"
+    <a href="/portfolio/[slug-11]" class="masonry-tile"
        data-style="fine-line" data-placement="spine">
       <div class="tile-placeholder t-moss" style="height: 390px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -387,7 +405,7 @@
     </a>
 
     <!-- Tile 12 -->
-    <a href="/garden/[slug-12]" class="masonry-tile"
+    <a href="/portfolio/[slug-12]" class="masonry-tile"
        data-style="colour" data-placement="forearm">
       <div class="tile-placeholder t-clay" style="height: 270px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -402,7 +420,7 @@
     </a>
 
     <!-- Tile 13 -->
-    <a href="/garden/[slug-13]" class="masonry-tile"
+    <a href="/portfolio/[slug-13]" class="masonry-tile"
        data-style="botanical" data-placement="hand">
       <div class="tile-placeholder t-sage" style="height: 320px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -417,7 +435,7 @@
     </a>
 
     <!-- Tile 14 -->
-    <a href="/garden/[slug-14]" class="masonry-tile"
+    <a href="/portfolio/[slug-14]" class="masonry-tile"
        data-style="blackwork" data-placement="leg">
       <div class="tile-placeholder t-dark" style="height: 460px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -431,7 +449,7 @@
     </a>
 
     <!-- Tile 15 -->
-    <a href="/garden/[slug-15]" class="masonry-tile"
+    <a href="/portfolio/[slug-15]" class="masonry-tile"
        data-style="fine-line" data-placement="chest">
       <div class="tile-placeholder t-cream" style="height: 280px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -445,7 +463,7 @@
     </a>
 
     <!-- Tile 16 -->
-    <a href="/garden/[slug-16]" class="masonry-tile"
+    <a href="/portfolio/[slug-16]" class="masonry-tile"
        data-style="botanical" data-placement="back">
       <div class="tile-placeholder t-warm" style="height: 350px;">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -568,30 +586,30 @@
       <p class="tagline">[Footer studio descriptor — 1–2 lines]</p>
     </div>
     <nav class="footer-col" aria-label="Site links">
-      <h4>Site</h4>
+      <h4>Studio</h4>
       <ul>
-        <li><a href="/garden">Portfolio</a></li>
-        <li><a href="/flash">Flash</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/services">Pricing</a></li>
-        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/portfolio/">Portfolio</a></li>
+        <li><a href="/flash/">Flash</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/services/">Pricing</a></li>
+        <li><a href="/faq/">FAQ</a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Visit links">
       <h4>Visit</h4>
       <ul>
-        <li><a href="/visit">Find the studio</a></li>
-        <li><a href="/aftercare">Aftercare</a></li>
-        <li><a href="/visit#access">Accessibility</a></li>
-        <li><a href="/visit#hours">Studio hours</a></li>
+        <li><a href="/visit/">Find the studio</a></li>
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/#access">Accessibility</a></li>
+        <li><a href="/visit/#hours">Studio hours</a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Social links">
       <h4>Follow</h4>
       <ul>
-        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">Instagram</a></li>
-        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener">TikTok</a></li>
-        <li><a href="/newsletter">Newsletter</a></li>
+        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener noreferrer">TikTok</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
         <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
       </ul>
     </nav>
@@ -606,10 +624,10 @@
 <!-- Mobile sticky CTA — always visible on portfolio (no hero to scroll past) -->
 <div class="mobile-cta" id="mobile-cta" aria-hidden="true">
   <!-- COPY: mobile CTA button label -->
-  <a href="/enquire" class="btn btn-primary">[CTA label — e.g. "Start an enquiry →"]</a>
+  <a href="/enquire/" class="btn btn-primary">[CTA label — e.g. "Start an enquiry →"]</a>
 </div>
 
 
-<script type="module" src="../src/js/main.js"></script>
+<script type="module" src="/src/js/main.js"></script>
 </body>
 </html>

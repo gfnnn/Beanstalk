@@ -8,6 +8,20 @@
   <meta property="og:description" content="How you look after your tattoo shapes how it heals for life. Follow these instructions." />
   <meta property="og:type"        content="website" />
   <meta name="theme-color"        content="#F7F1E3" />
+  <!-- Favicons — /favicon.svg is live now; raster files needed before launch.
+       Generate /favicon.ico (32×32), /apple-touch-icon.png (180×180),
+       /icon-192.png and /icon-512.png from the final logo SVG via
+       realfavicongenerator.net, then drop them in public/. -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest"         href="/site.webmanifest">
+  <meta property="og:url"          content="https://beansprout.ink/aftercare/">
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
+       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
+       Also export 600×315 fallback. -->
+  <meta name="twitter:card"        content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -43,7 +57,7 @@
       </button>
       <ul class="nav-dropdown" id="nav-dropdown" role="list">
         <li><a href="/aftercare/" class="active" aria-current="page">Aftercare</a></li>
-        <li><a href="/contact/">Contact &amp; visit</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
         <li><a href="/newsletter/">Newsletter</a></li>
       </ul>
     </li>
@@ -51,7 +65,7 @@
 
   <div class="nav-right">
     <span class="status-pill">Books open</span>
-    <a href="/booking/" class="btn btn-primary btn-sm">Enquire</a>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
     <button class="nav-hamburger" id="nav-hamburger"
             aria-label="Open menu" aria-expanded="false"
             aria-controls="nav-drawer">
@@ -71,12 +85,12 @@
   <a href="/faq/">FAQ</a>
   <div class="drawer-secondary">
     <a href="/aftercare/" class="active">Aftercare</a>
-    <a href="/contact/">Contact &amp; visit</a>
+    <a href="/visit/">Contact &amp; visit</a>
     <a href="/newsletter/">Newsletter</a>
   </div>
   <div class="drawer-bottom">
     <span class="status-pill" style="justify-content:center">Books open</span>
-    <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
   </div>
 </div>
 
@@ -345,7 +359,7 @@
     <p>Something not covered here, or a concern about how your tattoo is healing? Get in touch — I check in at two weeks for exactly this reason.</p>
   </div>
   <div class="aftercare-cta-actions">
-    <a href="/contact/" class="btn btn-primary">Send a message →</a>
+    <a href="/visit/" class="btn btn-primary">Send a message →</a>
     <a href="/faq/" class="btn btn-ghost">
       Read the FAQ <span class="arrow">→</span>
     </a>
@@ -373,10 +387,10 @@
     <nav class="footer-col" aria-label="Visit links">
       <h4>Visit</h4>
       <ul>
-        <li><a href="/contact/">Find the studio</a></li>
+        <li><a href="/visit/">Find the studio</a></li>
         <li><a href="/aftercare/">Aftercare</a></li>
-        <li><a href="/contact/#access">Accessibility</a></li>
-        <li><a href="/contact/#hours">Studio hours</a></li>
+        <li><a href="/visit/#access">Accessibility</a></li>
+        <li><a href="/visit/#hours">Studio hours</a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Social links">
@@ -398,7 +412,7 @@
 
 <!-- Mobile sticky CTA -->
 <div class="mobile-cta" id="mobile-cta" aria-hidden="true">
-  <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
 </div>
 
 

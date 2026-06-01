@@ -1,0 +1,236 @@
+/* ── Visit / Contact page — mobile-first ────────────────────────────────── */
+
+/* ── Contact shell — info column left, map right ────────────────────────── */
+.contact-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-bottom: 1px solid var(--line);
+}
+
+.contact-info {
+  padding: clamp(48px, 6vw, 80px) var(--pad-x);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-heading {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(36px, 4vw, 54px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+.contact-heading em { font-style: italic; color: var(--moss); }
+
+.contact-subhead {
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.contact-address {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.6;
+  color: var(--ink);
+  font-style: normal;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.contact-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.contact-row:last-child { border-bottom: 1px solid var(--line); }
+
+.contact-row-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: 3px;
+  flex-shrink: 0;
+}
+
+.contact-row-val { color: var(--ink); }
+.contact-row-val strong { display: block; font-weight: 600; margin-bottom: 3px; }
+.contact-row-val span { color: var(--ink-soft); font-size: 13px; display: block; }
+.contact-row-val a {
+  color: var(--moss);
+  border-bottom: 1px solid rgba(74,93,63,0.35);
+  transition: border-color var(--dur);
+}
+.contact-row-val a:hover { border-color: var(--moss); }
+
+.booking-note {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--ink-soft);
+}
+.booking-note a { color: var(--clay); border-bottom: 1px solid rgba(196,90,62,0.35); }
+.booking-note a:hover { border-color: var(--clay); }
+
+/* ── Map block ───────────────────────────────────────────────────────────── */
+/*
+  DEV NOTE — MAP
+  Replace placeholder gradient with a Mapbox GL JS or Leaflet embed:
+    1. Add to <head>:
+       <link href='https://api.mapbox.com/mapbox-gl-js/v3/mapbox-gl.css' rel='stylesheet'>
+       <script src='https://api.mapbox.com/mapbox-gl-js/v3/mapbox-gl.js'></script>
+    2. Remove the gradient background and ::before grid from .map-block.
+    3. Initialise with mapboxgl.Map({ container: 'studio-map', zoom: 15 ... })
+       and add a Marker at colour: '#C45A3E'.
+    4. Use a warm/low-saturation custom Mapbox Studio style.
+*/
+.map-block {
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  background: linear-gradient(155deg, #6B7E5A 0%, #8A9A75 45%, #4A5D3F 100%);
+}
+.map-block::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+#studio-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.map-label {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(251,248,238,0.7);
+}
+
+.map-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  color: var(--clay);
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.22));
+}
+.map-pin::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 5px;
+  background: rgba(0,0,0,0.16);
+  border-radius: 50%;
+}
+
+/* ── Accessibility & studio info ─────────────────────────────────────────── */
+.access-block {
+  padding: clamp(48px, 6vw, 80px) var(--pad-x);
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+}
+
+.access-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--moss);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+.access-eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--moss);
+  flex-shrink: 0;
+}
+
+.access-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(32px, 4vw, 64px);
+}
+
+.access-card-heading {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--moss);
+  margin-bottom: 20px;
+}
+
+.access-list { display: flex; flex-direction: column; }
+
+.access-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.access-item:last-child { border-bottom: 1px solid var(--line); }
+.access-item::before {
+  content: '◦';
+  color: var(--moss);
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (min-width: 640px) {
+  .map-block { min-height: 420px; }
+  .access-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 900px) {
+  .contact-shell {
+    grid-template-columns: 1fr 1fr;
+    min-height: clamp(480px, 55vw, 680px);
+  }
+  .contact-info {
+    border-bottom: none;
+    border-right: 1px solid var(--line);
+  }
+  .contact-rows { margin-top: auto; }
+  .contact-row { grid-template-columns: 130px 1fr; gap: 20px; }
+  .access-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 375px) {
+  .contact-heading { font-size: 30px; }
+  .contact-address { font-size: 17px; }
+}

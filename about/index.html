@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beansprout — About</title>
+<!-- COPY: meta description -->
+<meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout tattoo studio.">
+<meta property="og:title"       content="About — Beansprout.ink">
+<meta property="og:description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout tattoo studio.">
+<meta property="og:type"        content="website">
+<meta name="theme-color"        content="#F7F1E3">
+  <!-- Favicons — /favicon.svg is live now; raster files needed before launch.
+       Generate /favicon.ico (32×32), /apple-touch-icon.png (180×180),
+       /icon-192.png and /icon-512.png from the final logo SVG via
+       realfavicongenerator.net, then drop them in public/. -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest"         href="/site.webmanifest">
+  <meta property="og:url"          content="https://beansprout.ink/about/">
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
+       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
+       Also export 600×315 fallback. -->
+  <meta name="twitter:card"        content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+
+<!-- NAV — About active -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <!-- LOGO: replace with <img src="/images/logo.svg" alt="Beansprout" class="nav-logo-img"> -->
+  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/" class="active" aria-current="page">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">More <span class="chevron" aria-hidden="true"></span></button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/" class="active">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div>
+    <!-- COPY: eyebrow label -->
+    <p class="page-eyebrow">Lorem ipsum</p>
+    <!-- COPY: page title -->
+    <h1 class="page-title">Lorem <em>ipsum.</em></h1>
+  </div>
+  <!-- COPY: page descriptor — 1–2 sentences about the artist/studio -->
+  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+</header>
+
+<!-- INTRO — portrait + bio text -->
+<section class="intro" aria-labelledby="intro-heading">
+
+  <div class="portrait-wrap">
+    <!--
+      DEV NOTE — PORTRAIT
+      Replace with:
+      <img src="/images/artist-portrait.jpg"
+           alt="[Artist name], Beansprout studio"
+           class="portrait-img">
+    -->
+    <div class="portrait-placeholder" role="img" aria-label="Artist portrait placeholder">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
+           stroke="rgba(251,248,238,0.4)" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="32" cy="24" r="12"/>
+        <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24"/>
+      </svg>
+      <span class="portrait-caption"><!-- COPY: studio location label --></span>
+    </div>
+  </div>
+
+  <div class="intro-text">
+    <!-- COPY: greeting / name heading -->
+    <p class="intro-eyebrow">Lorem ipsum</p>
+    <h2 class="intro-heading" id="intro-heading">Lorem ipsum, <em>lorem.</em></h2>
+
+    <div class="intro-body">
+      <!-- COPY: 3–4 paragraphs of artist bio. First paragraph gets the drop-cap. -->
+      <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- APPROACH — what I draw / don't draw -->
+<section class="approach" aria-labelledby="approach-heading">
+
+  <div class="approach-header">
+    <!-- COPY: approach section eyebrow + heading -->
+    <p class="approach-eyebrow">Lorem ipsum</p>
+    <h2 class="approach-title" id="approach-heading">Lorem ipsum <em>dolor.</em></h2>
+  </div>
+
+  <div class="approach-grid">
+
+    <div class="approach-col yes">
+      <!-- COPY: "what I love drawing" column heading -->
+      <h3>Lorem ipsum dolor sit</h3>
+      <ul class="approach-list">
+        <!-- COPY: 6 items — styles, subjects, types of work the artist loves -->
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">✓</span>Lorem ipsum dolor sit amet consectetur</li>
+      </ul>
+    </div>
+
+    <div class="approach-col no">
+      <!-- COPY: "what I don't take on" column heading -->
+      <h3>Lorem ipsum dolor sit</h3>
+      <ul class="approach-list">
+        <!-- COPY: 6 items — styles/requests the artist declines -->
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+        <li class="approach-item"><span class="marker" aria-hidden="true">×</span>Lorem ipsum dolor sit amet consectetur</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- CREDENTIALS -->
+<div class="credentials" aria-label="Studio credentials" role="list">
+  <div class="credential reveal" role="listitem">
+    <!-- COPY: stat 1 number + label -->
+    <div class="cred-number">00</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+  <div class="credential reveal reveal-d1" role="listitem">
+    <!-- COPY: stat 2 number + label -->
+    <div class="cred-number">000+</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+  <div class="credential reveal reveal-d2" role="listitem">
+    <!-- COPY: stat 3 number + label -->
+    <div class="cred-number">0</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+  <div class="credential reveal reveal-d3" role="listitem">
+    <!-- COPY: stat 4 number + label -->
+    <div class="cred-number">000%</div>
+    <div class="cred-label">Lorem ipsum</div>
+  </div>
+</div>
+
+<!-- STUDIO GALLERY -->
+<section class="studio-section" aria-labelledby="studio-heading">
+  <div class="section-head">
+    <div class="section-head-left">
+      <!-- COPY: studio section eyebrow + heading -->
+      <p class="eyebrow">Lorem ipsum</p>
+      <h2 class="section-title" id="studio-heading">Lorem <em>ipsum.</em></h2>
+    </div>
+    <!-- COPY: short supporting line beside studio heading -->
+    <p class="serif-note" style="max-width:min(360px,100%)">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor.
+    </p>
+  </div>
+
+  <!--
+    DEV NOTE — STUDIO TILES
+    Replace .studio-tile-placeholder with <img> tags.
+    Subjects: studio chair, artist at work (hands), equipment detail, studio atmosphere.
+  -->
+  <div class="studio-grid">
+    <div class="studio-tile reveal">
+      <div class="studio-tile-placeholder t-warm">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="40" width="60" height="40" rx="3"/><path d="M30 40L30 25L50 15L70 25L70 40"/></svg>
+      </div>
+    </div>
+    <div class="studio-tile reveal reveal-d1">
+      <div class="studio-tile-placeholder t-sage">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M50 85L50 50C50 40 40 35 35 25M50 50C50 40 60 35 65 25M50 65C50 55 60 50 70 45"/></svg>
+      </div>
+    </div>
+    <div class="studio-tile reveal reveal-d2">
+      <div class="studio-tile-placeholder t-cream">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="25"/><path d="M30 50L70 50M50 30L50 70"/></svg>
+      </div>
+    </div>
+    <div class="studio-tile reveal reveal-d3">
+      <div class="studio-tile-placeholder t-blush">
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M25 75Q50 25 75 75"/><circle cx="50" cy="55" r="6" fill="currentColor"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="page-cta">
+  <!-- COPY: CTA heading -->
+  <h2>Lorem ipsum <em>dolor sit.</em></h2>
+  <!-- COPY: CTA supporting line -->
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore.</p>
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <!-- FOOTER LOGO: replace with <img src="/images/logo-light.svg" alt="Beansprout" class="nav-logo-img"> if available -->
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links"><h4>Studio</h4><ul>
+      <li><a href="/portfolio/">Portfolio</a></li>
+      <li><a href="/flash/">Flash</a></li>
+      <li><a href="/about/">About</a></li>
+      <li><a href="/services/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+      <li><a href="/visit/">Find the studio</a></li>
+      <li><a href="/aftercare/">Aftercare</a></li>
+      <li><a href="/visit/#access">Accessibility</a></li>
+      <li><a href="/visit/#hours">Studio hours</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a href="https://tiktok.com/@beansprout.ink" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+      <li><a href="/newsletter/">Newsletter</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
+  </div>
+</footer>
+
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

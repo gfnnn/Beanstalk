@@ -8,6 +8,20 @@
   <meta property="og:description" content="Fine line, botanical and custom tattoo. Private studio, Guildford, Surrey." />
   <meta property="og:type"        content="website" />
   <meta name="theme-color"        content="#F7F1E3" />
+  <!-- Favicons — /favicon.svg is live now; raster files needed before launch.
+       Generate /favicon.ico (32×32), /apple-touch-icon.png (180×180),
+       /icon-192.png and /icon-512.png from the final logo SVG via
+       realfavicongenerator.net, then drop them in public/. -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest"         href="/site.webmanifest">
+  <meta property="og:url"          content="https://beansprout.ink/">
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
+       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
+       Also export 600×315 fallback. -->
+  <meta name="twitter:card"        content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -53,7 +67,7 @@
       </button>
       <ul class="nav-dropdown" id="nav-dropdown" role="list">
         <li><a href="/aftercare/">Aftercare</a></li>
-        <li><a href="/contact/">Contact &amp; visit</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
         <li><a href="/newsletter/">Newsletter</a></li>
       </ul>
     </li>
@@ -61,7 +75,7 @@
 
   <div class="nav-right">
     <span class="status-pill">Books open</span>
-    <a href="/booking/" class="btn btn-primary btn-sm">Enquire</a>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
     <button class="nav-hamburger" id="nav-hamburger"
             aria-label="Open menu" aria-expanded="false"
             aria-controls="nav-drawer">
@@ -81,12 +95,12 @@
   <a href="/faq/">FAQ</a>
   <div class="drawer-secondary">
     <a href="/aftercare/">Aftercare</a>
-    <a href="/contact/">Contact &amp; visit</a>
+    <a href="/visit/">Contact &amp; visit</a>
     <a href="/newsletter/">Newsletter</a>
   </div>
   <div class="drawer-bottom">
     <span class="status-pill" style="justify-content:center">Books open</span>
-    <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
   </div>
 </div>
 
@@ -111,7 +125,7 @@
     </p>
 
     <div class="hero-actions">
-      <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+      <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
       <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
     </div>
 
@@ -124,7 +138,7 @@
       <div class="notice-item">
         <span class="notice-dot moss" aria-hidden="true"></span>
         <span class="notice-label">Bookings</span>
-        <span>[Current booking status — e.g. "Now open for [Month]. <a href="/booking/">Request a slot</a>"]</span>
+        <span>[Current booking status — e.g. "Now open for [Month]. <a href="/enquire/">Request a slot</a>"]</span>
       </div>
 
       <div class="notice-item">
@@ -487,10 +501,10 @@
     <nav class="footer-col" aria-label="Visit links">
       <h4>Visit</h4>
       <ul>
-        <li><a href="/contact/">Find the studio</a></li>
+        <li><a href="/visit/">Find the studio</a></li>
         <li><a href="/aftercare/">Aftercare</a></li>
-        <li><a href="/contact/#access">Accessibility</a></li>
-        <li><a href="/contact/#hours">Studio hours</a></li>
+        <li><a href="/visit/#access">Accessibility</a></li>
+        <li><a href="/visit/#hours">Studio hours</a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Social links">
@@ -513,7 +527,7 @@
 
 <!-- Mobile sticky CTA — visible only on small screens after hero exits viewport -->
 <div class="mobile-cta" id="mobile-cta" aria-hidden="true">
-  <a href="/booking/" class="btn btn-primary">Start an enquiry →</a>
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
 </div>
 
 

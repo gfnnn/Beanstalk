@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beansprout — Enquire</title>
+<!-- COPY: meta description -->
+<meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Start an enquiry with Beansprout tattoo studio.">
+<meta property="og:title"       content="Enquire — Beansprout.ink">
+<meta property="og:description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Start an enquiry with Beansprout tattoo studio.">
+<meta property="og:type"        content="website">
+<meta name="theme-color"        content="#F7F1E3">
+  <!-- Favicons — /favicon.svg is live now; raster files needed before launch.
+       Generate /favicon.ico (32×32), /apple-touch-icon.png (180×180),
+       /icon-192.png and /icon-512.png from the final logo SVG via
+       realfavicongenerator.net, then drop them in public/. -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest"         href="/site.webmanifest">
+  <meta property="og:url"          content="https://beansprout.ink/enquire/">
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
+       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
+       Also export 600×315 fallback. -->
+  <meta name="twitter:card"        content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+
+<!-- NAV — no active link (enquiry is accessed from everywhere) -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">More <span class="chevron" aria-hidden="true"></span></button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <!-- No Enquire button here — user is already on this page -->
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <!-- COPY: eyebrow label -->
+  <p class="page-eyebrow">Lorem ipsum · ~3 lorem</p>
+  <!-- COPY: page title -->
+  <h1 class="page-title">Lorem ipsum <em>dolor.</em></h1>
+  <!-- COPY: page descriptor — what to expect from the form -->
+  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna. Lorem ipsum dolor sit.</p>
+</header>
+
+<!-- PROGRESS BAR
+     DEV NOTE: JS updates .progress-fill width, .progress-step classes,
+     and .progress-pct text as steps advance.
+     Step 1 = 25%, Step 2 = 50%, Step 3 = 75%, Step 4 = 100%
+-->
+<div class="progress-wrap" id="progress-wrap">
+  <div class="progress-bar-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-label="Form progress">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+  <div class="progress-meta">
+    <div class="progress-steps" aria-hidden="true">
+      <!-- COPY: step labels -->
+      <span class="progress-step current"><span class="step-name">Lorem</span></span>
+      <span class="progress-step"><span class="step-name">Lorem</span></span>
+      <span class="progress-step"><span class="step-name">Lorem</span></span>
+      <span class="progress-step"><span class="step-name">Lorem</span></span>
+    </div>
+    <span class="progress-pct" id="progress-pct">Step 1 of 4</span>
+  </div>
+</div>
+
+<!-- FORM SHELL -->
+<div class="form-shell">
+
+  <!-- ASIDE -->
+  <aside class="form-aside" aria-label="Enquiry information">
+
+    <div class="aside-card">
+      <!-- COPY: aside card heading -->
+      <p class="aside-card-label">Lorem ipsum</p>
+      <!-- COPY: artist's promise statement -->
+      <p class="aside-promise">Lorem ipsum dolor sit amet, consectetur <em>lorem ipsum</em> — adipiscing elit sed do eiusmod.</p>
+    </div>
+
+    <div class="aside-card aside-timeline">
+      <!-- COPY: "what happens next" heading -->
+      <p class="aside-card-label">Lorem ipsum dolor</p>
+      <ol class="timeline-list">
+        <!-- COPY: 5 timeline steps -->
+        <li class="timeline-item">Lorem ipsum dolor sit amet consectetur</li>
+        <li class="timeline-item">Lorem ipsum dolor sit amet consectetur</li>
+        <li class="timeline-item">Lorem ipsum dolor sit amet consectetur</li>
+        <li class="timeline-item">Lorem ipsum dolor sit amet consectetur</li>
+        <li class="timeline-item">Lorem ipsum dolor sit amet consectetur</li>
+      </ol>
+    </div>
+
+  </aside>
+
+  <!-- FORM STEPS
+       DEV NOTE — IMPLEMENTATION
+       ──────────────────────────────────────────────────────────────────
+       In production, only the active .form-step is visible (display:none
+       on inactive ones). JS validates required fields before advancing,
+       saves progress to sessionStorage (key: "beansprout_step"), and
+       posts to the Formspree endpoint on submit.
+
+       Swap action URL below before launch.
+
+       Conditional logic:
+         - "Flash ticket" in Step 1 hides custom description / style in Step 2
+         - "Cover-up: Yes" in Step 2 reveals a photo upload in Step 3
+       ──────────────────────────────────────────────────────────────────
+  -->
+  <form id="enquiry-form"
+        action="https://formspree.io/f/YOUR_FORM_ID"
+        method="POST"
+        enctype="multipart/form-data"
+        novalidate>
+
+    <!-- Hidden fields — populated by JS -->
+    <input type="hidden" name="_subject" value="New enquiry — Beansprout">
+    <input type="hidden" name="_next"    value="https://beansprout.ink/enquiry-received">
+
+    <div class="form-steps" id="form-steps">
+
+      <!-- ══════════════════════════════════════════════════════════
+           STEP 1 — Who are you?  (active by default)
+           ══════════════════════════════════════════════════════════ -->
+      <div class="form-step" id="step-1" data-step="1">
+        <div class="step-header">
+          <div class="step-header-left">
+            <!-- COPY: step tag e.g. "STEP 01 · ABOUT YOU" -->
+            <span class="step-tag">STEP 01 · LOREM IPSUM</span>
+            <!-- COPY: step heading -->
+            <h2 class="step-heading">Lorem ipsum <em>dolor?</em></h2>
+          </div>
+        </div>
+
+        <div class="step-body">
+          <div class="field-group">
+
+            <div class="field-row">
+              <div class="field">
+                <label for="first-name">Lorem ipsum</label>
+                <input type="text" id="first-name" name="first_name"
+                       autocomplete="given-name" placeholder="Lorem"
+                       required aria-required="true">
+              </div>
+              <div class="field">
+                <label for="last-name">Lorem ipsum</label>
+                <input type="text" id="last-name" name="last_name"
+                       autocomplete="family-name" placeholder="Lorem"
+                       required aria-required="true">
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="email">Lorem ipsum</label>
+                <input type="email" id="email" name="email"
+                       autocomplete="email" inputmode="email"
+                       placeholder="lorem@ipsum.com"
+                       required aria-required="true">
+              </div>
+              <div class="field">
+                <!-- COPY: field label + hint -->
+                <label for="dob">Lorem ipsum</label>
+                <span class="field-hint">Lorem ipsum dolor sit</span>
+                <input type="date" id="dob" name="date_of_birth"
+                       autocomplete="bday" required aria-required="true">
+              </div>
+            </div>
+
+            <div class="field-row single">
+              <div class="field">
+                <label for="referral">Lorem ipsum dolor sit amet?</label>
+                <select id="referral" name="referral_source">
+                  <option value="">Lorem ipsum…</option>
+                  <!-- COPY: referral source options -->
+                  <option value="instagram">Lorem ipsum</option>
+                  <option value="tiktok">Lorem ipsum</option>
+                  <option value="google">Lorem ipsum</option>
+                  <option value="friend">Lorem ipsum</option>
+                  <option value="returning">Lorem ipsum</option>
+                  <option value="other">Lorem ipsum</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="step-footer">
+          <span></span>
+          <button type="button" class="btn btn-primary" id="step1-next">Lorem ipsum →</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           STEP 2 — The tattoo
+           ══════════════════════════════════════════════════════════ -->
+      <div class="form-step inactive" id="step-2" data-step="2">
+        <div class="step-header">
+          <div class="step-header-left">
+            <span class="step-tag">STEP 02 · LOREM IPSUM</span>
+            <h2 class="step-heading">Lorem ipsum <em>dolor sit.</em></h2>
+          </div>
+        </div>
+
+        <div class="step-body">
+          <div class="field-group">
+
+            <div class="field-row single">
+              <div class="field">
+                <label>Lorem ipsum dolor sit amet?</label>
+                <div class="radio-cards" role="group" aria-label="Custom or flash">
+                  <label class="radio-card">
+                    <input type="radio" name="tattoo_type" value="custom" required>
+                    <span class="radio-card-title">Lorem</span>
+                    <span class="radio-card-hint">Lorem ipsum</span>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="tattoo_type" value="flash">
+                    <span class="radio-card-title">Lorem</span>
+                    <span class="radio-card-hint">Lorem ipsum</span>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="tattoo_type" value="unsure">
+                    <span class="radio-card-title">Lorem</span>
+                    <span class="radio-card-hint">Lorem ipsum</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row single" id="idea-field">
+              <div class="field">
+                <label for="idea">Lorem ipsum dolor sit amet</label>
+                <span class="field-hint">Lorem ipsum dolor sit amet consectetur adipiscing — lorem ipsum dolor sit amet.</span>
+                <textarea id="idea" name="idea" rows="4"
+                          placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit…"></textarea>
+              </div>
+            </div>
+
+            <div class="field-row" id="style-field">
+              <div class="field">
+                <label>Lorem ipsum (lorem lorem)</label>
+                <div class="pill-group" role="group" aria-label="Select style">
+                  <!-- COPY: style option labels -->
+                  <label class="pill"><input type="checkbox" name="style[]" value="fine-line">Lorem ipsum</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="botanical">Lorem ipsum</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="single-needle">Lorem ipsum</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="blackwork">Lorem ipsum</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="script">Lorem ipsum</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="other">Lorem ipsum</label>
+                </div>
+              </div>
+              <div class="field">
+                <label>Lorem ipsum dolor?</label>
+                <div class="radio-cards" role="group" aria-label="Colour preference">
+                  <label class="radio-card"><input type="radio" name="colour" value="black"><span class="radio-card-title">Lorem</span></label>
+                  <label class="radio-card"><input type="radio" name="colour" value="black-grey"><span class="radio-card-title">Lorem lorem</span></label>
+                  <label class="radio-card"><input type="radio" name="colour" value="colour"><span class="radio-card-title">Lorem</span></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row thirds">
+              <div class="field">
+                <label for="placement">Lorem ipsum</label>
+                <span class="field-hint">Lorem ipsum dolor</span>
+                <input type="text" id="placement" name="placement" placeholder="Lorem ipsum, lorem lorem">
+              </div>
+              <div class="field">
+                <label for="size">Lorem ipsum</label>
+                <span class="field-hint">Lorem ipsum dolor sit amet</span>
+                <input type="text" id="size" name="size" placeholder="~00cm / lorem-lorem">
+              </div>
+              <div class="field">
+                <label for="budget">Lorem ipsum</label>
+                <span class="field-hint">Lorem ipsum dolor sit</span>
+                <select id="budget" name="budget">
+                  <!-- COPY: budget option labels — match your pricing page -->
+                  <option value="">Lorem ipsum…</option>
+                  <option value="min">Lorem ipsum (£000–£000)</option>
+                  <option value="small">Lorem ipsum (£000–£000)</option>
+                  <option value="half-day">Lorem ipsum (£000)</option>
+                  <option value="full-day">Lorem ipsum (£000)</option>
+                  <option value="flexible">Lorem ipsum</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Lorem ipsum lorem?</label>
+                <div class="radio-cards" role="group" aria-label="Cover-up">
+                  <label class="radio-card"><input type="radio" name="coverup" value="no" id="coverup-no"><span class="radio-card-title">Lorem</span></label>
+                  <label class="radio-card"><input type="radio" name="coverup" value="yes" id="coverup-yes"><span class="radio-card-title">Lorem</span></label>
+                </div>
+              </div>
+              <div class="field">
+                <label>Lorem ipsum dolor?</label>
+                <div class="radio-cards" role="group" aria-label="First tattoo">
+                  <label class="radio-card"><input type="radio" name="first_tattoo" value="no"><span class="radio-card-title">Lorem</span></label>
+                  <label class="radio-card"><input type="radio" name="first_tattoo" value="yes"><span class="radio-card-title">Lorem ipsum</span></label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="step-footer">
+          <button type="button" class="step-back" id="step2-back">← Lorem</button>
+          <button type="button" class="btn btn-primary" id="step2-next">Lorem ipsum →</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           STEP 3 — References & timing
+           ══════════════════════════════════════════════════════════ -->
+      <div class="form-step inactive" id="step-3" data-step="3">
+        <div class="step-header">
+          <div class="step-header-left">
+            <span class="step-tag">STEP 03 · LOREM IPSUM</span>
+            <h2 class="step-heading">Lorem ipsum <em>&amp; lorem.</em></h2>
+          </div>
+        </div>
+
+        <div class="step-body">
+          <div class="field-group">
+
+            <div class="field-row single">
+              <div class="field">
+                <label>Lorem ipsum dolor sit amet</label>
+                <span class="field-hint">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet consectetur — lorem ipsum dolor, lorem ipsum lorem.</span>
+                <!--
+                  DEV NOTE — FILE UPLOAD
+                  Formspree supports attachments on paid plans.
+                  Allow up to 7 images; warn if files are large.
+                -->
+                <label class="upload-zone" for="refs" id="upload-zone">
+                  <input type="file" id="refs" name="references[]"
+                         accept="image/jpeg,image/png,image/heic,image/webp"
+                         multiple aria-label="Upload reference images">
+                  <div class="upload-icon">↑</div>
+                  <p class="upload-title">Lorem ipsum dolor</p>
+                  <p class="upload-hint">Lorem ipsum dolor sit amet · jpg, png, heic · 10MB lorem · 7 lorem</p>
+                </label>
+                <div class="thumb-row" id="thumb-row"></div>
+              </div>
+            </div>
+
+            <!-- Cover-up existing tattoo photo — shown by JS if coverup=yes -->
+            <div class="field-row single" id="coverup-field" style="display:none">
+              <div class="field">
+                <label>Lorem ipsum dolor sit (lorem ipsum only)</label>
+                <span class="field-hint">Lorem ipsum dolor sit amet consectetur adipiscing elit. Lorem straight-on lorem ipsum, lorem lorem lorem.</span>
+                <label class="upload-zone" for="coverup-img">
+                  <input type="file" id="coverup-img" name="coverup_photo"
+                         accept="image/jpeg,image/png,image/heic,image/webp"
+                         aria-label="Upload photo of existing tattoo">
+                  <div class="upload-icon">↑</div>
+                  <p class="upload-title">Lorem ipsum</p>
+                  <p class="upload-hint">Lorem ipsum dolor sit amet</p>
+                </label>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="date-from">Lorem ipsum dolor lorem</label>
+                <span class="field-hint" id="booking-lead-hint">Lorem ipsum lorem lorem lorem lorem</span>
+                <input type="date" id="date-from" name="date_from">
+              </div>
+              <div class="field">
+                <label for="date-to">Lorem ipsum dolor lorem</label>
+                <input type="date" id="date-to" name="date_to">
+              </div>
+            </div>
+
+            <div class="field-row single">
+              <div class="field">
+                <label>Lorem ipsum dolor lorem?</label>
+                <div class="pill-group" role="group" aria-label="Available days">
+                  <!-- COPY: day labels -->
+                  <label class="pill"><input type="checkbox" name="days[]" value="mon">Lorem</label>
+                  <label class="pill"><input type="checkbox" name="days[]" value="tue">Lorem</label>
+                  <label class="pill"><input type="checkbox" name="days[]" value="wed">Lorem</label>
+                  <label class="pill"><input type="checkbox" name="days[]" value="thu">Lorem</label>
+                  <label class="pill"><input type="checkbox" name="days[]" value="fri">Lorem</label>
+                  <label class="pill"><input type="checkbox" name="days[]" value="sat">Lorem</label>
+                  <label class="pill"><input type="checkbox" name="days[]" value="sun">Lorem</label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="step-footer">
+          <button type="button" class="step-back" id="step3-back">← Lorem</button>
+          <button type="button" class="btn btn-primary" id="step3-next">Lorem ipsum →</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           STEP 4 — Health, consent & permissions
+           ══════════════════════════════════════════════════════════ -->
+      <div class="form-step inactive" id="step-4" data-step="4">
+        <div class="step-header">
+          <div class="step-header-left">
+            <span class="step-tag">STEP 04 · LOREM IPSUM</span>
+            <h2 class="step-heading">Lorem ipsum, <em>lorem &amp; lorem.</em></h2>
+          </div>
+        </div>
+
+        <div class="step-body">
+          <div class="field-group">
+
+            <div class="field-row single">
+              <div class="field">
+                <label for="allergies">Lorem ipsum dolor sit amet lorem ipsum?</label>
+                <span class="field-hint">Lorem, ipsum, dolor, lorem ipsum, lorem history, lorem. Lorem ipsum lorem lorem lorem lorem sit amet.</span>
+                <textarea id="allergies" name="allergies" rows="3"
+                          placeholder="Lorem ipsum / Lorem ipsum lorem."></textarea>
+              </div>
+            </div>
+
+            <div class="field-row single">
+              <div class="field">
+                <label for="notes">Lorem ipsum lorem ipsum lorem?</label>
+                <span class="field-hint">Lorem ipsum, lorem history, lorem, lorem needs, lorem-in-case.</span>
+                <textarea id="notes" name="additional_notes" rows="3"
+                          placeholder="Lorem ipsum lorem, lorem lorem! Lorem lorem lorem lorem lorem."></textarea>
+              </div>
+            </div>
+
+            <!-- Photo permission -->
+            <div class="field-row single">
+              <div class="field">
+                <label>Lorem ipsum &amp; lorem lorem</label>
+                <span class="field-hint">Lorem ipsum lorem lorem lorem lorem &amp; lorem lorem. Lorem lorem — lorem lorem lorem.</span>
+                <div class="checkbox-group" role="group">
+                  <div class="checkbox-row">
+                    <input type="radio" name="photo_permission" value="yes" id="photo-yes">
+                    <label class="radio-card" for="photo-yes" style="flex:none;width:100%;border-radius:var(--radius);border:1px solid var(--line);padding:12px 16px;cursor:pointer;background:var(--bg);transition:border-color var(--dur)">
+                      Lorem ipsum — lorem ipsum lorem lorem lorem lorem lorem. <strong>Lorem ipsum lorem lorem lorem.</strong>
+                    </label>
+                  </div>
+                  <div class="checkbox-row" style="padding-top:8px">
+                    <input type="radio" name="photo_permission" value="no" id="photo-no">
+                    <label class="radio-card" for="photo-no" style="flex:none;width:100%;border-radius:var(--radius);border:1px solid var(--line);padding:12px 16px;cursor:pointer;background:var(--bg);transition:border-color var(--dur)">
+                      Lorem ipsum — lorem ipsum lorem ipsum lorem.
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Policy checkboxes -->
+            <div class="field-row single">
+              <div class="field">
+                <div class="checkbox-group">
+                  <div class="checkbox-row">
+                    <input type="checkbox" id="check-policy" name="policy_accepted" required>
+                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-label" for="check-policy">Lorem ipsum dolor sit amet <a href="/services/">lorem ipsum lorem lorem lorem</a> lorem ipsum lorem ipsum lorem sit amet.</label>
+                  </div>
+                  <div class="checkbox-row">
+                    <input type="checkbox" id="check-age" name="age_confirmed" required>
+                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-label" for="check-age">Lorem ipsum lorem lorem lorem lorem lorem lorem ipsum lorem lorem lorem.</label>
+                  </div>
+                  <div class="checkbox-row">
+                    <input type="checkbox" id="check-deposit" name="deposit_understood" required>
+                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-label" for="check-deposit">Lorem ipsum lorem lorem lorem lorem lorem lorem lorem lorem lorem ipsum lorem lorem lorem lorem lorem Stripe lorem lorem lorem lorem lorem lorem lorem.</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="step-footer">
+          <button type="button" class="step-back" id="step4-back">← Lorem</button>
+          <!-- COPY: submit button label -->
+          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Lorem ipsum · 🌱</button>
+        </div>
+      </div>
+
+    </div><!-- /form-steps -->
+  </form>
+
+</div><!-- /form-shell -->
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links"><h4>Studio</h4><ul>
+      <li><a href="/portfolio/">Portfolio</a></li>
+      <li><a href="/flash/">Flash</a></li>
+      <li><a href="/about/">About</a></li>
+      <li><a href="/services/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+      <li><a href="/visit/">Find the studio</a></li>
+      <li><a href="/aftercare/">Aftercare</a></li>
+      <li><a href="/visit/#access">Accessibility</a></li>
+      <li><a href="/visit/#hours">Studio hours</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a href="https://tiktok.com/@beansprout.ink" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+      <li><a href="/newsletter/">Newsletter</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
+  </div>
+</footer>
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

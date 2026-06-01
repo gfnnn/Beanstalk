@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beansprout — Contact &amp; visit</title>
+<!-- COPY: meta description -->
+<meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Find Beansprout tattoo studio.">
+<meta property="og:title"       content="Contact &amp; Visit — Beansprout.ink">
+<meta property="og:description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Find Beansprout tattoo studio.">
+<meta property="og:type"        content="website">
+<meta name="theme-color"        content="#F7F1E3">
+  <!-- Favicons — /favicon.svg is live now; raster files needed before launch.
+       Generate /favicon.ico (32×32), /apple-touch-icon.png (180×180),
+       /icon-192.png and /icon-512.png from the final logo SVG via
+       realfavicongenerator.net, then drop them in public/. -->
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest"         href="/site.webmanifest">
+  <meta property="og:url"          content="https://beansprout.ink/visit/">
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
+       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
+       Also export 600×315 fallback. -->
+  <meta name="twitter:card"        content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+
+<!-- NAV — Contact & visit active (in More dropdown) -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger active" aria-expanded="false" aria-controls="nav-dropdown" id="nav-more-btn">More <span class="chevron" aria-hidden="true"></span></button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/" class="active" aria-current="page">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/" class="active">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <!-- COPY: eyebrow label e.g. "Appointment only" -->
+  <p class="page-eyebrow">Lorem ipsum</p>
+  <!-- COPY: page title -->
+  <h1 class="page-title">Lorem ipsum <em>dolor.</em></h1>
+  <!-- COPY: descriptor — 1–2 sentences, appointment-only note -->
+  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna. Lorem ipsum dolor sit amet.</p>
+</header>
+
+<!-- CONTACT SHELL -->
+<div class="contact-shell">
+
+  <!-- INFO COLUMN -->
+  <div class="contact-info">
+
+    <!-- COPY: section heading e.g. "Find the studio." -->
+    <h2 class="contact-heading">Lorem ipsum <em>dolor.</em></h2>
+    <!-- COPY: appointment-only sub-note -->
+    <p class="contact-subhead">Lorem ipsum dolor sit amet — lorem ipsum dolor lorem ipsum.</p>
+
+    <!--
+      COPY: studio postal address
+    -->
+    <address class="contact-address">
+      Lorem ipsum Studio<br>
+      00X Lorem Ipsum Way<br>
+      London <strong>X0 0XX</strong>
+    </address>
+
+    <!-- Contact rows -->
+    <dl class="contact-rows">
+
+      <!-- Hours — id used by footer anchor /visit/#hours -->
+      <div class="contact-row" id="hours">
+        <dt class="contact-row-label"><!-- COPY: label e.g. "Hours" -->Lorem</dt>
+        <dd class="contact-row-val">
+          <!-- COPY: days and hours -->
+          <strong>Lorem · Lorem – Lorem · 00am – 00pm</strong>
+          <!-- COPY: qualification e.g. "By appointment only. No walk-ins." -->
+          <span>Lorem ipsum dolor sit amet. Lorem lorem.</span>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label"><!-- COPY: label e.g. "Getting here" -->Lorem ipsum</dt>
+        <dd class="contact-row-val">
+          <!-- COPY: nearest station + walk time -->
+          <strong>Lorem Lorem · 0 min lorem</strong>
+          <!-- COPY: line/route detail -->
+          <span>Lorem ipsum lorem lorem lorem / Lorem lorem lorem</span>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label">Email</dt>
+        <dd class="contact-row-val">
+          <a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label">Instagram</dt>
+        <dd class="contact-row-val">
+          <a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">@beansprout.ink</a>
+        </dd>
+      </div>
+
+      <div class="contact-row">
+        <dt class="contact-row-label"><!-- COPY: label e.g. "For bookings" -->Lorem ipsum</dt>
+        <dd class="contact-row-val booking-note">
+          <!-- COPY: note directing to enquiry form -->
+          Lorem ipsum dolor sit amet, consectetur <a href="/enquire/">lorem ipsum</a> — lorem ipsum dolor sit amet consectetur lorem ipsum.
+        </dd>
+      </div>
+
+    </dl>
+  </div><!-- /contact-info -->
+
+  <!--
+    MAP BLOCK
+    DEV NOTE — replace this placeholder with a Mapbox GL JS or Leaflet embed.
+    See visit.css for full integration instructions.
+  -->
+  <div class="map-block" role="img" aria-label="Studio location map">
+    <div id="studio-map"></div>
+    <!-- COPY: map corner label — short address e.g. "12B Wilton Way · E8 1BG" -->
+    <span class="map-label">Lorem Ipsum Way · X0 0XX</span>
+    <div class="map-pin" aria-hidden="true">
+      <svg width="40" height="52" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 0C8.954 0 0 8.954 0 20C0 33.6 20 52 20 52C20 52 40 33.6 40 20C40 8.954 31.046 0 20 0Z" fill="currentColor"/>
+        <circle cx="20" cy="20" r="7" fill="white" fill-opacity="0.9"/>
+      </svg>
+    </div>
+  </div>
+
+</div><!-- /contact-shell -->
+
+<!-- ACCESSIBILITY & STUDIO INFO
+     id="access" used by footer anchor /visit/#access -->
+<section class="access-block" id="access" aria-labelledby="access-heading">
+  <!-- COPY: section eyebrow e.g. "The studio" -->
+  <p class="access-eyebrow" id="access-heading">Lorem ipsum</p>
+  <div class="access-grid">
+
+    <div class="access-card reveal">
+      <!-- COPY: card heading e.g. "Accessibility" -->
+      <h3 class="access-card-heading">Lorem ipsum</h3>
+      <ul class="access-list" role="list">
+        <!-- COPY: 5 accessibility facts e.g. step-free, wide doorways, etc. -->
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+      </ul>
+    </div>
+
+    <div class="access-card reveal reveal-d1">
+      <!-- COPY: card heading e.g. "What to expect" -->
+      <h3 class="access-card-heading">Lorem ipsum dolor</h3>
+      <ul class="access-list" role="list">
+        <!-- COPY: 5 "on the day" points e.g. buzz the door, tea available, etc. -->
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+      </ul>
+    </div>
+
+    <div class="access-card reveal reveal-d2">
+      <!-- COPY: card heading e.g. "Sensory notes" -->
+      <h3 class="access-card-heading">Lorem ipsum</h3>
+      <ul class="access-list" role="list">
+        <!-- COPY: 5 sensory/comfort notes -->
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+        <li class="access-item">Lorem ipsum dolor sit amet consectetur adipiscing</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links"><h4>Studio</h4><ul>
+      <li><a href="/portfolio/">Portfolio</a></li>
+      <li><a href="/flash/">Flash</a></li>
+      <li><a href="/about/">About</a></li>
+      <li><a href="/services/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+      <li><a href="/visit/">Find the studio</a></li>
+      <li><a href="/aftercare/">Aftercare</a></li>
+      <li><a href="/visit/#access">Accessibility</a></li>
+      <li><a href="/visit/#hours">Studio hours</a></li>
+    </ul></nav>
+    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+      <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a href="https://tiktok.com/@beansprout.ink" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+      <li><a href="/newsletter/">Newsletter</a></li>
+      <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+    </ul></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
+  </div>
+</footer>
+
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

@@ -6,6 +6,8 @@ import { initHeroAnimation, initScrollAnimations } from './modules/animations.js
 import { initFilter } from './modules/filter.js'
 import { initLightbox } from './modules/lightbox.js'
 import { initLoadMore } from './modules/loadmore.js'
+import { initFaq } from './modules/faq.js'
+import { initEnquire } from './modules/enquire.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Smooth scroll — must be first so GSAP ticker is driven by Lenis
@@ -25,13 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
   initFilter()
   initLightbox()
 
-  // 6. Portfolio page gallery (lightbox etc.) — stub for future
+  // 6. Portfolio page gallery — stub for future
   initGallery()
 
   // 7. Aftercare page — tab switcher + sticky shadow
   initAftercare()
 
-  // 7. Mobile sticky CTA — portfolio page shows immediately on small screens
+  // 8. FAQ page — accordion, category filter, search
+  initFaq()
+
+  // 9. Enquire page — multi-step form, progress, conditional fields
+  initEnquire()
+
+  // 10. Mobile sticky CTA — shown on inner pages on small screens
   const mobileCta = document.getElementById('mobile-cta')
   const hero      = document.querySelector('.hero')
   if (mobileCta && !hero && window.innerWidth < 640) {

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!--
+    Beansprout favicon — ink-dark rounded square, moss-green seedling.
+    Two organic leaves + stem. Works at 16px, 32px, and any SVG scale.
+    Replace with a traced version of the final logo once it exists,
+    but this serves as a working placeholder and brand-consistent icon.
+  -->
+
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#2C2A24"/>
+
+  <!-- Left leaf — grows up and left from the stem -->
+  <path d="M15 22 C13 19 8 17 9 11 C12 11 15 16 15 22Z" fill="#4A5D3F"/>
+
+  <!-- Right leaf — grows up and right, slightly higher -->
+  <path d="M17 18 C19 14 24 11 23 5 C20 6 17 11 17 18Z" fill="#4A5D3F"/>
+
+  <!-- Stem -->
+  <line x1="16" y1="28" x2="16" y2="15"
+        stroke="#8A9A75" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
