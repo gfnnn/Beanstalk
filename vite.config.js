@@ -37,6 +37,7 @@ export default defineConfig({
         received: resolve(__dirname, 'enquiry-received/index.html'),
         privacy:  resolve(__dirname, 'privacy/index.html'),
         terms:    resolve(__dirname, 'terms/index.html'),
+        newsletter: resolve(__dirname, 'newsletter/index.html'),
       }
     }
   },

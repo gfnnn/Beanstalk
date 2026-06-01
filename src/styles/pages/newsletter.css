@@ -1,0 +1,220 @@
+/* ── Newsletter page ─────────────────────────────────────────────────────────
+   Pitch on the left, signup card on the right; stacks on mobile.
+   ─────────────────────────────────────────────────────────────────────────── */
+.newsletter-shell {
+  padding: clamp(40px, 6vw, 72px) var(--pad-x) clamp(56px, 8vw, 96px);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(32px, 5vw, 64px);
+}
+
+/* ── Pitch column ──────────────────────────────────────────────────────────── */
+.newsletter-intro-lead {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(20px, 3vw, 24px);
+  line-height: 1.45;
+  color: var(--ink-soft);
+  max-width: 460px;
+  margin-bottom: 32px;
+}
+.newsletter-intro-lead em { font-style: italic; color: var(--moss); }
+
+.newsletter-points {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 440px;
+}
+.newsletter-point {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0 14px;
+  align-items: start;
+}
+.newsletter-point svg {
+  width: 22px;
+  height: 22px;
+  color: var(--moss);
+  margin-top: 2px;
+}
+.newsletter-point h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.newsletter-point p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.newsletter-reassure {
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--ink-faint);
+  line-height: 1.55;
+  max-width: 420px;
+}
+
+/* ── Signup card ───────────────────────────────────────────────────────────── */
+.signup-card {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(24px, 3.5vw, 36px);
+  align-self: start;
+}
+
+.signup-card-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(24px, 3.5vw, 30px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.signup-card-title em { font-style: italic; color: var(--moss); }
+.signup-card-sub {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+.signup-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.signup-label .opt { color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
+
+.signup-input {
+  width: 100%;
+  padding: 13px 15px;
+  font-family: var(--sans);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.signup-input::placeholder { color: var(--ink-faint); }
+.signup-input:focus {
+  outline: none;
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px var(--moss-bg);
+}
+
+/* Consent checkbox */
+.signup-consent {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  margin: 6px 0 22px;
+  cursor: pointer;
+}
+.signup-consent input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--moss);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.signup-consent span {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.signup-consent a {
+  color: var(--moss);
+  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+}
+.signup-consent a:hover { border-color: var(--moss); }
+
+.signup-submit { width: 100%; justify-content: center; }
+
+.signup-feedback {
+  margin-top: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--clay);
+}
+
+.signup-fineprint {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
+
+/* Hidden honeypot — off-screen, not display:none, so bots still fill it. */
+.signup-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ── Success state ─────────────────────────────────────────────────────────── */
+.signup-success {
+  text-align: center;
+  padding: 8px 0;
+}
+.signup-success:focus { outline: none; }
+.signup-success-mark {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--moss-bg);
+  border: 1px solid var(--line);
+  color: var(--moss);
+}
+.signup-success-mark svg { width: 26px; height: 26px; }
+.signup-success h3 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(22px, 3vw, 28px);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.signup-success h3 em { font-style: italic; color: var(--moss); }
+.signup-success p {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+/* ── Desktop layout ────────────────────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .newsletter-shell {
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(56px, 7vw, 96px);
+    align-items: start;
+  }
+  .signup-card { position: sticky; top: calc(var(--nav-h) + 32px); }
+}

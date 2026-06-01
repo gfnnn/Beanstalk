@@ -9,6 +9,7 @@ import { initLoadMore } from './modules/loadmore.js'
 import { initFaq } from './modules/faq.js'
 import { initEnquire } from './modules/enquire.js'
 import { initFlash } from './modules/flash.js'
+import { initNewsletter } from './modules/newsletter.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Smooth scroll — must be first so GSAP ticker is driven by Lenis
@@ -46,7 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 10. Flash page — filter/sort, claim modal
   initFlash()
 
-  // 10. Mobile sticky CTA — shown on inner pages on small screens
+  // 11. Newsletter page — signup form → Resend Audience
+  initNewsletter()
+
+  // 12. Mobile sticky CTA — shown on inner pages on small screens
   const mobileCta = document.getElementById('mobile-cta')
   const hero      = document.querySelector('.hero')
   if (mobileCta && !hero && window.innerWidth < 640) {
