@@ -228,7 +228,8 @@
 /* ── Claim modal ─────────────────────────────────────────────────────────── */
 /*
   DEV NOTE — CLAIM FLOW
-  On submit: POST to endpoint (swap YOUR_FORM_ID in flash/index.html).
+  On submit: JS POSTs JSON { kind:'flash', fields } to the Netlify function
+  (see flash.js / netlify/functions/enquiry.js).
   UI flow:
     1. User clicks "Claim this" → modal opens
     2. Form submitted → card UI marks data-status="pending"

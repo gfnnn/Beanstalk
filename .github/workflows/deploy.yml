@@ -1,0 +1,51 @@
+# Build the Vite site and deploy it to GitHub Pages.
+#
+# One-time setup: GitHub repo → Settings → Pages → Build and deployment →
+# Source = "GitHub Actions". Then set the function URL so the enquiry form is
+# wired at build time: Settings → Secrets and variables → Actions → Variables →
+# New variable → VITE_ENQUIRY_FN_URL = https://<your-site>.netlify.app/.netlify/functions/enquiry
+#
+# (If you already deploy to Pages another way, delete this file.)
+
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_ENQUIRY_FN_URL: ${{ vars.VITE_ENQUIRY_FN_URL }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

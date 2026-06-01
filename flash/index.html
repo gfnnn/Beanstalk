@@ -407,8 +407,9 @@
 
 <!-- ==========================================================================
      CLAIM MODAL
-     DEV NOTE: form action → swap YOUR_FORM_ID for the real Formspree endpoint.
-     Hidden fields _piece and _price are populated by JS when a card is clicked.
+     DEV NOTE: JS POSTs JSON { kind:'flash', fields } to the Netlify function
+     (see flash.js / netlify/functions/enquiry.js), which emails the artist via
+     Resend. Hidden piece/price are populated by JS when a card is clicked.
      ========================================================================== -->
 <div class="modal-overlay" id="claim-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
   <div class="modal">
@@ -422,12 +423,13 @@
       <button class="modal-close" id="modal-close" aria-label="Close claim form">×</button>
     </div>
 
-    <form class="modal-body" id="claim-form"
-          action="https://formspree.io/f/YOUR_FORM_ID"
-          method="POST" novalidate>
+    <form class="modal-body" id="claim-form" novalidate>
+
+      <!-- Honeypot: hidden from people, tempting to bots; the function drops it. -->
+      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off"
+             aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
 
       <!-- Hidden fields populated by JS -->
-      <input type="hidden" name="_subject" id="modal-subject" value="Flash claim — Beansprout">
       <input type="hidden" name="piece" id="modal-piece-input">
       <input type="hidden" name="price" id="modal-price-input">
 

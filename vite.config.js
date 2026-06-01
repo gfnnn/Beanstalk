@@ -16,6 +16,7 @@ export default defineConfig({
         visit:    resolve(__dirname, 'visit/index.html'),
         flash:    resolve(__dirname, 'flash/index.html'),
         services: resolve(__dirname, 'services/index.html'),
+        received: resolve(__dirname, 'enquiry-received/index.html'),
       }
     }
   },

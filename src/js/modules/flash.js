@@ -1,4 +1,5 @@
 import { pauseScroll, resumeScroll } from './lenis.js'
+import { ENQUIRY_FN_URL } from './config.js'
 
 export function initFlash() {
   const grid = document.getElementById('flash-grid')
@@ -105,7 +106,6 @@ export function initFlash() {
   const pieceName  = document.getElementById('modal-piece-name')
   const pieceInput = document.getElementById('modal-piece-input')
   const priceInput = document.getElementById('modal-price-input')
-  const subjectIn  = document.getElementById('modal-subject')
   const firstField = document.getElementById('claim-name')
 
   let lastFocused = null
@@ -116,7 +116,6 @@ export function initFlash() {
     if (pieceName)  pieceName.textContent = name
     if (pieceInput) pieceInput.value      = name
     if (priceInput) priceInput.value      = price
-    if (subjectIn)  subjectIn.value       = `Flash claim — ${name} — Beansprout`
 
     overlay.hidden = false
     requestAnimationFrame(() => overlay.classList.add('open'))
@@ -155,55 +154,69 @@ export function initFlash() {
     if (e.key === 'Escape' && !overlay.hidden) closeModal()
   })
 
-  // Form submit
+  // ── Inline error + "mark pending" helpers ──────────────────────────────────
+  function showModalError(msg) {
+    let el = document.getElementById('claim-error')
+    if (!el) {
+      el = document.createElement('p')
+      el.id = 'claim-error'
+      el.setAttribute('role', 'alert')
+      el.style.cssText = 'margin:0 0 4px;font-size:13px;color:var(--clay,#C45A3E);line-height:1.45'
+      form.querySelector('.modal-foot')?.before(el)
+    }
+    el.textContent = msg
+  }
+  const clearModalError = () => document.getElementById('claim-error')?.remove()
+
+  function markPending() {
+    if (!pieceInput) return
+    const claimedCard = cards.find(c =>
+      c.querySelector('.claim-btn')?.dataset.piece === pieceInput.value
+    )
+    if (!claimedCard) return
+    claimedCard.dataset.status = 'pending'
+    const statusEl = claimedCard.querySelector('.card-status')
+    if (statusEl) { statusEl.className = 'card-status pending'; statusEl.textContent = 'Pending' }
+    const claimBtnEl = claimedCard.querySelector('.claim-btn')
+    if (claimBtnEl) { claimBtnEl.disabled = true; claimBtnEl.textContent = 'Pending deposit' }
+    updateCounts()
+  }
+
+  // Form submit → Netlify function (kind: 'flash') → Resend
   if (form) {
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async e => {
       e.preventDefault()
-      if (submitBtn) {
-        submitBtn.disabled    = true
-        submitBtn.textContent = 'Sending…'
+      clearModalError()
+
+      if (ENQUIRY_FN_URL.includes('YOUR-SITE')) {
+        showModalError('Claims aren’t connected yet. (Set VITE_ENQUIRY_FN_URL.)')
+        return
       }
 
-      // POST to Formspree (or swap for custom endpoint)
-      fetch(form.action, {
-        method:  'POST',
-        body:    new FormData(form),
-        headers: { Accept: 'application/json' },
-      })
-        .then(r => {
-          if (!r.ok) throw new Error('Network response was not ok')
-          return r.json()
+      const label = submitBtn ? submitBtn.textContent : ''
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…' }
+
+      const fields = {}
+      new FormData(form).forEach((v, k) => { fields[k] = v })
+
+      try {
+        const res = await fetch(ENQUIRY_FN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind: 'flash', fields }),
         })
-        .then(() => {
-          // Mark the card as pending in the UI
-          if (pieceInput) {
-            const claimedCard = cards.find(c =>
-              c.querySelector('.claim-btn')?.dataset.piece === pieceInput.value
-            )
-            if (claimedCard) {
-              claimedCard.dataset.status = 'pending'
-              const statusEl = claimedCard.querySelector('.card-status')
-              if (statusEl) {
-                statusEl.className  = 'card-status pending'
-                statusEl.textContent = 'Pending'
-              }
-              const claimBtnEl = claimedCard.querySelector('.claim-btn')
-              if (claimBtnEl) {
-                claimBtnEl.disabled    = true
-                claimBtnEl.textContent = 'Pending deposit'
-              }
-              updateCounts()
-            }
-          }
-          closeModal()
-          form.reset()
-        })
-        .catch(() => {
-          if (submitBtn) {
-            submitBtn.disabled    = false
-            submitBtn.textContent = 'Try again'
-          }
-        })
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
+
+        markPending()
+        closeModal()
+        form.reset()
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+      } catch (err) {
+        console.error('Flash claim error:', err)
+        showModalError(err.message || 'Couldn’t send. Please try again, or email hello@beansprout.ink.')
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+      }
     })
   }
 

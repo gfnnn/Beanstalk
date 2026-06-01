@@ -1,0 +1,30 @@
+# netlify.toml — Beansprout
+# ──────────────────────────────────────────────────────────────────────────────
+# Netlify hosts ONLY the enquiry function for this project; the site itself is
+# served from GitHub Pages. This file tells Netlify where the function lives and
+# sets CORS headers so the GitHub Pages origin can POST to it.
+#
+# Lives at the repo root, alongside package.json.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Netlify also builds the Vite site here, so the netlify.app URL is a working
+# mirror — but beansprout.ink (GitHub Pages) stays the canonical site. The build
+# guarantees the function bundle is published on every deploy.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  # The function uses `export async function handler` (ES module).
+  node_bundler = "esbuild"
+
+# Allow cross-origin POSTs from the site (GitHub Pages / beansprout.ink).
+# The function also sets these headers on its own responses; this covers the
+# preflight + any Netlify-served edge cases.
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin  = "*"
+    Access-Control-Allow-Methods = "POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"

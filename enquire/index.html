@@ -137,25 +137,25 @@
        ──────────────────────────────────────────────────────────────────
        In production, only the active .form-step is visible (display:none
        on inactive ones). JS validates required fields before advancing,
-       saves progress to sessionStorage (key: "beansprout_step"), and
-       posts to the Formspree endpoint on submit.
+       saves progress to sessionStorage (key: "beansprout_step"), and on
+       submit POSTs JSON { fields, images[] } to the Netlify function, which
+       emails the artist via Resend (see netlify/functions/enquiry.js).
+       On success it redirects to /enquiry-received/.
 
-       Swap action URL below before launch.
+       Set the function URL via VITE_ENQUIRY_FN_URL (see .env.example) or the
+       fallback constant in src/js/modules/enquire.js before launch.
 
        Conditional logic:
          - "Flash ticket" in Step 1 hides custom description / style in Step 2
          - "Cover-up: Yes" in Step 2 reveals a photo upload in Step 3
        ──────────────────────────────────────────────────────────────────
   -->
-  <form id="enquiry-form"
-        action="https://formspree.io/f/YOUR_FORM_ID"
-        method="POST"
-        enctype="multipart/form-data"
-        novalidate>
+  <form id="enquiry-form" novalidate>
 
-    <!-- Hidden fields — populated by JS -->
-    <input type="hidden" name="_subject" value="New enquiry — Beansprout">
-    <input type="hidden" name="_next"    value="https://beansprout.ink/enquiry-received">
+    <!-- Honeypot: hidden from people, tempting to bots. The function silently
+         drops any submission where this field is filled in. -->
+    <input type="text" name="_gotcha" tabindex="-1" autocomplete="off"
+           aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
 
     <div class="form-steps" id="form-steps">
 
@@ -373,8 +373,9 @@
                 <span class="field-hint">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet consectetur — lorem ipsum dolor, lorem ipsum lorem.</span>
                 <!--
                   DEV NOTE — FILE UPLOAD
-                  Formspree supports attachments on paid plans.
-                  Allow up to 7 images; warn if files are large.
+                  Images are downscaled in the browser and sent as base64 to the
+                  Netlify function (see enquire.js / enquiry.js). Up to 8 images,
+                  ~5 MB total after downscaling to stay under Netlify's request cap.
                 -->
                 <label class="upload-zone" for="refs" id="upload-zone">
                   <input type="file" id="refs" name="references[]"
