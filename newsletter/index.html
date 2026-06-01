@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Join the Beansprout list — first look at flash drops, books-open dates, and studio news. No spam, unsubscribe any time." />
+  <meta property="og:title"       content="Newsletter — Beansprout.ink" />
+  <meta property="og:description" content="First look at flash drops, books-open dates, and studio news. No spam, unsubscribe any time." />
+  <meta property="og:type"        content="website" />
+  <meta name="theme-color"        content="#F7F1E3" />
+  <link rel="icon"     href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:url" content="https://beansprout.ink/newsletter/">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <title>Newsletter — Beansprout</title>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Beansprout — home">
+    <div class="nav-logo-placeholder">logo.svg</div>
+  </a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false"
+              aria-controls="nav-dropdown" id="nav-more-btn">
+        More <span class="chevron" aria-hidden="true"></span>
+      </button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/" class="active" aria-current="page">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger"
+            aria-label="Open menu" aria-expanded="false"
+            aria-controls="nav-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/">Contact &amp; visit</a>
+    <a href="/newsletter/" class="active">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+
+<!-- ══ PAGE HEADER ════════════════════════════════════════════════════════════ -->
+<header class="page-header">
+  <div class="page-header-left">
+    <p class="page-eyebrow">Newsletter</p>
+    <h1 class="page-title">The studio <em>list.</em></h1>
+  </div>
+  <div class="page-header-right">
+    <!-- COPY: 1–2 sentence summary of what the list is for. -->
+    <p class="page-descriptor">
+      An occasional email — never spam. First look at flash drops, a heads-up when books open, and the odd note from the studio.
+    </p>
+  </div>
+</header>
+
+
+<!-- ══ NEWSLETTER ════════════════════════════════════════════════════════════ -->
+<main class="newsletter-shell" role="main">
+
+  <!-- Pitch -->
+  <section class="newsletter-intro" aria-label="What you'll get">
+    <!-- COPY: a warm one-liner about the list. -->
+    <p class="newsletter-intro-lead">
+      Sign up and you'll be <em>first to know</em> — before anything goes up on Instagram.
+    </p>
+
+    <ul class="newsletter-points">
+      <li class="newsletter-point">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 3v18l7-4 7 4V3z"/>
+        </svg>
+        <div>
+          <!-- COPY: point 1 title + body -->
+          <h3>Flash drops first</h3>
+          <p>New flash sheets land in your inbox before they're posted publicly.</p>
+        </div>
+      </li>
+      <li class="newsletter-point">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="16" rx="2"/>
+          <path d="M3.5 9.5h17M8 3v4M16 3v4"/>
+        </svg>
+        <div>
+          <!-- COPY: point 2 title + body -->
+          <h3>Books-open dates</h3>
+          <p>A heads-up the moment custom slots open, so you don't miss the window.</p>
+        </div>
+      </li>
+      <li class="newsletter-point">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 21c-5-3-8-6.5-8-10a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 3.5-3 7-8 10z"/>
+        </svg>
+        <div>
+          <!-- COPY: point 3 title + body -->
+          <h3>Studio notes</h3>
+          <p>The occasional behind-the-scenes — process, new work, and what's next.</p>
+        </div>
+      </li>
+    </ul>
+
+    <p class="newsletter-reassure">
+      <!-- COPY: reassurance line — frequency + unsubscribe. -->
+      A few times a month at most. Unsubscribe in one click whenever you like.
+    </p>
+  </section>
+
+
+  <!-- Signup card -->
+  <section class="signup-card" aria-labelledby="signup-title">
+    <form id="newsletter-form" novalidate>
+      <h2 class="signup-card-title" id="signup-title">Join the <em>list.</em></h2>
+      <p class="signup-card-sub">Pop your email in below — that's all it takes.</p>
+
+      <div class="signup-field">
+        <label class="signup-label" for="nl-email">Email</label>
+        <input class="signup-input" type="email" id="nl-email" name="email"
+               autocomplete="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="signup-field">
+        <label class="signup-label" for="nl-name">First name <span class="opt">(optional)</span></label>
+        <input class="signup-input" type="text" id="nl-name" name="first_name"
+               autocomplete="given-name" placeholder="So we can say hi" />
+      </div>
+
+      <!-- Honeypot — leave empty; bots fill it and get silently dropped. -->
+      <div class="signup-hp" aria-hidden="true">
+        <label for="nl-company">Company</label>
+        <input type="text" id="nl-company" name="_gotcha" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <label class="signup-consent" for="nl-consent">
+        <input type="checkbox" id="nl-consent" name="consent" required />
+        <!-- COPY: confirm the consent wording with your privacy policy. -->
+        <span>I'd like to receive emails from Beansprout and agree to the <a href="/privacy/">privacy policy</a>.</span>
+      </label>
+
+      <button type="submit" class="btn btn-primary signup-submit" id="newsletter-submit">
+        Subscribe
+      </button>
+
+      <p class="signup-feedback" id="newsletter-feedback" role="alert" hidden></p>
+
+      <p class="signup-fineprint">
+        We use your email only to send the newsletter. No sharing, no spam.
+      </p>
+    </form>
+
+    <!-- Success state — revealed by JS after a successful signup. -->
+    <div class="signup-success" id="newsletter-success" tabindex="-1" hidden>
+      <div class="signup-success-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12.5l5 5L20 6.5"/>
+        </svg>
+      </div>
+      <h3>You're <em>on the list.</em></h3>
+      <p>Thanks for signing up — keep an eye on your inbox. <span data-already hidden>(Looks like you were already subscribed — you're all set.)</span></p>
+    </div>
+  </section>
+
+</main>
+
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">[Short studio descriptor. Style, location, approach.]</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links">
+      <h4>Studio</h4>
+      <ul>
+        <li><a href="/portfolio/">Portfolio</a></li>
+        <li><a href="/flash/">Flash</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/services/">Pricing</a></li>
+        <li><a href="/faq/">FAQ</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Visit links">
+      <h4>Visit</h4>
+      <ul>
+        <li><a href="/visit/">Find the studio</a></li>
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/#access">Accessibility</a></li>
+        <li><a href="/visit/#hours">Studio hours</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Social links">
+      <h4>Follow</h4>
+      <ul>
+        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener noreferrer">TikTok</a></li>
+        <li><a href="/newsletter/" class="active" aria-current="page">Newsletter</a></li>
+        <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
+  </div>
+</footer>
+
+
+<!-- Mobile sticky CTA -->
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
