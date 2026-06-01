@@ -87,6 +87,15 @@
 }
 .flash-card .card-image-placeholder svg { width: 40%; opacity: 0.28; }
 
+/* Real photo (when a card has `img` in src/data/flash.js) fills the square crop */
+.flash-card .card-image img,
+.flash-card .card-image picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.flash-card .card-image img { object-fit: cover; }
+
 /* Image placeholder tints — reuse studio tile colours */
 .ci-moss  { background: linear-gradient(155deg, #4A5D3F, #6B7E5A); color: #E8E1C9; }
 .ci-sage  { background: linear-gradient(155deg, #8A9A75, #A5B391); color: #2C2A24; }

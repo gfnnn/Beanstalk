@@ -2,25 +2,33 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
+import { flash } from './src/data/flash.js'
+import { renderFlashCards } from './src/build/flash-cards.js'
 
-// Generate the portfolio masonry tiles from src/data/pieces.js (single source of
-// truth) and inject them into the `<!-- pieces:masonry -->` marker. Runs in dev
-// and build via transformIndexHtml, so tiles ship as static HTML. The marker only
-// exists on portfolio/index.html, so every other page passes through untouched.
-const portfolioTiles = {
-  name: 'beansprout-portfolio-tiles',
+// Generate grids from their data files (single sources of truth) and inject them
+// into per-page markers. Runs in dev AND build via transformIndexHtml, so the
+// grids ship as static HTML. Each marker exists on only one page, so other pages
+// pass through untouched. Replacements use a function so any `$` in the generated
+// HTML isn't treated as a regex back-reference.
+const generatedGrids = {
+  name: 'beansprout-generated-grids',
   transformIndexHtml: {
     order: 'pre',
     handler(html) {
-      if (!html.includes('<!-- pieces:masonry -->')) return html
-      return html.replace('<!-- pieces:masonry -->', () => renderPortfolioTiles(pieces))
+      if (html.includes('<!-- pieces:masonry -->')) {
+        html = html.replace('<!-- pieces:masonry -->', () => renderPortfolioTiles(pieces))
+      }
+      if (html.includes('<!-- flash:grid -->')) {
+        html = html.replace('<!-- flash:grid -->', () => renderFlashCards(flash))
+      }
+      return html
     },
   },
 }
 
 export default defineConfig({
   root: '.',
-  plugins: [portfolioTiles],
+  plugins: [generatedGrids],
   build: {
     outDir: 'dist',
     rollupOptions: {
