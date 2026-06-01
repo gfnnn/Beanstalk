@@ -84,5 +84,7 @@ function card(p) {
 export function renderFlashCards(items) {
   // DOM order here = initial display order. flash.js's default sort is newest drop
   // first (data-drop desc); keep this array in the order you want shown by default.
+  // Past-drop records (lower `drop`) belong in this same array — flash.js routes them
+  // into the "Past drops" view, so they need no separate file or page.
   return items.map(card).join('\n')
 }
