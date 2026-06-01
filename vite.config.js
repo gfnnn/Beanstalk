@@ -35,6 +35,8 @@ export default defineConfig({
         flash:    resolve(__dirname, 'flash/index.html'),
         services: resolve(__dirname, 'services/index.html'),
         received: resolve(__dirname, 'enquiry-received/index.html'),
+        privacy:  resolve(__dirname, 'privacy/index.html'),
+        terms:    resolve(__dirname, 'terms/index.html'),
       }
     }
   },

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="How Beansprout collects, uses, and protects your personal data." />
+  <meta property="og:title"       content="Privacy — Beansprout.ink" />
+  <meta property="og:description" content="How Beansprout collects, uses, and protects your personal data." />
+  <meta property="og:type"        content="website" />
+  <meta name="theme-color"        content="#F7F1E3" />
+  <link rel="icon"     href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:url" content="https://beansprout.ink/privacy/">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <title>Privacy — Beansprout</title>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Beansprout — home">
+    <div class="nav-logo-placeholder">logo.svg</div>
+  </a>
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false"
+              aria-controls="nav-dropdown" id="nav-more-btn">
+        More <span class="chevron" aria-hidden="true"></span>
+      </button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger"
+            aria-label="Open menu" aria-expanded="false"
+            aria-controls="nav-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+
+<!-- ══ PAGE HEADER ════════════════════════════════════════════════════════════ -->
+<header class="page-header">
+  <div class="page-header-left">
+    <p class="page-eyebrow">Legal</p>
+    <h1 class="page-title">Privacy <em>policy.</em></h1>
+  </div>
+  <div class="page-header-right">
+    <!-- COPY: 1–2 sentence plain-English summary of the policy. -->
+    <p class="page-descriptor">
+      A plain-English summary of what personal data we collect when you enquire or visit, why we hold it, and the control you have over it.
+    </p>
+  </div>
+</header>
+
+
+<!-- ══ POLICY BODY ════════════════════════════════════════════════════════════
+     STRUCTURE IS READY — section headings give a standard UK-GDPR layout.
+     Replace every placeholder paragraph with approved legal copy before launch.
+     This is scaffolding, not legal advice; have the final wording reviewed.
+ -->
+<main class="legal" role="main">
+  <article class="legal-prose">
+
+    <!-- COPY: real effective date, e.g. "Last updated 1 March 2026" -->
+    <p class="legal-updated">Last updated: [date]</p>
+
+    <section class="legal-section">
+      <h2>Who we are</h2>
+      <!-- COPY: legal/trading name, that Beansprout is the data controller, contact + ICO registration number if held. -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout is the data controller for the personal information described in this policy. Lorem ipsum dolor sit amet consectetur.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>What we collect</h2>
+      <!-- COPY: enumerate exactly what's collected via the enquiry form, email, and in-studio. -->
+      <p>When you enquire or book, we collect the information you give us, which may include:</p>
+      <ul>
+        <li><!-- COPY -->Contact details — lorem ipsum name, email, phone.</li>
+        <li><!-- COPY -->Tattoo details — lorem ipsum placement, size, reference images you upload.</li>
+        <li><!-- COPY -->Health information you choose to share that's relevant to the procedure.</li>
+        <li><!-- COPY -->Basic technical data — lorem ipsum (see cookies below).</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2>How we use it</h2>
+      <!-- COPY: purposes — respond to enquiries, manage bookings, aftercare follow-up, legal record-keeping. -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. We use your information to respond to your enquiry, arrange and deliver your appointment, and follow up on aftercare.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Our lawful basis</h2>
+      <!-- COPY: UK GDPR lawful bases relied on — consent, contract, legitimate interests, legal obligation. -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. We rely on lorem ipsum (e.g. your consent and the performance of our agreement with you) to process this information. Lorem ipsum dolor sit amet consectetur adipiscing elit.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>How long we keep it</h2>
+      <!-- COPY: retention periods, esp. any legal minimum for tattoo/health records. -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna. We keep records only as long as necessary for the purposes above or as required by law.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Who we share it with</h2>
+      <!-- COPY: name processors actually used — email host, form/function provider, analytics — and confirm no selling of data. -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. We never sell your data. We share it only with the service providers that help us run the studio, such as lorem ipsum, and only as needed.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Cookies &amp; analytics</h2>
+      <!-- COPY: what cookies/analytics (if any) are set, and how to control them. -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Lorem ipsum dolor sit amet consectetur adipiscing elit sed do.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Your rights</h2>
+      <!-- COPY: UK GDPR rights — access, rectification, erasure, restriction, objection, portability, withdraw consent. -->
+      <p>Under UK data protection law you have rights over your information, including the right to access, correct, or erase it. Lorem ipsum dolor sit amet, consectetur adipiscing elit. To exercise any of these, contact us using the details below.</p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Changes &amp; contact</h2>
+      <!-- COPY: how changes are notified + contact route for privacy queries + right to complain to the ICO. -->
+      <p>We may update this policy from time to time; the date above shows the latest version. For any privacy question or request, email <a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a>. You also have the right to complain to the ICO (ico.org.uk).</p>
+    </section>
+
+  </article>
+</main>
+
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">[Short studio descriptor. Style, location, approach.]</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links">
+      <h4>Studio</h4>
+      <ul>
+        <li><a href="/portfolio/">Portfolio</a></li>
+        <li><a href="/flash/">Flash</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/services/">Pricing</a></li>
+        <li><a href="/faq/">FAQ</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Visit links">
+      <h4>Visit</h4>
+      <ul>
+        <li><a href="/visit/">Find the studio</a></li>
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/#access">Accessibility</a></li>
+        <li><a href="/visit/#hours">Studio hours</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Social links">
+      <h4>Follow</h4>
+      <ul>
+        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener noreferrer">TikTok</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+        <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy"><a href="/privacy/" class="active" aria-current="page" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
+  </div>
+</footer>
+
+
+<!-- Mobile sticky CTA -->
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
