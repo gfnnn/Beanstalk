@@ -19,12 +19,7 @@
   # The function uses `export async function handler` (ES module).
   node_bundler = "esbuild"
 
-# Allow cross-origin POSTs from the site (GitHub Pages / beansprout.ink).
-# The function also sets these headers on its own responses; this covers the
-# preflight + any Netlify-served edge cases.
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    Access-Control-Allow-Origin  = "*"
-    Access-Control-Allow-Methods = "POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
+# CORS is handled INSIDE the function (netlify/functions/enquiry.js): it echoes an
+# allowlisted Origin per request and answers the OPTIONS preflight itself. We do NOT
+# set Access-Control-Allow-Origin here — a static '*' would conflict with the
+# function's dynamic header (two ACAO values and the browser rejects the response).
