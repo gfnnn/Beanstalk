@@ -142,15 +142,13 @@ export async function handler(event) {
       }),
     })
     if (!res.ok) {
-      const detail = await res.text().catch(() => '')
-      console.error('Resend error', res.status, detail)
-      // TEMP: `detail` surfaces the Resend error for setup debugging — remove once sending works.
-      return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.', detail: `resend_status=${res.status} ${detail}`.slice(0, 400) })
+      console.error('Resend error', res.status, await res.text().catch(() => ''))
+      return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
     }
     return reply(200, { ok: true })
   } catch (err) {
     console.error('Send failed', err)
-    return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.', detail: String((err && err.message) || err).slice(0, 300) })
+    return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
   }
 }
 
