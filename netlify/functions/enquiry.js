@@ -13,82 +13,15 @@
 //   FROM_EMAIL       roxy@beansprout.ink   (must be on a Resend-verified domain —
 //                    use onboarding@resend.dev only while testing)
 //
-// Rate-limit state lives in Netlify Blobs (the only dependency). Everything else
-// uses the global fetch in Netlify's Node runtime.
+// Abuse protection (CORS allowlist + Blobs rate limiting) is shared with the
+// newsletter function — see ./_shared.js. Otherwise uses the global fetch in
+// Netlify's Node runtime; @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-import { getStore } from '@netlify/blobs'
-
-// ── CORS — origin allowlist, not a blanket '*' ──────────────────────────────
-// CORS is browser-enforced (it won't stop a scripted/curl POST — that's what the
-// rate limiter below is for), but locking it to known origins removes the casual
-// cross-site-embed vector and is correct hygiene. Disallowed origins get the
-// canonical origin echoed back, so the browser blocks them from reading replies.
-const ALLOWED_ORIGINS = new Set([
-  'https://beansprout.ink',
-  'https://www.beansprout.ink',
-  'https://beansprout.netlify.app', // staging mirror (canonical for v2)
-  'http://localhost:5173',          // vite dev
-  'http://localhost:8888',          // netlify dev
-])
-const CANONICAL_ORIGIN = 'https://beansprout.netlify.app'
-
-function corsFor(event) {
-  const origin = event.headers?.origin || event.headers?.Origin || ''
-  return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : CANONICAL_ORIGIN,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Vary': 'Origin',
-  }
-}
-
-// ── Abuse limits — protect the artist's inbox and the Resend quota ──────────
-// Per-IP sliding window + a global daily ceiling (the real backstop against a
-// rotating-IP flood burning the send quota). Tunable via env; sane defaults.
-const MAX_PER_IP    = Number(process.env.RATE_MAX_PER_IP)    || 5
-const IP_WINDOW_MS  = (Number(process.env.RATE_IP_WINDOW_MIN) || 15) * 60_000
-const MAX_PER_DAY   = Number(process.env.RATE_MAX_PER_DAY)   || 80
+import { corsFor, replyWith, clientIp, rateLimit } from './_shared.js'
 
 // Kept comfortably under Netlify's ~6 MB synchronous request-body cap.
 const MAX_IMAGES      = 8
 const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // 5 MB of decoded image data
-
-function clientIp(event) {
-  const h = event.headers || {}
-  return String(h['x-nf-client-connection-ip'] || h['x-forwarded-for'] || '')
-    .split(',')[0].trim() || 'unknown'
-}
-
-// Returns { ok, commit }. `commit()` records a successful send. FAILS OPEN: if
-// the Blobs store is unavailable we never block a genuine enquiry.
-async function rateLimit(ip) {
-  try {
-    const store  = getStore('enquiry-rate')
-    const now    = Date.now()
-    const dayKey = `count-${new Date().toISOString().slice(0, 10)}`
-    const ipKey  = `ip-${ip}`
-
-    const dayCount = Number(await store.get(dayKey)) || 0
-    if (dayCount >= MAX_PER_DAY) return { ok: false }
-
-    const prior = (await store.get(ipKey, { type: 'json' })) || []
-    const hits  = (Array.isArray(prior) ? prior : []).filter(t => now - t < IP_WINDOW_MS)
-    if (hits.length >= MAX_PER_IP) return { ok: false }
-
-    return {
-      ok: true,
-      commit: async () => {
-        try {
-          await store.setJSON(ipKey, [...hits, now])
-          await store.set(dayKey, String(dayCount + 1))
-        } catch (_) { /* best-effort */ }
-      },
-    }
-  } catch (err) {
-    console.error('Rate-limit store unavailable — failing open:', err?.message || err)
-    return { ok: true, commit: async () => {} }
-  }
-}
 
 // Per-form definition: required fields, consent boxes, whether images apply,
 // the email's section layout, header title, and subject line.
@@ -137,11 +70,7 @@ const FORMS = {
 
 export async function handler(event) {
   const cors  = corsFor(event)
-  const reply = (statusCode, body) => ({
-    statusCode,
-    headers: { 'Content-Type': 'application/json', ...cors },
-    body: JSON.stringify(body),
-  })
+  const reply = replyWith(cors)
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' }
   if (event.httpMethod !== 'POST')    return reply(405, { error: 'Method not allowed.' })
@@ -190,7 +119,7 @@ export async function handler(event) {
   }
 
   // ── Rate limit — only valid, about-to-send requests count ───────────────────
-  const limiter = await rateLimit(clientIp(event))
+  const limiter = await rateLimit(clientIp(event), { storeName: 'enquiry-rate' })
   if (!limiter.ok) {
     return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
   }
