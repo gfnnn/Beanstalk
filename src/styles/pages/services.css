@@ -20,14 +20,8 @@
   background: var(--moss);
   flex-shrink: 0;
 }
-.section-title {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: clamp(36px, 4.5vw, 60px);
-  line-height: 1;
-  letter-spacing: -0.025em;
-}
-.section-title em { font-style: italic; color: var(--moss); }
+/* .section-title is owned globally by typography.css — do not redefine it here
+   (a page file overriding a shared utility leaks to every page in the bundle). */
 
 /* ── Services shell — pricing column + deposit aside ─────────────────────── */
 .services-shell {
@@ -76,7 +70,9 @@
 .pricing-card.accent-clay::before      { background: var(--clay-soft); }
 .pricing-card.accent-faint::before     { background: var(--ink-faint); }
 
-.card-top {
+/* NOTE: all .card-* classes are scoped under .pricing-card so they don't collide
+   with the flash page's .flash-card .card-* rules in the shared bundle. */
+.pricing-card .card-top {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -86,16 +82,16 @@
   border-bottom: 1px solid var(--line-soft);
 }
 
-.card-title {
+.pricing-card .card-title {
   font-family: var(--serif);
   font-weight: 300;
   font-size: 24px;
   letter-spacing: -0.01em;
   color: var(--ink);
 }
-.card-title em { font-style: italic; color: var(--ink-soft); font-size: 20px; }
+.pricing-card .card-title em { font-style: italic; color: var(--ink-soft); font-size: 20px; }
 
-.card-price {
+.pricing-card .card-price {
   font-family: var(--serif);
   font-weight: 300;
   font-size: 28px;
@@ -105,7 +101,7 @@
   flex-shrink: 0;
 }
 
-.card-body { font-size: 15px; color: var(--ink-soft); line-height: 1.65; }
+.pricing-card .card-body { font-size: 15px; color: var(--ink-soft); line-height: 1.65; }
 
 /* Touch-up card — free, slight visual distinction */
 .pricing-card.free { background: var(--bg); }
@@ -332,13 +328,13 @@
   .included-item:nth-child(odd) { border-right: 1px solid var(--line); }
   .included-item:nth-child(even) { border-right: none; }
   .policies-grid { grid-template-columns: 1fr 1fr; }
-  .card-top {
+  .pricing-card .card-top {
     flex-direction: row;
     align-items: baseline;
     justify-content: space-between;
     gap: 20px;
   }
-  .card-price { font-size: 32px; }
+  .pricing-card .card-price { font-size: 32px; }
 }
 
 @media (min-width: 900px) {
