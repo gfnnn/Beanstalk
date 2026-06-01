@@ -81,6 +81,38 @@ export function initEnquire() {
     })
   })
 
+  // ── Conditional: flash type hides the custom idea + style fields ──────────
+  // A flash ticket is pre-drawn, so the idea description and style picker
+  // don't apply. Custom / unsure keep them visible.
+  const ideaField  = document.getElementById('idea-field')
+  const styleField = document.getElementById('style-field')
+  document.querySelectorAll('[name="tattoo_type"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isFlash = r.value === 'flash'
+      if (ideaField)  ideaField.style.display  = isFlash ? 'none' : ''
+      if (styleField) styleField.style.display = isFlash ? 'none' : ''
+    })
+  })
+
+  // ── Pill multi-select cap — honour data-max on a .pill-group ──────────────
+  // When the group is at its limit, unchecked pills are disabled so the user
+  // can't exceed it; deselecting one re-enables the rest.
+  document.querySelectorAll('.pill-group[data-max]').forEach(group => {
+    const max     = parseInt(group.dataset.max, 10)
+    if (!max) return
+    const boxes   = [...group.querySelectorAll('input[type="checkbox"]')]
+    const enforce = () => {
+      const checked = boxes.filter(b => b.checked).length
+      const atLimit = checked >= max
+      boxes.forEach(b => {
+        b.disabled = atLimit && !b.checked
+        b.closest('.pill')?.classList.toggle('disabled', b.disabled)
+      })
+    }
+    boxes.forEach(b => b.addEventListener('change', enforce))
+    enforce()
+  })
+
   // ── File upload preview ────────────────────────────────────────────────────
   const refsInput = document.getElementById('refs')
   const thumbRow  = document.getElementById('thumb-row')
