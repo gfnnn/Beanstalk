@@ -64,3 +64,32 @@
   transition: transform var(--dur) var(--ease);
 }
 .btn-ghost:hover .arrow { transform: translateX(4px); }
+
+/* Light — cream button for dark backgrounds */
+.btn-light {
+  background: var(--bg);
+  border-color: var(--bg);
+  color: var(--ink);
+}
+.btn-light:hover {
+  background: var(--cream);
+  border-color: var(--cream);
+}
+
+/* Ghost light — text-only for dark backgrounds */
+.btn-ghost-light {
+  background: transparent;
+  border-color: transparent;
+  color: rgba(247, 241, 227, 0.7);
+  padding-left: 0;
+  padding-right: 0;
+}
+.btn-ghost-light:hover { color: var(--bg); }
+.btn-ghost-light .arrow {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  display: inline-block;
+  transition: transform var(--dur) var(--ease);
+}
+.btn-ghost-light:hover .arrow { transform: translateX(4px); }

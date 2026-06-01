@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- COPY: meta description -->
+  <meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout tattoo studio services and pricing." />
+  <meta property="og:title"       content="Services &amp; Pricing — Beansprout.ink" />
+  <meta property="og:description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beansprout tattoo studio services and pricing." />
+  <meta property="og:type"        content="website" />
+  <meta name="theme-color"        content="#F7F1E3" />
+  <link rel="icon"             href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest"         href="/site.webmanifest" />
+  <meta property="og:url"          content="https://beansprout.ink/services/" />
+  <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card"        content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <title>Services &amp; Pricing — Beansprout</title>
+</head>
+<body>
+
+<!-- ══ NAV — Services active ════════════════════════════════════════════════ -->
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+
+  <!--
+    LOGO — replace placeholder with:
+    <a href="/" aria-label="Beansprout — home">
+      <img src="/images/logo.svg" alt="Beansprout" class="nav-logo-img" />
+    </a>
+  -->
+  <a href="/" aria-label="Beansprout — home">
+    <div class="nav-logo-placeholder">logo.svg</div>
+  </a>
+
+  <ul class="nav-links" role="list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/portfolio/">Portfolio</a></li>
+    <li><a href="/flash/">Flash</a></li>
+    <li><a href="/about/">About</a></li>
+    <li><a href="/services/">Services</a></li>
+    <li><a href="/faq/">FAQ</a></li>
+    <li class="nav-more" id="nav-more">
+      <button class="nav-more-trigger" aria-expanded="false"
+              aria-controls="nav-dropdown" id="nav-more-btn">
+        More <span class="chevron" aria-hidden="true"></span>
+      </button>
+      <ul class="nav-dropdown" id="nav-dropdown" role="list">
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/">Contact &amp; visit</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="nav-right">
+    <span class="status-pill">Books open</span>
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
+    <button class="nav-hamburger" id="nav-hamburger"
+            aria-label="Open menu" aria-expanded="false"
+            aria-controls="nav-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+</nav>
+
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/portfolio/">Portfolio</a>
+  <a href="/flash/">Flash</a>
+  <a href="/about/">About</a>
+  <a href="/services/">Services</a>
+  <a href="/faq/">FAQ</a>
+  <div class="drawer-secondary">
+    <a href="/aftercare/">Aftercare</a>
+    <a href="/visit/">Contact &amp; visit</a>
+    <a href="/newsletter/">Newsletter</a>
+  </div>
+  <div class="drawer-bottom">
+    <span class="status-pill" style="justify-content:center">Books open</span>
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+  </div>
+</div>
+
+
+<!-- ══ PAGE HEADER ══════════════════════════════════════════════════════════ -->
+<header class="page-header">
+  <div class="page-header-left">
+    <!-- COPY: eyebrow label e.g. "Honest, in advance" -->
+    <p class="page-eyebrow">Lorem ipsum, lorem ipsum</p>
+    <!-- COPY: page title -->
+    <h1 class="page-title">Lorem ipsum <em>&amp; lorem.</em></h1>
+  </div>
+  <div class="page-header-right">
+    <!-- COPY: page descriptor — 1–2 sentences about pricing transparency -->
+    <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum lorem sit.</p>
+  </div>
+</header>
+
+
+<!-- ══ SERVICES SHELL — pricing cards left, deposit aside right ═════════════ -->
+<div class="services-shell">
+
+  <!-- PRICING COLUMN -->
+  <div>
+    <!-- COPY: pricing section eyebrow -->
+    <p class="section-eyebrow">Lorem ipsum</p>
+    <!-- COPY: pricing section heading -->
+    <h2 class="section-title">Lorem <em>ipsum.</em></h2>
+
+    <!--
+      PRICING CARDS
+      ─────────────────────────────────────────────────────────────────────
+      The left accent bar colour signals session length category:
+        .accent-moss      = core / short sessions
+        .accent-moss-soft = mid sessions
+        .accent-clay      = longer sessions
+        .accent-faint     = free / exceptional
+
+      COPY: all titles, qualifiers, prices, and descriptions need
+      approved copy. Prices are placeholders — use actual pricing.
+      ─────────────────────────────────────────────────────────────────────
+    -->
+    <div class="pricing-stack">
+
+      <!-- CARD 1 — Minimum charge -->
+      <div class="pricing-card accent-faint reveal">
+        <div class="card-top">
+          <!-- COPY: service name e.g. "Minimum charge" -->
+          <h3 class="card-title">Lorem ipsum</h3>
+          <!-- COPY: starting price e.g. £120 -->
+          <span class="card-price">£000</span>
+        </div>
+        <!-- COPY: what's covered at the minimum charge -->
+        <p class="card-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna. Lorem ipsum dolor sit amet consectetur.</p>
+      </div>
+
+      <!-- CARD 2 — Small custom -->
+      <div class="pricing-card accent-moss reveal">
+        <div class="card-top">
+          <!-- COPY: service name + qualifier e.g. "Small custom (under 2 hours)" -->
+          <h3 class="card-title">Lorem ipsum <em>(lorem ipsum lorem)</em></h3>
+          <!-- COPY: price range e.g. £180–£280 -->
+          <span class="card-price">£000–£000</span>
+        </div>
+        <!-- COPY: what fits in this tier -->
+        <p class="card-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt. Lorem ipsum dolor sit amet consectetur adipiscing elit.</p>
+      </div>
+
+      <!-- CARD 3 — Half day -->
+      <div class="pricing-card accent-moss-soft reveal">
+        <div class="card-top">
+          <!-- COPY: service name + qualifier e.g. "Half day (3–4 hours)" -->
+          <h3 class="card-title">Lorem ipsum <em>(0–0 lorem)</em></h3>
+          <!-- COPY: fixed price e.g. £420 -->
+          <span class="card-price">£000</span>
+        </div>
+        <!-- COPY: what's included in a half day -->
+        <p class="card-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum.</p>
+      </div>
+
+      <!-- CARD 4 — Full day -->
+      <div class="pricing-card accent-clay reveal">
+        <div class="card-top">
+          <!-- COPY: service name + qualifier e.g. "Full day (6–7 hours)" -->
+          <h3 class="card-title">Lorem ipsum <em>(0–0 lorem)</em></h3>
+          <!-- COPY: fixed price e.g. £680 -->
+          <span class="card-price">£000</span>
+        </div>
+        <!-- COPY: what's included in a full day; note on one-sitting cap -->
+        <p class="card-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore. Lorem ipsum dolor sit amet consectetur adipiscing.</p>
+      </div>
+
+      <!-- CARD 5 — Touch-up (free) -->
+      <div class="pricing-card free accent-faint reveal">
+        <div class="card-top">
+          <!-- COPY: touch-up service name + qualifier e.g. "Touch-up (within 3 months)" -->
+          <h3 class="card-title">Lorem ipsum <em>(lorem lorem lorem)</em></h3>
+          <!-- COPY: "Free" -->
+          <span class="card-price">Lorem</span>
+        </div>
+        <!-- COPY: touch-up policy — timeframe, conditions, how to request -->
+        <p class="card-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt. Lorem ipsum dolor sit amet consectetur adipiscing elit lorem ipsum.</p>
+      </div>
+
+    </div>
+  </div><!-- /pricing column -->
+
+
+  <!-- DEPOSIT ASIDE — sticky dark card -->
+  <aside class="deposit-aside" aria-label="Deposit and cancellation policy">
+
+    <div class="deposit-header">
+      <!-- COPY: aside eyebrow label e.g. "Deposits & cancellations" -->
+      <p class="deposit-eyebrow">Lorem ipsum &amp; lorem</p>
+      <!-- COPY: aside heading -->
+      <h2 class="deposit-heading">Lorem ipsum <em>&amp; lorem ipsum.</em></h2>
+    </div>
+
+    <div class="deposit-rows">
+      <!--
+        DEPOSIT ROW STRUCTURE
+        Each row: label left + value right (mono, moss-soft).
+        Use .highlight on .value for warnings e.g. no-show forfeit.
+
+        COPY: all labels and values need confirmed amounts.
+      -->
+
+      <div class="deposit-row">
+        <!-- COPY: e.g. "Standard deposit" / "£60" -->
+        <span class="label">Lorem ipsum</span>
+        <span class="value">£00</span>
+      </div>
+      <div class="deposit-row">
+        <!-- COPY: e.g. "Half-day deposit" / "£120" -->
+        <span class="label">Lorem ipsum</span>
+        <span class="value">£00</span>
+      </div>
+      <div class="deposit-row">
+        <!-- COPY: e.g. "Full-day deposit" / "£200" -->
+        <span class="label">Lorem ipsum</span>
+        <span class="value">£00</span>
+      </div>
+      <div class="deposit-row">
+        <!-- COPY: e.g. "Reschedule window" / "72h+" -->
+        <span class="label">Lorem ipsum</span>
+        <span class="value">00h+</span>
+      </div>
+      <div class="deposit-row">
+        <!-- COPY: e.g. "No-show" / "Deposit forfeit" — use .highlight -->
+        <span class="label">Lorem ipsum</span>
+        <span class="value highlight">Lorem lorem</span>
+      </div>
+      <div class="deposit-row">
+        <!-- COPY: e.g. "Payment via" / "Stripe link" -->
+        <span class="label">Lorem ipsum</span>
+        <span class="value">Lorem ipsum</span>
+      </div>
+
+    </div>
+
+    <div class="deposit-footer">
+      <!-- COPY: 2–3 sentences about deposit policy -->
+      <p class="deposit-note">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore. Lorem ipsum dolor sit amet consectetur adipiscing.
+      </p>
+      <a href="/enquire/" class="btn btn-primary" style="width:100%;justify-content:center">
+        <!-- COPY: CTA label -->
+        Lorem ipsum →
+      </a>
+    </div>
+
+  </aside>
+
+</div><!-- /services-shell -->
+
+
+<!-- ══ WHAT'S INCLUDED ═══════════════════════════════════════════════════════ -->
+<section class="included-section" aria-labelledby="included-heading">
+
+  <div class="included-header">
+    <div class="included-header-left">
+      <!-- COPY: included section eyebrow + heading -->
+      <p class="section-eyebrow">Lorem ipsum lorem</p>
+      <h2 class="section-title" id="included-heading">Lorem ipsum <em>lorem.</em></h2>
+    </div>
+    <!-- COPY: short supporting line -->
+    <p class="included-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor.</p>
+  </div>
+
+  <!--
+    DEV NOTE — ICONS
+    Inline SVG keeps HTTP requests zero. Each icon uses:
+      stroke="currentColor" stroke-width="1.5" fill="none"
+    The .included-icon class handles sizing and colour.
+    Replace SVG paths if preferred icons differ.
+  -->
+  <div class="included-grid">
+
+    <div class="included-item reveal">
+      <!-- Icon: clock / consultation time -->
+      <svg class="included-icon" viewBox="0 0 32 32" fill="none"
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <circle cx="16" cy="16" r="12"/>
+        <path d="M16 9v7l4 3"/>
+      </svg>
+      <!-- COPY: item title e.g. "Consultation" -->
+      <h3 class="included-title">Lorem ipsum</h3>
+      <!-- COPY: item description -->
+      <p class="included-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.</p>
+    </div>
+
+    <div class="included-item reveal reveal-d1">
+      <!-- Icon: pencil / hand-drawn design -->
+      <svg class="included-icon" viewBox="0 0 32 32" fill="none"
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 4l6 6-16 16H6v-6L22 4z"/>
+        <path d="M18 8l6 6"/>
+      </svg>
+      <!-- COPY: item title e.g. "Hand-drawn design" -->
+      <h3 class="included-title">Lorem ipsum</h3>
+      <!-- COPY: item description -->
+      <p class="included-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.</p>
+    </div>
+
+    <div class="included-item reveal reveal-d2">
+      <!-- Icon: leaf / aftercare pack -->
+      <svg class="included-icon" viewBox="0 0 32 32" fill="none"
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 28V14C16 9 11 5 5 6c0 8 4 13 11 14"/>
+        <path d="M16 14c0-5 5-8 11-8-1 7-5 12-11 14"/>
+      </svg>
+      <!-- COPY: item title e.g. "Aftercare pack" -->
+      <h3 class="included-title">Lorem ipsum</h3>
+      <!-- COPY: item description -->
+      <p class="included-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.</p>
+    </div>
+
+    <div class="included-item reveal reveal-d3">
+      <!-- Icon: check / two-week follow-up -->
+      <svg class="included-icon" viewBox="0 0 32 32" fill="none"
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 16l7 7L26 8"/>
+        <circle cx="16" cy="16" r="12"/>
+      </svg>
+      <!-- COPY: item title e.g. "Two-week check-in" -->
+      <h3 class="included-title">Lorem ipsum</h3>
+      <!-- COPY: item description -->
+      <p class="included-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.</p>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ══ POLICIES — cover-ups + touch-ups ════════════════════════════════════ -->
+<section class="policies-section" aria-labelledby="policies-heading">
+
+  <div class="policies-header">
+    <!-- COPY: policies section eyebrow + heading -->
+    <p class="section-eyebrow">Lorem ipsum</p>
+    <h2 class="section-title" id="policies-heading">Lorem ipsum <em>lorem.</em></h2>
+  </div>
+
+  <div class="policies-grid">
+
+    <!-- Cover-ups card -->
+    <div class="policy-card reveal">
+      <!-- COPY: card tag e.g. "Cover-ups" -->
+      <p class="policy-tag">Lorem ipsum</p>
+      <!-- COPY: card heading -->
+      <h3 class="policy-heading">Lorem <em>ipsum.</em></h3>
+      <div class="policy-body">
+        <!--
+          COPY: 2–3 paragraphs covering:
+          - What cover-ups are accepted (size limit)
+          - Process difference vs new tattoo
+          - Pricing note (session-rate, not fixed)
+          - How to enquire for a cover-up specifically
+        -->
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna. Ut enim ad minim veniam quis nostrud.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor.</p>
+      </div>
+    </div>
+
+    <!-- Touch-ups card -->
+    <div class="policy-card reveal reveal-d1">
+      <!-- COPY: card tag e.g. "Touch-ups" -->
+      <p class="policy-tag">Lorem ipsum</p>
+      <!-- COPY: card heading -->
+      <h3 class="policy-heading">Lorem <em>ipsum.</em></h3>
+      <div class="policy-body">
+        <!--
+          COPY: 2–3 paragraphs covering:
+          - Free touch-up window and conditions
+          - How to request a touch-up
+          - What's not covered (client aftercare failure, natural fading)
+        -->
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna. Ut enim ad minim veniam quis nostrud.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor.</p>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ══ CTA — dark enquiry prompt ═══════════════════════════════════════════ -->
+<section class="services-cta" aria-labelledby="services-cta-heading">
+  <div class="cta-text">
+    <!-- COPY: CTA heading -->
+    <h2 id="services-cta-heading">Lorem ipsum <em>dolor sit.</em></h2>
+    <!-- COPY: supporting line — price transparency into action -->
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna.</p>
+  </div>
+  <div class="cta-actions">
+    <a href="/enquire/" class="btn btn-light">Start an enquiry →</a>
+    <!-- COPY: FAQ link label -->
+    <a href="/faq/" class="btn btn-ghost-light">
+      Lorem ipsum dolor <span class="arrow">→</span>
+    </a>
+  </div>
+</section>
+
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <!--
+        FOOTER LOGO — replace wordmark with logo image if light variant exists:
+        <img src="/images/logo-light.svg" alt="Beansprout" class="nav-logo-img">
+      -->
+      <p class="wordmark">beansprout<em>.ink</em></p>
+      <!-- COPY: short studio descriptor for footer -->
+      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+    </div>
+    <nav class="footer-col" aria-label="Site links">
+      <h4>Site</h4>
+      <ul>
+        <li><a href="/portfolio/">Portfolio</a></li>
+        <li><a href="/flash/">Flash</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/services/">Pricing</a></li>
+        <li><a href="/faq/">FAQ</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Visit links">
+      <h4>Visit</h4>
+      <ul>
+        <li><a href="/visit/">Find the studio</a></li>
+        <li><a href="/aftercare/">Aftercare</a></li>
+        <li><a href="/visit/#access">Accessibility</a></li>
+        <li><a href="/visit/#hours">Studio hours</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Social links">
+      <h4>Follow</h4>
+      <ul>
+        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener">TikTok</a></li>
+        <li><a href="/newsletter/">Newsletter</a></li>
+        <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© Beansprout 2026 — Lorem ipsum dolor sit amet</p>
+    <p class="footer-copy">Privacy · Terms · Cookies</p>
+  </div>
+</footer>
+
+<!-- Mobile sticky CTA -->
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+</div>
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
