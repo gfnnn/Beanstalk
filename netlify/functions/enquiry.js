@@ -106,13 +106,19 @@ export async function handler(event) {
   }
 
   // ── Attachments (enquiries only) ────────────────────────────────────────────
+  // Never trust the client's claimed type: sniff each file's magic bytes and keep
+  // only real images, renamed to match what the bytes actually are. Unrecognised
+  // files are dropped — the enquiry still sends, and the artist is told how many.
   if (images.length > MAX_IMAGES) return reply(400, { error: `Please attach no more than ${MAX_IMAGES} images.` })
   let total = 0
+  let skipped = 0
   const attachments = []
   for (const img of images) {
-    if (!img || typeof img.data !== 'string' || !img.data) continue
+    if (!img || typeof img.data !== 'string' || !img.data) { skipped++; continue }
+    const sig = sniffImage(img.data)
+    if (!sig) { skipped++; continue }   // not a recognised image → drop it
     total += Math.floor(img.data.length * 3 / 4) // base64 → byte estimate
-    attachments.push({ filename: safeName(img.name), content: img.data })
+    attachments.push({ filename: safeName(img.name, sig.ext), content: img.data, content_type: sig.type })
   }
   if (total > MAX_TOTAL_BYTES) {
     return reply(413, { error: 'Your images are too large. Please remove some and try again.' })
@@ -136,8 +142,8 @@ export async function handler(event) {
         to: [ARTIST_EMAIL],
         reply_to: String(fields.email).trim(),
         subject: form.subject(fields),
-        html: buildHtml(form, fields, attachments.length),
-        text: buildText(form, fields, attachments.length),
+        html: buildHtml(form, fields, attachments.length, skipped),
+        text: buildText(form, fields, attachments.length, skipped),
         ...(attachments.length ? { attachments } : {}),
       }),
     })
@@ -173,9 +179,39 @@ function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-function safeName(n) {
-  const base = String(n || 'reference.jpg').replace(/[^\w.\-]+/g, '_').slice(-80)
-  return base || 'reference.jpg'
+// Image type sniffing — a client's claimed MIME can't be trusted, so identify the
+// file by its actual magic bytes. Returns { type, ext }, or null if it isn't an
+// image we recognise. Covers what the client may send: JPEG/PNG/WebP/GIF and the
+// phone-camera ISO formats (HEIC/HEIF/AVIF) that can't always be downscaled.
+const HEIC_BRANDS = new Set(['heic', 'heix', 'heim', 'heis', 'hevc', 'mif1', 'msf1'])
+const AVIF_BRANDS = new Set(['avif', 'avis'])
+
+function sniffImage(base64) {
+  let b
+  try { b = Buffer.from(String(base64).slice(0, 64), 'base64') } catch { return null }
+  if (b.length < 12) return null
+
+  if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return { type: 'image/jpeg', ext: 'jpg' }
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return { type: 'image/png', ext: 'png' }
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38) return { type: 'image/gif', ext: 'gif' }
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return { type: 'image/webp', ext: 'webp' }
+
+  // ISO base-media (HEIC/HEIF/AVIF): 'ftyp' box at offset 4, brand string at 8–12.
+  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) {
+    const brand = b.toString('ascii', 8, 12)
+    if (HEIC_BRANDS.has(brand)) return { type: 'image/heic', ext: 'heic' }
+    if (AVIF_BRANDS.has(brand)) return { type: 'image/avif', ext: 'avif' }
+  }
+  return null
+}
+
+// Safe attachment filename, always ending in the SNIFFED extension — never a
+// client-supplied one (no "reference.jpg.exe" reaching the inbox).
+function safeName(n, ext) {
+  let base = String(n || 'reference').replace(/[^\w.\-]+/g, '_').replace(/\.[^.]*$/, '').slice(-72)
+  if (!base || /^_+$/.test(base)) base = 'reference'
+  return `${base}.${ext}`
 }
 
 // Returns HTML-safe text, or '' if the value is empty / should be skipped.
@@ -192,7 +228,7 @@ function formatValue(key, val) {
   return esc(s).replace(/\n/g, '<br>')
 }
 
-function buildHtml(form, fields, imageCount) {
+function buildHtml(form, fields, imageCount, skipped = 0) {
   const sections = form.sections.map(([title, items]) => {
     const rows = items.map(([key, label]) => {
       const v = formatValue(key, fields[key] ?? fields[key.replace('[]', '')])
@@ -211,6 +247,10 @@ function buildHtml(form, fields, imageCount) {
     ? `<p style="margin:24px 0 0;padding:12px 16px;background:#EFE8D6;border-radius:8px;font-size:13px;color:#5C5A52">📎 ${imageCount} reference image${imageCount > 1 ? 's' : ''} attached.</p>`
     : `<p style="margin:24px 0 0;font-size:13px;color:#8E8B81">No reference images attached.</p>`
 
+  const skipNote = skipped > 0
+    ? `<p style="margin:8px 0 0;font-size:12px;color:#C45A3E">⚠ ${skipped} attached file${skipped > 1 ? 's were' : ' was'} skipped — not a recognised image format. You may want to ask ${esc(String(fields.first_name || 'them'))} to resend.</p>`
+    : ''
+
   const who = esc(String(fields.first_name || fields.name || 'the enquirer'))
 
   return `<!doctype html><html><body style="margin:0;background:#F7F1E3;padding:24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
@@ -221,13 +261,14 @@ function buildHtml(form, fields, imageCount) {
     <tr><td style="padding:6px 28px 28px">
       ${sections}
       ${imgNote}
+      ${skipNote}
       <p style="margin:26px 0 0;padding-top:16px;border-top:1px solid rgba(44,42,36,.14);font-size:12px;color:#8E8B81">Hit reply to respond directly to ${who}.</p>
     </td></tr>
   </table>
   </body></html>`
 }
 
-function buildText(form, fields, imageCount) {
+function buildText(form, fields, imageCount, skipped = 0) {
   const lines = []
   for (const [title, items] of form.sections) {
     const block = items
@@ -239,5 +280,6 @@ function buildText(form, fields, imageCount) {
     if (block.length) lines.push(title.toUpperCase(), ...block, '')
   }
   if (form.images) lines.push(imageCount ? `${imageCount} reference image(s) attached.` : 'No reference images attached.')
+  if (skipped > 0) lines.push(`${skipped} attached file(s) skipped — not a recognised image format.`)
   return lines.join('\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
 }
