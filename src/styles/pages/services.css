@@ -1,0 +1,370 @@
+/* ── Services & pricing page — mobile-first ──────────────────────────────── */
+
+/* ── Shared eyebrow / section title ─────────────────────────────────────── */
+/* Used across services, included, and policies sections */
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--moss);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.section-eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--moss);
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(36px, 4.5vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+.section-title em { font-style: italic; color: var(--moss); }
+
+/* ── Services shell — pricing column + deposit aside ─────────────────────── */
+.services-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  padding: clamp(48px, 6vw, 80px) var(--pad-x);
+  align-items: start;
+}
+
+/* ── Pricing cards ───────────────────────────────────────────────────────── */
+.pricing-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.pricing-card {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 20px 22px 24px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color var(--dur) var(--ease),
+    transform    var(--dur) var(--ease);
+}
+.pricing-card:hover {
+  border-color: var(--moss-soft);
+  transform: translateY(-1px);
+}
+
+/* Colour accent bar — communicates session length at a glance */
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--line);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.pricing-card.accent-moss::before      { background: var(--moss); }
+.pricing-card.accent-moss-soft::before { background: var(--moss-soft); }
+.pricing-card.accent-clay::before      { background: var(--clay-soft); }
+.pricing-card.accent-faint::before     { background: var(--ink-faint); }
+
+.card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.card-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.card-title em { font-style: italic; color: var(--ink-soft); font-size: 20px; }
+
+.card-price {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--moss);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-body { font-size: 15px; color: var(--ink-soft); line-height: 1.65; }
+
+/* Touch-up card — free, slight visual distinction */
+.pricing-card.free { background: var(--bg); }
+.pricing-card.free .card-price { color: var(--clay); }
+
+/* ── Deposit aside ───────────────────────────────────────────────────────── */
+.deposit-aside {
+  background: var(--bg-dark);
+  color: var(--bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.deposit-header {
+  padding: 28px 28px 24px;
+  border-bottom: 1px solid rgba(247, 241, 227, 0.1);
+}
+.deposit-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--moss-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.deposit-eyebrow::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--moss-soft);
+  flex-shrink: 0;
+}
+.deposit-heading {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.deposit-heading em { font-style: italic; color: var(--moss-soft); }
+
+.deposit-rows { padding: 0 28px; }
+.deposit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(247, 241, 227, 0.08);
+  font-size: 14px;
+  color: rgba(247, 241, 227, 0.7);
+}
+.deposit-row:last-child { border-bottom: none; }
+.deposit-row .label { flex: 1; line-height: 1.4; }
+.deposit-row .value {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--moss-soft);
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.deposit-row .value.highlight { color: var(--clay-soft); }
+
+.deposit-footer {
+  padding: 24px 28px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(247, 241, 227, 0.08);
+}
+.deposit-note {
+  font-size: 13px;
+  color: rgba(247, 241, 227, 0.5);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.deposit-note a {
+  color: var(--moss-soft);
+  border-bottom: 1px solid rgba(138, 154, 117, 0.35);
+}
+
+/* ── What's included ─────────────────────────────────────────────────────── */
+.included-section {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--line);
+  padding: clamp(48px, 6vw, 80px) var(--pad-x);
+}
+.included-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.included-header-left { display: flex; flex-direction: column; gap: 12px; }
+.included-descriptor {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: min(360px, 100%);
+}
+
+.included-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.included-item {
+  padding: 0 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+.included-item:last-child { border-bottom: none; padding-bottom: 0; }
+.included-item + .included-item { padding-top: 24px; }
+
+.included-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--moss);
+  margin-bottom: 18px;
+  flex-shrink: 0;
+}
+.included-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+.included-body { font-size: 14px; color: var(--ink-soft); line-height: 1.65; }
+
+/* ── Policies ────────────────────────────────────────────────────────────── */
+.policies-section {
+  padding: clamp(48px, 6vw, 80px) var(--pad-x);
+  border-top: 1px solid var(--line);
+}
+.policies-header { margin-bottom: 40px; }
+.policies-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+.policy-card {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  transition: border-color var(--dur);
+}
+.policy-card:hover { border-color: var(--moss-soft); }
+.policy-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--moss);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.policy-tag::before { content: ''; width: 20px; height: 1px; background: var(--moss); }
+.policy-heading {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.policy-heading em { font-style: italic; color: var(--moss); }
+.policy-body { font-size: 15px; color: var(--ink-soft); line-height: 1.7; }
+.policy-body p { margin-bottom: 12px; }
+.policy-body p:last-child { margin-bottom: 0; }
+
+/* ── Services CTA — dark full-bleed section ──────────────────────────────── */
+.services-cta {
+  background: var(--bg-dark);
+  color: var(--bg);
+  padding: clamp(56px, 7vw, 96px) var(--pad-x);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.cta-text h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin-bottom: 16px;
+}
+.cta-text h2 em { font-style: italic; color: var(--moss-soft); }
+.cta-text p {
+  font-size: 17px;
+  color: rgba(247, 241, 227, 0.65);
+  line-height: 1.65;
+  max-width: min(420px, 100%);
+}
+.cta-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+.cta-actions .btn { justify-content: center; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (min-width: 640px) {
+  .included-grid { grid-template-columns: 1fr 1fr; }
+  .included-item {
+    padding: 0 32px 0 0 !important;
+    border-right: 1px solid var(--line);
+    border-bottom: none !important;
+  }
+  .included-item:last-child { border-right: none; padding-right: 0 !important; }
+  .included-item + .included-item { padding-top: 0; padding-left: 32px; }
+  .included-item:nth-child(3),
+  .included-item:nth-child(4) { border-bottom: none !important; padding-bottom: 0 !important; }
+  .included-item:nth-child(odd) { border-right: 1px solid var(--line); }
+  .included-item:nth-child(even) { border-right: none; }
+  .policies-grid { grid-template-columns: 1fr 1fr; }
+  .card-top {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .card-price { font-size: 32px; }
+}
+
+@media (min-width: 900px) {
+  .services-shell { grid-template-columns: 2fr 1fr; gap: clamp(32px, 4vw, 64px); }
+  .deposit-aside {
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+  }
+  .included-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+  }
+  .services-cta { grid-template-columns: 1fr 1fr; gap: 48px; }
+  .cta-actions { align-items: flex-start; }
+  .cta-actions .btn { justify-content: flex-start; }
+}
+
+@media (min-width: 1100px) {
+  .included-grid { grid-template-columns: repeat(4, 1fr); }
+  .included-item:nth-child(odd)  { border-right: 1px solid var(--line); }
+  .included-item:nth-child(even) { border-right: 1px solid var(--line); }
+  .included-item:last-child      { border-right: none; }
+}
+
+@media (max-width: 375px) {
+  .deposit-heading { font-size: 22px; }
+}
