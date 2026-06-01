@@ -1,10 +1,18 @@
-export function initFilter() {
-  const filterBar   = document.getElementById('filter-bar')
-  if (!filterBar) return
+// Portfolio filter / sort. Scoped to the masonry grid so it never runs on the
+// flash page (which also has a #filter-bar but is driven by flash.js).
+//
+// `resetWindow` (from initLoadMore) re-windows the "load more" set after a sort
+// reorders the tiles. The returned `applyFilters` is handed back to load-more so
+// newly-revealed tiles get filtered too (see main.js).
+export function initFilter({ resetWindow } = {}) {
+  const grid = document.getElementById('masonry-grid')
+  if (!grid) return
 
-  const chips         = document.querySelectorAll('.chip')
-  const tiles         = document.querySelectorAll('.masonry-tile')
+  const filterBar     = document.getElementById('filter-bar')
+  const chips         = [...document.querySelectorAll('.chip')]
+  const tiles         = [...grid.querySelectorAll('.masonry-tile')]
   const placementSel  = document.getElementById('placement-filter')
+  const sortSel       = document.getElementById('sort-order')
   const emptyState    = document.getElementById('empty-state')
   const filterSummary = document.getElementById('filter-summary')
   const summaryText   = document.getElementById('summary-text')
@@ -14,16 +22,35 @@ export function initFilter() {
   let activeStyle     = 'all'
   let activePlacement = 'all'
 
+  // A piece can carry several styles, e.g. data-style="botanical fine-line".
+  const stylesOf = tile => (tile.dataset.style || '').split(/\s+/).filter(Boolean)
+
   // ── Sticky detection (shadow when filter bar is pinned) ──────────────────
-  const stickyObs = new IntersectionObserver(
-    ([entry]) => filterBar.classList.toggle('stuck', !entry.isIntersecting),
-    {
-      threshold: 1,
-      rootMargin: `-${getComputedStyle(document.documentElement)
-        .getPropertyValue('--nav-h').trim()} 0px 0px 0px`,
-    }
-  )
-  stickyObs.observe(filterBar)
+  if (filterBar && 'IntersectionObserver' in window) {
+    const stickyObs = new IntersectionObserver(
+      ([entry]) => filterBar.classList.toggle('stuck', !entry.isIntersecting),
+      {
+        threshold: 1,
+        rootMargin: `-${getComputedStyle(document.documentElement)
+          .getPropertyValue('--nav-h').trim()} 0px 0px 0px`,
+      }
+    )
+    stickyObs.observe(filterBar)
+  }
+
+  // ── Chip counts — from the full catalogue, not the loaded window ──────────
+  function updateCounts() {
+    chips.forEach(chip => {
+      const f       = chip.dataset.filter
+      const countEl = chip.querySelector('.chip-count')
+      if (!countEl) return
+      const n = f === 'all'
+        ? tiles.length
+        : tiles.filter(t => stylesOf(t).includes(f)).length
+      countEl.textContent  = n
+      countEl.dataset.count = n
+    })
+  }
 
   // ── Filter application ───────────────────────────────────────────────────
   function applyFilters() {
@@ -33,7 +60,7 @@ export function initFilter() {
       // Don't reveal tiles that load-more is still hiding
       if (tile.dataset.shown === 'false') return
 
-      const styleMatch     = activeStyle === 'all'     || tile.dataset.style === activeStyle
+      const styleMatch     = activeStyle === 'all'     || stylesOf(tile).includes(activeStyle)
       const placementMatch = activePlacement === 'all' || tile.dataset.placement === activePlacement
       const show = styleMatch && placementMatch
 
@@ -51,6 +78,19 @@ export function initFilter() {
       if (activePlacement !== 'all') parts.push(activePlacement)
       summaryText.textContent = parts.join(' · ')
     }
+  }
+
+  // ── Sort — reorder tiles in the DOM, then re-window + re-filter ───────────
+  function applySort() {
+    const order = sortSel ? sortSel.value : 'newest'
+    const sorted = [...tiles].sort((a, b) => {
+      const ao = +a.dataset.order || 0
+      const bo = +b.dataset.order || 0
+      return order === 'oldest' ? ao - bo : bo - ao
+    })
+    sorted.forEach(t => grid.appendChild(t))
+    resetWindow?.()   // load-more re-windows to the new order (first page shown)
+    applyFilters()
   }
 
   function clearFilters() {
@@ -79,6 +119,9 @@ export function initFilter() {
     })
   }
 
+  // ── Sort select ──────────────────────────────────────────────────────────
+  if (sortSel) sortSel.addEventListener('change', applySort)
+
   // ── Clear buttons ────────────────────────────────────────────────────────
   if (filterClear) {
     filterClear.addEventListener('click', clearFilters)
@@ -87,6 +130,9 @@ export function initFilter() {
     })
   }
   if (emptyClear) emptyClear.addEventListener('click', clearFilters)
+
+  updateCounts()
+  applyFilters()
 
   // Expose so loadmore can re-run after revealing new tiles
   return { applyFilters }

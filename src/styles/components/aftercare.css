@@ -1,67 +1,290 @@
 /* ── Aftercare page — mobile-first ───────────────────────────────────────── */
 
-/* ── Bandage selector — sticky tab switcher ─────────────────────────────── */
-.bandage-selector-wrap {
+/* ══ THE FORK — choose your dressing ══════════════════════════════════════════
+   The page lands on a single decision. No instructions are shown until one of
+   the two cards is picked; JS then reveals the switcher + stage below.
+   ─────────────────────────────────────────────────────────────────────────── */
+.care-chooser {
+  padding: clamp(40px, 6vw, 64px) var(--pad-x) clamp(44px, 6vw, 72px);
+}
+
+.chooser-intro {
+  max-width: 620px;
+  margin-bottom: clamp(28px, 4vw, 40px);
+}
+
+.chooser-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--moss);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.chooser-eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--moss);
+  flex-shrink: 0;
+}
+
+.chooser-heading {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.chooser-heading em { font-style: italic; color: var(--moss); }
+
+.chooser-sub {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  max-width: min(520px, 100%);
+}
+
+/* ── Choice cards ─────────────────────────────────────────────────────────── */
+.chooser-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.choice-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'index  visual'
+    'body   body'
+    'action action';
+  gap: 18px 16px;
+  text-align: left;
+  padding: clamp(22px, 3.5vw, 32px);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color var(--dur) var(--ease),
+    background    var(--dur) var(--ease),
+    box-shadow    var(--dur) var(--ease),
+    transform     var(--dur) var(--ease);
+}
+.choice-card:hover {
+  border-color: var(--moss-soft);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(44, 42, 36, 0.07);
+}
+.choice-card:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+}
+
+.choice-index {
+  grid-area: index;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  padding-top: 4px;
+}
+
+.choice-visual {
+  grid-area: visual;
+  justify-self: end;
+  width: 40px;
+  height: 40px;
+  color: var(--moss-soft);
+  transition: color var(--dur) var(--ease);
+}
+.choice-visual svg { width: 100%; height: 100%; }
+.choice-card:hover .choice-visual { color: var(--moss); }
+
+.choice-body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.choice-name {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(24px, 4vw, 30px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.choice-hint {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--moss);
+}
+.choice-desc {
+  margin-top: 6px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.choice-action {
+  grid-area: action;
+  display: flex;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  min-height: 24px;
+}
+
+.choice-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  transition: color var(--dur) var(--ease);
+}
+.choice-card:hover .choice-prompt { color: var(--moss); }
+.choice-arrow {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  display: inline-block;
+  transition: transform var(--dur) var(--ease);
+}
+.choice-card:hover .choice-arrow { transform: translateX(4px); }
+
+.choice-status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--moss);
+}
+.choice-check {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* ── Selected card ────────────────────────────────────────────────────────── */
+.choice-card.selected {
+  border-color: var(--moss);
+  background: var(--moss-bg);
+  box-shadow: inset 0 0 0 1px var(--moss);
+}
+.choice-card.selected:hover { transform: none; box-shadow: inset 0 0 0 1px var(--moss); }
+.choice-card.selected .choice-visual { color: var(--moss); }
+.choice-card.selected .choice-prompt { display: none; }
+.choice-card.selected .choice-status { display: inline-flex; }
+
+.chooser-foot {
+  margin-top: 24px;
+  font-size: 13.5px;
+  color: var(--ink-faint);
+}
+.chooser-foot a {
+  color: var(--moss);
+  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+  transition: border-color var(--dur);
+}
+.chooser-foot a:hover { border-color: var(--moss); }
+
+/* ══ SWITCHER — slim sticky bar (revealed after first choice) ════════════════ */
+.care-switch-wrap[hidden],
+.care-stage[hidden] { display: none !important; }
+
+.care-switch-wrap {
   position: sticky;
   top: var(--nav-h);
   z-index: 100;
   background: var(--bg);
+  border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  transition: box-shadow var(--dur) var(--ease);
+  opacity: 0;
+  transition: box-shadow var(--dur) var(--ease), opacity 360ms var(--ease);
 }
-.bandage-selector-wrap.stuck {
-  box-shadow: 0 4px 20px rgba(44, 42, 36, 0.06);
-}
+.care-switch-wrap.shown { opacity: 1; }
+.care-switch-wrap.stuck { box-shadow: 0 4px 20px rgba(44, 42, 36, 0.06); }
 
-.bandage-selector {
+.care-switch {
   display: flex;
-  align-items: stretch;
-  padding: 0 var(--pad-x);
+  align-items: center;
+  gap: 16px;
+  padding: 11px var(--pad-x);
 }
 
-.bandage-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 18px 0;
-  margin-right: 32px;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: border-color var(--dur), color var(--dur);
-  background: none;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  text-align: left;
-  font-family: var(--sans);
-  flex-shrink: 0;
-}
-.bandage-tab:hover .tab-title { color: var(--ink); }
-.bandage-tab.active { border-bottom-color: var(--moss); }
-.bandage-tab.active .tab-title { color: var(--moss); }
-.bandage-tab.active .tab-hint  { color: var(--moss-soft); }
-
-.tab-title {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: 20px;
-  letter-spacing: -0.01em;
-  color: var(--ink-soft);
-  transition: color var(--dur);
-  line-height: 1;
-}
-.tab-hint {
+.care-switch-label {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  transition: color var(--dur);
+  flex-shrink: 0;
+}
+@media (max-width: 479px) {
+  .care-switch-label { display: none; }
 }
 
+.care-switch-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--bg-alt);
+  border-radius: 100px;
+}
+
+.switch-tab {
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.switch-tab:hover { color: var(--ink); }
+.switch-tab.active {
+  background: var(--moss);
+  color: var(--cream);
+}
+.switch-tab:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+}
+
+/* ══ CARE STAGE — revealed step content ══════════════════════════════════════ */
+.care-stage {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 480ms var(--ease), transform 480ms var(--ease);
+}
+.care-stage.shown { opacity: 1; transform: none; }
+
 /* ── Care panels ─────────────────────────────────────────────────────────── */
-.care-panel          { display: none; }
-.care-panel.active   { display: block; }
+.care-panel        { display: none; }
+.care-panel.active { display: block; animation: panel-fade 360ms var(--ease); }
+
+@keyframes panel-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
 
 /* ── Steps section ───────────────────────────────────────────────────────── */
 .steps-section {
@@ -293,10 +516,29 @@
 .mobile-cta.visible { transform: translateY(0); }
 .mobile-cta .btn    { width: 100%; justify-content: center; font-size: 16px; padding: 17px; }
 
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .choice-card,
+  .care-switch-wrap,
+  .care-stage { transition: none; }
+  .care-stage { transform: none; }
+  .care-panel.active { animation: none; }
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
-  .bandage-selector { padding: 0 var(--pad-x); }
-  .tab-title        { font-size: 22px; }
+  .chooser-options { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .choice-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'index'
+      'visual'
+      'body'
+      'action';
+    gap: 14px;
+  }
+  .choice-visual { justify-self: start; }
+  .choice-action { margin-top: auto; }
 
   .steps-section    { padding-top: 48px; }
   .steps-aside      { padding-bottom: 40px; }
@@ -327,7 +569,7 @@
 }
 
 @media (min-width: 900px) {
-  .bandage-tab   { padding: 20px 0; }
+  .care-chooser { padding-top: clamp(48px, 5vw, 72px); }
 
   .steps-section {
     grid-template-columns: 1fr 2fr;
@@ -336,7 +578,7 @@
   }
   .steps-aside {
     position: sticky;
-    top: calc(var(--nav-h) + 69px);
+    top: calc(var(--nav-h) + 60px);
     padding-bottom: 0;
     border-bottom: none;
   }
@@ -369,15 +611,4 @@
   .aftercare-cta-actions .btn { justify-content: flex-start; }
 
   .mobile-cta { display: none; }
-}
-
-/* Bandage selector overflow on small screens */
-@media (max-width: 480px) {
-  .bandage-selector {
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-wrap: nowrap;
-  }
-  .bandage-selector::-webkit-scrollbar { display: none; }
 }

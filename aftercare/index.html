@@ -103,47 +103,119 @@
   </div>
   <div class="page-header-right">
     <p class="page-descriptor">
-      How you look after your tattoo in the first few weeks shapes how it heals for the rest of your life. These are the instructions to follow.
+      How you look after your tattoo in the first few weeks shapes how it heals for the rest of your life. Start by telling us how it was wrapped — your steps appear below.
     </p>
   </div>
 </header>
 
 
-<!-- ══ BANDAGE SELECTOR — sticky tab switcher ════════════════════════════════
-     JS toggles .active on tabs and shows/hides .care-panel.
-     Default: Second Skin (more common case).
+<!-- ══ THE FORK — choose your dressing ════════════════════════════════════════
+     No steps are shown until one of these is picked. JS reveals #care-stage and
+     #care-switch-wrap on first selection; either card stays switchable after.
  -->
-<div class="bandage-selector-wrap" id="bandage-selector-wrap">
-  <div class="bandage-selector" role="tablist" aria-label="Select your bandage type">
+<section class="care-chooser" id="care-chooser" aria-labelledby="chooser-heading">
 
-    <button class="bandage-tab active"
-            id="tab-second-skin"
-            role="tab"
-            aria-selected="true"
-            aria-controls="panel-second-skin"
-            data-panel="second-skin">
-      <span class="tab-title">Second skin</span>
-      <span class="tab-hint">Transparent film dressing</span>
+  <div class="chooser-intro">
+    <p class="chooser-eyebrow">Step one</p>
+    <h2 class="chooser-heading" id="chooser-heading">How was your tattoo <em>wrapped?</em></h2>
+    <p class="chooser-sub">Your routine depends on the dressing you left the studio with. Pick the one that matches and your step-by-step appears below — you can switch any time.</p>
+  </div>
+
+  <div class="chooser-options" role="group" aria-label="Choose your dressing type">
+
+    <button type="button"
+            class="choice-card"
+            data-method="second-skin"
+            aria-pressed="false"
+            aria-controls="panel-second-skin">
+      <span class="choice-index" aria-hidden="true">01</span>
+      <span class="choice-visual" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor"
+             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 6h13l5 5v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z"/>
+          <path d="M20 6v5h5"/>
+          <path d="M10.5 17h9 M10.5 21h6"/>
+        </svg>
+      </span>
+      <span class="choice-body">
+        <span class="choice-name">Second skin</span>
+        <span class="choice-hint">Transparent film dressing</span>
+        <span class="choice-desc">A thin, see-through, breathable film stuck directly over the tattoo. Stays on for 2–3 days. Also sold as Saniderm or Dermalize.</span>
+      </span>
+      <span class="choice-action">
+        <span class="choice-prompt">Show these steps <span class="choice-arrow" aria-hidden="true">→</span></span>
+        <span class="choice-status">
+          <svg class="choice-check" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 8.5l3.5 3.5L13 5"/>
+          </svg>
+          Now viewing
+        </span>
+      </span>
     </button>
 
-    <button class="bandage-tab"
-            id="tab-cling-film"
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-cling-film"
-            data-panel="cling-film">
-      <span class="tab-title">Cling film</span>
-      <span class="tab-hint">Traditional wrap method</span>
+    <button type="button"
+            class="choice-card"
+            data-method="cling-film"
+            aria-pressed="false"
+            aria-controls="panel-cling-film">
+      <span class="choice-index" aria-hidden="true">02</span>
+      <span class="choice-visual" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor"
+             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="16" cy="8.5" rx="9" ry="3.5"/>
+          <path d="M7 8.5v15c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5v-15"/>
+          <path d="M7 16c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5"/>
+        </svg>
+      </span>
+      <span class="choice-body">
+        <span class="choice-name">Cling film</span>
+        <span class="choice-hint">Traditional wrap method</span>
+        <span class="choice-desc">An ordinary layer of plastic wrap, taped loosely at the edges. Comes off within a few hours of getting home.</span>
+      </span>
+      <span class="choice-action">
+        <span class="choice-prompt">Show these steps <span class="choice-arrow" aria-hidden="true">→</span></span>
+        <span class="choice-status">
+          <svg class="choice-check" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 8.5l3.5 3.5L13 5"/>
+          </svg>
+          Now viewing
+        </span>
+      </span>
     </button>
 
+  </div>
+
+  <p class="chooser-foot" id="chooser-foot">Not sure which you have? Whatever is on your skin right now is your answer — or <a href="/visit/">ask us</a>.</p>
+</section>
+
+
+<!-- ══ SWITCHER — slim sticky bar, revealed after first choice ════════════════ -->
+<div class="care-switch-wrap" id="care-switch-wrap" hidden>
+  <div class="care-switch">
+    <span class="care-switch-label">Your routine</span>
+    <div class="care-switch-tabs" role="tablist" aria-label="Switch dressing type">
+      <button type="button" class="switch-tab" id="tab-second-skin"
+              role="tab" aria-selected="false" tabindex="-1"
+              aria-controls="panel-second-skin" data-method="second-skin">
+        Second skin
+      </button>
+      <button type="button" class="switch-tab" id="tab-cling-film"
+              role="tab" aria-selected="false" tabindex="-1"
+              aria-controls="panel-cling-film" data-method="cling-film">
+        Cling film
+      </button>
+    </div>
   </div>
 </div>
 
 
-<!-- ══ CARE PANELS ════════════════════════════════════════════════════════════ -->
+<!-- ══ CARE STAGE — hidden until a dressing is chosen ═════════════════════════ -->
+<div class="care-stage" id="care-stage" hidden>
 
 <!-- ── Panel: Second Skin ─────────────────────────────────────────────────── -->
-<div class="care-panel active"
+<div class="care-panel"
      id="panel-second-skin"
      role="tabpanel"
      aria-labelledby="tab-second-skin">
@@ -350,6 +422,8 @@
   </div>
 
 </section>
+
+</div><!-- /care-stage -->
 
 
 <!-- ══ CTA — questions section ════════════════════════════════════════════════ -->

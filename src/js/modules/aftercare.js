@@ -1,56 +1,96 @@
+import { lenis } from './lenis.js'
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export function initAftercare() {
-  const tabs       = document.querySelectorAll('.bandage-tab')
-  const panels     = document.querySelectorAll('.care-panel')
-  const selectorWrap = document.getElementById('bandage-selector-wrap')
+  const chooser = document.getElementById('care-chooser')
+  if (!chooser) return
+
+  const cards      = Array.from(document.querySelectorAll('.choice-card'))
+  const switchWrap = document.getElementById('care-switch-wrap')
+  const switchTabs = Array.from(document.querySelectorAll('.switch-tab'))
+  const stage      = document.getElementById('care-stage')
+  const panels     = Array.from(document.querySelectorAll('.care-panel'))
   const nav        = document.getElementById('main-nav')
 
-  if (!tabs.length) return
+  if (!cards.length || !stage) return
 
-  // ── Tab switcher ─────────────────────────────────────────
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => {
-        t.classList.remove('active')
-        t.setAttribute('aria-selected', 'false')
-      })
-      tab.classList.add('active')
-      tab.setAttribute('aria-selected', 'true')
+  let revealed = false
 
-      const target = tab.dataset.panel
-      panels.forEach(p => p.classList.remove('active'))
-      const active = document.getElementById('panel-' + target)
-      if (active) active.classList.add('active')
+  const navH = () =>
+    parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'))
+    || (nav ? nav.offsetHeight : 0)
 
-      // Scroll so first step is visible below the sticky selector
-      if (selectorWrap && nav) {
-        const y = selectorWrap.getBoundingClientRect().bottom + window.scrollY - nav.offsetHeight
-        window.scrollTo({ top: y, behavior: 'smooth' })
-      }
+  // ── Reflect the chosen route across cards, switch tabs, and panels ────────
+  function setSelection(method) {
+    cards.forEach(c => {
+      const on = c.dataset.method === method
+      c.classList.toggle('selected', on)
+      c.setAttribute('aria-pressed', String(on))
     })
+    switchTabs.forEach(t => {
+      const on = t.dataset.method === method
+      t.classList.toggle('active', on)
+      t.setAttribute('aria-selected', String(on))
+      t.tabIndex = on ? 0 : -1
+    })
+    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + method))
+  }
 
-    // Keyboard: arrow keys navigate between tabs
+  // ── First choice unfolds the switcher + step content ─────────────────────
+  function reveal() {
+    switchWrap.hidden = false
+    stage.hidden = false
+    void stage.offsetHeight            // commit layout before transitioning
+    switchWrap.classList.add('shown')
+    stage.classList.add('shown')
+    revealed = true
+    updateStuck()
+  }
+
+  function scrollToStage() {
+    const switchH = switchWrap ? switchWrap.offsetHeight : 0
+    const top = stage.getBoundingClientRect().top + window.scrollY - navH() - switchH - 12
+    if (lenis) lenis.scrollTo(top, { duration: 0.7 })
+    else window.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
+  }
+
+  function choose(method, { scroll }) {
+    if (!revealed) reveal()
+    setSelection(method)
+    if (scroll) requestAnimationFrame(scrollToStage)
+  }
+
+  // Choice cards — the primary fork; also re-selects after the reveal
+  cards.forEach(card => {
+    card.addEventListener('click', () => choose(card.dataset.method, { scroll: true }))
+  })
+
+  // Slim switcher — flip routes without losing your reading position
+  switchTabs.forEach(tab => {
+    tab.addEventListener('click', () => choose(tab.dataset.method, { scroll: false }))
     tab.addEventListener('keydown', e => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
-      const all = Array.from(tabs)
-      const i   = all.indexOf(tab)
+      e.preventDefault()
+      const i = switchTabs.indexOf(tab)
       const next = e.key === 'ArrowRight'
-        ? all[(i + 1) % all.length]
-        : all[(i - 1 + all.length) % all.length]
+        ? switchTabs[(i + 1) % switchTabs.length]
+        : switchTabs[(i - 1 + switchTabs.length) % switchTabs.length]
       next.focus()
       next.click()
     })
   })
 
-  // ── Selector sticky shadow ───────────────────────────────
-  if (selectorWrap) {
-    const obs = new IntersectionObserver(
-      ([entry]) => selectorWrap.classList.toggle('stuck', !entry.isIntersecting),
-      {
-        threshold: 1,
-        rootMargin: `-${parseInt(getComputedStyle(document.documentElement)
-          .getPropertyValue('--nav-h'))}px 0px 0px 0px`
-      }
-    )
-    obs.observe(selectorWrap)
+  // ── Sticky shadow once the switcher pins under the nav ───────────────────
+  function updateStuck() {
+    if (!switchWrap || switchWrap.hidden) return
+    switchWrap.classList.toggle('stuck', switchWrap.getBoundingClientRect().top <= navH() + 1)
+  }
+  window.addEventListener('scroll', updateStuck, { passive: true })
+
+  // ── Deep link — /aftercare/#second-skin or #cling-film opens that route ──
+  const hash = (location.hash || '').replace('#', '')
+  if (hash === 'second-skin' || hash === 'cling-film') {
+    choose(hash, { scroll: false })
   }
 }

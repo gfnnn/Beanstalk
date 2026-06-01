@@ -10,7 +10,7 @@ export function initLightbox() {
   const lbTitle       = document.getElementById('lightbox-title')
   const lbSub         = document.getElementById('lightbox-sub')
   const lbCounter     = document.getElementById('lightbox-counter')
-  const lbPlaceholder = document.getElementById('lightbox-placeholder')
+  const lbWrap        = document.getElementById('lightbox-img-wrap')
 
   let lbIndex = 0
   let lbTiles = []
@@ -52,25 +52,26 @@ export function initLightbox() {
     if (lbCounter) lbCounter.textContent =
       `${String(lbIndex + 1).padStart(2, '0')} / ${String(lbTiles.length).padStart(2, '0')}`
 
-    /*
-      When real <img> tags replace the placeholder divs, swap in the image:
-
-      const src = tile.querySelector('img')?.src
-      const alt = tile.querySelector('img')?.alt
+    // Real photo if the tile has one; otherwise keep the palette placeholder.
+    const tileImg = tile.querySelector('img')
+    if (tileImg) {
       let img = document.getElementById('lightbox-img')
       if (!img) {
         img = document.createElement('img')
         img.id = 'lightbox-img'
-        lbPlaceholder?.replaceWith(img)
+        const ph = document.getElementById('lightbox-placeholder')
+        if (ph) ph.replaceWith(img)
+        else lbWrap?.prepend(img)
       }
-      img.src = src
-      img.alt = alt
-    */
-
-    // Cycle through palette swatches for placeholder state
-    if (lbPlaceholder) {
-      const swatches = ['t-moss','t-cream','t-ink','t-sage','t-clay','t-warm','t-deep','t-blush','t-stone','t-dark']
-      lbPlaceholder.className = 'lightbox-placeholder ' + swatches[lbIndex % swatches.length]
+      // data-full lets a tile point at a higher-res file than its grid thumbnail.
+      img.src = tileImg.dataset.full || tileImg.currentSrc || tileImg.src
+      img.alt = tileImg.alt || title
+    } else {
+      const ph = document.getElementById('lightbox-placeholder')
+      if (ph) {
+        const swatches = ['t-moss','t-cream','t-ink','t-sage','t-clay','t-warm','t-deep','t-blush','t-stone','t-dark']
+        ph.className = 'lightbox-placeholder ' + swatches[lbIndex % swatches.length]
+      }
     }
 
     const atStart = lbIndex === 0

@@ -23,9 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. All scroll-triggered reveals
   initScrollAnimations()
 
-  // 5. Portfolio page — each guards with an element check and no-ops elsewhere
-  initLoadMore()
-  initFilter()
+  // 5. Portfolio page — load-more, filter/sort, and lightbox cooperate:
+  //    load-more owns the visible window; the filter re-applies after a reveal
+  //    or a sort. Each no-ops on pages without the masonry grid.
+  const loadMore = initLoadMore()
+  const filter   = initFilter({ resetWindow: loadMore?.reset })
+  loadMore?.setOnReveal(filter?.applyFilters)
   initLightbox()
 
   // 6. Portfolio page gallery — stub for future
