@@ -302,6 +302,8 @@
 .pill input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 .pill:has(input:checked),
 .pill.checked { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+/* At the data-max cap: unchecked pills are disabled and read as muted */
+.pill.disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* File upload zone */
 .upload-zone {
