@@ -145,9 +145,9 @@ export function initScrollAnimations() {
   }
 
   // ── Flash grid ────────────────────────────────────────────────────────────
-  const flashGrid = document.querySelector('.flash__grid')
+  const flashGrid = document.querySelector('.flash-grid')
   if (flashGrid) {
-    gsap.from(flashGrid.querySelectorAll('.flash__item'), {
+    gsap.from(flashGrid.querySelectorAll('.flash-card'), {
       scrollTrigger: { trigger: flashGrid, start: 'top 88%', once: true },
       opacity: 0, y: 18, duration: 0.65, ease: 'power2.out',
       stagger: { amount: 0.35 },
