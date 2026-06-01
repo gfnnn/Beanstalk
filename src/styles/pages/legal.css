@@ -1,0 +1,89 @@
+/* ── Legal pages (privacy, terms) — shared prose layout ──────────────────────
+   A single readable column of policy prose. Section headings provide the
+   structure; bodies are placeholder until real legal copy is supplied.
+   ─────────────────────────────────────────────────────────────────────────── */
+.legal {
+  padding: clamp(40px, 6vw, 72px) var(--pad-x) clamp(56px, 8vw, 96px);
+}
+
+.legal-prose {
+  max-width: 720px;
+}
+
+.legal-updated {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: clamp(28px, 4vw, 40px);
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-section {
+  padding: clamp(24px, 3vw, 32px) 0;
+  border-top: 1px solid var(--line);
+}
+.legal-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.legal-section h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(22px, 3vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.legal-section h2 em { font-style: italic; color: var(--moss); }
+
+.legal-section h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 22px 0 10px;
+}
+
+.legal-section p,
+.legal-section li {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.legal-section p { margin-bottom: 14px; }
+.legal-section p:last-child { margin-bottom: 0; }
+
+.legal-section ul {
+  margin: 4px 0 14px;
+  padding-left: 0;
+  list-style: none;
+}
+.legal-section li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 8px;
+}
+.legal-section li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 11px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--moss-soft);
+}
+
+.legal-section a {
+  color: var(--moss);
+  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+  transition: border-color var(--dur);
+}
+.legal-section a:hover { border-color: var(--moss); }
+.legal-section strong { color: var(--ink); font-weight: 600; }
