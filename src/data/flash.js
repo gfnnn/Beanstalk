@@ -14,6 +14,9 @@
 //               sort key and the claim button's £<price>.
 //   size        Number (inches) — the data-size sort key.
 //   drop        Drop number — the data-drop sort key (default = newest drop first).
+//               The highest `drop` value present is the CURRENT drop; any record with
+//               a lower number becomes the "Past drops" archive on /flash/ automatically
+//               (flash.js moves them out of the live views into the Past chip).
 //   status      'available' | 'pending' | 'claimed'
 //                 available → claimable (live button)
 //                 pending   → claim submitted, awaiting deposit (amber, disabled)

@@ -94,16 +94,15 @@
       Claimed <span class="chip-count" id="count-claimed"></span>
     </button>
     <!--
-      DEV NOTE — PAST DROPS
-      "Past drops" requires a CMS or static JSON file listing previous drop archives.
-      In production, clicking this chip should either:
-        a) Fetch /api/flash/archive and inject cards dynamically, or
-        b) Navigate to /flash/archive (a separate page)
-      Count badge should pull from the archive data source.
-      Left as a non-functional chip here until the archive is built.
+      PAST DROPS — data-driven archive filter (no CMS/extra page needed).
+      "past" = any card in src/data/flash.js whose `drop` number is lower than the
+      current (highest) drop. flash.js filters to those and fills the count badge.
+      When there are none it keeps this chip hidden (hidden is the default below), so
+      it's never a dead control. To open an archive: keep last drop's records in
+      flash.js and give the new drop a higher `drop` number than them.
     -->
-    <button class="chip" data-filter="past" id="chip-past">
-      <!-- COPY: "Past drops" label + archive count -->
+    <button class="chip" data-filter="past" id="chip-past" hidden>
+      <!-- COPY: "Past drops" label (count filled by flash.js) -->
       Past drops <span class="chip-count">—</span>
     </button>
   </div>

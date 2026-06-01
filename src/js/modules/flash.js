@@ -12,18 +12,38 @@ export function initFlash() {
 
   if (!cards.length) return
 
-  // ── Count badges ────────────────────────────────────────────────────────
+  // ── Drops & the "Past drops" archive ──────────────────────────────────────
+  // The live grid shows the CURRENT drop = the highest data-drop value present.
+  // Any card from an earlier drop is treated as archive ("Past drops"): kept out of
+  // the All / Available / Claimed views and surfaced only under the Past chip. Fully
+  // data-driven — to open an archive, leave (or add) records in src/data/flash.js
+  // with a lower `drop` number than the current one. When there are none (the
+  // default), the Past chip hides itself, so it's never a dead control.
+  const currentDrop = Math.max(...cards.map(c => +c.dataset.drop || 0))
+  const isPast = c => (+c.dataset.drop || 0) < currentDrop
+  const pastChip = document.getElementById('chip-past')
+
+  // ── Count badges (scoped to the current drop; Past gets its own) ──────────
   function updateCounts() {
-    const total   = cards.length
-    const avail   = cards.filter(c => c.dataset.status === 'available').length
-    const claimed = cards.filter(c =>
+    const current = cards.filter(c => !isPast(c))
+    const total   = current.length
+    const avail   = current.filter(c => c.dataset.status === 'available').length
+    const claimed = current.filter(c =>
       c.dataset.status === 'claimed' || c.dataset.status === 'pending'
     ).length
+    const past    = cards.length - current.length
 
     const el = id => document.getElementById(id)
     const all  = el('count-all');       if (all)     all.textContent     = `(${total})`
     const av   = el('count-available'); if (av)      av.textContent      = `(${avail})`
     const cl   = el('count-claimed');   if (cl)      cl.textContent      = `(${claimed})`
+
+    // Past chip only exists when there's actually an archive to show.
+    if (pastChip) {
+      const badge = pastChip.querySelector('.chip-count')
+      if (badge) badge.textContent = `(${past})`
+      pastChip.hidden = past === 0
+    }
   }
   updateCounts()
 
@@ -44,15 +64,9 @@ export function initFlash() {
 
   document.querySelectorAll('.chip[data-filter]').forEach(chip => {
     chip.addEventListener('click', () => {
-      const f = chip.dataset.filter
-
-      if (f === 'past') {
-        // DEV NOTE: navigate to /flash/archive or fetch past drops from CMS
-        console.info('Past drops archive — not yet implemented.')
-        return
-      }
-
-      activeFilter = f
+      // 'past' is a normal filter now — it shows the archive of earlier drops
+      // (see isPast / applyFilterSort). The chip only exists when there's an archive.
+      activeFilter = chip.dataset.filter
       document.querySelectorAll('.chip[data-filter]').forEach(c =>
         c.classList.toggle('active', c === chip)
       )
@@ -61,6 +75,10 @@ export function initFlash() {
   })
 
   if (sortSel) sortSel.addEventListener('change', applyFilterSort)
+
+  // Run once on load so the default "all" view is already drop-scoped (archive
+  // excluded) and in default sort order, not just after the first interaction.
+  applyFilterSort()
 
   function applyFilterSort() {
     const sortVal = sortSel ? sortSel.value : 'default'
@@ -75,14 +93,18 @@ export function initFlash() {
 
     sorted.forEach(c => grid.insertBefore(c, emptyState))
 
-    // Show / hide by status
+    // Show / hide. The archive (earlier drops) appears only under the 'past'
+    // filter; every other view is scoped to the current drop.
     let visible = 0
     sorted.forEach(c => {
-      const match =
-        activeFilter === 'all' ||
-        c.dataset.status === activeFilter ||
-        (activeFilter === 'claimed' &&
-          (c.dataset.status === 'claimed' || c.dataset.status === 'pending'))
+      const match = activeFilter === 'past'
+        ? isPast(c)
+        : !isPast(c) && (
+            activeFilter === 'all' ||
+            c.dataset.status === activeFilter ||
+            (activeFilter === 'claimed' &&
+              (c.dataset.status === 'claimed' || c.dataset.status === 'pending'))
+          )
 
       c.style.display = match ? '' : 'none'
       if (match) visible++
