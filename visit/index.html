@@ -153,23 +153,28 @@
   </div><!-- /contact-info -->
 
   <!--
-    MAP BLOCK
-    TODO (pre-launch, owner decision) — deliberate placeholder: the map is a
-    decorative gradient until a real embed is wired. Replace with a Mapbox GL JS or
-    Leaflet embed (Mapbox needs a free account + access token). Full step-by-step
-    integration instructions live in src/styles/pages/visit.css (DEV NOTE — MAP).
-    Deferred alongside the real-images work — not forgotten.
+    MAP BLOCK — interactive Google map to the studio
+    (Tiny Knives Tattoo · 41 Southgate Street, Winchester · SO23 9EH).
+    Keyless Google Maps embed (`output=embed`): pan / zoom / Street View,
+    no API token or billing account required, so nothing secret ships in the
+    repo. The corner badge deep-links to the full Google Maps listing for
+    directions. To re-point the studio: update the address in BOTH the iframe
+    `src` query and the badge `href` (they share the same place string).
   -->
-  <div class="map-block" role="img" aria-label="Studio location map">
-    <div id="studio-map"></div>
-    <!-- COPY: map corner label — short address e.g. "12B Wilton Way · E8 1BG" -->
-    <span class="map-label">Lorem Ipsum Way · X0 0XX</span>
-    <div class="map-pin" aria-hidden="true">
-      <svg width="40" height="52" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 0C8.954 0 0 8.954 0 20C0 33.6 20 52 20 52C20 52 40 33.6 40 20C40 8.954 31.046 0 20 0Z" fill="currentColor"/>
-        <circle cx="20" cy="20" r="7" fill="white" fill-opacity="0.9"/>
-      </svg>
-    </div>
+  <div class="map-block">
+    <iframe
+      id="studio-map"
+      class="map-embed"
+      title="Map showing Tiny Knives Tattoo studio at 41 Southgate Street, Winchester SO23 9EH"
+      src="https://maps.google.com/maps?q=Tiny%20Knives%20Tattoo%2C%2041%20Southgate%20Street%2C%20Winchester%20SO23%209EH&z=16&output=embed"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen></iframe>
+    <a class="map-label"
+       href="https://www.google.com/maps/search/?api=1&amp;query=Tiny%20Knives%20Tattoo%2C%2041%20Southgate%20Street%2C%20Winchester%20SO23%209EH"
+       target="_blank" rel="noopener noreferrer">
+      41 Southgate St · SO23 9EH ↗
+    </a>
   </div>
 
 </div><!-- /contact-shell -->
