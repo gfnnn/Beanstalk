@@ -16,12 +16,16 @@ npm install        # install deps (vite, gsap, lenis, @netlify/blobs)
 npm run dev        # Vite dev server at http://localhost:5173 (live grid injection)
 npm run build      # production build → dist/
 npm run preview    # serve the built dist/ locally
+npm test           # run the Vitest unit suite (renderers + Netlify functions)
 ```
 
-There is **no test suite, linter, or formatter** in this repo — don't invent
-`npm test`/`npm run lint`. To exercise the Netlify functions locally you need the
-Netlify CLI (`netlify dev`, serves on :8888) plus a `.env` (`cp .env.example .env`);
-plain `npm run dev` serves only the static site, not the functions.
+Tests run on **Vitest** (`npm test`, watch via `npm run test:watch`, coverage via
+`npm run test:coverage`) and in CI on every push/PR (`.github/workflows/test.yml`). They
+cover the build-time renderers and the Netlify functions (`tests/`); the network is mocked
+(no real Resend/Blobs calls). There is **no linter or formatter** — don't invent
+`npm run lint`. To exercise the Netlify functions for real locally you need the Netlify CLI
+(`netlify dev`, serves on :8888) plus a `.env` (`cp .env.example .env`); plain `npm run dev`
+serves only the static site, not the functions.
 
 ## Architecture
 
