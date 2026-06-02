@@ -88,64 +88,55 @@
 
 /* ── Map block ───────────────────────────────────────────────────────────── */
 /*
-  DEV NOTE — MAP
-  Replace placeholder gradient with a Mapbox GL JS or Leaflet embed:
-    1. Add to <head>:
-       <link href='https://api.mapbox.com/mapbox-gl-js/v3/mapbox-gl.css' rel='stylesheet'>
-       <script src='https://api.mapbox.com/mapbox-gl-js/v3/mapbox-gl.js'></script>
-    2. Remove the gradient background and ::before grid from .map-block.
-    3. Initialise with mapboxgl.Map({ container: 'studio-map', zoom: 15 ... })
-       and add a Marker at colour: '#C45A3E'.
-    4. Use a warm/low-saturation custom Mapbox Studio style.
+  Interactive Google map (keyless `output=embed` iframe — see visit/index.html).
+  A subtle desaturate/warm filter blends Google's default tiles into the earthy
+  palette without harming legibility; it lifts on hover/focus so the live map is
+  always fully readable while a visitor is using it.
 */
 .map-block {
   position: relative;
   overflow: hidden;
   min-height: 280px;
-  background: linear-gradient(155deg, #6B7E5A 0%, #8A9A75 45%, #4A5D3F 100%);
-}
-.map-block::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
+  background: var(--bg-alt);
 }
 
-#studio-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map-embed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  filter: saturate(0.85) contrast(0.96) sepia(0.06);
+  transition: filter var(--dur);
+}
+.map-block:hover .map-embed,
+.map-embed:focus-within { filter: none; }
 
 .map-label {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 11px;
   font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(251,248,238,0.7);
+  color: var(--ink);
+  background: rgba(251,248,238,0.92);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  backdrop-filter: blur(4px);
+  transition: background var(--dur), box-shadow var(--dur);
 }
-
-.map-pin {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -100%);
-  color: var(--clay);
-  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.22));
-}
-.map-pin::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 5px;
-  background: rgba(0,0,0,0.16);
-  border-radius: 50%;
+.map-label:hover {
+  background: var(--bg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 }
 
 /* ── Accessibility & studio info ─────────────────────────────────────────── */
