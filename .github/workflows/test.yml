@@ -1,5 +1,8 @@
-# Run the Vitest suite on every PR and on pushes to main, so the tests actually
+# Run the Vitest suites on every PR and on pushes to main, so the tests actually
 # guard the branch instead of relying on running `npm test` locally.
+#
+# Both workspaces are tested via a matrix so each area (web / functions) reports
+# its own status. A single `npm ci` at the root installs all workspaces.
 name: Tests
 
 on:
@@ -14,6 +17,11 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: ['@beansprout/web', '@beansprout/functions']
+    name: test (${{ matrix.workspace }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,4 +29,4 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm test
+      - run: npm run test --workspace ${{ matrix.workspace }}

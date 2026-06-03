@@ -9,7 +9,7 @@ on GitHub Pages, one function on Netlify, email via Resend, sending as
 Visitor submits a form (beansprout.ink / GitHub Pages)
       │  fetch() POST — JSON { kind, fields, images[] }   ← images downscaled in the browser
       ▼
-Netlify function  (netlify/functions/enquiry.js)   ← handles both enquiry + flash
+Netlify function  (apps/functions/netlify/functions/enquiry.js)   ← handles both enquiry + flash
       │  validates · builds the email · attaches images
       ▼
 Resend API  →  artist's inbox   (formatted email, reply-to = the visitor)
@@ -23,14 +23,14 @@ Running cost at studio volumes: **£0/month** (Netlify free functions + Resend f
 
 | File | Role |
 |------|------|
-| `netlify/functions/enquiry.js` | Serverless handler for **both** forms (`kind: enquiry` / `flash`) — validates, emails via Resend, attaches images |
-| `netlify/functions/_shared.js` | Shared origin-locked CORS + per-IP/daily rate limiting (used by the enquiry **and** newsletter functions) |
-| `netlify.toml` | Tells Netlify where the functions live + the site build settings (CORS is set in the function, not here) |
-| `src/js/modules/config.js` | Shared function URL both forms POST to |
-| `enquire/index.html` · `src/js/modules/enquire.js` | Enquiry form — JS-driven (Formspree removed), honeypot, **downscales images** |
-| `flash/index.html` · `src/js/modules/flash.js` | Flash-claim form — same pipeline (Formspree removed), honeypot |
-| `enquiry-received/index.html` | Success page the enquiry form redirects to |
-| `.github/workflows/deploy.yml` | Builds the site → GitHub Pages (optional, see Part C) |
+| `apps/functions/netlify/functions/enquiry.js` | Serverless handler for **both** forms (`kind: enquiry` / `flash`) — validates, emails via Resend, attaches images |
+| `apps/functions/netlify/functions/_shared.js` | Shared origin-locked CORS + per-IP/daily rate limiting (used by the enquiry **and** newsletter functions) |
+| `netlify.toml` | Scopes Netlify to the `apps/functions` workspace (functions-only deploy); CORS is set in the function, not here |
+| `apps/web/src/js/modules/config.js` | Shared function URL both forms POST to |
+| `apps/web/enquire/index.html` · `apps/web/src/js/modules/enquire.js` | Enquiry form — JS-driven (Formspree removed), honeypot, **downscales images** |
+| `apps/web/flash/index.html` · `apps/web/src/js/modules/flash.js` | Flash-claim form — same pipeline (Formspree removed), honeypot |
+| `apps/web/enquiry-received/index.html` | Success page the enquiry form redirects to |
+| `.github/workflows/deploy-web.yml` | Builds the site → GitHub Pages (optional, see Part C) |
 | `.env.example` | Template for the build-time + function variables |
 
 There are **3 secrets to set** (all on free accounts) and **1 URL to paste back**. That's it.
@@ -90,9 +90,9 @@ The form needs to know the function URL **at build time** (Vite bakes it in).
      `VITE_ENQUIRY_FN_URL` = the function URL. Then **Settings → Pages → Source =
      "GitHub Actions"**. Every push to `main` now builds + deploys automatically.
    - **Building yourself:** put it in a local `.env` (copy from `.env.example`),
-     run `npm run build`, and publish `dist/` however you currently do.
+     run `npm run build`, and publish `apps/web/dist/` however you currently do.
    - *(Or skip the env var and hardcode the URL in the `ENQUIRY_FN_URL` fallback
-     in `src/js/modules/config.js`.)*
+     in `apps/web/src/js/modules/config.js`.)*
 2. **Apex domain is deferred — do not switch it yet.** `beansprout.ink` is still
    served by the **v1** site; v2 lives at `beansprout.netlify.app` (plus the Pages
    project URL). There is intentionally **no `public/CNAME`** and no apex A-record
