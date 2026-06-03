@@ -9,7 +9,7 @@
   border-radius: 100px;
   border: 1.5px solid transparent;
   transition:
-    transform   var(--dur) var(--ease),
+    transform   var(--dur) var(--ease-organic), /* slight overshoot — springy "stem" settle (§3-F) */
     background  var(--dur) var(--ease),
     border-color var(--dur) var(--ease),
     color       var(--dur) var(--ease);

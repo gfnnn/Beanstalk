@@ -38,4 +38,13 @@
   /* ── Motion ──────────────────────────────────────────── */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur:  220ms;
+
+  /* Motion palette (woodland direction — see beansprout-woodland-motion-direction.md).
+     --ease-soft and --dur-fast alias the house curve/duration above; new tokens add a
+     gently-overshooting "growth" curve and longer durations for reveals + ambient loops. */
+  --ease-soft:    cubic-bezier(0.16, 1, 0.3, 1);    /* = --ease — soft landing, fast start */
+  --ease-organic: cubic-bezier(0.34, 1.2, 0.64, 1); /* slight overshoot — springy "stem" feel */
+  --dur-fast:     220ms;                             /* = --dur */
+  --dur-slow:     640ms;                             /* reveals, settles */
+  --sway:         14s;                               /* ambient loop length */
 }

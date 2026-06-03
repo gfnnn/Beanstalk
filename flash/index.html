@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- COPY: meta description -->
-  <meta name="description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Flash tickets from Beansprout tattoo studio." />
-  <meta property="og:title"       content="Flash — Beansprout.ink" />
-  <meta property="og:description" content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Flash tickets from Beansprout tattoo studio." />
+  <meta name="description" content="Flash designs ready to claim: pre-drawn pieces from Beansprout, Winchester. Pick one, claim it, and I'll book you in. New drops land first to the newsletter." />
+  <meta property="og:title"       content="Flash · Beansprout.ink" />
+  <meta property="og:description" content="Pre-drawn flash designs ready to claim and book. New drops land here first." />
   <meta property="og:type"        content="website" />
   <meta name="theme-color"        content="#F7F1E3" />
   <link rel="icon"             href="/favicon.svg" type="image/svg+xml" />
@@ -23,14 +22,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
-  <title>Flash — Beansprout</title>
+  <title>Flash · Beansprout</title>
 </head>
 <body>
 
 <!-- NAV — Flash active -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
   <!-- LOGO: replace with <img src="images/logo.svg" alt="Beansprout" class="nav-logo-img"> -->
-  <a href="/" aria-label="Beansprout — home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <a href="/" aria-label="Beansprout home"><div class="nav-logo-placeholder">logo.svg</div></a>
   <ul class="nav-links" role="list">
     <li><a href="/">Home</a></li>
     <li><a href="/portfolio/">Portfolio</a></li>
@@ -69,13 +68,11 @@
 <!-- PAGE HEADER -->
 <header class="page-header">
   <div>
-    <!-- COPY: eyebrow — drop number + season e.g. "Drop 12 · Spring 2026" -->
-    <p class="page-eyebrow">Lorem ipsum · Lorem 0000</p>
-    <!-- COPY: page title -->
-    <h1 class="page-title">Lorem <em>ipsum.</em></h1>
+    <!-- TODO(roxy): set the real drop number + season here, e.g. "Drop 12 · Spring 2026" -->
+    <p class="page-eyebrow">Current drop · 2026</p>
+    <h1 class="page-title">Flash, ready <em>to claim.</em></h1>
   </div>
-  <!-- COPY: descriptor — what flash is, how claiming works, pricing note -->
-  <p class="page-descriptor">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore. Lorem ipsum dolor sit amet consectetur.</p>
+  <p class="page-descriptor">Pre-drawn designs, each one tattooed only once. See one you love? Claim it below and I'll be in touch to book you in. New designs always drop here first.</p>
 </header>
 
 <!-- FILTER BAR -->
@@ -103,7 +100,7 @@
     -->
     <button class="chip" data-filter="past" id="chip-past" hidden>
       <!-- COPY: "Past drops" label (count filled by flash.js) -->
-      Past drops <span class="chip-count">—</span>
+      Past drops <span class="chip-count"></span>
     </button>
   </div>
   <div class="filter-right">
@@ -145,9 +142,8 @@
 
     <!-- Empty state — shown when filter returns no results -->
     <div class="flash-empty" id="flash-empty" aria-live="polite">
-      <!-- COPY: empty state heading + message -->
-      <p>Lorem ipsum dolor</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <p>Nothing here right now</p>
+      <p>Every piece in this drop has found a home. New flash lands regularly, or start a custom enquiry instead.</p>
       <a href="/enquire/" class="btn btn-outline">Start a custom enquiry →</a>
     </div>
 
@@ -156,8 +152,7 @@
 
 <!-- FOOTER CTA -->
 <section class="flash-cta">
-  <!-- COPY: italic serif prompt e.g. "Don't see one that fits? Custom is what I do most." -->
-  <p>Lorem ipsum dolor sit amet, consectetur <em>adipiscing elit</em> — lorem ipsum dolor sit.</p>
+  <p>Nothing quite right? <em>Custom is what I do most</em>. Tell me your idea and we'll draw something just for you.</p>
   <a href="/enquire/" class="btn btn-outline">Start a custom enquiry →</a>
 </section>
 
@@ -167,10 +162,9 @@
     <div class="footer-brand">
       <!-- FOOTER LOGO: replace with <img src="images/logo-light.svg" alt="Beansprout" class="nav-logo-img"> if light variant exists -->
       <p class="wordmark">beansprout<em>.ink</em></p>
-      <!-- COPY: short studio descriptor for footer -->
-      <p class="tagline">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.</p>
+      <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
     </div>
-    <nav class="footer-col" aria-label="Site links"><h4>Studio</h4><ul>
+    <nav class="footer-col" aria-label="Site links"><h4>Explore</h4><ul>
       <li><a href="/portfolio/">Portfolio</a></li><li><a href="/flash/">Flash</a></li>
       <li><a href="/about/">About</a></li><li><a href="/services/">Pricing</a></li><li><a href="/faq/">FAQ</a></li>
     </ul></nav>
@@ -186,8 +180,8 @@
     </ul></nav>
   </div>
   <div class="footer-bottom">
-    <p class="footer-copy">© Beansprout 2026 — Lorem ipsum dolor sit amet</p>
-    <p class="footer-copy">Privacy · Terms · Cookies</p>
+    <p class="footer-copy">&copy; Beansprout 2026 · Winchester, UK</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
   </div>
 </footer>
 
@@ -207,8 +201,7 @@
       <div>
         <!-- JS populates the piece name in #modal-piece-name -->
         <p class="modal-tag">Claiming: <span id="modal-piece-name"></span></p>
-        <!-- COPY: modal heading -->
-        <h2 class="modal-title" id="modal-title">Lorem ipsum <em>dolor</em></h2>
+        <h2 class="modal-title" id="modal-title">Reserve this <em>piece.</em></h2>
       </div>
       <button class="modal-close" id="modal-close" aria-label="Close claim form">×</button>
     </div>
@@ -224,42 +217,37 @@
       <input type="hidden" name="price" id="modal-price-input">
 
       <div class="modal-field">
-        <!-- COPY: name label -->
-        <label for="claim-name">Lorem ipsum</label>
+        <label for="claim-name">Your name</label>
         <input type="text" id="claim-name" name="name"
-               autocomplete="name" placeholder="Lorem Lorem"
+               autocomplete="name" placeholder="Jane Smith"
                required aria-required="true">
       </div>
 
       <div class="modal-field">
-        <!-- COPY: email label -->
-        <label for="claim-email">Lorem ipsum</label>
+        <label for="claim-email">Email</label>
         <input type="email" id="claim-email" name="email"
                autocomplete="email" inputmode="email"
-               placeholder="lorem@ipsum.com"
+               placeholder="you@email.com"
                required aria-required="true">
       </div>
 
       <div class="modal-field">
-        <!-- COPY: placement notes label + hint -->
-        <label for="claim-placement">Lorem ipsum dolor sit amet</label>
-        <span class="field-hint"><!-- COPY: hint text --></span>
+        <label for="claim-placement">Where would it go?</label>
+        <span class="field-hint">Roughly where on the body you're picturing it.</span>
         <input type="text" id="claim-placement" name="placement"
-               placeholder="Lorem ipsum, lorem lorem">
+               placeholder="Inner forearm, ankle…">
       </div>
 
       <div class="modal-field">
-        <!-- COPY: availability label + hint -->
-        <label for="claim-dates">Lorem ipsum dolor</label>
-        <span class="field-hint"><!-- COPY: hint e.g. booking lead time --></span>
+        <label for="claim-dates">When suits you?</label>
+        <span class="field-hint">Rough availability is fine. I'll follow up with exact dates.</span>
         <textarea id="claim-dates" name="available_dates" rows="2"
-                  placeholder="Lorem ipsum dolor sit amet…"></textarea>
+                  placeholder="Weekends are easiest, sometime in the next month or two…"></textarea>
       </div>
 
       <div class="modal-foot">
-        <button type="button" class="modal-cancel" id="modal-cancel">← Lorem</button>
-        <!-- COPY: submit button label -->
-        <button type="submit" class="modal-submit" id="modal-submit">Lorem ipsum →</button>
+        <button type="button" class="modal-cancel" id="modal-cancel">← Cancel</button>
+        <button type="submit" class="modal-submit" id="modal-submit">Send my claim →</button>
       </div>
 
     </form>

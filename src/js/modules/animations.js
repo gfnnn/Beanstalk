@@ -15,6 +15,7 @@ export function initHeroAnimation() {
   const actions = document.querySelectorAll('.hero-actions .btn')
   const notices = document.querySelector('.studio-notices')
   const media   = document.querySelector('.hero-media')
+  const sprig   = document.querySelector('.hero-sprig-path')
 
   if (!heading) return
 
@@ -27,12 +28,21 @@ export function initHeroAnimation() {
   if (eyebrow) tl.from(eyebrow, { opacity: 0, x: -20, duration: 0.7 })
 
   tl.from(heading, {
-    opacity: 0, y: 36, duration: 0.9, ease: 'power4.out',
+    opacity: 0, y: 30, filter: 'blur(8px)', duration: 0.9, ease: 'power4.out',
   }, eyebrow ? '-=0.4' : 0)
 
-  if (body)         tl.from(body,    { opacity: 0, y: 18, duration: 0.7 }, '-=0.5')
+  if (body)         tl.from(body,    { opacity: 0, y: 18, filter: 'blur(5px)', duration: 0.7 }, '-=0.5')
   if (actions.length) tl.from(actions, { opacity: 0, y: 14, stagger: 0.1, duration: 0.6 }, '-=0.45')
   if (notices)      tl.from(notices, { opacity: 0, y: 10, duration: 0.6 }, '-=0.35')
+
+  // Botanical sprig inks itself in (§3-A), a slow draw that lingers just past the
+  // text settle. Explicit from:1 so the start state is correct regardless of CSS.
+  if (sprig) {
+    tl.fromTo(sprig,
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 1.9, ease: 'power1.inOut' },
+      0.25)
+  }
 
   // Media column — direction depends on CSS layout at the current viewport
   if (media) {
@@ -69,13 +79,28 @@ function revealFrom(selector, fromVars, triggerVars = {}) {
 export function initScrollAnimations() {
   if (reduced) return
 
+  // ── Shallow hero depth (§3-D) ───────────────────────────────────────────────
+  // The botanical sprig drifts slightly slower than the page as the hero scrolls
+  // away — a touch of "looking into a canopy" depth. Transform-only → compositor.
+  const heroEl  = document.querySelector('.hero')
+  const sprigEl = document.querySelector('.hero-sprig')
+  if (heroEl && sprigEl) {
+    gsap.to(sprigEl, {
+      yPercent: -14,
+      ease: 'none',
+      scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: true },
+    })
+  }
+
   const mm = gsap.matchMedia()
 
-  // ── Text reveals — smaller offsets on mobile, full on desktop ─────────────
+  // ── Text reveals — smaller offsets on mobile, full on desktop. A faint
+  //    blur-to-sharp ("coming into focus through foliage", §3-C) rides on the
+  //    headings only; tile grids stay blur-free to protect the mobile budget. ─
   mm.add('(max-width: 899px)', () => {
     revealFrom('.eyebrow', { opacity: 0, x: -14, duration: 0.6, ease: 'power2.out' })
     revealFrom('.section-title, .page-hero__title', {
-      opacity: 0, y: 16, duration: 0.7, ease: 'power3.out',
+      opacity: 0, y: 16, filter: 'blur(4px)', duration: 0.7, ease: 'power3.out',
     })
     revealFrom('.body-text, .serif-note', {
       opacity: 0, y: 12, duration: 0.6, ease: 'power2.out',
@@ -85,7 +110,7 @@ export function initScrollAnimations() {
   mm.add('(min-width: 900px)', () => {
     revealFrom('.eyebrow', { opacity: 0, x: -20, duration: 0.65, ease: 'power2.out' })
     revealFrom('.section-title, .page-hero__title', {
-      opacity: 0, y: 28, duration: 0.85, ease: 'power3.out',
+      opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.85, ease: 'power3.out',
     })
     revealFrom('.body-text, .serif-note', {
       opacity: 0, y: 18, duration: 0.7, ease: 'power2.out',
@@ -160,7 +185,7 @@ export function initScrollAnimations() {
   if (pageTitle) {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 })
     if (pageEye) tl.from(pageEye,   { opacity: 0, x: -16, duration: 0.65 })
-    tl.from(pageTitle, { opacity: 0, y: 28, duration: 0.8 }, pageEye ? '-=0.35' : 0)
+    tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
   }
 
   // ── Generic .reveal elements (about, visit, and other inner pages) ──────────
@@ -170,7 +195,7 @@ export function initScrollAnimations() {
                 : el.classList.contains('reveal-d1') ? 0.1 : 0
     gsap.from(el, {
       scrollTrigger: { trigger: el, start: 'top 90%', once: true },
-      opacity: 0, y: 20, duration: 0.7, ease: 'power2.out',
+      opacity: 0, y: 20, filter: 'blur(4px)', duration: 0.7, ease: 'power2.out',
       delay,
     })
   })

@@ -104,12 +104,25 @@
   flex-shrink: 0;
 }
 
+/* In-body link with a growing underline (§3-F). A faint rule stays at rest (so the
+   link is distinguishable without relying on colour — a11y), and a moss underline
+   draws in left-to-right on hover. Reusable pattern for other prose links. */
 .notice-item a {
   color: var(--moss);
-  border-bottom: 1px solid rgba(74, 93, 63, 0.3);
-  transition: border-color var(--dur);
+  position: relative;
+  border-bottom: 1px solid rgba(74, 93, 63, 0.25);
 }
-.notice-item a:hover { border-bottom-color: var(--moss); }
+.notice-item a::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: var(--moss);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur) var(--ease-soft);
+}
+.notice-item a:hover::after { transform: scaleX(1); }
 
 /* ── Media column ─────────────────────────────────────────────────────────
    On mobile (order: -1) this appears above the text.
@@ -167,6 +180,7 @@
   position: absolute;
   bottom: 16px;
   left: 16px;
+  z-index: 2; /* stay above the botanical sprig */
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.14em;
@@ -181,6 +195,46 @@
   width: 20px;
   height: 1px;
   background: rgba(251, 248, 238, 0.4);
+}
+
+/* ── Botanical sprig (PLACEHOLDER) — self-draws on load + faint living ink ───
+   §3-A line-drawing + §3-B living ink. Fine cream line over the moss media.
+   Decorative; the artist's real single-path SVG replaces the markup in
+   index.html. Positioned right-of-centre so it clears the bottom-left tag. */
+.hero-sprig {
+  position: absolute;
+  right: 14%;
+  bottom: 4%;
+  height: 66%;
+  width: auto;
+  z-index: 1;            /* above the media gradient, below the corner tag (z2) */
+  pointer-events: none;
+  opacity: 0.6;
+  filter: none;          /* living-ink displacement added at ≥768px only */
+}
+.hero-sprig-path {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Undrawn by default; the draw is added in JS when motion is allowed, so there's
+     no flash of the finished sprig before it inks in. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Hand-drawn "breathing" only on larger screens (skip the filter on phones —
+   displacement maps are GPU-heavy; mobile budget, §6). */
+@media (min-width: 768px) {
+  .hero-sprig { filter: url(#hero-ink); }
+}
+
+/* Reduced motion: show the sprig fully drawn and statically — no draw, no
+   continuous displacement. (SMIL <animate> isn't reached by the global guard.) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-sprig      { filter: none; }
+  .hero-sprig-path { stroke-dashoffset: 0; }
 }
 
 /* ── Scroll hint — hidden on mobile ─────────────────────────────────────── */

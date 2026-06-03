@@ -1,0 +1,45 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Atmosphere — material & page-level motion (woodland direction §3-G, §3-H)
+   Two ambient, site-wide touches that let the site "breathe" without performing:
+     · paper grain      — a ~3% noise film over the warm paper, for tactile texture
+     · page transitions — a soft cross-fade between pages (MPA View Transitions API)
+   Both are progressive enhancements; both respect prefers-reduced-motion.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Paper grain (§3-H) ──────────────────────────────────────────────────────
+   Fixed, non-interactive noise overlay multiplied over the background. Built from
+   SVG feTurbulence — no image asset. z-index:1 keeps it above the page background
+   and normal-flow content but below the nav (z-index:200), sticky bars and modals.
+   It's static (no animation), so it stays on under reduced motion — texture, not
+   motion. Mobile note: a fixed multiply layer re-blends on scroll; kept tiny (3.5%)
+   so the cost is negligible. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+}
+
+/* ── Page transitions (§3-G) — cross-document, multi-page ────────────────────
+   Opt the whole site in. Navigations soft cross-fade, with a small upward settle
+   on the incoming page — an MPA that feels like one continuous space. Browsers
+   without cross-document View Transitions simply hard-cut (progressive
+   enhancement); no JS, no bundle. */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) { animation: vt-out 320ms var(--ease-soft) both; }
+::view-transition-new(root) { animation: vt-in  420ms var(--ease-soft) both; }
+
+@keyframes vt-out { to   { opacity: 0; } }
+@keyframes vt-in  { from { opacity: 0; transform: translateY(8px); } }
+
+/* Reduced motion: the global `*` guard can't reach ::view-transition-* pseudos,
+   so disable their animations explicitly → an instant, motion-free page swap. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
