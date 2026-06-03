@@ -26,11 +26,13 @@ export const GLYPHS = {
 // placement labels in the COPY comments; if the artist renames a category, update
 // the chip label in portfolio/index.html and the matching entry here together.
 export const STYLE_LABELS = {
-  'fine-line': 'Fine line',
-  botanical:   'Botanical',
-  blackwork:   'Blackwork',
-  script:      'Script',
-  colour:      'Colour',
+  'fine-line':   'Fine line',
+  botanical:     'Botanical',
+  'black-grey':  'Black & grey',
+  illustrative:  'Illustrative',
+  dotwork:       'Dotwork',
+  colour:        'Colour',
+  script:        'Script',
 }
 export const PLACEMENT_LABELS = {
   forearm: 'Forearm', wrist: 'Wrist', back: 'Back', spine: 'Spine',
