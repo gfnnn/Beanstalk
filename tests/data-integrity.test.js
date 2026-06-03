@@ -1,24 +1,34 @@
 // Data-contract tests for src/data/pieces.js & src/data/flash.js.
 //
 // CLAUDE.md is explicit that the tokens in these files (styles, placement,
-// glyph, status) must stay in lockstep with the filter chips / <select> options
-// and the renderer label maps — "change them together". The renderers fall back
-// silently on an unknown token (`STYLE_LABELS[t] || t`, `GLYPHS[g] || GLYPHS.sprig`),
-// so a typo wouldn't throw — it would just ship a broken filter or the wrong
-// glyph. These tests are the guard rail: the allowed-token sets below mirror the
-// documented contract, so drift in the data fails CI instead of reaching prod.
+// glyph, status) must stay in lockstep with the renderer label maps — "change
+// them together". The renderers fall back silently on an unknown token
+// (`STYLE_LABELS[t] || t`, `GLYPHS[g] || GLYPHS.sprig`), so a typo wouldn't
+// throw — it would just ship a broken filter or the wrong glyph.
+//
+// The valid-token sets are derived from the renderer maps themselves (the single
+// source of truth), NOT a copy kept here. That's deliberate: when a feature adds
+// a new glyph/style/placement to the renderer (+ its filter chip), data that
+// uses it passes automatically — no fourth list to remember to update. The test
+// still fails when the DATA names a token the renderer doesn't know, which is the
+// actual bug worth catching. (Filter chips live in HTML and can't be imported, so
+// keeping the renderer map authoritative is the closest machine-checkable anchor.)
 import { describe, it, expect } from 'vitest'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
+import {
+  GLYPHS as PORTFOLIO_GLYPHS_MAP,
+  STYLE_LABELS,
+  PLACEMENT_LABELS,
+} from '../src/build/portfolio-tiles.js'
+import { GLYPHS as FLASH_GLYPHS_MAP, STATUS } from '../src/build/flash-cards.js'
 
-// Mirrors STYLE_LABELS / PLACEMENT_LABELS / GLYPHS in src/build/portfolio-tiles.js
-const PORTFOLIO_STYLES = new Set(['fine-line', 'botanical', 'blackwork', 'script', 'colour'])
-const PORTFOLIO_PLACEMENTS = new Set(['forearm', 'wrist', 'back', 'spine', 'leg', 'chest', 'hand'])
-const PORTFOLIO_GLYPHS = new Set(['sprig', 'moth', 'leaf', 'mushroom', 'waves', 'wheat', 'lily', 'branch'])
+const PORTFOLIO_STYLES = new Set(Object.keys(STYLE_LABELS))
+const PORTFOLIO_PLACEMENTS = new Set(Object.keys(PLACEMENT_LABELS))
+const PORTFOLIO_GLYPHS = new Set(Object.keys(PORTFOLIO_GLYPHS_MAP))
 
-// Mirrors STATUS / GLYPHS in src/build/flash-cards.js
-const FLASH_STATUSES = new Set(['available', 'pending', 'claimed'])
-const FLASH_GLYPHS = new Set(['sprig', 'bud', 'moth', 'wheat', 'tulip', 'leaf', 'peaks', 'arch', 'blob', 'branch', 'star', 'sprout'])
+const FLASH_STATUSES = new Set(Object.keys(STATUS))
+const FLASH_GLYPHS = new Set(Object.keys(FLASH_GLYPHS_MAP))
 
 describe('portfolio data (pieces.js)', () => {
   it('has unique slugs', () => {
