@@ -31,7 +31,8 @@
     Structured data (schema.org / JSON-LD). Beansprout is the ARTIST (a Person),
     not a studio — the studio is Tiny Knives, modelled here as workLocation. The
     address mirrors the public one already embedded in the /visit/ map.
-    TODO(roxy): add a "sameAs" array (Instagram / other profile URLs) and, once
+    The artist's "sameAs" points at the public Instagram (@beansprouttattoo).
+    TODO(roxy): add any other profile URLs (TikTok, etc.) to "sameAs" and, once
     confirmed, "openingHoursSpecification" + "telephone" to strengthen local SEO.
   -->
   <script type="application/ld+json">
@@ -55,6 +56,7 @@
         "url": "https://beansprout.ink/",
         "image": "https://beansprout.ink/images/og-image.jpg",
         "description": "Fine line, botanical and custom tattoo.",
+        "sameAs": ["https://www.instagram.com/beansprouttattoo"],
         "knowsAbout": ["Fine line tattoo", "Botanical tattoo", "Custom tattoo", "Blackwork", "Script tattoo"],
         "areaServed": { "@type": "City", "name": "Winchester" },
         "workLocation": {
@@ -623,8 +625,7 @@
     <nav class="footer-col" aria-label="Social links">
       <h4>Follow</h4>
       <ul>
-        <li><a href="https://instagram.com/beansprout.ink" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-        <li><a href="https://tiktok.com/@beansprout.ink"   target="_blank" rel="noopener noreferrer">TikTok</a></li>
+        <li><a href="https://www.instagram.com/beansprouttattoo" target="_blank" rel="noopener noreferrer">Instagram</a></li>
         <li><a href="/newsletter/">Newsletter</a></li>
         <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
       </ul>
