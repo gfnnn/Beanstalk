@@ -6,6 +6,10 @@
 import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
 import { renderFlashCards } from '../src/build/flash-cards.js'
+import {
+  renderStatus, renderNotices,
+  renderHeroHeadline, renderHeroBody,
+} from '../src/build/homepage.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
 
@@ -120,5 +124,71 @@ describe('renderFlashCards', () => {
   it('renders the real flash data without throwing, one card per item', () => {
     const html = renderFlashCards(flash)
     expect(html.match(/class="flash-card"/g)).toHaveLength(flash.length)
+  })
+})
+
+describe('renderStatus (nav "light")', () => {
+  it('renders the pill with the chosen tone class and label', () => {
+    expect(renderStatus({ show: true, label: 'Flash day', tone: 'clay' }))
+      .toBe('<span class="status-pill clay">Flash day</span>')
+  })
+
+  it('adds the centring style for the mobile-drawer variant', () => {
+    expect(renderStatus({ show: true, label: 'Books open', tone: 'moss' }, { center: true }))
+      .toContain('style="justify-content:center"')
+  })
+
+  it('renders nothing when show is false (pill removed entirely)', () => {
+    expect(renderStatus({ show: false, label: 'Books open', tone: 'moss' })).toBe('')
+    expect(renderStatus()).toBe('')
+  })
+
+  it('falls back to the moss tone for an unknown tone', () => {
+    expect(renderStatus({ show: true, label: 'Hi', tone: 'banana' }))
+      .toContain('class="status-pill moss"')
+  })
+
+  it('escapes the label to prevent markup injection', () => {
+    expect(renderStatus({ show: true, label: '<b>x</b>', tone: 'moss' }))
+      .toContain('&lt;b&gt;')
+  })
+})
+
+describe('renderNotices (toggleable hero bars)', () => {
+  const moss  = { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Open. <a href="/enquire/">Enquire</a>' }
+  const clay  = { show: true,  tone: 'clay',  label: 'Flash day',  html: 'Drop soon.' }
+  const hidden = { show: false, tone: 'faint', label: 'Guest spot', html: 'Nope.' }
+
+  it('renders only show:true bars, each with its dot tone and label', () => {
+    const html = renderNotices([moss, clay, hidden])
+    expect(html.match(/class="notice-item"/g)).toHaveLength(2)
+    expect(html).toContain('class="notice-dot moss"')
+    expect(html).toContain('class="notice-dot clay"')
+    expect(html).not.toContain('Guest spot')
+  })
+
+  it('keeps notice html raw so links render', () => {
+    expect(renderNotices([moss])).toContain('<a href="/enquire/">Enquire</a>')
+  })
+
+  it('omits the whole block when every bar is off (no empty frame)', () => {
+    expect(renderNotices([hidden, { ...hidden, label: 'x' }])).toBe('')
+    expect(renderNotices([])).toBe('')
+    expect(renderNotices()).toBe('')
+  })
+
+  it('wraps shown bars in the studio-notices container', () => {
+    expect(renderNotices([moss])).toContain('class="studio-notices"')
+  })
+})
+
+describe('renderHero copy', () => {
+  it('keeps the H1 plain + italic shape and escapes both parts', () => {
+    expect(renderHeroHeadline({ headLead: 'Quiet', headEm: 'ink & line' }))
+      .toBe('Quiet<br><em>ink &amp; line</em>')
+  })
+
+  it('escapes the hero body', () => {
+    expect(renderHeroBody({ body: 'a <script>x</script> b' })).not.toContain('<script>')
   })
 })

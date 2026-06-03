@@ -119,7 +119,7 @@
   </ul>
 
   <div class="nav-right">
-    <span class="status-pill">Books open</span>
+    <!-- homepage:status -->
     <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
     <button class="nav-hamburger" id="nav-hamburger"
             aria-label="Open menu" aria-expanded="false"
@@ -144,7 +144,7 @@
     <a href="/newsletter/">Newsletter</a>
   </div>
   <div class="drawer-bottom">
-    <span class="status-pill" style="justify-content:center">Books open</span>
+    <!-- homepage:status-drawer -->
     <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
   </div>
 </div>
@@ -152,22 +152,18 @@
 
 <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
 <!--
-  COPY NEEDED:
-  - hero-eyebrow: location · defining phrase  e.g. "Fine line · Winchester"
-  - h1: one short punchy line — first word plain, second word/phrase italic
-  - hero-body: 2–3 sentence artist descriptor (location, style, approach)
-  - Studio notices: current booking status, next flash date, any guest spots
+  COPY lives in src/data/homepage.js → `hero` (eyebrow / headLead / headEm / body)
+  and `notices` (the toggleable status bars). The markers below are filled in at
+  build time — don't hand-edit the generated copy here, edit the data file.
 -->
 <section class="hero" aria-label="Introduction">
 
   <div class="hero-text">
-    <p class="hero-eyebrow">[Location] · [Defining phrase]</p>
+    <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
 
-    <h1>[Headline, plain]<br><em>[Headline, italic]</em></h1>
+    <h1><!-- homepage:hero-headline --></h1>
 
-    <p class="hero-body">
-      [2–3 sentence artist descriptor. Style, location, approach. Keep it honest and specific.]
-    </p>
+    <p class="hero-body"><!-- homepage:hero-body --></p>
 
     <div class="hero-actions">
       <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
@@ -175,30 +171,10 @@
     </div>
 
     <!--
-      STUDIO NOTICES — update content here as bookings/flash/events change.
-      Max 3 items. Hide the whole block with display:none when nothing current.
+      STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
+      src/data/homepage.js → `notices`. Whole block disappears when all are off.
     -->
-    <div class="studio-notices" aria-label="Latest updates">
-
-      <div class="notice-item">
-        <span class="notice-dot moss" aria-hidden="true"></span>
-        <span class="notice-label">Bookings</span>
-        <span>[Current booking status, e.g. "Now open for [Month]. <a href="/enquire/">Request a slot</a>"]</span>
-      </div>
-
-      <div class="notice-item">
-        <span class="notice-dot clay" aria-hidden="true"></span>
-        <span class="notice-label">Flash drop</span>
-        <span>[Next flash date, e.g. "New designs dropping [Date]. <a href="/flash/">Preview flash</a>"]</span>
-      </div>
-
-      <div class="notice-item">
-        <span class="notice-dot faint" aria-hidden="true"></span>
-        <span class="notice-label">Guest spot</span>
-        <span>[Guest spot or leave empty and set display:none on this item]</span>
-      </div>
-
-    </div>
+    <!-- homepage:notices -->
   </div>
 
   <!--
@@ -265,8 +241,8 @@
                C88 58 82 46 86 30 C88 20 82 12 74 14 C68 16 68 24 74 26"/>
     </svg>
 
-    <!-- COPY: studio location overlaid on video -->
-    <span class="hero-media-tag">Tiny Knives · Winchester</span>
+    <!-- COPY: studio location overlaid on video — src/data/homepage.js → hero.mediaTag -->
+    <span class="hero-media-tag"><!-- homepage:hero-media-tag --></span>
   </div>
 
   <div class="scroll-hint" aria-hidden="true">Scroll</div>

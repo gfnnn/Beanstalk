@@ -5,6 +5,11 @@ import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
 import { flash } from './src/data/flash.js'
 import { renderFlashCards } from './src/build/flash-cards.js'
 import { injectSeoHead, renderSitemap } from './src/build/seo.js'
+import { homepage } from './src/data/homepage.js'
+import {
+  renderStatus, renderNotices,
+  renderHeroEyebrow, renderHeroHeadline, renderHeroBody, renderHeroMediaTag,
+} from './src/build/homepage.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -21,6 +26,29 @@ const generatedGrids = {
       }
       if (html.includes('<!-- flash:grid -->')) {
         html = html.replace('<!-- flash:grid -->', () => renderFlashCards(flash))
+      }
+      // Homepage content (src/data/homepage.js). The nav status "light" markers
+      // live on every page; the hero/notice markers only on the homepage.
+      if (html.includes('<!-- homepage:status -->')) {
+        html = html.replace('<!-- homepage:status -->', () => renderStatus(homepage.status))
+      }
+      if (html.includes('<!-- homepage:status-drawer -->')) {
+        html = html.replace('<!-- homepage:status-drawer -->', () => renderStatus(homepage.status, { center: true }))
+      }
+      if (html.includes('<!-- homepage:notices -->')) {
+        html = html.replace('<!-- homepage:notices -->', () => renderNotices(homepage.notices))
+      }
+      if (html.includes('<!-- homepage:hero-eyebrow -->')) {
+        html = html.replace('<!-- homepage:hero-eyebrow -->', () => renderHeroEyebrow(homepage.hero))
+      }
+      if (html.includes('<!-- homepage:hero-headline -->')) {
+        html = html.replace('<!-- homepage:hero-headline -->', () => renderHeroHeadline(homepage.hero))
+      }
+      if (html.includes('<!-- homepage:hero-body -->')) {
+        html = html.replace('<!-- homepage:hero-body -->', () => renderHeroBody(homepage.hero))
+      }
+      if (html.includes('<!-- homepage:hero-media-tag -->')) {
+        html = html.replace('<!-- homepage:hero-media-tag -->', () => renderHeroMediaTag(homepage.hero))
       }
       return html
     },

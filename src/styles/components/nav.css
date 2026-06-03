@@ -160,7 +160,9 @@
   flex-shrink: 0;
 }
 
-/* Live status pill — hidden on mobile */
+/* Live status pill — hidden on mobile. The dot + text colour follow the tone
+   set in src/data/homepage.js (.moss / .clay / .faint); --pill-rgb drives the
+   pulsing halo so it matches whichever tone is active. */
 .status-pill {
   display: none;
   align-items: center;
@@ -171,20 +173,24 @@
   text-transform: uppercase;
   color: var(--moss);
   white-space: nowrap;
+  --pill-rgb: 74, 93, 63; /* moss — default */
 }
+.status-pill.moss  { color: var(--moss);      --pill-rgb: 74, 93, 63; }
+.status-pill.clay  { color: var(--clay);      --pill-rgb: 196, 90, 62; }
+.status-pill.faint { color: var(--ink-faint); --pill-rgb: 142, 139, 129; }
 .status-pill::before {
   content: '';
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--moss);
-  box-shadow: 0 0 0 3px rgba(74, 93, 63, 0.2);
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(var(--pill-rgb), 0.2);
   animation: pulse 2.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(74, 93, 63, 0.2); }
-  50%       { box-shadow: 0 0 0 6px rgba(74, 93, 63, 0.05); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(var(--pill-rgb), 0.2); }
+  50%       { box-shadow: 0 0 0 6px rgba(var(--pill-rgb), 0.05); }
 }
 
 /* ── Mobile hamburger — shown by default ─────────────────────────────────── */
