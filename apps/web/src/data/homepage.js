@@ -53,7 +53,7 @@ export const homepage = {
     eyebrow:  '[Location] · [Defining phrase]',
     headLead: '[Headline — plain]',
     headEm:   '[Headline — italic]',
-    body:     '[2–3 sentence studio descriptor. Style, location, approach. Keep it honest and specific.]',
-    mediaTag: '[Studio name] · Guildford, Surrey',
+    body:     '[2–3 sentence descriptor in your voice as the artist. Style, location, approach. Keep it honest and specific.]',
+    mediaTag: 'Tiny Knives · Winchester',
   },
 }
