@@ -20,6 +20,16 @@
   # The function uses `export async function handler` (ES module).
   node_bundler = "esbuild"
 
+# Keep the netlify.app mirror out of search engines. Netlify only exists here to
+# host the serverless functions (and is an incidental full-site mirror); the
+# canonical, indexable site is beansprout.ink on GitHub Pages. This noindex header
+# applies ONLY to responses Netlify serves, so it never affects the apex. Every
+# page's <link rel="canonical"> already points at beansprout.ink as a second signal.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
 # CORS is handled INSIDE the functions via netlify/functions/_shared.js (shared by
 # both enquiry + newsletter): each echoes an allowlisted Origin per request and
 # answers the OPTIONS preflight itself. We do NOT set Access-Control-Allow-Origin

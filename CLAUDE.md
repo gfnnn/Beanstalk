@@ -56,6 +56,23 @@ regenerate it. Tokens in the data (`styles`, `placement`, `status`, `tone`, `gly
 match the filter chips / `<select>` options in the HTML and the label maps in the
 renderers; change them together.
 
+### SEO structure
+Core SEO is centralised in `src/build/seo.js` and applied at build/dev via two
+plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
+
+- **`injectSeoHead` plugin** completes each page's `<head>` with the *structural*
+  tags — `<link rel="canonical">` (from the page's own `og:url`), `og:site_name`,
+  `og:locale`, default `og:image`/`twitter:card`, and `twitter:title`/`description`
+  mirrored from the OpenGraph tags. Only missing tags are added (per-page overrides
+  win), and pages marked `noindex` (e.g. `/enquiry-received/`) are skipped. **Per-page
+  content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
+  authored by hand in each page — only the derived/constant tags are injected.
+- **`sitemap` plugin** emits `/sitemap.xml` at build (and serves it in dev) from the
+  `ROUTES` list in `seo.js` — keep that list in sync when adding indexable pages.
+- `public/robots.txt` is static (allows all, disallows `/enquiry-received/`, points
+  at the sitemap). The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`,
+  with Tiny Knives as `workLocation`) — Beansprout is the artist, not the studio.
+
 ### Front-end JS — single orchestrated init
 `src/js/main.js` is the only entry point. On `DOMContentLoaded` it calls each module's
 `initX()` in a deliberate order (Lenis smooth-scroll first so it drives the GSAP ticker,

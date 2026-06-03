@@ -26,6 +26,52 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <title>Beansprout — [Tagline], Guildford</title>
+
+  <!--
+    Structured data (schema.org / JSON-LD). Beansprout is the ARTIST (a Person),
+    not a studio — the studio is Tiny Knives, modelled here as workLocation. The
+    address mirrors the public one already embedded in the /visit/ map.
+    TODO(roxy): add a "sameAs" array (Instagram / other profile URLs) and, once
+    confirmed, "openingHoursSpecification" + "telephone" to strengthen local SEO.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://beansprout.ink/#website",
+        "url": "https://beansprout.ink/",
+        "name": "Beansprout",
+        "description": "Fine line, botanical and custom tattoo at Tiny Knives, Winchester.",
+        "inLanguage": "en-GB"
+      },
+      {
+        "@type": "Person",
+        "@id": "https://beansprout.ink/#artist",
+        "name": "Beansprout",
+        "alternateName": "Beansprout Tattoo",
+        "jobTitle": "Tattoo artist",
+        "url": "https://beansprout.ink/",
+        "image": "https://beansprout.ink/images/og-image.jpg",
+        "description": "Fine line, botanical and custom tattoo.",
+        "knowsAbout": ["Fine line tattoo", "Botanical tattoo", "Custom tattoo", "Blackwork", "Script tattoo"],
+        "areaServed": { "@type": "City", "name": "Winchester" },
+        "workLocation": {
+          "@type": "TattooParlor",
+          "name": "Tiny Knives Tattoo",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "41 Southgate Street",
+            "addressLocality": "Winchester",
+            "postalCode": "SO23 9EH",
+            "addressCountry": "GB"
+          }
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
