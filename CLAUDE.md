@@ -165,14 +165,40 @@ never work-in-progress.
 2. **Stage only what the task touches.** Use explicit paths (`git add path/…`), never
    `git add -A`. If unrelated changes are already sitting in the tree, commit or stash
    them on their own branch first so they don't get swept into your commit.
-3. **One PR per change, squash-merge, delete the branch.**
+3. **Visualise before you open a feature PR.** For any change that's observable in the
+   browser (a new page, layout, component, animation, copy block), run the site and *look
+   at it* before raising the PR — don't ship a feature you've only typechecked. See
+   [Visual check before a feature PR](#visual-check-before-a-feature-pr) below.
+4. **One PR per change, squash-merge, delete the branch.**
    `gh pr create` → review the diff → `gh pr merge --squash --delete-branch`. This
    leaves `main` with one tidy commit per feature and no stale branches.
-4. **Never rewrite published history on `main`.** No force-pushes to `main`. (Rebasing
+5. **Never rewrite published history on `main`.** No force-pushes to `main`. (Rebasing
    your *own* feature branch and `--force-with-lease`-ing it is fine and encouraged — see
    below.)
 
 Commit messages end with `Co-Authored-By: Claude <model> <noreply@anthropic.com>`.
+
+### Visual check before a feature PR
+
+CI runs Vitest, but green tests don't prove the page *looks* right. Before opening a PR
+for any user-visible feature, verify it in the browser and attach the proof:
+
+1. **Run the app.** Start the dev server for the feature's worktree (`npm run dev` in
+   `apps/web`, or the preview tooling) — each worktree gets its own port.
+2. **Drive it like a user.** Open the page(s) the change touches, exercise the new
+   interaction (nav, form, animation), and confirm it renders with no console errors.
+3. **Capture the proof.** Take a screenshot of the changed view(s) at desktop width, and
+   at mobile width if layout/responsiveness was touched.
+4. **Attach it to the PR.** Drop the screenshot(s) into the `gh pr create` body so the
+   diff review has a visual reference. If nothing is visually observable (tooling, tests,
+   functions-only), say so explicitly in the PR instead.
+5. **Leave the server up (≥ 15 min).** The dev server is a detached background process, so
+   it keeps serving until explicitly stopped — don't tear it down the moment the screenshot
+   is taken. Keep it running for at least 15 minutes after spin-up so the change can be
+   browsed by hand, and surface its local URL. Only then stop it (or just leave it for the
+   session). Don't block on a timer — carry on with other work while it stays up.
+
+Skip this only when the change genuinely can't be seen in the browser.
 
 ### Working on several features at once (avoid the branch tangle)
 
