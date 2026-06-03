@@ -1,23 +1,33 @@
-# netlify.toml — Beansprout
+# netlify.toml — Beansprout (monorepo)
 # ──────────────────────────────────────────────────────────────────────────────
-# Netlify hosts the serverless functions for this project (enquiry + newsletter);
-# the site itself is served from GitHub Pages. This file tells Netlify where the
-# functions live and how to build the site. CORS is set INSIDE the functions
-# (netlify/functions/_shared.js), not here — see the note further down.
+# Netlify hosts ONLY the serverless form functions for this project
+# (enquiry + flash claim + newsletter). The marketing site itself is served from
+# GitHub Pages (see .github/workflows/deploy-web.yml). CORS is set INSIDE the
+# functions (apps/functions/netlify/functions/_shared.js), not here — see below.
 #
-# Lives at the repo root, alongside package.json.
+# This file lives at the repo root. The `base` directory below scopes the whole
+# Netlify build to the functions workspace, so a frontend-only change never
+# triggers (or redeploys to) Netlify.
+#
+# ── One-time Netlify dashboard setup ─────────────────────────────────────────
+#   Site configuration → Build & deploy → Build settings:
+#     • Base directory       = apps/functions
+#     • (npm workspaces install runs from the repo root automatically)
+#   With a base directory set, Netlify only rebuilds when files under
+#   apps/functions/** change — which is exactly the deploy isolation we want.
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Netlify also builds the Vite site here, so the netlify.app URL is a working
-# mirror — but beansprout.ink (GitHub Pages) stays the canonical site. The build
-# guarantees the function bundle is published on every deploy.
 [build]
-  command = "npm run build"
-  publish = "dist"
+  # Scope the entire build to the functions workspace.
+  base = "apps/functions"
+  # No site to compile here — the static publish dir is just a placeholder so
+  # Netlify has something to deploy next to the functions.
+  command = "echo 'Beansprout: functions-only deploy — no site build'"
+  publish = "public"
+  functions = "netlify/functions"
 
 [functions]
-  directory = "netlify/functions"
-  # The function uses `export async function handler` (ES module).
+  # The functions use `export async function handler` (ES modules).
   node_bundler = "esbuild"
 
 # Keep the netlify.app mirror out of search engines. Netlify only exists here to

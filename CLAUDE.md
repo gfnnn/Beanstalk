@@ -4,36 +4,70 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Beansprout — v2 (Beanstalk repo)
 
-Static marketing site for the Beansprout tattoo studio. Plain HTML pages bundled by
-**Vite** (no framework): styling in modular CSS under `src/styles/`, behaviour in ES
-modules under `src/js/modules/` wired through `src/js/main.js`. Design tokens live in
-`src/styles/variables.css`.
+Static marketing site for the Beansprout tattoo studio, plus the serverless form/email
+app that backs it. This is an **npm-workspaces monorepo** with two deployable parts:
+
+- **`apps/web`** — the frontend. Plain HTML pages bundled by **Vite** (no framework):
+  styling in modular CSS under `apps/web/src/styles/`, behaviour in ES modules under
+  `apps/web/src/js/modules/` wired through `apps/web/src/js/main.js`. Design tokens live in
+  `apps/web/src/styles/variables.css`. **Deploys to GitHub Pages.**
+- **`apps/functions`** — the app. The Netlify serverless functions that receive the forms
+  and send mail (`apps/functions/netlify/functions/`). **Deploys to Netlify only.**
+
+Shared docs live in `docs/`; each workspace owns its own `package.json`, `vitest.config.js`
+and `tests/`. The two parts deploy independently — see **Deploy targets** below.
 
 ## Commands
 
+Run from the repo root; the root scripts delegate to the right workspace.
+
 ```bash
-npm install        # install deps (vite, gsap, lenis, @netlify/blobs)
-npm run dev        # Vite dev server at http://localhost:5173 (live grid injection)
-npm run build      # production build → dist/
-npm run preview    # serve the built dist/ locally
-npm test           # run the Vitest unit suite (renderers + Netlify functions)
+npm install           # install all workspaces (hoisted to the root node_modules)
+npm run dev           # Vite dev server for apps/web at http://localhost:5173
+npm run build         # production build of apps/web → apps/web/dist/
+npm run preview       # serve the built apps/web/dist/ locally
+npm test              # run BOTH workspaces' Vitest suites
+npm run test:web      # only apps/web (renderers + data integrity)
+npm run test:functions # only apps/functions (enquiry, newsletter, _shared)
 ```
 
-Tests run on **Vitest** (`npm test`, watch via `npm run test:watch`, coverage via
-`npm run test:coverage`) and in CI on every push/PR (`.github/workflows/test.yml`). They
-cover the build-time renderers and the Netlify functions (`tests/`); the network is mocked
-(no real Resend/Blobs calls). There is **no linter or formatter** — don't invent
-`npm run lint`. To exercise the Netlify functions for real locally you need the Netlify CLI
-(`netlify dev`, serves on :8888) plus a `.env` (`cp .env.example .env`); plain `npm run dev`
-serves only the static site, not the functions.
+You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
+or `cd apps/web && npm run build`.
+
+Tests run on **Vitest** and in CI on every push/PR (`.github/workflows/test.yml`, a matrix
+over both workspaces). `apps/web/tests/` covers the build-time renderers + data integrity;
+`apps/functions/tests/` covers the Netlify functions with the network mocked (no real
+Resend/Blobs calls). There is **no linter or formatter** — don't invent `npm run lint`. To
+exercise the Netlify functions for real locally you need the Netlify CLI (`netlify dev`,
+serves on :8888) plus a `.env` (`cp .env.example .env`); plain `npm run dev` serves only the
+static site, not the functions.
 
 ## Architecture
 
+### Monorepo layout
+```
+apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
+  index.html + page folders (about/, portfolio/, flash/, …)
+  src/{build,data,js,styles}             # all frontend source
+  public/                                # CNAME, favicons, manifest (copied to dist root)
+  vite.config.js  vitest.config.js  tests/
+apps/functions/   @beansprout/functions  → Netlify (the form/email app)
+  netlify/functions/{enquiry,newsletter,_shared}.js
+  public/index.html                      # placeholder publish dir for the functions-only site
+  vitest.config.js  tests/
+docs/             ENQUIRY-SETUP.md, NEWSLETTER-SETUP.md
+netlify.toml      base = apps/functions  (Netlify deploys functions only)
+.github/workflows/{test.yml, deploy-web.yml}
+package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
+```
+The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
+workspace; nothing needs path edits when adding pages.
+
 ### Multi-page Vite build
-Every page is its own `index.html` in a top-level folder (`portfolio/`, `about/`,
-`flash/`, `enquire/`, …) and is registered as a Rollup input in `vite.config.js`. Add a
-new page → add the folder/`index.html` **and** a matching entry in the `input` map, or it
-won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
+Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
+`flash/`, `enquire/`, …) and is registered as a Rollup input in `apps/web/vite.config.js`.
+Add a new page → add the folder/`index.html` **and** a matching entry in the `input` map, or
+it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
 ### Data → build-time HTML pipeline (the non-obvious part)
@@ -46,7 +80,7 @@ not hand-written markup:
 - `src/build/portfolio-tiles.js` and `src/build/flash-cards.js` render those arrays to
   HTML strings (responsive `<picture>` with avif/webp/jpg, or an SVG line-art placeholder
   when no `img` is set yet).
-- The `generatedGrids` plugin in `vite.config.js` (`transformIndexHtml`, runs in **both**
+- The `generatedGrids` plugin in `apps/web/vite.config.js` (`transformIndexHtml`, runs in **both**
   dev and build) replaces the `<!-- pieces:masonry -->` marker in `portfolio/index.html`
   and the `<!-- flash:grid -->` marker in `flash/index.html` with that output. Grids ship
   as static HTML (good for SEO/no-JS/LCP).
@@ -87,27 +121,38 @@ reveal/sort). New page behaviour = a new `modules/<name>.js` exporting `initX()`
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to
 serverless functions; there is no backend server.
 
-- `netlify/functions/enquiry.js` handles **both** the enquiry and flash-claim forms,
-  distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines the
-  required fields, consent boxes, image support and email layout per kind. Images are
+- `apps/functions/netlify/functions/enquiry.js` handles **both** the enquiry and flash-claim
+  forms, distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines
+  the required fields, consent boxes, image support and email layout per kind. Images are
   downscaled in the browser before upload. Sends via **Resend**.
-- `netlify/functions/newsletter.js` adds a subscriber to a Resend Audience.
-- `netlify/functions/_shared.js` is shared support code (the leading `_` keeps Netlify from
-  deploying it as a function): the **CORS origin allowlist** and the **rate limiter**
-  (per-IP sliding window + global daily ceiling, backed by Netlify Blobs, **fails open** so
-  an outage never blocks real enquiries). CORS lives here, **not** in `netlify.toml`.
-- `src/js/modules/config.js` holds the function URLs, overridable at build time via
+- `apps/functions/netlify/functions/newsletter.js` adds a subscriber to a Resend Audience.
+- `apps/functions/netlify/functions/_shared.js` is shared support code (the leading `_` keeps
+  Netlify from deploying it as a function): the **CORS origin allowlist** and the **rate
+  limiter** (per-IP sliding window + global daily ceiling, backed by Netlify Blobs, **fails
+  open** so an outage never blocks real enquiries). CORS lives here, **not** in `netlify.toml`.
+- `apps/web/src/js/modules/config.js` holds the function URLs, overridable at build time via
   `VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` (see `.env.example`). Rebuild after
   changing them — Vite bakes them into the bundle. Server-side secrets
   (`RESEND_API_KEY`, `ARTIST_EMAIL`, `FROM_EMAIL`, `RESEND_AUDIENCE_ID`) live in the
-  Netlify dashboard, never in the repo. Full setup: `ENQUIRY-SETUP.md`,
-  `NEWSLETTER-SETUP.md`.
+  Netlify dashboard, never in the repo. Full setup: `docs/ENQUIRY-SETUP.md`,
+  `docs/NEWSLETTER-SETUP.md`.
 
-### Deploy targets
-`main` deploys to **two** places on every push: GitHub Pages (`.github/workflows/deploy.yml`,
-builds with `VITE_ENQUIRY_FN_URL` from repo Actions Variables) and Netlify (`netlify.toml`,
-which also publishes the function bundle). `public/` is copied to the site root as-is
-(favicons, `site.webmanifest`, `CNAME`).
+### Deploy targets — one repo, two independent deploys
+The two workspaces deploy to **different places**, each gated so only relevant changes ship:
+
+- **Frontend → GitHub Pages.** `.github/workflows/deploy-web.yml` builds `apps/web` (with
+  `VITE_ENQUIRY_FN_URL` from repo Actions Variables) and publishes `apps/web/dist`. It is
+  **path-gated** (`paths: apps/web/**`, lockfile, the workflow itself), so a functions-only
+  change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`,
+  `CNAME`) is copied to the site root as-is.
+- **Functions → Netlify.** `netlify.toml` sets `base = "apps/functions"`, so Netlify's build
+  is scoped to the functions workspace and only redeploys when `apps/functions/**` changes
+  (set the **Base directory = `apps/functions`** once in the Netlify dashboard to match).
+  Netlify no longer mirrors the whole site — it publishes a tiny placeholder page plus the
+  function bundle. The canonical site is GitHub Pages.
+
+This separation is the point of the monorepo split: **frontend changes deploy to Pages,
+function changes deploy to Netlify, and neither drags the other along.**
 
 ## Git workflow — keep `main` clean
 

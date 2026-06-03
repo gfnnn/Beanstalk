@@ -1,7 +1,7 @@
 # Newsletter setup
 
 The `/newsletter/` page POSTs signups to a Netlify function
-(`netlify/functions/newsletter.js`), which adds the subscriber to a **Resend
+(`apps/functions/netlify/functions/newsletter.js`), which adds the subscriber to a **Resend
 Audience**. It reuses the same Resend account and `RESEND_API_KEY` that already
 power the enquiry + flash forms — you only need to create an Audience and tell
 the function its ID.

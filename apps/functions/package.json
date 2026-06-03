@@ -1,0 +1,19 @@
+{
+  "name": "@beansprout/functions",
+  "version": "0.1.0",
+  "description": "Beansprout.ink serverless app — enquiry/flash + newsletter form functions, deployed to Netlify.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.9"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.0.0",
+    "vitest": "^3.0.0"
+  }
+}
