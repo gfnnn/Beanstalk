@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Beansprout — fine line, botanical and custom tattoo. Private studio, Guildford, Surrey. Booking now." />
-  <meta property="og:title"       content="Beansprout.ink — Custom Tattoo, Guildford" />
-  <meta property="og:description" content="Fine line, botanical and custom tattoo. Private studio, Guildford, Surrey." />
+  <meta name="description" content="Beansprout: fine line, botanical and custom tattoo. Winchester, UK. Booking now." />
+  <meta property="og:title"       content="Beansprout.ink · Custom Tattoo, Winchester" />
+  <meta property="og:description" content="Fine line, botanical and custom tattoo. Winchester, UK." />
   <meta property="og:type"        content="website" />
   <meta name="theme-color"        content="#F7F1E3" />
   <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
-  <title>Beansprout — [Tagline], Guildford</title>
+  <title>Beansprout · Custom Tattoo, Winchester</title>
 
   <!--
     Structured data (schema.org / JSON-LD). Beansprout is the ARTIST (a Person),
@@ -94,7 +94,7 @@
     </a>
     SVG preferred · PNG fallback · max-height 36px
   -->
-  <a href="/" aria-label="Beansprout — home">
+  <a href="/" aria-label="Beansprout home">
     <div class="nav-logo-placeholder">logo.svg</div>
   </a>
 
@@ -153,9 +153,9 @@
 <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
 <!--
   COPY NEEDED:
-  - hero-eyebrow: location · defining phrase  e.g. "Fine line · Guildford, Surrey"
+  - hero-eyebrow: location · defining phrase  e.g. "Fine line · Winchester"
   - h1: one short punchy line — first word plain, second word/phrase italic
-  - hero-body: 2–3 sentence studio descriptor (location, style, approach)
+  - hero-body: 2–3 sentence artist descriptor (location, style, approach)
   - Studio notices: current booking status, next flash date, any guest spots
 -->
 <section class="hero" aria-label="Introduction">
@@ -163,10 +163,10 @@
   <div class="hero-text">
     <p class="hero-eyebrow">[Location] · [Defining phrase]</p>
 
-    <h1>[Headline — plain]<br><em>[Headline — italic]</em></h1>
+    <h1>[Headline, plain]<br><em>[Headline, italic]</em></h1>
 
     <p class="hero-body">
-      [2–3 sentence studio descriptor. Style, location, approach. Keep it honest and specific.]
+      [2–3 sentence artist descriptor. Style, location, approach. Keep it honest and specific.]
     </p>
 
     <div class="hero-actions">
@@ -178,18 +178,18 @@
       STUDIO NOTICES — update content here as bookings/flash/events change.
       Max 3 items. Hide the whole block with display:none when nothing current.
     -->
-    <div class="studio-notices" aria-label="Studio updates">
+    <div class="studio-notices" aria-label="Latest updates">
 
       <div class="notice-item">
         <span class="notice-dot moss" aria-hidden="true"></span>
         <span class="notice-label">Bookings</span>
-        <span>[Current booking status — e.g. "Now open for [Month]. <a href="/enquire/">Request a slot</a>"]</span>
+        <span>[Current booking status, e.g. "Now open for [Month]. <a href="/enquire/">Request a slot</a>"]</span>
       </div>
 
       <div class="notice-item">
         <span class="notice-dot clay" aria-hidden="true"></span>
         <span class="notice-label">Flash drop</span>
-        <span>[Next flash date — e.g. "New designs dropping [Date]. <a href="/flash/">Preview flash</a>"]</span>
+        <span>[Next flash date, e.g. "New designs dropping [Date]. <a href="/flash/">Preview flash</a>"]</span>
       </div>
 
       <div class="notice-item">
@@ -222,7 +222,7 @@
        Ink pooling/absorption is fine and intentional.
   -->
   <div class="hero-media">
-    <div class="video-placeholder" role="img" aria-label="Studio process — hands tattooing">
+    <div class="video-placeholder" role="img" aria-label="Tattooing process, hands at work">
       <div class="video-placeholder-inner">
         <svg width="56" height="56" viewBox="0 0 64 64" fill="none"
              stroke="rgba(251,248,238,0.45)" stroke-width="1.5"
@@ -236,8 +236,37 @@
         <p class="video-placeholder-label">Process video · replace this div</p>
       </div>
     </div>
+
+    <!--
+      BOTANICAL SPRIG — PLACEHOLDER line-art for the artist to replace.
+      A single continuous path (pathLength="1") so it self-draws on load (§3-A,
+      see animations.js) and carries a faint "living ink" feTurbulence wobble
+      (§3-B). Decorative only (aria-hidden); sits over the hero media. When the
+      artist supplies a real single-stroke botanical, swap the <path d="…"> only.
+    -->
+    <svg class="hero-sprig" viewBox="0 0 140 300" fill="none" aria-hidden="true"
+         xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="hero-ink" x="-25%" y="-15%" width="150%" height="130%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.014"
+                        numOctaves="1" seed="7" result="noise">
+            <animate attributeName="baseFrequency" dur="18s" repeatCount="indefinite"
+                     values="0.012 0.014;0.015 0.017;0.012 0.014"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"
+                             xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+      <path class="hero-sprig-path" pathLength="1"
+            d="M70 296 C70 274 63 258 67 236 C54 232 38 226 26 212 C40 222 56 230 67 236
+               C70 214 86 206 84 184 C98 182 112 178 124 166 C110 178 95 184 84 184
+               C82 162 72 150 76 128 C62 124 48 120 34 110 C48 118 64 124 76 128
+               C80 106 92 98 90 78 C104 74 114 70 122 60 C112 70 100 76 90 78
+               C88 58 82 46 86 30 C88 20 82 12 74 14 C68 16 68 24 74 26"/>
+    </svg>
+
     <!-- COPY: studio location overlaid on video -->
-    <span class="hero-media-tag">[Studio name] · Guildford, Surrey</span>
+    <span class="hero-media-tag">Tiny Knives · Winchester</span>
   </div>
 
   <div class="scroll-hint" aria-hidden="true">Scroll</div>
@@ -397,7 +426,7 @@
         </div>
         <!-- COPY: specialism 1 -->
         <h3 class="specialism-title">[Style] <em>[adjective]</em></h3>
-        <p class="specialism-body">[Description of this style — what it is, how it's executed, who it suits. 2–3 sentences.]</p>
+        <p class="specialism-body">[Description of this style, what it is, how it's executed, who it suits. 2–3 sentences.]</p>
         <a href="/portfolio/?style=fine-line" class="specialism-link">Browse [style] work</a>
       </div>
     </article>
@@ -412,7 +441,7 @@
         </div>
         <!-- COPY: specialism 2 -->
         <h3 class="specialism-title">[Style] <em>[adjective]</em></h3>
-        <p class="specialism-body">[Description — 2–3 sentences.]</p>
+        <p class="specialism-body">[Description, 2–3 sentences.]</p>
         <a href="/portfolio/?style=botanical" class="specialism-link">Browse [style] work</a>
       </div>
     </article>
@@ -427,7 +456,7 @@
         </div>
         <!-- COPY: specialism 3 -->
         <h3 class="specialism-title">[Style] <em>[adjective]</em></h3>
-        <p class="specialism-body">[Description — 2–3 sentences.]</p>
+        <p class="specialism-body">[Description, 2–3 sentences.]</p>
         <a href="/portfolio/?style=blackwork" class="specialism-link">Browse [style] work</a>
       </div>
     </article>
@@ -450,7 +479,7 @@
       <h2 class="section-title" id="process-heading">[Heading] <em>[italic]</em></h2>
     </div>
     <!-- COPY: one supporting sentence -->
-    <p class="serif-note" style="max-width:340px">[One sentence — e.g. "From first message to finished piece, here's what to expect."]</p>
+    <p class="serif-note" style="max-width:340px">[One sentence, e.g. "From first message to finished piece, here's what to expect."]</p>
   </div>
 
   <div class="process-grid">
@@ -499,7 +528,7 @@
 
     <figure class="testimonial">
       <span class="quote-mark" aria-hidden="true">"</span>
-      <blockquote class="quote-text">[Client quote — authentic, max ~40 words.]</blockquote>
+      <blockquote class="quote-text">[Client quote, authentic, max ~40 words.]</blockquote>
       <figcaption class="quote-credit">[Initial Last.] · [Piece description, e.g. "Fine line study"]</figcaption>
     </figure>
 
@@ -530,11 +559,10 @@
   <div class="footer-top">
     <div class="footer-brand">
       <p class="wordmark">beansprout<em>.ink</em></p>
-      <!-- COPY: short studio descriptor for footer (max ~20 words) -->
-      <p class="tagline">[Short studio descriptor. Style, location, approach.]</p>
+      <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
     </div>
     <nav class="footer-col" aria-label="Site links">
-      <h4>Studio</h4>
+      <h4>Explore</h4>
       <ul>
         <li><a href="/portfolio/">Portfolio</a></li>
         <li><a href="/flash/">Flash</a></li>
@@ -564,7 +592,7 @@
   </div>
   <div class="footer-bottom">
     <!-- COPY: update year automatically or manually -->
-    <p class="footer-copy">&copy; Beansprout 2026 — Guildford, Surrey</p>
+    <p class="footer-copy">&copy; Beansprout 2026 · Winchester, UK</p>
     <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
   </div>
 </footer>

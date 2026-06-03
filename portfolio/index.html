@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portfolio — Beansprout</title>
-  <!-- COPY: meta description — 140–160 chars summarising the portfolio -->
-  <meta name="description" content="[Portfolio meta description — style, placement, Guildford]">
+  <title>Portfolio · Beansprout</title>
+  <meta name="description" content="A portfolio of fine line, botanical and custom tattoo work, healed and fresh, in Winchester.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <meta property="og:title"       content="Portfolio — Beansprout.ink">
-  <meta property="og:description" content="[Portfolio meta description — style, placement, Guildford]">
+  <meta property="og:title"       content="Portfolio · Beansprout.ink">
+  <meta property="og:description" content="Fine line, botanical and custom tattoo work in Winchester.">
   <meta property="og:type"        content="website">
   <meta name="theme-color"        content="#F7F1E3">
   <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
@@ -41,7 +40,7 @@
       <img src="/images/logo.svg" alt="Beansprout" class="nav-logo-img">
     </a>
   -->
-  <a href="/" aria-label="Beansprout — home">
+  <a href="/" aria-label="Beansprout home">
     <div class="nav-logo-placeholder">logo.svg</div>
   </a>
 
@@ -104,16 +103,15 @@
 <header class="page-header">
 
   <div class="page-header-left">
-    <!-- COPY: eyebrow — e.g. "The Garden · Guildford, Surrey" -->
-    <p class="page-eyebrow">[Portfolio eyebrow — e.g. studio name · location]</p>
+    <!-- COPY: eyebrow — e.g. "The Garden · Winchester" -->
+    <p class="page-eyebrow">[Portfolio eyebrow, e.g. artist name · location]</p>
     <!-- COPY: portfolio page H1 — short, poetic, italic word for emphasis -->
     <h1 class="page-title">[Portfolio <em>title.]</em></h1>
   </div>
 
   <div class="page-header-right">
-    <!-- COPY: 1–2 sentence descriptor — what kind of work, who it's for -->
     <p class="page-descriptor">
-      [Portfolio descriptor — 1–2 sentences about the style and intent of the work shown here.]
+      A selection of healed and fresh work: fine line, botanical and custom pieces. Tap any piece to see it larger.
     </p>
   </div>
 
@@ -133,25 +131,20 @@
     <button class="chip active" data-filter="all">
       All <span class="chip-count" data-count="0">0</span>
     </button>
-    <!-- COPY: style 1 — e.g. "Fine line" · data-filter="fine-line" -->
     <button class="chip" data-filter="fine-line">
-      [Style 1] <span class="chip-count" data-count="0">0</span>
+      Fine line <span class="chip-count" data-count="0">0</span>
     </button>
-    <!-- COPY: style 2 — e.g. "Botanical" · data-filter="botanical" -->
     <button class="chip" data-filter="botanical">
-      [Style 2] <span class="chip-count" data-count="0">0</span>
+      Botanical <span class="chip-count" data-count="0">0</span>
     </button>
-    <!-- COPY: style 3 — e.g. "Blackwork" · data-filter="blackwork" -->
     <button class="chip" data-filter="blackwork">
-      [Style 3] <span class="chip-count" data-count="0">0</span>
+      Blackwork <span class="chip-count" data-count="0">0</span>
     </button>
-    <!-- COPY: style 4 — e.g. "Script" · data-filter="script" -->
     <button class="chip" data-filter="script">
-      [Style 4] <span class="chip-count" data-count="0">0</span>
+      Script <span class="chip-count" data-count="0">0</span>
     </button>
-    <!-- COPY: style 5 — e.g. "Colour" · data-filter="colour" -->
     <button class="chip" data-filter="colour">
-      [Style 5] <span class="chip-count" data-count="0">0</span>
+      Colour <span class="chip-count" data-count="0">0</span>
     </button>
 
   </div>
@@ -169,21 +162,21 @@
     <select class="filter-select" id="placement-filter"
             aria-label="Filter by placement">
       <option value="all">All placements</option>
-      <option value="forearm">[Placement 1 — e.g. Forearm]</option>
-      <option value="wrist">[Placement 2 — e.g. Wrist]</option>
-      <option value="back">[Placement 3 — e.g. Back]</option>
-      <option value="spine">[Placement 4 — e.g. Spine]</option>
-      <option value="leg">[Placement 5 — e.g. Leg]</option>
-      <option value="chest">[Placement 6 — e.g. Chest]</option>
-      <option value="hand">[Placement 7 — e.g. Hand]</option>
+      <option value="forearm">Forearm</option>
+      <option value="wrist">Wrist</option>
+      <option value="back">Back</option>
+      <option value="spine">Spine</option>
+      <option value="leg">Leg</option>
+      <option value="chest">Chest</option>
+      <option value="hand">Hand</option>
     </select>
 
     <!-- Sort order -->
     <!-- COPY: option labels for sort order -->
     <select class="filter-select filter-sort" id="sort-order"
             aria-label="Sort order">
-      <option value="newest">[Sort 1 — e.g. Newest first]</option>
-      <option value="oldest">[Sort 2 — e.g. Oldest first]</option>
+      <option value="newest">Newest first</option>
+      <option value="oldest">Oldest first</option>
     </select>
 
   </div>
@@ -228,12 +221,10 @@
       <circle cx="18" cy="20" r="2" fill="currentColor"/>
       <circle cx="30" cy="20" r="2" fill="currentColor"/>
     </svg>
-    <!-- COPY: empty state heading and message -->
-    <h3>[Nothing found heading — e.g. "No work found"]</h3>
-    <p>[Empty state message — e.g. "No pieces match those filters. Try a different style or placement."]</p>
+    <h3>No work found</h3>
+    <p>No pieces match those filters. Try a different style or placement.</p>
     <button class="btn btn-outline" id="empty-clear">
-      <!-- COPY: clear filters button label -->
-      [Clear filters label — e.g. "Clear filters"]
+      Clear filters
     </button>
   </div>
 
@@ -245,21 +236,19 @@
      ========================================================= -->
 <div class="load-more" id="load-more-section">
   <p class="load-more-meta">
-    <!-- COPY: "Showing" / "of" / "pieces" labels -->
-    [Showing label]
+    Showing
     <strong id="showing-count">16</strong>
-    [of label]
+    of
     <strong id="total-count">16</strong>
-    [pieces label]
+    pieces
   </p>
   <div class="load-progress" role="progressbar"
        aria-valuenow="16" aria-valuemin="0" aria-valuemax="16"
        aria-label="Portfolio loading progress">
     <div class="load-progress-fill" id="progress-fill"></div>
   </div>
-  <!-- COPY: load more button label -->
   <button class="btn btn-outline" id="load-more-btn">
-    [Load more label — e.g. "Load more work →"]
+    Load more work →
   </button>
 </div>
 
@@ -317,11 +306,10 @@
         <img src="/images/logo-light.svg" alt="Beansprout" class="nav-logo-img">
       -->
       <p class="wordmark">beansprout<em>.ink</em></p>
-      <!-- COPY: short studio descriptor for footer -->
-      <p class="tagline">[Footer studio descriptor — 1–2 lines]</p>
+      <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
     </div>
     <nav class="footer-col" aria-label="Site links">
-      <h4>Studio</h4>
+      <h4>Explore</h4>
       <ul>
         <li><a href="/portfolio/">Portfolio</a></li>
         <li><a href="/flash/">Flash</a></li>
@@ -350,16 +338,14 @@
     </nav>
   </div>
   <div class="footer-bottom">
-    <!-- COPY: copyright line and legal links -->
-    <p class="footer-copy">© Beansprout 2026 — [legal tagline]</p>
-    <p class="footer-copy">Privacy · Terms · Cookies</p>
+    <p class="footer-copy">&copy; Beansprout 2026 · Winchester, UK</p>
+    <p class="footer-copy"><a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></p>
   </div>
 </footer>
 
 <!-- Mobile sticky CTA — always visible on portfolio (no hero to scroll past) -->
 <div class="mobile-cta" id="mobile-cta" aria-hidden="true">
-  <!-- COPY: mobile CTA button label -->
-  <a href="/enquire/" class="btn btn-primary">[CTA label — e.g. "Start an enquiry →"]</a>
+  <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
 </div>
 
 

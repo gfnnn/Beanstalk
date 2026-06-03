@@ -43,7 +43,7 @@ function photo(p) {
   return `<picture>
           <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
           <source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">
-          <img src="${esc(p.img)}-600.jpg" alt="${esc(p.title)} — flash tattoo design"
+          <img src="${esc(p.img)}-600.jpg" alt="${esc(p.title)}, flash tattoo design"
                width="${p.w}" height="${p.h}" loading="lazy" decoding="async">
         </picture>`
 }
