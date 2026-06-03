@@ -214,11 +214,21 @@
     </div>
 
     <!--
-      BOTANICAL SPRIG — PLACEHOLDER line-art for the artist to replace.
-      A single continuous path (pathLength="1") so it self-draws on load (§3-A,
-      see animations.js) and carries a faint "living ink" feTurbulence wobble
-      (§3-B). Decorative only (aria-hidden); sits over the hero media. When the
-      artist supplies a real single-stroke botanical, swap the <path d="…"> only.
+      BOTANICAL SPROUT — PLACEHOLDER line-art for the artist to replace. Built to
+      *show off the motion*: a seed splits, a stem climbs, leaf pairs unfurl from
+      their stem-joints (scale + rotate, springy) and a young crown pops at the
+      tip — choreographed in animations.js (§3-A line-drawing) and carrying a faint
+      "living ink" feTurbulence wobble (§3-B). Decorative only (aria-hidden).
+      Every part is authored with pathLength="1" so it can self-ink.
+
+      For the artist: replace the paths inside <g class="hero-sprig-art"> with your
+      own botanical, but keep the part classes — the growth timeline targets them:
+        .sprig-seed   seed / soil (inks in first)
+        .sprig-stem   the main stem (climbs)
+        .sprig-leaf   a leaf GROUP; data-ox/data-oy = its pivot on the stem,
+                      data-side = which way it folds open. Order low → high; each
+                      child .hero-sprig-path inks in as the group unfurls.
+        .sprig-nub    the growing tip curl (inks in last)
     -->
     <svg class="hero-sprig" viewBox="0 0 140 300" fill="none" aria-hidden="true"
          xmlns="http://www.w3.org/2000/svg">
@@ -233,12 +243,66 @@
                              xChannelSelector="R" yChannelSelector="G"/>
         </filter>
       </defs>
-      <path class="hero-sprig-path" pathLength="1"
-            d="M70 296 C70 274 63 258 67 236 C54 232 38 226 26 212 C40 222 56 230 67 236
-               C70 214 86 206 84 184 C98 182 112 178 124 166 C110 178 95 184 84 184
-               C82 162 72 150 76 128 C62 124 48 120 34 110 C48 118 64 124 76 128
-               C80 106 92 98 90 78 C104 74 114 70 122 60 C112 70 100 76 90 78
-               C88 58 82 46 86 30 C88 20 82 12 74 14 C68 16 68 24 74 26"/>
+
+      <g class="hero-sprig-art">
+
+        <!-- seed casing + soil line — inks in first, the sprout pushes from here -->
+        <path class="hero-sprig-path sprig-seed" pathLength="1"
+              d="M40 289 C52 286 88 286 100 289"/>
+        <path class="hero-sprig-path sprig-seed" pathLength="1"
+              d="M64 289 C61 283 64 278 70 280"/>
+        <path class="hero-sprig-path sprig-seed" pathLength="1"
+              d="M76 289 C79 283 76 278 70 280"/>
+
+        <!-- main stem — climbs from the seed to the crown -->
+        <path class="hero-sprig-path sprig-stem" pathLength="1"
+              d="M70 288 C68 262 73 240 70 214 C67 190 73 168 70 140 C68 124 71 110 70 98"/>
+
+        <!-- leaf pairs, low → high; each unfurls from its joint on the stem -->
+        <g class="sprig-leaf" data-ox="70" data-oy="214" data-side="left">
+          <path class="hero-sprig-path sprig-leaf-blade" pathLength="1"
+                d="M70 214 C54 226 33 222 24 196 C40 206 58 210 70 214 Z"/>
+          <path class="hero-sprig-path sprig-leaf-vein" pathLength="1"
+                d="M70 214 C52 212 37 206 27 198"/>
+        </g>
+        <g class="sprig-leaf" data-ox="70" data-oy="176" data-side="right">
+          <path class="hero-sprig-path sprig-leaf-blade" pathLength="1"
+                d="M70 176 C86 188 107 184 116 160 C100 170 82 172 70 176 Z"/>
+          <path class="hero-sprig-path sprig-leaf-vein" pathLength="1"
+                d="M70 176 C88 174 103 168 113 161"/>
+        </g>
+        <g class="sprig-leaf" data-ox="70" data-oy="140" data-side="left">
+          <path class="hero-sprig-path sprig-leaf-blade" pathLength="1"
+                d="M70 140 C55 151 36 147 28 126 C43 134 59 136 70 140 Z"/>
+          <path class="hero-sprig-path sprig-leaf-vein" pathLength="1"
+                d="M70 140 C53 138 39 132 31 127"/>
+        </g>
+        <g class="sprig-leaf" data-ox="70" data-oy="116" data-side="right">
+          <path class="hero-sprig-path sprig-leaf-blade" pathLength="1"
+                d="M70 116 C84 125 99 122 106 104 C92 111 81 112 70 116 Z"/>
+          <path class="hero-sprig-path sprig-leaf-vein" pathLength="1"
+                d="M70 116 C85 114 96 109 103 105"/>
+        </g>
+
+        <!-- young crown — two cotyledon leaves open in a V at the tip -->
+        <g class="sprig-leaf" data-ox="70" data-oy="98" data-side="left">
+          <path class="hero-sprig-path sprig-leaf-blade" pathLength="1"
+                d="M70 98 C59 86 51 76 48 64 C56 76 64 88 70 98 Z"/>
+          <path class="hero-sprig-path sprig-leaf-vein" pathLength="1"
+                d="M70 98 C60 88 54 79 50 68"/>
+        </g>
+        <g class="sprig-leaf" data-ox="70" data-oy="98" data-side="right">
+          <path class="hero-sprig-path sprig-leaf-blade" pathLength="1"
+                d="M70 98 C81 86 89 76 92 64 C84 76 76 88 70 98 Z"/>
+          <path class="hero-sprig-path sprig-leaf-vein" pathLength="1"
+                d="M70 98 C80 88 86 79 90 68"/>
+        </g>
+
+        <!-- the growing tip curl — inks in last -->
+        <path class="hero-sprig-path sprig-nub" pathLength="1"
+              d="M70 98 C70 90 69 82 72 76 C73 73 71 70 68 71"/>
+
+      </g>
     </svg>
 
     <!-- COPY: studio location overlaid on video — src/data/homepage.js → hero.mediaTag -->
