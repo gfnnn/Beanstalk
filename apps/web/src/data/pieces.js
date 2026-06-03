@@ -13,7 +13,8 @@
 //   subject     What the piece depicts — feeds alt text   (COPY, e.g. "foxglove")
 //   styles      Array of style tokens. A piece can be MORE THAN ONE — it shows
 //               under every matching style chip. Tokens must match the chip
-//               data-filter values: fine-line · botanical · blackwork · script · colour
+//               data-filter values:
+//               fine-line · botanical · black-grey · illustrative · dotwork · colour · script
 //   placement   Single placement token, matches the placement <select> options:
 //               forearm · wrist · back · spine · leg · chest · hand
 //   order       Sortable integer (higher = newer). Drives the Newest/Oldest sort
@@ -41,20 +42,23 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const pieces = [
-  { slug: '[slug-01]', title: '[Tattoo title]', subject: '[subject]', styles: ['fine-line'],            placement: 'forearm', order: 20260516, tone: 't-moss',  glyph: 'sprig',    ph: 340, img: null, w: null, h: null },
-  { slug: '[slug-02]', title: '[Tattoo title]', subject: '[subject]', styles: ['blackwork'],            placement: 'wrist',   order: 20260514, tone: 't-ink',   glyph: 'moth',     ph: 260, img: null, w: null, h: null },
-  { slug: '[slug-03]', title: '[Tattoo title]', subject: '[subject]', styles: ['botanical', 'fine-line'], placement: 'spine',   order: 20260511, tone: 't-sage',  glyph: 'leaf',     ph: 420, img: null, w: null, h: null },
-  { slug: '[slug-04]', title: '[Tattoo title]', subject: '[subject]', styles: ['fine-line'],            placement: 'wrist',   order: 20260508, tone: 't-cream', glyph: 'waves',    ph: 300, img: null, w: null, h: null },
-  { slug: '[slug-05]', title: '[Tattoo title]', subject: '[subject]', styles: ['blackwork'],            placement: 'chest',   order: 20260505, tone: 't-dark',  glyph: 'branch',   ph: 380, img: null, w: null, h: null },
-  { slug: '[slug-06]', title: '[Tattoo title]', subject: '[subject]', styles: ['botanical'],            placement: 'forearm', order: 20260429, tone: 't-warm',  glyph: 'mushroom', ph: 290, img: null, w: null, h: null },
-  { slug: '[slug-07]', title: '[Tattoo title]', subject: '[subject]', styles: ['fine-line'],            placement: 'back',    order: 20260422, tone: 't-blush', glyph: 'waves',    ph: 360, img: null, w: null, h: null },
-  { slug: '[slug-08]', title: '[Tattoo title]', subject: '[subject]', styles: ['script'],               placement: 'wrist',   order: 20260415, tone: 't-stone', glyph: 'sprig',    ph: 240, img: null, w: null, h: null },
-  { slug: '[slug-09]', title: '[Tattoo title]', subject: '[subject]', styles: ['botanical'],            placement: 'leg',     order: 20260408, tone: 't-deep',  glyph: 'wheat',    ph: 440, img: null, w: null, h: null },
-  { slug: '[slug-10]', title: '[Tattoo title]', subject: '[subject]', styles: ['blackwork', 'fine-line'], placement: 'forearm', order: 20260401, tone: 't-ink',   glyph: 'branch',   ph: 310, img: null, w: null, h: null },
-  { slug: '[slug-11]', title: '[Tattoo title]', subject: '[subject]', styles: ['fine-line'],            placement: 'spine',   order: 20260325, tone: 't-moss',  glyph: 'sprig',    ph: 390, img: null, w: null, h: null },
-  { slug: '[slug-12]', title: '[Tattoo title]', subject: '[subject]', styles: ['colour'],               placement: 'forearm', order: 20260318, tone: 't-clay',  glyph: 'mushroom', ph: 270, img: null, w: null, h: null },
-  { slug: '[slug-13]', title: '[Tattoo title]', subject: '[subject]', styles: ['botanical'],            placement: 'hand',    order: 20260311, tone: 't-sage',  glyph: 'lily',     ph: 320, img: null, w: null, h: null },
-  { slug: '[slug-14]', title: '[Tattoo title]', subject: '[subject]', styles: ['blackwork'],            placement: 'leg',     order: 20260304, tone: 't-dark',  glyph: 'leaf',     ph: 460, img: null, w: null, h: null },
-  { slug: '[slug-15]', title: '[Tattoo title]', subject: '[subject]', styles: ['fine-line', 'colour'],  placement: 'chest',   order: 20260225, tone: 't-cream', glyph: 'waves',    ph: 280, img: null, w: null, h: null },
-  { slug: '[slug-16]', title: '[Tattoo title]', subject: '[subject]', styles: ['botanical'],            placement: 'back',    order: 20260218, tone: 't-warm',  glyph: 'branch',   ph: 350, img: null, w: null, h: null },
+  // Placeholder catalogue — subjects/titles are contextual to Roxy's real feed so the
+  // grid reads true to her work; line-art glyphs + no photos mark them as placeholders.
+  // She'll settle the final categories and swap in real images later.
+  { slug: 'foxglove',       title: 'Foxglove',       subject: 'foxglove sprig',           styles: ['fine-line', 'botanical'],     placement: 'forearm', order: 20260516, tone: 't-moss',  glyph: 'sprig',    ph: 340, img: null, w: null, h: null },
+  { slug: 'luna-moth',      title: 'Luna moth',      subject: 'luna moth',                styles: ['black-grey'],                 placement: 'wrist',   order: 20260514, tone: 't-ink',   glyph: 'moth',     ph: 260, img: null, w: null, h: null },
+  { slug: 'trailing-ivy',   title: 'Trailing ivy',   subject: 'trailing ivy',             styles: ['botanical', 'fine-line'],     placement: 'spine',   order: 20260511, tone: 't-sage',  glyph: 'leaf',     ph: 420, img: null, w: null, h: null },
+  { slug: 'wave',           title: 'Wave',           subject: 'breaking wave',            styles: ['fine-line'],                  placement: 'wrist',   order: 20260508, tone: 't-cream', glyph: 'waves',    ph: 300, img: null, w: null, h: null },
+  { slug: 'raven',          title: 'Raven',          subject: 'raven',                    styles: ['black-grey'],                 placement: 'chest',   order: 20260505, tone: 't-dark',  glyph: 'branch',   ph: 380, img: null, w: null, h: null },
+  { slug: 'toadstool',      title: 'Toadstool',      subject: 'toadstool',                styles: ['botanical', 'dotwork'],       placement: 'forearm', order: 20260429, tone: 't-warm',  glyph: 'mushroom', ph: 290, img: null, w: null, h: null },
+  { slug: 'the-fool',       title: 'The Fool',       subject: 'the Fool tarot card',      styles: ['fine-line', 'illustrative'],  placement: 'back',    order: 20260422, tone: 't-blush', glyph: 'waves',    ph: 360, img: null, w: null, h: null },
+  { slug: 'scripture-verse',title: 'Verse',          subject: 'scripture verse',          styles: ['script'],                     placement: 'wrist',   order: 20260415, tone: 't-stone', glyph: 'sprig',    ph: 240, img: null, w: null, h: null },
+  { slug: 'wheat-wildflower',title: 'Wheatfield',    subject: 'wheat and wildflowers',    styles: ['botanical', 'dotwork'],       placement: 'leg',     order: 20260408, tone: 't-deep',  glyph: 'wheat',    ph: 440, img: null, w: null, h: null },
+  { slug: 'otter',          title: 'Otter',          subject: 'otter',                    styles: ['black-grey', 'fine-line'],    placement: 'forearm', order: 20260401, tone: 't-ink',   glyph: 'branch',   ph: 310, img: null, w: null, h: null },
+  { slug: 'wildflower-stem',title: 'Wildflower',     subject: 'wildflower stem',          styles: ['fine-line', 'botanical'],     placement: 'spine',   order: 20260325, tone: 't-moss',  glyph: 'sprig',    ph: 390, img: null, w: null, h: null },
+  { slug: 'storybook-fox',  title: 'Storybook fox',  subject: 'storybook fox',            styles: ['colour', 'illustrative'],     placement: 'forearm', order: 20260318, tone: 't-clay',  glyph: 'mushroom', ph: 270, img: null, w: null, h: null },
+  { slug: 'lily',           title: 'Lily',           subject: 'lily',                     styles: ['botanical'],                  placement: 'hand',    order: 20260311, tone: 't-sage',  glyph: 'lily',     ph: 320, img: null, w: null, h: null },
+  { slug: 'lioness',        title: 'Lioness',        subject: 'lioness',                  styles: ['black-grey', 'illustrative'], placement: 'leg',     order: 20260304, tone: 't-dark',  glyph: 'leaf',     ph: 460, img: null, w: null, h: null },
+  { slug: 'koi',            title: 'Koi',            subject: 'koi',                      styles: ['fine-line', 'colour'],        placement: 'chest',   order: 20260225, tone: 't-cream', glyph: 'waves',    ph: 280, img: null, w: null, h: null },
+  { slug: 'moon-garden',    title: 'Moon garden',    subject: 'moth and moon phases',     styles: ['botanical', 'illustrative'],  placement: 'back',    order: 20260218, tone: 't-warm',  glyph: 'branch',   ph: 350, img: null, w: null, h: null },
 ]
