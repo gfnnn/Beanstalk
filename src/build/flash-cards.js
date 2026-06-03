@@ -8,8 +8,10 @@
 // data-piece/data-price (live) or disabled (pending/claimed).
 
 // Square line-art placeholders, shown until a card has a real `img`. Inner SVG
-// only — wrapped with shared attrs in `placeholder()`.
-const GLYPHS = {
+// only — wrapped with shared attrs in `placeholder()`. Exported so the
+// data-contract tests validate src/data/flash.js against this single source of
+// truth (instead of a hand-maintained copy that drifts).
+export const GLYPHS = {
   sprig:  '<path d="M50 10C35 30 35 50 50 90M50 30L30 35M50 50L25 55M50 70L30 75"/>',
   bud:    '<circle cx="50" cy="50" r="22"/><path d="M50 28L50 12M38 30L50 12L62 30"/>',
   moth:   '<path d="M30 80C30 50 40 30 50 25C60 30 70 50 70 80M35 50C40 45 45 45 50 50C55 45 60 45 65 50"/>',
@@ -24,7 +26,7 @@ const GLYPHS = {
   sprout: '<path d="M50 85L50 50C50 40 40 35 35 25M50 50C50 40 60 35 65 25M50 65C50 55 60 50 70 45"/>',
 }
 
-const STATUS = {
+export const STATUS = {
   available: { cls: 'available',      label: 'Available' },
   pending:   { cls: 'pending',        label: 'Pending'   },
   claimed:   { cls: 'claimed-status', label: 'Claimed'   },

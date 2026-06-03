@@ -9,7 +9,9 @@
 // Line-art placeholders, shown until a piece has a real `img`. Inner SVG only —
 // wrapped with shared attrs in `placeholder()`. Keep the set small; these are
 // throwaway scaffolding that disappears the moment a photo is dropped in.
-const GLYPHS = {
+// Exported so the data-contract tests validate src/data against this single
+// source of truth (instead of a hand-maintained copy that drifts).
+export const GLYPHS = {
   sprig:    '<path d="M50 12C42 32 42 55 50 90C58 55 58 32 50 12Z"/><path d="M50 32L32 37 M50 52L28 57 M50 72L32 77"/>',
   moth:     '<path d="M28 78C28 52 36 32 50 26C64 32 72 52 72 78"/><path d="M34 52C40 46 46 46 50 52C54 46 60 46 66 52"/>',
   leaf:     '<path d="M50 15C35 30 30 50 38 72C44 88 56 88 62 72C70 50 65 30 50 15Z"/><path d="M50 38L50 90 M38 55L62 55"/>',
@@ -23,14 +25,14 @@ const GLYPHS = {
 // Display labels for the tile overlay + alt text. These mirror the example chip /
 // placement labels in the COPY comments; if the artist renames a category, update
 // the chip label in portfolio/index.html and the matching entry here together.
-const STYLE_LABELS = {
+export const STYLE_LABELS = {
   'fine-line': 'Fine line',
   botanical:   'Botanical',
   blackwork:   'Blackwork',
   script:      'Script',
   colour:      'Colour',
 }
-const PLACEMENT_LABELS = {
+export const PLACEMENT_LABELS = {
   forearm: 'Forearm', wrist: 'Wrist', back: 'Back', spine: 'Spine',
   leg: 'Leg', chest: 'Chest', hand: 'Hand',
 }
