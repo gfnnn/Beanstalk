@@ -7,6 +7,7 @@ export function initFlash() {
 
   const cards      = [...grid.querySelectorAll('.flash-card')]
   const emptyState = document.getElementById('flash-empty')
+  const footerCta  = document.querySelector('.flash-cta')
   const filterBar  = document.getElementById('filter-bar')
   const sortSel    = document.getElementById('sort-select')
 
@@ -114,6 +115,10 @@ export function initFlash() {
       emptyState.classList.toggle('visible', visible === 0)
       emptyState.style.display = visible === 0 ? 'block' : 'none'
     }
+
+    // The empty state already offers a "Start a custom enquiry" CTA, so the
+    // footer CTA would be a redundant second banner — hide it when empty.
+    if (footerCta) footerCta.hidden = visible === 0
   }
 
   // ── Claim modal ───────────────────────────────────────────────────────────
