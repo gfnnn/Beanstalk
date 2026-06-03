@@ -113,32 +113,6 @@
 .map-block:hover .map-embed,
 .map-embed:focus-within { filter: none; }
 
-.map-label {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 7px 11px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: rgba(251,248,238,0.92);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
-  backdrop-filter: blur(4px);
-  transition: background var(--dur), box-shadow var(--dur);
-}
-.map-label:hover {
-  background: var(--bg);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-}
-
 /* ── Accessibility & studio info ─────────────────────────────────────────── */
 .access-block {
   padding: clamp(48px, 6vw, 80px) var(--pad-x);
