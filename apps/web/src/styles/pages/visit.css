@@ -40,6 +40,41 @@
   margin-bottom: clamp(28px, 4vw, 48px);
 }
 
+/* Studio name links to the studio's own Instagram (@tinyknivestattoo) */
+.studio-link {
+  color: inherit;
+  border-bottom: 1px solid rgba(74,93,63,0.35);
+  transition: border-color var(--dur), color var(--dur);
+}
+.studio-link:hover { color: var(--moss); border-color: var(--moss); }
+.studio-link-cue {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* Static welcome signals beneath the address — informational, not interactive */
+.studio-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -16px;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+.studio-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--moss);
+  padding: 6px 11px;
+  border: 1px solid rgba(74,93,63,0.3);
+  border-radius: 100px;
+}
+
 .contact-rows {
   display: flex;
   flex-direction: column;
