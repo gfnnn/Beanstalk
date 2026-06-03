@@ -197,10 +197,13 @@
   background: rgba(251, 248, 238, 0.4);
 }
 
-/* ── Botanical sprig (PLACEHOLDER) — self-draws on load + faint living ink ───
-   §3-A line-drawing + §3-B living ink. Fine cream line over the moss media.
-   Decorative; the artist's real single-path SVG replaces the markup in
-   index.html. Positioned right-of-centre so it clears the bottom-left tag. */
+/* ── Botanical sprig (PLACEHOLDER) — grows on load + faint living ink ────────
+   §3-A line-drawing + §3-B living ink. A seed splits, a stem climbs, leaf pairs
+   unfurl low→high and a young crown pops at the tip (choreographed in
+   animations.js). Fine cream lines over the moss media. Decorative; the artist's
+   real botanical SVG replaces the <g class="hero-sprig-art"> markup in index.html
+   — keep the element classes so the growth timeline still finds its parts.
+   Positioned right-of-centre so it clears the bottom-left tag. */
 .hero-sprig {
   position: absolute;
   right: 14%;
@@ -209,7 +212,7 @@
   width: auto;
   z-index: 1;            /* above the media gradient, below the corner tag (z2) */
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.7;
   filter: none;          /* living-ink displacement added at ≥768px only */
 }
 .hero-sprig-path {
@@ -218,11 +221,17 @@
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  /* Undrawn by default; the draw is added in JS when motion is allowed, so there's
-     no flash of the finished sprig before it inks in. */
+  /* Every part is authored with pathLength="1"; undrawn by default so nothing
+     shows before JS inks it in. When motion is allowed the JS timeline animates
+     stroke-dashoffset → 0 (and unfurls the leaves); the reduced-motion block
+     below resets every path to drawn so the finished sprout shows statically. */
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
+/* Stroke-weight hierarchy so it reads as a real little plant, not wire. */
+.sprig-stem      { stroke-width: 2; }
+.sprig-leaf-vein { stroke-width: 1; opacity: 0.8; }
+.sprig-seed      { stroke-width: 1.3; opacity: 0.85; }
 
 /* Hand-drawn "breathing" only on larger screens (skip the filter on phones —
    displacement maps are GPU-heavy; mobile budget, §6). */

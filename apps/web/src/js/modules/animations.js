@@ -15,7 +15,6 @@ export function initHeroAnimation() {
   const actions = document.querySelectorAll('.hero-actions .btn')
   const notices = document.querySelector('.studio-notices')
   const media   = document.querySelector('.hero-media')
-  const sprig   = document.querySelector('.hero-sprig-path')
 
   if (!heading) return
 
@@ -35,14 +34,12 @@ export function initHeroAnimation() {
   if (actions.length) tl.from(actions, { opacity: 0, y: 14, stagger: 0.1, duration: 0.6 }, '-=0.45')
   if (notices)      tl.from(notices, { opacity: 0, y: 10, duration: 0.6 }, '-=0.35')
 
-  // Botanical sprig inks itself in (§3-A), a slow draw that lingers just past the
-  // text settle. Explicit from:1 so the start state is correct regardless of CSS.
-  if (sprig) {
-    tl.fromTo(sprig,
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 1.9, ease: 'power1.inOut' },
-      0.25)
-  }
+  // Botanical sprout *grows* (§3-A) on its own timeline, independent of the text
+  // beats above so the choreography reads cleanly: seed → stem → leaves → crown,
+  // then it settles into a slow living sway. This is a placeholder whose job is to
+  // show off the motion for the artist, so it leans into GSAP's sequencing,
+  // per-leaf stagger and springy eases rather than a single flat line-draw.
+  growSprout()
 
   // Media column — direction depends on CSS layout at the current viewport
   if (media) {
@@ -57,6 +54,77 @@ export function initHeroAnimation() {
     mm.add('(min-width: 900px)', () => {
       gsap.from(media, { opacity: 0, x: 24, duration: 0.95, ease: 'power2.out', delay: 0.1 })
     })
+  }
+}
+
+// ── Hero sprout growth (placeholder showcase) ─────────────────────────────────
+// Choreographs the botanical placeholder so it actually demonstrates the motion
+// library: a seed splits, the stem climbs, leaf pairs spring open from their stem
+// joints while inking in (staggered low → high), a young crown pops at the tip,
+// then the whole sprig breathes in a slow perpetual sway. Every part self-inks via
+// stroke-dashoffset (paths carry pathLength="1"); the unfurl is transform-only so
+// it stays on the compositor. No-ops if the markup isn't present. Reduced motion is
+// already handled by the early return in initHeroAnimation + the CSS fallback.
+function growSprout() {
+  const svg = document.querySelector('.hero-sprig')
+  if (!svg) return
+
+  const art    = svg.querySelector('.hero-sprig-art')
+  const seed   = svg.querySelectorAll('.sprig-seed')
+  const stem   = svg.querySelector('.sprig-stem')
+  const leaves = gsap.utils.toArray(svg.querySelectorAll('.sprig-leaf'))
+  const nub    = svg.querySelector('.sprig-nub')
+
+  const grow = gsap.timeline({ delay: 0.35 })
+
+  // 1. Seed casing + soil ink in.
+  if (seed.length) {
+    grow.fromTo(seed,
+      { strokeDashoffset: 1, opacity: 0 },
+      { strokeDashoffset: 0, opacity: 0.85, duration: 0.5, ease: 'power1.out' }, 0)
+  }
+
+  // 2. Stem climbs out of the seed.
+  if (stem) {
+    grow.fromTo(stem,
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 1.3, ease: 'power2.out' }, 0.15)
+  }
+
+  // 3. Leaf pairs unfurl as the stem passes them — each springs open from its joint
+  //    (scale + rotate about its stem point) and inks in at the same time.
+  leaves.forEach((leaf, i) => {
+    const ox    = leaf.dataset.ox
+    const oy    = leaf.dataset.oy
+    const fold  = leaf.dataset.side === 'left' ? 40 : -40   // folded toward the stem
+    const crown = leaf.dataset.oy === '98'                  // tip leaves pop livelier
+    const blades = leaf.querySelectorAll('.hero-sprig-path')
+    const at = 0.55 + i * 0.22
+
+    grow.fromTo(leaf,
+      { scale: 0, rotation: fold, svgOrigin: `${ox} ${oy}` },
+      { scale: 1, rotation: 0, duration: 0.8, ease: crown ? 'back.out(2.2)' : 'back.out(1.6)' },
+      at)
+    grow.fromTo(blades,
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 0.6, ease: 'power1.out' },
+      at + 0.05)
+  })
+
+  // 4. The growing tip curl inks in to finish the sprout.
+  if (nub) {
+    grow.fromTo(nub,
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 0.5, ease: 'power1.out' }, '>-0.25')
+  }
+
+  // 5. Settled and grown — a slow living sway from the base, forever (pairs with the
+  //    feTurbulence "living ink" wobble). Small amplitude: felt, not noticed (§0).
+  if (art) {
+    grow.fromTo(art,
+      { rotation: -1.2, svgOrigin: '70 288' },
+      { rotation: 1.2, duration: 6.5, ease: 'sine.inOut', yoyo: true, repeat: -1 },
+      '>-0.1')
   }
 }
 
