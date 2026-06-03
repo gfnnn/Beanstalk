@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Beansprout.ink — monorepo: marketing site (apps/web) + email/form serverless app (apps/functions)",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "apps/*"
   ],
