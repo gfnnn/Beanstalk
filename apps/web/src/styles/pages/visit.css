@@ -169,6 +169,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(32px, 4vw, 64px);
+  max-width: 680px;
 }
 
 .access-card-heading {
@@ -204,7 +205,6 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
   .map-block { min-height: 420px; }
-  .access-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (min-width: 900px) {
@@ -218,7 +218,20 @@
   }
   .contact-rows { margin-top: auto; }
   .contact-row { grid-template-columns: 130px 1fr; gap: 20px; }
-  .access-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Single info card: let it span wider and split the list into two
+     aligned columns so it fills the row instead of leaving dead space.
+     Column flow over 3 rows keeps each column in vertical reading order. */
+  .access-grid { max-width: 940px; }
+  .access-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(3, auto);
+    column-gap: clamp(40px, 5vw, 72px);
+  }
+  /* Close the bottom of both columns (item 3 and item 6). */
+  .access-item:nth-child(3n) { border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 375px) {
