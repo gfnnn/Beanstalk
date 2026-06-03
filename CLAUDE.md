@@ -123,9 +123,41 @@ never work-in-progress.
 3. **One PR per change, squash-merge, delete the branch.**
    `gh pr create` → review the diff → `gh pr merge --squash --delete-branch`. This
    leaves `main` with one tidy commit per feature and no stale branches.
-4. **Never rewrite published history.** No force-pushes to `main`.
+4. **Never rewrite published history on `main`.** No force-pushes to `main`. (Rebasing
+   your *own* feature branch and `--force-with-lease`-ing it is fine and encouraged — see
+   below.)
 
 Commit messages end with `Co-Authored-By: Claude <model> <noreply@anthropic.com>`.
+
+### Working on several features at once (avoid the branch tangle)
+
+Solo work still means multiple features in flight. The failure mode is branches cut from
+`main` that then sit and rot: when one squash-merges, the others fall behind and the
+eventual merge fights conflicts. These rules keep parallel work cheap:
+
+1. **One feature = one worktree = one branch = one PR.** Don't switch branches in the main
+   checkout (stash/checkout churn loses context). Give each in-flight feature its own
+   working copy that shares the one `.git`:
+   ```bash
+   git worktree add ../trees/<feature> -b feat/<feature> origin/main
+   #   → its own folder, own node_modules (npm install once), own dev-server port.
+   git worktree remove ../trees/<feature>   # once the PR is merged
+   ```
+   Worktrees live under `../trees/` (sibling of the repo), never committed.
+2. **Cap in-flight branches at ~2–3.** Don't open a fourth until one merges or is parked.
+3. **Rebase onto `main` daily, and immediately after *any* PR merges.** The moment one PR
+   lands, rebase every other live branch (`git fetch && git rebase origin/main`) so it
+   never drifts. Stale branches are the whole problem; this is the fix.
+4. **Structural refactors run solo.** A change that *moves or renames files* (directory
+   restructures, monorepo splits, mass renames) conflicts with everything. Merge it
+   first, fast, with nothing else open — then branch the rest off the new layout. Never
+   let a structural branch sit for days while content PRs pile up behind it.
+5. **Keep branches small and short-lived** (a day or two). Small diffs rebase clean; long
+   ones don't. CI (`.github/workflows/test.yml`) runs Vitest on every PR — merge on green.
+
+**Resolving a stale branch** (the standard recovery): from its worktree,
+`git fetch && git rebase origin/main`, fix conflicts, `npm test && npm run build`, then
+`git push --force-with-lease`, then `gh pr merge --squash --delete-branch`.
 
 ## Deploy guardrail — do NOT switch the apex domain
 
