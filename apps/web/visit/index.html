@@ -146,9 +146,9 @@
     (Tiny Knives Tattoo · 41 Southgate Street, Winchester · SO23 9EH).
     Keyless Google Maps embed (`output=embed`): pan / zoom / Street View,
     no API token or billing account required, so nothing secret ships in the
-    repo. The corner badge deep-links to the full Google Maps listing for
-    directions. To re-point the studio: update the address in BOTH the iframe
-    `src` query and the badge `href` (they share the same place string).
+    repo. Google's own place card (address, rating, directions) renders in the
+    corner of the embed, so we don't overlay a second one. To re-point the
+    studio: update the address in the iframe `src` query.
   -->
   <div class="map-block">
     <iframe
@@ -159,11 +159,6 @@
       loading="lazy"
       referrerpolicy="no-referrer-when-downgrade"
       allowfullscreen></iframe>
-    <a class="map-label"
-       href="https://www.google.com/maps/search/?api=1&amp;query=Tiny%20Knives%20Tattoo%2C%2041%20Southgate%20Street%2C%20Winchester%20SO23%209EH"
-       target="_blank" rel="noopener noreferrer">
-      41 Southgate St · SO23 9EH ↗
-    </a>
   </div>
 
 </div><!-- /contact-shell -->
