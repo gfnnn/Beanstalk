@@ -22,6 +22,13 @@ import {
   PLACEMENT_LABELS,
 } from '../src/build/portfolio-tiles.js'
 import { GLYPHS as FLASH_GLYPHS_MAP, STATUS } from '../src/build/flash-cards.js'
+import { homepage } from '../src/data/homepage.js'
+
+// Mirrors the tone tokens with CSS rules: .status-pill.{moss|clay|faint} in
+// nav.css and .notice-dot.{moss|clay|faint} in hero.css. An unknown tone falls
+// back to moss in the renderer, so without this guard a typo'd tone would ship
+// the wrong-coloured (or default) light/dot instead of failing CI.
+const TONES = new Set(['moss', 'clay', 'faint'])
 
 const PORTFOLIO_STYLES = new Set(Object.keys(STYLE_LABELS))
 const PORTFOLIO_PLACEMENTS = new Set(Object.keys(PLACEMENT_LABELS))
@@ -80,6 +87,31 @@ describe('flash data (flash.js)', () => {
     if (f.img) {
       expect(typeof f.w, 'width').toBe('number')
       expect(typeof f.h, 'height').toBe('number')
+    }
+  })
+})
+
+describe('homepage data (homepage.js)', () => {
+  it('status uses a known tone and a string label', () => {
+    expect(TONES, `status tone "${homepage.status.tone}"`).toContain(homepage.status.tone)
+    expect(typeof homepage.status.label, 'status label').toBe('string')
+    expect(typeof homepage.status.show, 'status show').toBe('boolean')
+  })
+
+  it('has at most three notice bars', () => {
+    expect(homepage.notices.length).toBeLessThanOrEqual(3)
+  })
+
+  it.each(homepage.notices)('notice "$label" is structurally valid', (n) => {
+    expect(typeof n.show, 'show is a boolean').toBe('boolean')
+    expect(TONES, `notice tone "${n.tone}"`).toContain(n.tone)
+    expect(n.label, 'label').toBeTruthy()
+    expect(typeof n.html, 'html is a string').toBe('string')
+  })
+
+  it('has the hero copy fields the renderer reads', () => {
+    for (const k of ['eyebrow', 'headLead', 'headEm', 'body', 'mediaTag']) {
+      expect(typeof homepage.hero[k], `hero.${k}`).toBe('string')
     }
   })
 })
