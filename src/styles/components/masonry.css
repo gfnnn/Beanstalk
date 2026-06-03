@@ -26,10 +26,11 @@
   width: 100%;
   height: auto;
   display: block;
-  transition: transform 500ms var(--ease);
+  transition: transform 500ms var(--ease), filter 500ms var(--ease);
 }
 .masonry-tile:hover img {
   transform: scale(1.04);
+  filter: brightness(1.04); /* co-timed "light falling on it" nudge (§3-F) */
 }
 
 /* Placeholder — remove when real images are added */

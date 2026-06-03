@@ -59,3 +59,17 @@ html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped  { overflow: hidden; }
 .lenis.lenis-scrolling iframe { pointer-events: none; }
+
+/* ── Global reduced-motion guard ─────────────────────────
+   One rule protects the whole site: near-instant transitions/animations and no
+   smooth scroll. The JS layer (GSAP, Lenis) already bails on this query; this
+   covers all CSS-only motion (hovers, keyframes, ambient loops). View-transition
+   pseudo-elements aren't matched by `*`, so they're handled in atmosphere.css. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
