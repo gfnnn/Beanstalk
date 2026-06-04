@@ -67,20 +67,41 @@ function photo(p, eager) {
       </picture>`
 }
 
-// Placeholder markup — palette swatch + line-art glyph at a fixed height.
+// Single pre-formatted image — used when `img` already carries a file extension
+// (e.g. an artist-exported "/images/tattoos/Koi.webp"). We serve that one file
+// as-is rather than building a multi-size srcset: these are final web exports,
+// not masters to derive 400/800/1200 tiers from. Still ships `width`/`height`
+// so the aspect-ratio box is reserved (no layout shift), and the lightbox reads
+// the same <img> as the responsive path.
+const HAS_EXT = /\.(avif|webp|jpe?g|png)$/i
+function singlePhoto(p, eager) {
+  const loading = eager ? 'eager" fetchpriority="high' : 'lazy'
+  return `<img src="${esc(p.img)}" alt="${esc(altText(p))}"
+             width="${p.w}" height="${p.h}" loading="${loading}" decoding="async">`
+}
+
+// Placeholder markup — palette swatch + line-art glyph. Fills the tile's
+// (uniform 3:4) cell via CSS; no fixed height needed in the grid layout.
 function placeholder(p) {
   const glyph = GLYPHS[p.glyph] || GLYPHS.sprig
-  return `<div class="tile-placeholder ${p.tone}" style="height: ${p.ph}px">
+  return `<div class="tile-placeholder ${p.tone}">
         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${glyph}</svg>
       </div>`
 }
 
+// Grid sort key: the piece's `date` (YYYY-MM-DD) as a comparable integer, e.g.
+// '2025-09-11' → 20250911. Higher = newer. This is the single definition of the
+// ordering — the data file authors a human `date`, this turns it into the sort
+// key, and it's mirrored into `data-order` so the client-side Newest/Oldest sort
+// stays in lockstep with the build-time order. Exported for the data-contract test.
+export const dateKey = p => Number(String(p.date).replace(/-/g, ''))
+
 function tile(p, eager) {
   const dataStyle = p.styles.join(' ')          // space-separated → multi-style filter
   const sub = `${styleLabel(p.styles[0])} · ${placeLabel(p.placement)}`
-  const media = p.img ? photo(p, eager) : placeholder(p)
+  const media = p.img ? (HAS_EXT.test(p.img) ? singlePhoto(p, eager) : photo(p, eager)) : placeholder(p)
   return `    <a href="/portfolio/${esc(p.slug)}/" class="masonry-tile ${p.tone}"
-       data-style="${esc(dataStyle)}" data-placement="${esc(p.placement)}" data-order="${p.order}">
+       data-style="${esc(dataStyle)}" data-placement="${esc(p.placement)}" data-order="${dateKey(p)}">
       ${media}
       <div class="tile-overlay">
         <p class="tile-title">${esc(p.title)}</p>
@@ -90,8 +111,12 @@ function tile(p, eager) {
 }
 
 export function renderPortfolioTiles(pieces) {
-  // Default order = newest first (matches the default Sort option). The first row
-  // (~4 tiles) renders eager so the largest contentful paint isn't lazy.
-  const ordered = [...pieces].sort((a, b) => b.order - a.order)
+  // Newest first by date (matches the default Sort option). Stable: pieces sharing
+  // a date keep the order they're listed in pieces.js. The first row (~4 tiles)
+  // renders eager so the largest contentful paint isn't lazy.
+  const ordered = pieces
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => dateKey(b.p) - dateKey(a.p) || a.i - b.i)
+    .map(o => o.p)
   return ordered.map((p, i) => tile(p, i < 4)).join('\n')
 }

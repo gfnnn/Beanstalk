@@ -43,9 +43,16 @@ describe('portfolio data (pieces.js)', () => {
     expect(new Set(slugs).size).toBe(slugs.length)
   })
 
-  it('has unique order values (so the sort is deterministic)', () => {
-    const orders = pieces.map(p => p.order)
-    expect(new Set(orders).size).toBe(orders.length)
+  it('is authored newest-first by a valid date (drives the default order)', () => {
+    const keys = pieces.map(p => {
+      expect(p.date, `piece ${p.slug} date`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(Number.isNaN(Date.parse(p.date)), `piece ${p.slug} date is real`).toBe(false)
+      return Number(p.date.replace(/-/g, ''))
+    })
+    // The grid sorts by date desc with a stable tiebreak on list order, so same-day
+    // pieces show in the order written here — guard that the file stays newest-first.
+    const sorted = [...keys].sort((a, b) => b - a)
+    expect(keys).toEqual(sorted)
   })
 
   it.each(pieces)('piece $slug is structurally valid', (p) => {
@@ -53,7 +60,7 @@ describe('portfolio data (pieces.js)', () => {
     expect(p.title, 'title').toBeTruthy()
     expect(p.subject, 'subject').toBeTruthy()
     expect(Array.isArray(p.styles) && p.styles.length > 0, 'styles non-empty array').toBe(true)
-    expect(typeof p.order, 'order is a number').toBe('number')
+    expect(p.date, 'date is YYYY-MM-DD').toMatch(/^\d{4}-\d{2}-\d{2}$/)
     p.styles.forEach(s => expect(PORTFOLIO_STYLES, `style "${s}"`).toContain(s))
     expect(PORTFOLIO_PLACEMENTS, `placement "${p.placement}"`).toContain(p.placement)
     expect(PORTFOLIO_GLYPHS, `glyph "${p.glyph}"`).toContain(p.glyph)
