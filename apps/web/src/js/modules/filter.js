@@ -13,6 +13,7 @@ export function initFilter({ resetWindow } = {}) {
   const tiles         = [...grid.querySelectorAll('.masonry-tile')]
   const placementSel  = document.getElementById('placement-filter')
   const sortSel       = document.getElementById('sort-order')
+  const loadMoreSection = document.getElementById('load-more-section')
   const emptyState    = document.getElementById('empty-state')
   const filterSummary = document.getElementById('filter-summary')
   const summaryText   = document.getElementById('summary-text')
@@ -54,23 +55,35 @@ export function initFilter({ resetWindow } = {}) {
 
   // ── Filter application ───────────────────────────────────────────────────
   function applyFilters() {
+    const filtered = activeStyle !== 'all' || activePlacement !== 'all'
     let visible = 0
 
     tiles.forEach(tile => {
-      // Don't reveal tiles that load-more is still hiding
-      if (tile.dataset.shown === 'false') return
-
       const styleMatch     = activeStyle === 'all'     || stylesOf(tile).includes(activeStyle)
       const placementMatch = activePlacement === 'all' || tile.dataset.placement === activePlacement
-      const show = styleMatch && placementMatch
+      const match = styleMatch && placementMatch
+
+      // Unfiltered browse respects the load-more window (show the first page, hide
+      // the rest). An active filter searches the WHOLE catalogue, so a match that
+      // hasn't been paged in yet — e.g. the single Script piece — is still found
+      // instead of falling into a false "no results" empty state.
+      const inWindow = tile.dataset.shown !== 'false'
+      const show = filtered ? match : (match && inWindow)
 
       tile.style.display = show ? '' : 'none'
       if (show) visible++
     })
 
-    if (emptyState)    emptyState.classList.toggle('visible', visible === 0)
+    if (emptyState) emptyState.classList.toggle('visible', visible === 0)
 
-    const filtered = activeStyle !== 'all' || activePlacement !== 'all'
+    // Load-more only paginates the unfiltered grid. While a filter is active every
+    // match is already shown, so hide the control; unfiltered, show it only while
+    // the window is still holding tiles back.
+    if (loadMoreSection) {
+      const moreInWindow = tiles.some(t => t.dataset.shown === 'false')
+      loadMoreSection.style.display = (!filtered && moreInWindow) ? '' : 'none'
+    }
+
     if (filterSummary) filterSummary.classList.toggle('visible', filtered)
     if (summaryText) {
       const parts = []

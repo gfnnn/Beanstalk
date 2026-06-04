@@ -17,12 +17,12 @@ import { flash } from '../src/data/flash.js'
 describe('renderPortfolioTiles', () => {
   const withImage = {
     slug: 's1', title: 'Foxglove', subject: 'foxglove', styles: ['fine-line', 'botanical'],
-    placement: 'forearm', order: 30, tone: 't-moss', glyph: 'sprig', ph: 300,
+    placement: 'forearm', date: '2026-03-01', tone: 't-moss', glyph: 'sprig',
     img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
   const placeholderPiece = {
     slug: 's2', title: 'Moth', subject: 'moth', styles: ['blackwork'],
-    placement: 'wrist', order: 10, tone: 't-ink', glyph: 'moth', ph: 260,
+    placement: 'wrist', date: '2026-01-01', tone: 't-ink', glyph: 'moth',
     img: null, w: null, h: null,
   }
 
@@ -41,17 +41,16 @@ describe('renderPortfolioTiles', () => {
     const html = renderPortfolioTiles([placeholderPiece])
     expect(html).not.toContain('<picture>')
     expect(html).toContain('class="tile-placeholder t-ink"')
-    expect(html).toContain('height: 260px')
     expect(html).toContain('<svg')
   })
 
-  it('sorts tiles by `order` descending (newest first)', () => {
-    const html = renderPortfolioTiles([placeholderPiece, withImage]) // order 10, then 30
+  it('sorts tiles by `date` descending (newest first)', () => {
+    const html = renderPortfolioTiles([placeholderPiece, withImage]) // 2026-01-01, then 2026-03-01
     expect(html.indexOf('/portfolio/s1/')).toBeLessThan(html.indexOf('/portfolio/s2/'))
   })
 
   it('marks only the first four tiles eager for LCP, lazy thereafter', () => {
-    const many = Array.from({ length: 6 }, (_, i) => ({ ...withImage, slug: `p${i}`, order: 100 - i }))
+    const many = Array.from({ length: 6 }, (_, i) => ({ ...withImage, slug: `p${i}`, date: `2026-01-0${i + 1}` }))
     const html = renderPortfolioTiles(many)
     expect(html.match(/fetchpriority="high"/g)).toHaveLength(4)
     expect(html).toContain('loading="lazy"')

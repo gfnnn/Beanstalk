@@ -1,5 +1,12 @@
-/* ── Masonry Grid — mobile-first ─────────────────────────────────────────────
-   2 columns on mobile → 3 tablet → 4 desktop
+/* ── Portfolio Grid — mobile-first ───────────────────────────────────────────
+   2 columns on mobile → 3 tablet → 4 desktop.
+
+   A uniform CSS grid (not multi-column): every tile is the same 3:4 cell, so the
+   reading order is row-major (newest first, left→right) and — crucially — load-
+   more just appends new rows. Multi-column balanced its columns by height, which
+   shuffled already-visible tiles every time more were revealed; a fixed grid never
+   moves a tile once it's placed. All the photos share a 3:4 ratio, so nothing is
+   lost visually; the lightbox shows each image uncropped.
    ─────────────────────────────────────────────────────────────────────────── */
 
 .grid-wrapper {
@@ -7,15 +14,15 @@
 }
 
 .masonry {
-  columns: 2;
-  column-gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
 .masonry-tile {
-  break-inside: avoid;
-  margin-bottom: 8px;
   display: block;
   position: relative;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   border-radius: var(--radius);
   cursor: pointer;
@@ -24,7 +31,8 @@
 
 .masonry-tile img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
   transition: transform 500ms var(--ease), filter 500ms var(--ease);
 }
@@ -33,9 +41,10 @@
   filter: brightness(1.04); /* co-timed "light falling on it" nudge (§3-F) */
 }
 
-/* Placeholder — remove when real images are added */
+/* Placeholder — line-art glyph filling the (3:4) tile cell */
 .tile-placeholder {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -107,13 +116,12 @@
 }
 
 @media (min-width: 900px) {
-  .masonry      { columns: 3; column-gap: 10px; }
-  .masonry-tile { margin-bottom: 10px; }
+  .masonry      { grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tile-title   { font-size: 15px; }
   .tile-overlay { padding: 16px; }
   .grid-wrapper { padding: 32px var(--pad-x) 80px; }
 }
 
 @media (min-width: 1200px) {
-  .masonry { columns: 4; }
+  .masonry { grid-template-columns: repeat(4, 1fr); }
 }
