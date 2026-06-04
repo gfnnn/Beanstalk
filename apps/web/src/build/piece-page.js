@@ -10,9 +10,11 @@
 // emitted assets bypass Vite's HTML transforms, this renders the COMPLETE
 // document — head/SEO, nav status, the shared nav/footer — itself, reusing the
 // same constants/labels as the rest of the site so nothing drifts.
-import { GLYPHS, STYLE_LABELS, PLACEMENT_LABELS, esc, altText, dateKey } from './portfolio-tiles.js'
+import { GLYPHS, STYLE_LABELS, PLACEMENT_LABELS, altText, dateKey } from './portfolio-tiles.js'
+import { esc, HAS_EXT } from './html.js'
 import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE } from './seo.js'
 import { renderStatus } from './homepage.js'
+import { renderPaletteStyle, themeColor } from './palette.js'
 import { homepage } from '../data/homepage.js'
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
@@ -23,7 +25,6 @@ const placeLabel = t => PLACEMENT_LABELS[t] || t
 // `img` may be a final web export carrying its own extension (e.g. "…/Koi.webp")
 // or a base path with no extension (the documented multi-size convention). Mirror
 // the grid renderer: serve a single export as-is, build a srcset otherwise.
-const HAS_EXT = /\.(avif|webp|jpe?g|png)$/i
 const ogImagePath = img => (HAS_EXT.test(img) ? img : `${img}-1200.jpg`)
 
 // Detail-page media: the real photo (single export or responsive <picture>), or
@@ -96,7 +97,8 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
-<meta name="theme-color" content="#F7F1E3">
+<meta name="theme-color" content="${themeColor}">
+${renderPaletteStyle()}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96x96.png" sizes="96x96" type="image/png">
 <link rel="shortcut icon" href="/favicon.ico">

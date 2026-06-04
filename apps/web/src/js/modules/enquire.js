@@ -1,5 +1,6 @@
 import { ENQUIRY_FN_URL as FUNCTION_URL } from './config.js'
 import { track } from './analytics.js'
+import { initStickyShadow } from './sticky.js'
 
 export function initEnquire() {
   const steps = [1, 2, 3, 4].map(n => document.getElementById('step-' + n))
@@ -12,17 +13,7 @@ export function initEnquire() {
   const TOTAL     = 4
 
   // ── Progress bar sticky shadow ─────────────────────────────────────────────
-  const progressWrap = document.getElementById('progress-wrap')
-  if (progressWrap) {
-    const navH = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--nav-h')
-    ) || 65
-    const obs = new IntersectionObserver(
-      ([e]) => progressWrap.classList.toggle('stuck', !e.isIntersecting),
-      { threshold: 1, rootMargin: `-${navH}px 0px 0px 0px` }
-    )
-    obs.observe(progressWrap)
-  }
+  initStickyShadow(document.getElementById('progress-wrap'))
 
   // ── Step management ────────────────────────────────────────────────────────
   function setStep(n) {
@@ -144,6 +135,9 @@ export function initEnquire() {
         // Build via DOM properties — file.name is user-controlled, so never
         // interpolate it into innerHTML (attribute-break / onerror injection).
         const img = document.createElement('img')
+        // Free the blob URL once the browser has the decoded image, so repeated
+        // re-selections don't leak object URLs for the session.
+        img.onload = () => URL.revokeObjectURL(url)
         img.src = url
         img.alt = file.name
         thumb.appendChild(img)

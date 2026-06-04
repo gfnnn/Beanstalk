@@ -19,9 +19,7 @@
 // enquiry function — see ./_shared.js. Uses the global fetch otherwise;
 // @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, rateLimit } from './_shared.js'
-
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+import { corsFor, replyWith, clientIp, rateLimit, EMAIL_RE } from './_shared.js'
 
 export async function handler(event) {
   const cors  = corsFor(event)

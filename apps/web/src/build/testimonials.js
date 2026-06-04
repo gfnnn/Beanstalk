@@ -2,7 +2,7 @@
 // Imported by vite.config.js; replaces the `<!-- testimonials -->` marker in
 // index.html with this output, so the cards ship as static HTML from the single
 // data source (src/data/testimonials.js). Reuses the shared HTML escaper.
-import { esc } from './portfolio-tiles.js'
+import { esc } from './html.js'
 
 export function renderTestimonials(items = []) {
   return items.map(t => {

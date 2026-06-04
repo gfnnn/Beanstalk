@@ -5,6 +5,7 @@
 // the `<!-- pieces:masonry -->` marker in portfolio/index.html with this output,
 // at dev-server load AND in the production build — so tiles ship as static HTML
 // (good for SEO / no-JS / LCP) while staying driven by a single data file.
+import { esc, HAS_EXT } from './html.js'
 
 // Line-art placeholders, shown until a piece has a real `img`. Inner SVG only —
 // wrapped with shared attrs in `placeholder()`. Keep the set small; these are
@@ -42,13 +43,6 @@ export const PLACEMENT_LABELS = {
 export const styleLabel = t => STYLE_LABELS[t] || t
 export const placeLabel = t => PLACEMENT_LABELS[t] || t
 
-// Escape for text content and double-quoted attribute values.
-export const esc = s => String(s ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-
 // Alt text formula (kept consistent for SEO): "<style> tattoo of <subject> on <placement>"
 export const altText = p =>
   `${styleLabel(p.styles[0])} tattoo of ${p.subject} on ${placeLabel(p.placement)}`
@@ -73,7 +67,6 @@ function photo(p, eager) {
 // not masters to derive 400/800/1200 tiers from. Still ships `width`/`height`
 // so the aspect-ratio box is reserved (no layout shift), and the lightbox reads
 // the same <img> as the responsive path.
-const HAS_EXT = /\.(avif|webp|jpe?g|png)$/i
 function singlePhoto(p, eager) {
   const loading = eager ? 'eager" fetchpriority="high' : 'lazy'
   return `<img src="${esc(p.img)}" alt="${esc(altText(p))}"

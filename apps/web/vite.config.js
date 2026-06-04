@@ -15,6 +15,7 @@ import {
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody, renderHeroMediaTag,
 } from './src/build/homepage.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
+import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -68,6 +69,27 @@ const generatedGrids = {
         html = html.replace('<!-- homepage:specialisms -->', () => renderSpecialisms(pieces, homepage.specialisms))
       }
       return html
+    },
+  },
+}
+
+// Inject the active colour palette (src/data/palette.js) as CSS custom properties
+// into every page's <head>, in dev AND build, so the whole site's colours come
+// from that one content file. Also points the theme-color meta at the palette
+// background. Idempotent: piece pages render their own <head> (with the palette
+// already in it), so the `id="palette"` guard stops a double-inject in dev.
+const palette = {
+  name: 'beansprout-palette',
+  transformIndexHtml: {
+    order: 'pre',
+    handler(html) {
+      if (!html.includes('id="palette"')) {
+        html = html.replace('</head>', `  ${renderPaletteStyle()}\n</head>`)
+      }
+      return html.replace(
+        /(<meta\s+name=["']theme-color["']\s+content=)["'][^"']*["']/i,
+        `$1"${themeColor}"`,
+      )
     },
   },
 }
@@ -153,7 +175,7 @@ const sitemap = {
 
 export default defineConfig({
   root: '.',
-  plugins: [generatedGrids, seoHead, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {

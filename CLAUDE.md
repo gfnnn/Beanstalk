@@ -268,4 +268,16 @@ Warm earthy palette (cream `#F7F1E3`, moss `#4A5D3F`, clay `#C45A3E`, ink `#2C2A
 with Fraunces (serif display) / Karla (sans body) / JetBrains Mono (labels). Reuse the
 shared nav, footer, button, and JS-module patterns across pages. Placeholder copy is
 marked `<!-- COPY: -->`; image placeholders carry shoot briefs in HTML comments.
+
+**Colour lives in one place — `apps/web/src/data/palette.js`.** No CSS hard-codes a
+colour; every rule reads a CSS custom property (`var(--moss)`, `rgba(var(--ink-rgb),
+…)`, the `--tone-*` swatch trios). `src/build/palette.js` generates those properties
+from the **active** palette in that data file and the `palette` plugin in
+`vite.config.js` injects them into every page's `<head>` (dev + build) and points the
+`theme-color` meta at the palette background. To recolour the whole site, switch
+`active` (or edit a palette's hexes) and rebuild — it's content, like `homepage.js`.
+Add a palette by copying a block; keep its `colors`/`tones` keys in step with the
+others so a switch can't leave a token undefined. The decorative tile/flash/hero
+gradient swatches are defined once in `styles/components/tones.css` from the `tones`
+group — never reintroduce the per-surface `.t-*`/`.ci-*`/`.gradient-*` copies.
 </content>

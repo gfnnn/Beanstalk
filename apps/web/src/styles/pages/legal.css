@@ -82,7 +82,7 @@
 
 .legal-section a {
   color: var(--moss);
-  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.35);
   transition: border-color var(--dur);
 }
 .legal-section a:hover { border-color: var(--moss); }

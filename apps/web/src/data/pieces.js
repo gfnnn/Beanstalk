@@ -26,6 +26,7 @@
 // PLACEHOLDER FIELDS (used only until a real photo exists)
 //   tone        Palette swatch class shown behind/while loading: t-moss · t-cream
 //               · t-ink · t-sage · t-clay · t-warm · t-deep · t-blush · t-stone · t-dark
+//               (the swatch COLOURS are defined in src/data/palette.js → `tones`)
 //   glyph       Which line-art placeholder to draw (see GLYPHS in
 //               src/build/portfolio-tiles.js): sprig·moth·leaf·mushroom·waves·wheat·lily·branch
 //

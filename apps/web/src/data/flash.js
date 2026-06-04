@@ -24,6 +24,7 @@
 //
 // PLACEHOLDER FIELDS (until a real photo exists)
 //   tone        Square placeholder tint: ci-moss·ci-sage·ci-cream·ci-warm·ci-blush·ci-ink·ci-deep·ci-clay
+//               (the swatch COLOURS are defined in src/data/palette.js → `tones`)
 //   glyph       Line-art placeholder (see GLYPHS in src/build/flash-cards.js)
 //
 // IMAGE FIELDS — fill in to swap the placeholder for a real square photo

@@ -1,0 +1,22 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Decorative tone swatches — the gradients behind image-less portfolio tiles,
+   flash cards and the homepage hero tiles (they disappear once a real photo is
+   set). One definition per tone, shared by all three surfaces:
+     .t-<tone>        portfolio masonry tiles + about-page mini grid (pieces.js)
+     .ci-<tone>       flash cards (flash.js)
+     .gradient-<tone> homepage hero tiles (hard-coded in index.html)
+   The colours come from the active palette via the --tone-* custom properties
+   that src/build/palette.js injects — edit src/data/palette.js, never the hexes
+   here. (This file used to live, duplicated and drifting, across masonry.css,
+   gallery.css, flash.css and about.css.)
+   ───────────────────────────────────────────────────────────────────────────── */
+.t-moss,  .ci-moss,  .gradient-moss  { background: linear-gradient(155deg, var(--tone-moss-from),  var(--tone-moss-to));  color: var(--tone-moss-text); }
+.t-sage,  .ci-sage,  .gradient-sage  { background: linear-gradient(155deg, var(--tone-sage-from),  var(--tone-sage-to));  color: var(--tone-sage-text); }
+.t-warm,  .ci-warm,  .gradient-warm  { background: linear-gradient(155deg, var(--tone-warm-from),  var(--tone-warm-to));  color: var(--tone-warm-text); }
+.t-cream, .ci-cream, .gradient-cream { background: linear-gradient(155deg, var(--tone-cream-from), var(--tone-cream-to)); color: var(--tone-cream-text); }
+.t-blush, .ci-blush, .gradient-blush { background: linear-gradient(155deg, var(--tone-blush-from), var(--tone-blush-to)); color: var(--tone-blush-text); }
+.t-clay,  .ci-clay,  .gradient-clay  { background: linear-gradient(155deg, var(--tone-clay-from),  var(--tone-clay-to));  color: var(--tone-clay-text); }
+.t-ink,   .ci-ink,   .gradient-ink   { background: linear-gradient(155deg, var(--tone-ink-from),   var(--tone-ink-to));   color: var(--tone-ink-text); }
+.t-deep,  .ci-deep,  .gradient-deep  { background: linear-gradient(155deg, var(--tone-deep-from),  var(--tone-deep-to));  color: var(--tone-deep-text); }
+.t-stone, .ci-stone, .gradient-stone { background: linear-gradient(155deg, var(--tone-stone-from), var(--tone-stone-to)); color: var(--tone-stone-text); }
+.t-dark,  .ci-dark,  .gradient-dark  { background: linear-gradient(155deg, var(--tone-dark-from),  var(--tone-dark-to));  color: var(--tone-dark-text); }

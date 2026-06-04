@@ -17,7 +17,7 @@
   transition: box-shadow var(--dur) var(--ease);
 }
 .filter-bar.stuck {
-  box-shadow: 0 4px 20px rgba(44, 42, 36, 0.06);
+  box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06);
 }
 
 /* ── Style chips ─────────────────────────────────────────────────────────── */
@@ -69,7 +69,7 @@
   transition: color var(--dur);
 }
 .chip.active .chip-count {
-  color: rgba(247, 241, 227, 0.5);
+  color: rgba(var(--bg-rgb), 0.5);
 }
 
 /* ── Right cluster ───────────────────────────────────────────────────────── */

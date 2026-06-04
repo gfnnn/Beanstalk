@@ -35,7 +35,7 @@
 .tile-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(transparent 45%, rgba(44, 42, 36, 0.68) 100%);
+  background: linear-gradient(transparent 45%, rgba(var(--ink-rgb), 0.68) 100%);
   opacity: 0;
   transition: opacity var(--dur) var(--ease);
   display: flex;
@@ -49,7 +49,7 @@
 @media (hover: none) {
   .tile-overlay {
     opacity: 1;
-    background: linear-gradient(transparent 55%, rgba(44, 42, 36, 0.55) 100%);
+    background: linear-gradient(transparent 55%, rgba(var(--ink-rgb), 0.55) 100%);
   }
 }
 
@@ -65,7 +65,7 @@
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(251, 248, 238, 0.6);
+  color: rgba(var(--cream-rgb), 0.6);
 }
 
 /* Gradient placeholder swatches */
@@ -78,12 +78,8 @@
 }
 .tile-placeholder svg { width: 36%; height: 36%; opacity: 0.28; }
 
-.gradient-moss  { background: linear-gradient(155deg, #4A5D3F, #6B7E5A 70%); color: #E8E1C9; }
-.gradient-cream { background: linear-gradient(155deg, #DCC9A4, #EFE3C9);       color: #3A3830; }
-.gradient-ink   { background: linear-gradient(155deg, #2C2A24, #4A4640);       color: #CCC5B0; }
-.gradient-sage  { background: linear-gradient(155deg, #8A9A75, #A5B391);       color: #2C2A24; }
-.gradient-clay  { background: linear-gradient(155deg, #C45A3E, #D8775A);       color: #FBF8EE; }
-.gradient-warm  { background: linear-gradient(155deg, #B8987A, #D5B898);       color: #2C2A24; }
+/* Hero tile swatches (.gradient-*) are defined once in components/tones.css,
+   driven by the palette in src/data/palette.js. */
 
 /* Desktop — 3 across, two clean rows of six uniform portrait tiles */
 @media (min-width: 900px) {

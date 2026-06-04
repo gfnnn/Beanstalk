@@ -7,6 +7,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { getStore } from '@netlify/blobs'
 
+// Pragmatic email shape check (one @, a dot in the domain, no whitespace). Shared
+// so the enquiry and newsletter validators agree on what "valid" means.
+export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
 // ── CORS — origin allowlist, not a blanket '*' ──────────────────────────────
 // CORS is browser-enforced (it won't stop a scripted/curl POST — that's what the
 // rate limiter is for), but locking it to known origins removes the casual

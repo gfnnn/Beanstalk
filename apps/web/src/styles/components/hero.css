@@ -110,7 +110,7 @@
 .notice-item a {
   color: var(--moss);
   position: relative;
-  border-bottom: 1px solid rgba(74, 93, 63, 0.25);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.25);
 }
 .notice-item a::after {
   content: '';
@@ -150,7 +150,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(155deg, #4A5D3F 0%, #6B7E5A 45%, #B8A87A 100%);
+  background: linear-gradient(155deg, var(--moss) 0%, var(--moss-mid) 45%, var(--dune) 100%);
   position: relative;
 }
 .video-placeholder::before {
@@ -158,14 +158,14 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 28% 22%, rgba(255,255,255,0.11) 0%, transparent 52%),
-    radial-gradient(ellipse at 78% 82%, rgba(0,0,0,0.22)       0%, transparent 50%);
+    radial-gradient(ellipse at 28% 22%, rgba(var(--white-rgb), 0.11) 0%, transparent 52%),
+    radial-gradient(ellipse at 78% 82%, rgba(var(--black-rgb), 0.22)       0%, transparent 50%);
 }
 .video-placeholder-inner {
   position: relative;
   z-index: 1;
   text-align: center;
-  color: rgba(251, 248, 238, 0.6);
+  color: rgba(var(--cream-rgb), 0.6);
 }
 .video-placeholder-label {
   font-family: var(--mono);
@@ -173,7 +173,7 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   margin-top: 16px;
-  color: rgba(251, 248, 238, 0.4);
+  color: rgba(var(--cream-rgb), 0.4);
 }
 
 .hero-media-tag {
@@ -185,7 +185,7 @@
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(251, 248, 238, 0.65);
+  color: rgba(var(--cream-rgb), 0.65);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -194,7 +194,7 @@
   content: '';
   width: 20px;
   height: 1px;
-  background: rgba(251, 248, 238, 0.4);
+  background: rgba(var(--cream-rgb), 0.4);
 }
 
 /* ── Botanical sprig (PLACEHOLDER) — grows on load + faint living ink ────────

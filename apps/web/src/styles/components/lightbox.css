@@ -7,7 +7,7 @@
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: rgba(44, 42, 36, 0.95);
+  background: rgba(var(--ink-rgb), 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(247, 241, 227, 0.15);
+  color: rgba(var(--bg-rgb), 0.15);
 }
 .lightbox-placeholder svg {
   width: 48px;
@@ -79,7 +79,7 @@
   font-family: var(--serif);
   font-weight: 300;
   font-size: 16px;
-  color: rgba(247, 241, 227, 0.85);
+  color: rgba(var(--bg-rgb), 0.85);
   margin-bottom: 4px;
 }
 .lightbox-caption-sub {
@@ -87,7 +87,7 @@
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(247, 241, 227, 0.4);
+  color: rgba(var(--bg-rgb), 0.4);
 }
 
 /* Close button */
@@ -100,9 +100,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(247, 241, 227, 0.2);
+  border: 1px solid rgba(var(--bg-rgb), 0.2);
   border-radius: 50%;
-  color: rgba(247, 241, 227, 0.8);
+  color: rgba(var(--bg-rgb), 0.8);
   font-size: 18px;
   cursor: pointer;
   transition: border-color var(--dur), color var(--dur), background var(--dur);
@@ -110,9 +110,9 @@
   font-family: var(--sans);
 }
 .lightbox-close:hover {
-  border-color: rgba(247, 241, 227, 0.6);
+  border-color: rgba(var(--bg-rgb), 0.6);
   color: var(--cream);
-  background: rgba(247, 241, 227, 0.08);
+  background: rgba(var(--bg-rgb), 0.08);
 }
 
 /* Prev / Next arrows */
@@ -126,9 +126,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(247, 241, 227, 0.2);
+  border: 1px solid rgba(var(--bg-rgb), 0.2);
   border-radius: 50%;
-  color: rgba(247, 241, 227, 0.8);
+  color: rgba(var(--bg-rgb), 0.8);
   cursor: pointer;
   transition:
     border-color var(--dur),
@@ -143,9 +143,9 @@
 .lightbox-next { right: 8px; }
 .lightbox-prev:hover,
 .lightbox-next:hover {
-  border-color: rgba(247, 241, 227, 0.6);
+  border-color: rgba(var(--bg-rgb), 0.6);
   color: var(--cream);
-  background: rgba(247, 241, 227, 0.08);
+  background: rgba(var(--bg-rgb), 0.08);
   transform: translateY(-50%) scale(1.05);
 }
 
@@ -159,7 +159,7 @@
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(247, 241, 227, 0.35);
+  color: rgba(var(--bg-rgb), 0.35);
   white-space: nowrap;
 }
 
