@@ -28,7 +28,7 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "beansprout"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "a00316e2-098b-46a7-bfd9-5e0facf5275a"
 migrations_dir = "migrations"
 
 # Non-secret vars. Secrets (RESEND_API_KEY, and you may keep the rest as secrets
