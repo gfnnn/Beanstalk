@@ -5,6 +5,7 @@ import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
 import { flash } from './src/data/flash.js'
 import { renderFlashCards } from './src/build/flash-cards.js'
 import { injectSeoHead, renderSitemap } from './src/build/seo.js'
+import { renderNewsletterInline } from './src/build/newsletter-inline.js'
 import { homepage } from './src/data/homepage.js'
 import {
   renderStatus, renderNotices,
@@ -26,6 +27,10 @@ const generatedGrids = {
       }
       if (html.includes('<!-- flash:grid -->')) {
         html = html.replace('<!-- flash:grid -->', () => renderFlashCards(flash))
+      }
+      // Inline newsletter-capture band (homepage / flash / post-enquiry).
+      if (html.includes('<!-- newsletter:inline -->')) {
+        html = html.replace('<!-- newsletter:inline -->', () => renderNewsletterInline())
       }
       // Homepage content (src/data/homepage.js). The nav status "light" markers
       // live on every page; the hero/notice markers only on the homepage.
