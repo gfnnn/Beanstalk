@@ -24,6 +24,7 @@
 @import './pages/services.css';
 @import './pages/legal.css';
 @import './pages/newsletter.css';
+@import './pages/piece.css';
 
 /* Global overlay layer — paper grain + page transitions (loads last) */
 @import './components/atmosphere.css';
