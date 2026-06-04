@@ -153,17 +153,45 @@ Do this on the Pages project URL **before** any apex change. The fastest loop is
 - [ ] **Enable GitHub Pages** — Settings → Pages → Source = **GitHub Actions**.
       Safe now: the apex `CNAME` has been removed (Phase 6), so Pages serves only on
       the `*.github.io` URL until the deliberate cutover. 👤
-- [ ] **Enquiry form** — submit with 1–2 photos → land on `/enquiry-received/`,
-      email arrives at `ARTIST_EMAIL` with attachments, **Reply** goes to the
-      enquirer. 👤
-- [ ] **Flash claim** — claim a piece → email arrives; the piece flips to
-      pending/claimed on the grid (verify double-claim is rejected). 👤
-- [ ] **Newsletter** — sign up → "You're on the list", contact appears in the Resend
-      Audience, consent ledger written. 👤
+- [ ] **End-to-end email test** — the acceptance test below. 👤
 - [ ] **Erasure runbook dry-run** — run an access `SELECT` and the prune preview
       against D1 (the Phase 1 / `DATA-COMPLIANCE.md` path). 👤
 - [ ] **Console clean** — no errors on each page; nav status light, sitemap, robots,
       404 all render. 👤
+
+### End-to-end email test (go-live acceptance)
+
+A repeatable test of the **full email round-trip**. Run it twice:
+- **(a) Staging** — `FROM_EMAIL=onboarding@resend.dev`, `ARTIST_EMAIL=harrisonfisher1990@gmail.com`
+  (Resend's test sender only delivers to the Resend-account owner).
+- **(b) Production** — after the Phase 6 email switch-over, repeat against
+  `https://beansprout.ink` with `FROM_EMAIL=roxy@beansprout.ink` / `ARTIST_EMAIL=roksanaklaudia.z@gmail.com`.
+
+Both runs must pass before the launch is "done":
+
+1. **Enquiry → inbox.** Submit `/enquire/` with 1–2 photos → land on
+   `/enquiry-received/`. Within seconds a "New enquiry — …" email reaches
+   `ARTIST_EMAIL`, **photos attached**, fields laid out.
+2. **Reply path.** Hit **Reply** — the `To:` is the *enquirer's* address (the form's
+   `reply_to`), not the Worker. Send it; confirm it reaches the address you entered.
+   *(Production: replies go out as `roxy@beansprout.ink` via Gmail "Send mail as" —
+   `EMAIL-DOMAIN-SETUP.md` Step 2.)*
+3. **Flash claim → inbox.** Claim a `/flash/` piece → a "Flash claim — …" email
+   arrives; reload the grid → the piece reads claimed; a second claim is rejected (409).
+4. **Newsletter → Audience.** Sign up at `/newsletter/` → the contact appears in the
+   Resend Audience and a row lands in the `newsletter_consent` D1 table.
+5. **Source-of-truth (independent of mail).** D1 console:
+   `SELECT id, kind, email, email_status FROM submissions ORDER BY received_at DESC;`
+   — each test submission is present with `email_status = 'sent'` (persist-before-email
+   means the row exists even if delivery fails — so this isolates *send* from *deliver*).
+6. **Deliverability (production run only).** Confirm the email lands in the **inbox,
+   not spam**, and that auth passes (Gmail → "Show original" → `SPF`/`DKIM`/`DMARC`
+   all **PASS**). If it spams, re-check the Resend domain verification + the DMARC
+   record (`EMAIL-DOMAIN-SETUP.md`).
+
+If a row shows `email_status = 'failed'`, `wrangler tail` (or the Worker's
+Observability → Logs) shows the Resend response — usually an unverified domain or a
+bad key.
 
 ---
 
