@@ -43,7 +43,7 @@
 /* Studio name links to the studio's own Instagram (@tinyknivestattoo) */
 .studio-link {
   color: inherit;
-  border-bottom: 1px solid rgba(74,93,63,0.35);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.35);
   transition: border-color var(--dur), color var(--dur);
 }
 .studio-link:hover { color: var(--moss); border-color: var(--moss); }
@@ -71,7 +71,7 @@
   text-transform: uppercase;
   color: var(--moss);
   padding: 6px 11px;
-  border: 1px solid rgba(74,93,63,0.3);
+  border: 1px solid rgba(var(--moss-rgb), 0.3);
   border-radius: 100px;
 }
 
@@ -106,7 +106,7 @@
 .contact-row-val span { color: var(--ink-soft); font-size: 13px; display: block; }
 .contact-row-val a {
   color: var(--moss);
-  border-bottom: 1px solid rgba(74,93,63,0.35);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.35);
   transition: border-color var(--dur);
 }
 .contact-row-val a:hover { border-color: var(--moss); }
@@ -118,7 +118,7 @@
   font-weight: 300;
   color: var(--ink-soft);
 }
-.booking-note a { color: var(--clay); border-bottom: 1px solid rgba(196,90,62,0.35); }
+.booking-note a { color: var(--clay); border-bottom: 1px solid rgba(var(--clay-rgb), 0.35); }
 .booking-note a:hover { border-color: var(--clay); }
 
 /* ── Map block ───────────────────────────────────────────────────────────── */

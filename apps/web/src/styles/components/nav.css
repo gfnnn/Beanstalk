@@ -42,7 +42,7 @@
     border-color var(--dur) var(--ease);
 }
 .nav.scrolled {
-  box-shadow: 0 2px 20px rgba(44, 42, 36, 0.07);
+  box-shadow: 0 2px 20px rgba(var(--ink-rgb), 0.07);
   border-bottom-color: var(--line);
 }
 
@@ -148,7 +148,7 @@
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 16px 48px rgba(44, 42, 36, 0.12);
+  box-shadow: 0 16px 48px rgba(var(--ink-rgb), 0.12);
   padding: 8px;
   opacity: 0;
   pointer-events: none;

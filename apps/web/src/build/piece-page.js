@@ -14,6 +14,7 @@ import { GLYPHS, STYLE_LABELS, PLACEMENT_LABELS, altText, dateKey } from './port
 import { esc, HAS_EXT } from './html.js'
 import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE } from './seo.js'
 import { renderStatus } from './homepage.js'
+import { renderPaletteStyle, themeColor } from './palette.js'
 import { homepage } from '../data/homepage.js'
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
@@ -96,7 +97,8 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
-<meta name="theme-color" content="#F7F1E3">
+<meta name="theme-color" content="${themeColor}">
+${renderPaletteStyle()}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96x96.png" sizes="96x96" type="image/png">
 <link rel="shortcut icon" href="/favicon.ico">

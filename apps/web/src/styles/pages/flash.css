@@ -29,8 +29,8 @@
 
 .flash-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(44, 42, 36, 0.22);
-  box-shadow: 0 12px 32px rgba(44, 42, 36, 0.08);
+  border-color: rgba(var(--ink-rgb), 0.22);
+  box-shadow: 0 12px 32px rgba(var(--ink-rgb), 0.08);
 }
 
 /* Claimed state — dimmed, non-interactive, stamp over image */
@@ -55,7 +55,7 @@
   color: var(--clay);
   border: 1.5px solid var(--clay);
   padding: 5px 16px;
-  background: rgba(251, 248, 238, 0.9);
+  background: rgba(var(--cream-rgb), 0.9);
   white-space: nowrap;
   z-index: 1;
 }
@@ -96,15 +96,8 @@
 }
 .flash-card .card-image img { object-fit: cover; }
 
-/* Image placeholder tints — reuse studio tile colours */
-.ci-moss  { background: linear-gradient(155deg, #4A5D3F, #6B7E5A); color: #E8E1C9; }
-.ci-sage  { background: linear-gradient(155deg, #8A9A75, #A5B391); color: #2C2A24; }
-.ci-cream { background: linear-gradient(155deg, #DCC9A4, #EFE3C9); color: #3A3830; }
-.ci-warm  { background: linear-gradient(155deg, #B8987A, #D5B898); color: #2C2A24; }
-.ci-blush { background: linear-gradient(155deg, #D8B5A0, #E8C8B0); color: #2C2A24; }
-.ci-ink   { background: linear-gradient(155deg, #2C2A24, #4A4640); color: #DDD3BD; }
-.ci-deep  { background: linear-gradient(155deg, #36473F, #56685A); color: #E8E1C9; }
-.ci-clay  { background: linear-gradient(155deg, #C45A3E, #D8775A); color: #FBF8EE; }
+/* Image placeholder tints (.ci-*) are defined once in components/tones.css,
+   driven by the palette in src/data/palette.js. */
 
 /* ── Card body ───────────────────────────────────────────────────────────── */
 .flash-card .card-body {
@@ -188,7 +181,7 @@
     background var(--dur) var(--ease),
     transform  var(--dur) var(--ease);
 }
-.claim-btn:hover   { background: #3D3B34; transform: translateY(-1px); }
+.claim-btn:hover   { background: var(--ink-hover); transform: translateY(-1px); }
 .claim-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -251,7 +244,7 @@
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: rgba(44, 42, 36, 0.6);
+  background: rgba(var(--ink-rgb), 0.6);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: flex-end;
@@ -275,7 +268,7 @@
   overflow-y: auto;
   transform: translateY(12px);
   transition: transform 250ms var(--ease);
-  box-shadow: 0 -16px 64px rgba(44, 42, 36, 0.18);
+  box-shadow: 0 -16px 64px rgba(var(--ink-rgb), 0.18);
 }
 .modal-overlay.open .modal { transform: translateY(0); }
 
@@ -355,7 +348,7 @@
 .modal-field textarea:focus {
   outline: none;
   border-color: var(--moss);
-  box-shadow: 0 0 0 3px rgba(74, 93, 63, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--moss-rgb), 0.1);
 }
 .modal-field input::placeholder,
 .modal-field textarea::placeholder { color: var(--ink-faint); }
@@ -425,7 +418,7 @@
   .modal {
     border-radius: var(--radius);
     max-width: 520px;
-    box-shadow: 0 32px 80px rgba(44, 42, 36, 0.2);
+    box-shadow: 0 32px 80px rgba(var(--ink-rgb), 0.2);
   }
   .modal-header { padding: 24px 28px 20px; }
   .modal-body   { padding: 28px 28px 0; }

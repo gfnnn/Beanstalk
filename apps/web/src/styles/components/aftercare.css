@@ -81,7 +81,7 @@
 .choice-card:hover {
   border-color: var(--moss-soft);
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(44, 42, 36, 0.07);
+  box-shadow: 0 10px 30px rgba(var(--ink-rgb), 0.07);
 }
 .choice-card:focus-visible {
   outline: 2px solid var(--moss);
@@ -200,7 +200,7 @@
 }
 .chooser-foot a {
   color: var(--moss);
-  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.35);
   transition: border-color var(--dur);
 }
 .chooser-foot a:hover { border-color: var(--moss); }
@@ -220,7 +220,7 @@
   transition: box-shadow var(--dur) var(--ease), opacity 360ms var(--ease);
 }
 .care-switch-wrap.shown { opacity: 1; }
-.care-switch-wrap.stuck { box-shadow: 0 4px 20px rgba(44, 42, 36, 0.06); }
+.care-switch-wrap.stuck { box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06); }
 
 .care-switch {
   display: flex;
@@ -372,7 +372,7 @@
 }
 .step-text a {
   color: var(--moss);
-  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.35);
   transition: border-color var(--dur);
 }
 .step-text a:hover { border-color: var(--moss); }
@@ -462,7 +462,7 @@
 }
 .rule-body a {
   color: var(--moss);
-  border-bottom: 1px solid rgba(74, 93, 63, 0.35);
+  border-bottom: 1px solid rgba(var(--moss-rgb), 0.35);
   transition: border-color var(--dur);
 }
 .rule-body a:hover { border-color: var(--moss); }
