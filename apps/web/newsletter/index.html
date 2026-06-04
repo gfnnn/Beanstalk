@@ -149,7 +149,7 @@
 
   <!-- Signup card -->
   <section class="signup-card" aria-labelledby="signup-title">
-    <form id="newsletter-form" novalidate>
+    <form id="newsletter-form" data-newsletter data-nl-success="#newsletter-success" novalidate>
       <h2 class="signup-card-title" id="signup-title">Join the <em>list.</em></h2>
       <p class="signup-card-sub">Pop your email in below. That's all it takes.</p>
 
@@ -181,7 +181,7 @@
         Subscribe
       </button>
 
-      <p class="signup-feedback" id="newsletter-feedback" role="alert" hidden></p>
+      <p class="signup-feedback" id="newsletter-feedback" data-nl-feedback role="alert" hidden></p>
 
       <p class="signup-fineprint">
         We use your email only to send the newsletter. No sharing, no spam.

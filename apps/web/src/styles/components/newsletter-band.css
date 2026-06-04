@@ -1,0 +1,69 @@
+/* ── Inline newsletter band ──────────────────────────────────────────────────
+   Reusable signup surface dropped into the homepage, flash and post-enquiry
+   pages at the `<!-- newsletter:inline -->` marker (src/build/newsletter-inline.js).
+   Copy column left, compact form right; stacks on mobile. Reuses the .signup-*
+   field/consent/feedback/success styles from pages/newsletter.css. */
+.newsletter-band {
+  background: var(--moss-bg);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: clamp(40px, 6vw, 72px) var(--pad-x);
+}
+
+.newsletter-band-inner {
+  max-width: var(--max-w, 1200px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 4vw, 48px);
+}
+
+/* Copy column */
+.newsletter-band-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(26px, 4vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 8px 0 12px;
+}
+.newsletter-band-title em { font-style: italic; color: var(--moss); }
+.newsletter-band-sub {
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 460px;
+}
+
+/* Form column */
+.newsletter-band-form { align-self: center; }
+
+/* Email + submit sit on one row from tablet up; the label sits above the input,
+   so bottom-align the button with the input. */
+.newsletter-band-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.newsletter-band-row .signup-field { margin-bottom: 0; flex: 1 1 auto; }
+.newsletter-band-row .signup-submit { width: 100%; }
+
+.newsletter-band .signup-success { text-align: left; }
+.newsletter-band .signup-success-mark { margin-left: 0; }
+
+/* ── Tablet+ ─────────────────────────────────────────────────────────────── */
+@media (min-width: 700px) {
+  .newsletter-band-row { flex-direction: row; align-items: flex-end; }
+  .newsletter-band-row .signup-submit { width: auto; white-space: nowrap; }
+}
+
+/* ── Desktop two-column ──────────────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .newsletter-band-inner {
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(48px, 6vw, 88px);
+    align-items: center;
+  }
+}

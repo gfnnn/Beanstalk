@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
 import { renderFlashCards } from '../src/build/flash-cards.js'
+import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import {
   renderStatus, renderNotices,
   renderHeroHeadline, renderHeroBody,
@@ -190,5 +191,31 @@ describe('renderHero copy', () => {
 
   it('escapes the hero body', () => {
     expect(renderHeroBody({ body: 'a <script>x</script> b' })).not.toContain('<script>')
+  })
+})
+
+describe('renderNewsletterInline', () => {
+  const html = renderNewsletterInline()
+
+  it('renders a data-newsletter form the JS module can drive', () => {
+    expect(html).toContain('form')
+    expect(html).toContain('data-newsletter')
+    // email + consent inputs the module validates
+    expect(html).toContain('name="email"')
+    expect(html).toContain('name="consent"')
+    expect(html).toContain('type="submit"')
+  })
+
+  it('wires the success panel + feedback hooks the module looks for', () => {
+    expect(html).toContain('data-nl-feedback')
+    expect(html).toContain('data-nl-success="#nl-band-success"')
+    expect(html).toContain('id="nl-band-success"')
+    // the "already subscribed" note the module reveals on a 409
+    expect(html).toContain('data-already')
+  })
+
+  it('includes the honeypot and the consent privacy link', () => {
+    expect(html).toContain('name="_gotcha"')
+    expect(html).toContain('href="/privacy/"')
   })
 })

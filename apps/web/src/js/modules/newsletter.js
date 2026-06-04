@@ -2,25 +2,38 @@ import { NEWSLETTER_FN_URL } from './config.js'
 import { track } from './analytics.js'
 
 // Newsletter signup — POSTs { fields } to the Netlify function, which adds the
-// subscriber to a Resend Audience. No-ops on pages without the form.
-export function initNewsletter() {
-  const form = document.getElementById('newsletter-form')
-  if (!form) return
+// subscriber to a Resend Audience. Drives EVERY `form[data-newsletter]` on the
+// page, so the dedicated /newsletter/ form and the inline capture band (see
+// src/build/newsletter-inline.js) share one implementation. No-ops on pages with
+// no such form. Per-form hooks (all scoped within the form unless noted):
+//   input[name="email"]      the email field
+//   input[name="consent"]    the consent checkbox (optional)
+//   [type="submit"]          the submit button
+//   [data-nl-feedback]       inline error region (role="alert")
+//   data-nl-success="#id"    (on the form) selector for the success panel to
+//                            reveal on success; the form is hidden in its place
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
-  const submitBtn = document.getElementById('newsletter-submit')
-  const feedback  = document.getElementById('newsletter-feedback')
-  const successEl = document.getElementById('newsletter-success')
+export function initNewsletter() {
+  const forms = document.querySelectorAll('form[data-newsletter]')
+  forms.forEach(wireForm)
+}
+
+function wireForm(form) {
+  const submitBtn = form.querySelector('[type="submit"]')
+  const feedback  = form.querySelector('[data-nl-feedback]')
   const consent   = form.querySelector('input[name="consent"]')
   const emailIn   = form.querySelector('input[name="email"]')
+  const successEl = form.dataset.nlSuccess
+    ? document.querySelector(form.dataset.nlSuccess)
+    : null
 
-  const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-
-  function showError(msg) {
+  const showError = msg => {
     if (!feedback) return
     feedback.textContent = msg
     feedback.hidden = false
   }
-  function clearError() {
+  const clearError = () => {
     if (!feedback) return
     feedback.textContent = ''
     feedback.hidden = true
@@ -58,7 +71,8 @@ export function initNewsletter() {
       if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
       track('newsletter_signup', { already: !!json.already })
-      // Success — swap the form for the confirmation panel.
+
+      // Success — swap the form for its confirmation panel.
       if (successEl) {
         if (json.already) {
           const note = successEl.querySelector('[data-already]')
@@ -67,6 +81,12 @@ export function initNewsletter() {
         form.hidden = true
         successEl.hidden = false
         successEl.focus?.()
+      } else {
+        // No panel wired — fall back to an inline confirmation in the feedback slot.
+        if (feedback) {
+          feedback.textContent = 'You’re on the list — thanks for signing up.'
+          feedback.hidden = false
+        }
       }
     } catch (err) {
       console.error('Newsletter signup error:', err)
