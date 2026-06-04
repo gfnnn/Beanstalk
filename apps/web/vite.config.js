@@ -106,6 +106,7 @@ export default defineConfig({
         privacy:  resolve(__dirname, 'privacy/index.html'),
         terms:    resolve(__dirname, 'terms/index.html'),
         newsletter: resolve(__dirname, 'newsletter/index.html'),
+        notfound: resolve(__dirname, '404.html'),
       }
     }
   },

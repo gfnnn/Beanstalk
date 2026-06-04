@@ -1,4 +1,5 @@
 import { NEWSLETTER_FN_URL } from './config.js'
+import { track } from './analytics.js'
 
 // Newsletter signup — POSTs { fields } to the Netlify function, which adds the
 // subscriber to a Resend Audience. No-ops on pages without the form.
@@ -56,6 +57,7 @@ export function initNewsletter() {
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
+      track('newsletter_signup', { already: !!json.already })
       // Success — swap the form for the confirmation panel.
       if (successEl) {
         if (json.already) {

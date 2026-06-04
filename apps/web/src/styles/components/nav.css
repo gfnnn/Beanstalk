@@ -1,3 +1,25 @@
+/* ── Skip link — first focusable element on every page ──────────────────────
+   Visually hidden until focused, then slides into the top-left. Lets keyboard
+   users jump past the nav straight to the page's main content. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -56px;
+  z-index: 300;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: var(--radius);
+  font: 500 14px/1 var(--mono);
+  text-decoration: none;
+  transition: top 150ms ease;
+}
+.skip-link:focus {
+  top: 8px;
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
+
 /* ── Nav — mobile-first ─────────────────────────────────────────────────────
    Mobile:  hamburger + slide-down drawer (default)
    Desktop: inline links + More dropdown at min-width 900px

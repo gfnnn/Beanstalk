@@ -17,11 +17,13 @@
 // newsletter function — see ./_shared.js. Otherwise uses the global fetch in
 // Netlify's Node runtime; @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, rateLimit } from './_shared.js'
+import { corsFor, replyWith, clientIp, rateLimit, persistSubmission } from './_shared.js'
 
 // Kept comfortably under Netlify's ~6 MB synchronous request-body cap.
 const MAX_IMAGES      = 8
 const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // 5 MB of decoded image data
+const MAX_BODY_BYTES  = 6 * 1024 * 1024 // reject oversized bodies before parsing
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // per-image ceiling (decoded estimate)
 
 // Per-form definition: required fields, consent boxes, whether images apply,
 // the email's section layout, header title, and subject line.
@@ -83,6 +85,12 @@ export async function handler(event) {
     return reply(500, { error: 'The form isn’t configured yet. Please email us directly in the meantime.' })
   }
 
+  // Reject an oversized body BEFORE parsing it — base64 image arrays otherwise
+  // fully materialise in memory before any size check (a cheap parse-bomb).
+  if (typeof event.body === 'string' && event.body.length > MAX_BODY_BYTES) {
+    return reply(413, { error: 'Your request is too large. Please remove some images and try again.' })
+  }
+
   let payload
   try { payload = JSON.parse(event.body || '{}') }
   catch { return reply(400, { error: 'Invalid request.' }) }
@@ -115,9 +123,11 @@ export async function handler(event) {
   const attachments = []
   for (const img of images) {
     if (!img || typeof img.data !== 'string' || !img.data) { skipped++; continue }
+    const bytes = Math.floor(img.data.length * 3 / 4) // base64 → byte estimate
+    if (bytes > MAX_IMAGE_BYTES) { skipped++; continue } // one huge file → drop it
     const sig = sniffImage(img.data)
     if (!sig) { skipped++; continue }   // not a recognised image → drop it
-    total += Math.floor(img.data.length * 3 / 4) // base64 → byte estimate
+    total += bytes
     attachments.push({ filename: safeName(img.name, sig.ext), content: img.data, content_type: sig.type })
   }
   if (total > MAX_TOTAL_BYTES) {
@@ -129,6 +139,23 @@ export async function handler(event) {
   if (!limiter.ok) {
     return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
   }
+
+  // ── Persist first, email second ─────────────────────────────────────────────
+  // The durable record is the source of truth; the email is a best-effort
+  // notification. Persisting before the send means an enquiry survives a Resend
+  // outage (and is recoverable) instead of being silently lost. Image bytes are
+  // not stored — only their count/names — to keep records small.
+  const record = {
+    kind,
+    receivedAt:  new Date().toISOString(),
+    ip:          clientIp(event),
+    fields,
+    imageCount:  attachments.length,
+    imageNames:  attachments.map(a => a.filename),
+    skipped,
+    emailStatus: 'pending',
+  }
+  const submissionId = await persistSubmission(record)
 
   // ── Send via Resend ─────────────────────────────────────────────────────────
   const from = FROM_EMAIL.includes('<') ? FROM_EMAIL : `Beansprout <${FROM_EMAIL}>`
@@ -149,12 +176,15 @@ export async function handler(event) {
     })
     if (!res.ok) {
       console.error('Resend error', res.status, await res.text().catch(() => ''))
+      await persistSubmission({ ...record, emailStatus: 'failed' }, submissionId)
       return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
     }
     await limiter.commit()   // record the successful send against the limits
+    await persistSubmission({ ...record, emailStatus: 'sent' }, submissionId)
     return reply(200, { ok: true })
   } catch (err) {
     console.error('Send failed', err)
+    await persistSubmission({ ...record, emailStatus: 'failed' }, submissionId)
     return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
   }
 }

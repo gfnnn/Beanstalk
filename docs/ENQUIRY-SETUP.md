@@ -146,4 +146,12 @@ The form needs to know the function URL **at build time** (Vite bakes it in).
 - **Field → email mapping.** Each form's layout (required fields, email sections,
   subject) lives in the `FORMS` map in `enquiry.js` — `enquiry` and `flash`. If
   you rename a form field's `name`, update its entry there so it still shows up.
+- **Submissions are persisted, then emailed.** Every valid submission is written
+  to a Netlify Blobs `submissions` store (keyed `enquiry/…` or `flash/…`, with an
+  `emailStatus` of `sent`/`failed`) **before** the Resend call — so an enquiry
+  survives a mail-provider outage and is recoverable, rather than silently lost.
+  Image bytes are not stored, only their count/names. Persistence is best-effort
+  and fails safe (a Blobs outage never blocks a real enquiry). **Follow-up:**
+  records can contain personal/special-category fields (allergies, DOB), so this
+  store needs a retention/erasure policy before launch — see the privacy page.
 - **No secrets in the repo.** Keys live only in Netlify; `.env` is gitignored.
