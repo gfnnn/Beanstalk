@@ -11,7 +11,11 @@ export default defineConfig({
     include: ['tests/**/*.test.js'],
     coverage: {
       provider: 'v8',
-      include: ['src/build/**'],
+      // src/build (renderers/seo/palette) and src/data (content contracts) are
+      // pure Node modules the suites exercise directly. src/js/** is DOM/scroll-
+      // coupled and belongs in a future browser/E2E tier — excluded so it doesn't
+      // skew the report as 0%-covered until that tier exists.
+      include: ['src/build/**', 'src/data/**'],
       reporter: ['text', 'html'],
     },
   },
