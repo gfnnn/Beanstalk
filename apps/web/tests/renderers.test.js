@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
 import { renderFlashCards } from '../src/build/flash-cards.js'
 import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
+import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
 import {
   renderStatus, renderNotices,
   renderHeroHeadline, renderHeroBody,
@@ -217,5 +218,71 @@ describe('renderNewsletterInline', () => {
   it('includes the honeypot and the consent privacy link', () => {
     expect(html).toContain('name="_gotcha"')
     expect(html).toContain('href="/privacy/"')
+  })
+})
+
+describe('renderPiecePage', () => {
+  const withImage = {
+    slug: 'foxglove', title: 'Foxglove', subject: 'foxglove sprig',
+    styles: ['fine-line', 'botanical'], placement: 'forearm', order: 30,
+    tone: 't-moss', glyph: 'sprig', ph: 340, img: '/images/tattoos/foxglove', w: 800, h: 1000,
+  }
+  const placeholder = {
+    slug: 'luna-moth', title: 'Luna moth', subject: 'luna moth', styles: ['black-grey'],
+    placement: 'wrist', order: 10, tone: 't-ink', glyph: 'moth', ph: 260, img: null, w: null, h: null,
+  }
+
+  it('renders a full HTML document with per-piece SEO', () => {
+    const html = renderPiecePage(placeholder, { cssHref: '/x.css', jsHref: '/x.js' })
+    expect(html).toContain('<!DOCTYPE html>')
+    expect(html).toContain('<title>Luna moth · Beansprout</title>')
+    expect(html).toContain('<link rel="canonical" href="https://beansprout.ink/portfolio/luna-moth/">')
+    expect(html).toContain('content="https://beansprout.ink/portfolio/luna-moth/"') // og:url
+    expect(html).toContain('"@type":"BreadcrumbList"')
+    expect(html).toContain('href="/x.css"')
+    expect(html).toContain('src="/x.js"')
+  })
+
+  it('uses the placeholder glyph (no <picture>) and default OG image when img is null', () => {
+    const html = renderPiecePage(placeholder)
+    expect(html).not.toContain('<picture>')
+    expect(html).toContain('class="piece-media-ph t-ink"')
+    expect(html).toContain('/images/og-image.jpg') // falls back to the site OG image
+  })
+
+  it('renders a <picture> and a piece-specific OG image when img is set', () => {
+    const html = renderPiecePage(withImage)
+    expect(html).toContain('<picture>')
+    expect(html).toContain('/images/tattoos/foxglove-1200.jpg')
+    expect(html).toContain('content="https://beansprout.ink/images/tattoos/foxglove-1200.jpg"')
+  })
+
+  it('shows style + placement tags and the enquiry / back CTAs', () => {
+    const html = renderPiecePage(withImage)
+    expect(html).toContain('>Fine line<')
+    expect(html).toContain('>Botanical<')
+    expect(html).toContain('>Forearm<')
+    expect(html).toContain('href="/enquire/"')
+    expect(html).toContain('href="/portfolio/"')
+  })
+
+  it('wires the prev/next pager when neighbours are given', () => {
+    const html = renderPiecePage(withImage, { prev: placeholder, next: null })
+    expect(html).toContain('href="/portfolio/luna-moth/"')      // prev link
+    expect(html).toContain('piece-pager-link is-empty')          // empty next slot
+  })
+})
+
+describe('piecePagesData', () => {
+  const data = [
+    { slug: 'a', order: 10 }, { slug: 'b', order: 30 }, { slug: 'c', order: 20 },
+  ]
+  it('orders newest-first and links each piece to its neighbours', () => {
+    const out = piecePagesData(data)
+    expect(out.map(d => d.piece.slug)).toEqual(['b', 'c', 'a']) // 30, 20, 10
+    expect(out[0].prev).toBeNull()              // newest has no newer
+    expect(out[0].next.slug).toBe('c')
+    expect(out[2].next).toBeNull()              // oldest has no older
+    expect(out[2].prev.slug).toBe('c')
   })
 })

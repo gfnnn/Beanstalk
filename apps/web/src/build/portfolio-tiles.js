@@ -39,18 +39,18 @@ export const PLACEMENT_LABELS = {
   leg: 'Leg', chest: 'Chest', hand: 'Hand',
 }
 
-const styleLabel = t => STYLE_LABELS[t] || t
-const placeLabel = t => PLACEMENT_LABELS[t] || t
+export const styleLabel = t => STYLE_LABELS[t] || t
+export const placeLabel = t => PLACEMENT_LABELS[t] || t
 
 // Escape for text content and double-quoted attribute values.
-const esc = s => String(s ?? '')
+export const esc = s => String(s ?? '')
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
 
 // Alt text formula (kept consistent for SEO): "<style> tattoo of <subject> on <placement>"
-const altText = p =>
+export const altText = p =>
   `${styleLabel(p.styles[0])} tattoo of ${p.subject} on ${placeLabel(p.placement)}`
 
 // Real-photo markup — responsive <picture> with AVIF/WebP + JPEG fallback.

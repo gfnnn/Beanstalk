@@ -1,0 +1,127 @@
+/* ── Portfolio piece detail page (/portfolio/<slug>/) ───────────────────────
+   Rendered from pieces.js by src/build/piece-page.js. Image left, details right
+   on desktop; stacks on mobile. Reuses global tone classes for the placeholder. */
+.piece {
+  padding: clamp(24px, 4vw, 48px) var(--pad-x) clamp(56px, 8vw, 96px);
+  max-width: var(--max-w, 1200px);
+  margin: 0 auto;
+}
+
+.piece-breadcrumb {
+  margin-bottom: clamp(16px, 2.5vw, 28px);
+}
+.piece-breadcrumb a {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.piece-breadcrumb a:hover { color: var(--moss); }
+
+.piece-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 4vw, 56px);
+}
+
+/* Media */
+.piece-media picture,
+.piece-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+.piece-media-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius);
+}
+.piece-media-ph svg {
+  width: 38%;
+  max-width: 180px;
+  opacity: 0.85;
+}
+
+/* Details */
+.piece-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 6px 0 16px;
+}
+.piece-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.piece-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: var(--moss-bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.piece-note {
+  font-size: clamp(15px, 1.7vw, 17px);
+  line-height: 1.65;
+  color: var(--ink-soft);
+  max-width: 460px;
+  margin-bottom: 28px;
+}
+.piece-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Pager */
+.piece-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: clamp(40px, 6vw, 72px);
+  padding-top: clamp(20px, 3vw, 32px);
+  border-top: 1px solid var(--line);
+}
+.piece-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 45%;
+}
+.piece-pager-link.next { text-align: right; align-items: flex-end; }
+.piece-pager-link.is-empty { visibility: hidden; }
+.piece-pager-dir {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.piece-pager-title {
+  font-family: var(--serif);
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--ink);
+}
+.piece-pager-link:hover .piece-pager-title { color: var(--moss); }
+
+/* ── Desktop two-column ──────────────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .piece-layout {
+    grid-template-columns: 1.25fr 1fr;
+    gap: clamp(48px, 6vw, 80px);
+    align-items: start;
+  }
+  .piece-detail { position: sticky; top: calc(var(--nav-h) + 32px); padding-top: 8px; }
+}

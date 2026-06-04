@@ -4,8 +4,9 @@ import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
 import { flash } from './src/data/flash.js'
 import { renderFlashCards } from './src/build/flash-cards.js'
-import { injectSeoHead, renderSitemap } from './src/build/seo.js'
+import { injectSeoHead, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
+import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
 import { homepage } from './src/data/homepage.js'
 import {
   renderStatus, renderNotices,
@@ -72,28 +73,76 @@ const seoHead = {
   },
 }
 
+// One shareable HTML page per portfolio piece at /portfolio/<slug>/ (the masonry
+// tiles already link there). Rendered from pieces.js by src/build/piece-page.js.
+// In dev we serve them from a middleware; at build we emit one HTML file each,
+// pointing at the hashed main bundle (emitted assets skip Vite's HTML transform,
+// so the renderer writes the whole document including SEO + nav status).
+const pieceSlugs = new Set(pieces.map(p => p.slug))
+const piecePages = {
+  name: 'beansprout-piece-pages',
+  configureServer(server) {
+    server.middlewares.use(async (req, res, next) => {
+      const m = /^\/portfolio\/([^/?#]+)\/?(?:[?#].*)?$/.exec(req.url || '')
+      if (!m || !pieceSlugs.has(m[1])) return next()
+      const { piece, prev, next: older } =
+        piecePagesData(pieces).find(d => d.piece.slug === m[1])
+      try {
+        const html = await server.transformIndexHtml(
+          req.url, renderPiecePage(piece, { prev, next: older }),
+        )
+        res.setHeader('Content-Type', 'text/html')
+        res.end(html)
+      } catch (e) { next(e) }
+    })
+  },
+  generateBundle(_, bundle) {
+    // Reference the exact hashed bundle the site ships: the shared chunk is
+    // emitted as assets/main-<hash>.js (+ its main-<hash>.css). Match by filename
+    // — order-independent and avoids the per-page facade chunks (home-*.js etc.)
+    // that Vite eliminates before write.
+    const jsFile  = Object.values(bundle).find(
+      c => c.type === 'chunk' && /(^|\/)main-[\w-]+\.js$/.test(c.fileName),
+    )
+    const cssKey  = Object.keys(bundle).find(f => /(^|\/)main-[\w-]+\.css$/.test(f))
+      || Object.keys(bundle).find(f => f.endsWith('.css'))
+    const jsHref  = jsFile ? '/' + jsFile.fileName : '/src/js/main.js'
+    const cssHref = cssKey ? '/' + cssKey : '/src/styles/main.css'
+    for (const { piece, prev, next } of piecePagesData(pieces)) {
+      this.emitFile({
+        type: 'asset',
+        fileName: `portfolio/${piece.slug}/index.html`,
+        source: renderPiecePage(piece, { prev, next, cssHref, jsHref }),
+      })
+    }
+  },
+}
+
 // Emit /sitemap.xml at build time and serve it from the dev server so it can be
-// verified locally. robots.txt is a static file in public/ (copied as-is).
+// verified locally. Includes the per-piece portfolio routes. robots.txt is a
+// static file in public/ (copied as-is).
+const pieceRoutes = pieces.map(p => ({ path: `/portfolio/${p.slug}/`, priority: '0.6' }))
+const allRoutes = [...ROUTES, ...pieceRoutes]
 const sitemap = {
   name: 'beansprout-sitemap',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
       if (req.url === '/sitemap.xml') {
         res.setHeader('Content-Type', 'application/xml')
-        res.end(renderSitemap())
+        res.end(renderSitemap(allRoutes))
         return
       }
       next()
     })
   },
   generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: renderSitemap() })
+    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: renderSitemap(allRoutes) })
   },
 }
 
 export default defineConfig({
   root: '.',
-  plugins: [generatedGrids, seoHead, sitemap],
+  plugins: [generatedGrids, seoHead, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {
