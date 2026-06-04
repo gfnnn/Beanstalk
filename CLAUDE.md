@@ -65,7 +65,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
 docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  GO-LIVE.md  CMS.md  ROADMAP.md
-.github/workflows/{test.yml, deploy-web.yml, deploy-functions.yml}
+.github/workflows/{test.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
@@ -199,12 +199,13 @@ The two workspaces deploy to **different places**, each gated so only relevant c
   is copied to the site root as-is. **No `public/CNAME`** until the apex cutover (see the
   guardrail below).
 - **Worker → Cloudflare.** `apps/functions/wrangler.toml` defines the Worker (`name`, the D1
-  binding, vars). `.github/workflows/deploy-functions.yml` applies D1 migrations then runs
-  `wrangler deploy` on push to `main` (path-gated to `apps/functions/**`, needs a
-  `CLOUDFLARE_API_TOKEN` repo secret); you can also deploy by hand with `wrangler deploy` from
-  `apps/functions`. Local dev is `wrangler dev` (with a local D1). Chosen over Netlify after
-  Netlify's free tier began pausing the project on a monthly **credit limit**; Cloudflare's
-  free Workers + D1 tiers have no credit-pause model. The canonical site is GitHub Pages.
+  binding, vars). Deployment is via **Cloudflare Workers Builds** — the Worker is Git-connected
+  to this repo with **root directory `apps/functions`**: a push to `main` runs `npx wrangler
+  deploy` (non-`main` branches run `npx wrangler versions upload` for a preview). You can also
+  deploy by hand with `wrangler deploy` from `apps/functions`. Local dev is `wrangler dev`
+  (with a local D1). Chosen over Netlify after Netlify's free tier began pausing the project on
+  a monthly **credit limit**; Cloudflare's free Workers + D1 tiers have no credit-pause model.
+  The canonical site is GitHub Pages.
 
 This separation is the point of the monorepo split: **frontend changes deploy to Pages,
 Worker changes deploy to Cloudflare, and neither drags the other along.**
@@ -296,18 +297,17 @@ the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security
 
-The repo ships three workflows (`.github/workflows/`) and **no AI/agent action** — keep it
-that way unless there's a clear reason, and follow these rules if that changes:
+The repo ships two workflows (`.github/workflows/`) and **no AI/agent action** — keep it
+that way unless there's a clear reason, and follow these rules if that changes. (The Worker
+deploys via **Cloudflare Workers Builds** — Git-connected on Cloudflare's side, holding its
+own scoped API token there — so there is intentionally no Cloudflare token in GitHub.)
 
 - **Least-privilege tokens.** `test.yml` runs with `permissions: contents: read` — don't
   widen it. `deploy-web.yml` declares `id-token: write` **on purpose**: it's GitHub's own
   OIDC, required by `actions/deploy-pages@v5` to verify the Pages artifact. It is *not* an
   Anthropic/Claude token exchange, and the workflow only triggers on `push` to `main` and
   manual `workflow_dispatch` — never on attacker-controllable input — so there's no
-  injection path. Leave it as-is. `deploy-functions.yml` carries the `CLOUDFLARE_API_TOKEN`
-  secret to `wrangler deploy` the Worker; it too triggers **only** on `push` to `main` /
-  `workflow_dispatch` and runs `permissions: contents: read`, so the token is never exposed
-  to untrusted code — keep those triggers.
+  injection path. Leave it as-is.
 - **Never run a workflow's privileged half on untrusted input.** Don't trigger build/deploy
   or any token-bearing job from `pull_request_target`, `issue_comment`, `issues`, or
   `workflow_run`. Untrusted-PR CI stays read-only (as `test.yml` is).

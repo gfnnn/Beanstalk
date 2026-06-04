@@ -89,12 +89,15 @@ https://beansprout-forms.<your-subdomain>.workers.dev/enquiry
                                                       /flash-status
 ```
 
-> **Auto-deploy (optional).** `.github/workflows/deploy-functions.yml` runs the D1
-> migrations + `wrangler deploy` on every push to `main` under `apps/functions/**`,
-> so you don't deploy by hand. One-time: mint a Cloudflare API token (dashboard →
-> My Profile → API Tokens → **"Edit Cloudflare Workers"** template) and add it as a
-> repo secret `CLOUDFLARE_API_TOKEN` (Settings → Secrets and variables → Actions).
-> Secrets (`wrangler secret put`) are still set once by hand — they're never in CI.
+> **Auto-deploy via Cloudflare Workers Builds (browser, recommended).** Instead of
+> running `wrangler deploy` by hand, connect the Worker to this repo: Worker →
+> **Settings → Build → Connect to Git** → pick the repo, set **Root directory =
+> `apps/functions`**, **Deploy command `npx wrangler deploy`** (non-`main` branches
+> use `npx wrangler versions upload` for a preview). A push to `main` then deploys
+> automatically. Set the runtime secrets (above) on the Worker's **Settings →
+> Variables and Secrets** as encrypted **Secret**s — `wrangler deploy` preserves
+> them across builds. The D1 schema is created once via the **D1 → Console** (paste
+> `migrations/0001_init.sql`) or `wrangler d1 migrations apply beansprout --remote`.
 
 ---
 
