@@ -56,8 +56,10 @@ export function clientIp(event) {
 // of truth) and becomes queryable/recoverable. Best-effort and fail-safe: if the
 // store is unavailable we log and return null rather than block a real customer.
 // Pass an existing `id` to update a prior record in place (e.g. with the final
-// email status). NOTE: records may contain personal/special-category fields —
-// a retention/erasure policy for the `submissions` store is a follow-up.
+// email status). ⚠ GO-LIVE BLOCKER: records may contain special-category data
+// (allergies, DOB), so before pointing the apex at this site the `submissions`
+// store needs a retention period + an erasure path (delete-by-key). See
+// docs/ENQUIRY-SETUP.md and the privacy page ("How long we keep it").
 export async function persistSubmission(record, id) {
   try {
     const store = getStore('submissions')

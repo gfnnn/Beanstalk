@@ -151,7 +151,11 @@ The form needs to know the function URL **at build time** (Vite bakes it in).
   `emailStatus` of `sent`/`failed`) **before** the Resend call — so an enquiry
   survives a mail-provider outage and is recoverable, rather than silently lost.
   Image bytes are not stored, only their count/names. Persistence is best-effort
-  and fails safe (a Blobs outage never blocks a real enquiry). **Follow-up:**
-  records can contain personal/special-category fields (allergies, DOB), so this
-  store needs a retention/erasure policy before launch — see the privacy page.
+  and fails safe (a Blobs outage never blocks a real enquiry).
+- **⚠ GO-LIVE BLOCKER — retention/erasure for the `submissions` store.** Those
+  records can contain special-category data (allergies, DOB). Before go-live this
+  store **must** have a concrete retention period and a working erasure path
+  (delete-by-key), and the privacy page must state both, so a UK-GDPR erasure
+  request can actually be honoured. Tracked in `privacy/index.html` ("How long we
+  keep it") — do not point the apex (`beansprout.ink`) at this site until it's done.
 - **No secrets in the repo.** Keys live only in Netlify; `.env` is gitignored.
