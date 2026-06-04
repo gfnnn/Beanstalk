@@ -1,6 +1,8 @@
-/* ── Portfolio tiles (bento, home page teaser) ───────────────────────────────
-   Mobile:  2-col uniform portrait grid — no spanning (looks cleaner on narrow)
-   Desktop: 3-col bento with tile 1 spanning 2 rows
+/* ── Portfolio tiles (home page teaser) ──────────────────────────────────────
+   Every piece is exported to the same 700×930 portrait spec, so the teaser is a
+   uniform grid — no spanning, no per-tile aspect overrides (those cropped the
+   portrait sources to landscape and left ragged gaps).
+   Mobile:  2 cols × 3 rows.   Desktop: 3 cols × 2 rows.
    ─────────────────────────────────────────────────────────────────────────── */
 
 .portfolio-grid {
@@ -9,14 +11,14 @@
   gap: 6px;
 }
 
-/* Uniform portrait aspect on mobile — removes layout conflicts */
+/* Uniform portrait tile, matching the 700×930 export ratio so nothing crops */
 .tile {
   position: relative;
   overflow: hidden;
   background: var(--bg-alt);
   border-radius: var(--radius);
   cursor: pointer;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 700 / 930;
   will-change: transform, opacity;
 }
 
@@ -83,17 +85,9 @@
 .gradient-clay  { background: linear-gradient(155deg, #C45A3E, #D8775A);       color: #FBF8EE; }
 .gradient-warm  { background: linear-gradient(155deg, #B8987A, #D5B898);       color: #2C2A24; }
 
-/* Desktop bento — restore varied aspect ratios and span */
+/* Desktop — 3 across, two clean rows of six uniform portrait tiles */
 @media (min-width: 900px) {
   .portfolio-grid { grid-template-columns: repeat(3, 1fr); }
-  .portfolio-grid .tile:nth-child(1) { grid-row: span 2; }
-
-  .tile:nth-child(1) { aspect-ratio: 3 / 5; }
-  .tile:nth-child(2) { aspect-ratio: 4 / 3; }
-  .tile:nth-child(3) { aspect-ratio: 4 / 3; }
-  .tile:nth-child(4) { aspect-ratio: 3 / 2; }
-  .tile:nth-child(5) { aspect-ratio: 3 / 2; }
-  .tile:nth-child(6) { aspect-ratio: 3 / 2; }
 }
 
 
