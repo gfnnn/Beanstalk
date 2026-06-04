@@ -317,7 +317,9 @@ describe('renderTestimonials', () => {
 
   it('renders the real testimonials data without throwing, one figure each', () => {
     const html = renderTestimonials(testimonials)
-    expect(html.match(/class="testimonial"/g)).toHaveLength(testimonials.length)
+    // testimonials may legitimately be empty until real client quotes are added,
+    // in which case nothing renders — match() returns null, so default to [].
+    expect(html.match(/class="testimonial"/g) ?? []).toHaveLength(testimonials.length)
   })
 })
 
