@@ -34,7 +34,7 @@ Everything else is wiring (Phases 2–3) and verification (Phase 5).
 
 These unblock later phases. None require code to decide.
 
-- [x] **Where Roxy reads mail** — confirmed: **`roksanazielonka.z@gmail.com`** is
+- [x] **Where Roxy reads mail** — confirmed: **`roksanaklaudia.z@gmail.com`** is
       `ARTIST_EMAIL` (where `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
 - [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
 - [ ] **Analytics vendor (optional for MVP)** — Plausible/Fathom (cookieless, no
@@ -86,7 +86,7 @@ Follow `docs/ENQUIRY-SETUP.md` and `docs/NEWSLETTER-SETUP.md`. Summary:
       | Key | Value |
       |---|---|
       | `RESEND_API_KEY` | the `re_…` key |
-      | `ARTIST_EMAIL` | `roksanazielonka.z@gmail.com` |
+      | `ARTIST_EMAIL` | `roksanaklaudia.z@gmail.com` |
       | `FROM_EMAIL` | `roxy@beansprout.ink` (or `onboarding@resend.dev` while testing) |
       | `RESEND_AUDIENCE_ID` | the Audience ID |
       | `RATE_*` | *(optional vars — defaults are sane)* |
