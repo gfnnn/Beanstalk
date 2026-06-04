@@ -64,14 +64,15 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  GO-LIVE.md  CMS.md  ROADMAP.md
+docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  ROADMAP.md
 .github/workflows/{test.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
-backlog (what's shipped / what's next); `docs/CMS.md` is the (not-yet-built) content-CMS
-plan. Read `ROADMAP.md` for current priorities before starting larger work.
+backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
+post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
+content-CMS plan. Read `ROADMAP.md` for current priorities before starting larger work.
 
 ### Multi-page Vite build
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
@@ -295,7 +296,8 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
 (`gfnnn/beansprout`). This v2 repo publishes only to GitHub Pages (the staging Pages
 URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
 **no `apps/web/public/CNAME`**, and don't add apex A-records for Pages — until the
-copy and real images are finalised (see `docs/GO-LIVE.md` Phase 6). Cloudflare hosts
+copy and real images are finalised (see `docs/ROADMAP.md` → Go-live plan, Phase 6).
+Cloudflare hosts
 the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security

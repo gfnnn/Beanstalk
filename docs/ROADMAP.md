@@ -1,10 +1,19 @@
-# Beansprout — roadmap & open decisions
+# Beansprout — roadmap & go-live plan
 
-Outstanding work and the decisions needed to unblock it, derived from a
-platform evaluation (senior-dev / artist / marketer / customer lenses). This is
-the living backlog — update it as items land. Architecture lives in
-[`CLAUDE.md`](../CLAUDE.md); function/secret setup in
-[`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md) and [`NEWSLETTER-SETUP.md`](./NEWSLETTER-SETUP.md).
+The single living document for Beansprout v2: **what's shipped**, the **sequenced
+path to launch** (the go-live plan), and the **post-launch backlog** that extends
+past it. Update it as items land. Architecture lives in [`CLAUDE.md`](../CLAUDE.md);
+function/secret setup in [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md),
+[`NEWSLETTER-SETUP.md`](./NEWSLETTER-SETUP.md) and
+[`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
+[`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the content-CMS plan in
+[`CMS.md`](./CMS.md).
+
+The work was derived from a platform evaluation (senior-dev / artist / marketer /
+customer lenses) plus a review of the setup docs, the privacy page, and the function
+code. The go-live plan separates **what only you can do** (external accounts, DNS,
+dashboards, content sign-off — marked 👤 **YOU**) from **what is code work** (marked
+🛠 **CODE**, doable in this repo via PR).
 
 ## Status snapshot
 
@@ -33,8 +42,8 @@ Shipped (audience-capture + early management layer):
   enquiry image-preview object-URL leak is fixed.
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
-`beansprout.ink` stays on **v1** until the go-live blockers below are cleared — see
-the deploy guardrail in `CLAUDE.md`.
+`beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
+guardrail in `CLAUDE.md`.
 
 > **Backend migrated off Netlify → Cloudflare (Workers + D1).** Netlify's free tier
 > now pauses the whole project on a monthly **credit limit** (it took the staging
@@ -42,32 +51,271 @@ the deploy guardrail in `CLAUDE.md`.
 > personal data moved to **D1 (SQLite)** — which also delivers the "proper,
 > compliance-manageable store" we wanted (erasure/retention are now plain SQL).
 
-## Go-live blockers (clear before pointing the apex at v2)
+---
 
-- **Submissions retention/erasure (GDPR).** ✅ **Cleared (MVP).** The `submissions`
-  / `newsletter_consent` **D1 tables** hold personal / special-category data. A
-  concrete **retention period** (12 months) and a working **erasure path**
-  (delete-by-email) now exist as plain SQL via `wrangler d1 execute`, documented in
-  `docs/DATA-COMPLIANCE.md`; the privacy page already states the retention period
-  and one-month response. The remaining strategic step is the **management UI +
-  automation** (per-subject view, one-click erasure, auto-retention), folded into
-  the P2 artist-facing admin view below.
-  - 👤 Remaining: once the Worker + D1 are live, dry-run the runbook once (an access
-    `SELECT` + the prune preview) and set a quarterly prune reminder.
-- Real copy + images (content track — out of scope for engineering).
+# Go-live plan (staging → apex)
 
-## Open decisions (needed before the blocked work)
+A step-by-step path to take this repo from **staging** (GitHub Pages + the Cloudflare
+Worker) to **live on the apex `beansprout.ink`**, replacing the v1 site. The phases
+are parallelisable except for the ordering called out below.
 
-1. **Analytics vendor** — Plausible / Fathom (cookieless, no consent banner) vs
-   GA4 (needs a consent banner). Turns the `track()` scaffold
-   (`src/js/modules/analytics.js`) live and unblocks the retargeting pixel.
-2. **Instagram-feed mechanism** — static periodic snapshot / third-party widget /
-   Graph API. Each trades freshness against weight and maintenance.
-3. **Artist-facing view — where it lives** (see P2 below).
+> **Guardrail (from `CLAUDE.md`):** `beansprout.ink` is intentionally still served
+> by **v1** (`gfnnn/beansprout`). Nothing in Phases 1–5 points the apex at v2.
+> The apex cutover is **Phase 6** and is deliberately last.
 
-## Backlog
+## The only hard blockers
 
-### P2 — toward booking/enquiry *management*
+Two things gate the apex cutover:
+
+1. **GDPR retention/erasure** — **✅ cleared (MVP).** Personal / special-category
+   data (allergies, DOB) lives in the `submissions` / `newsletter_consent` **D1
+   tables**; a concrete **12-month retention period** and a working **delete-by-email
+   erasure path** exist as plain SQL (`docs/DATA-COMPLIANCE.md`), and the privacy
+   page matches. Built in **Phase 1** — this was the one real engineering blocker,
+   and it's done.
+2. **Real copy + images.** Largely done (#53; 28 portfolio pieces with real photos,
+   12 flash pieces). Remaining gaps are small and listed in **Phase 4**.
+
+With the engineering blocker cleared, the route to live is now **operational**: stand
+up the backend (Phase 2), wire the inbox (Phase 3), sign off content (Phase 4), verify
+on staging (Phase 5), then cut the apex over (Phase 6).
+
+## Phase 0 — Decisions to make first (👤 YOU)
+
+These unblock later phases. None require code to decide.
+
+- [x] **Where Roxy reads mail** — confirmed: **`roksanaklaudia.z@gmail.com`** is
+      `ARTIST_EMAIL` (where `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
+- [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
+- [ ] **Analytics vendor (optional for MVP)** — Plausible/Fathom (cookieless, no
+      consent banner) vs GA4 (needs a banner). The `track()` scaffold
+      (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
+      launch-legal without it. *Recommend deferring to post-launch unless you want
+      launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
+- [ ] **Deposit capture (Stripe)** — the enquire copy mentions deposits, but Stripe
+      is **not** wired (Backlog P2). Decide: launch without it (manual deposit
+      requests) or build it first. *Recommend launch without; add post-launch.*
+
+Two further decisions gate **post-launch** work only (not the launch itself) and live
+with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
+third-party widget / Graph API) and **where the artist-facing view lives** (P2).
+
+## Phase 1 — Engineering go-live blocker: GDPR erasure ✅ DONE (🛠 CODE)
+
+**Decision taken: (b) the minimal offline runbook** — least surface area now, with
+the strategic plan to move data into a dedicated secure store post-launch (see
+`docs/DATA-COMPLIANCE.md`). Built and shipped:
+
+- [x] **Erasure (delete-by-email)** + **access (select-by-email)** + **retention
+      prune** as plain SQL via `wrangler d1 execute` (no public endpoint = no new
+      attack surface). Personal data lives in **Cloudflare D1**, so these are one
+      query each; full runbook in `docs/DATA-COMPLIANCE.md`.
+- [x] **Retention window** defined at **12 months**, matching the privacy page.
+      Pruned manually on a quarterly reminder.
+- [x] **Privacy page reconciled** — already states the 12-month retention and the
+      one-month response window; no change needed.
+
+👤 **Remaining (you):** after Phase 2 (the Worker + D1 are live), run one dry-run
+(an access `SELECT` + the prune preview) so the runbook is proven before a real
+request, and set a quarterly prune reminder.
+
+## Phase 2 — Stand up the backend (Resend + Cloudflare) (👤 YOU)
+
+Follow `docs/ENQUIRY-SETUP.md` and `docs/NEWSLETTER-SETUP.md`. Summary:
+
+- [ ] **Resend account** — sign up, create an API key (`re_…`). *(ENQUIRY-SETUP Part A)*
+- [ ] **Verify the sending domain** in Resend — add Resend's DNS records (MX/TXT/DKIM
+      on the `send.` subdomain) at GoDaddy, click **Verify**. Until verified, sends
+      are rejected. *(ENQUIRY-SETUP Part A; EMAIL-DOMAIN-SETUP)*
+- [ ] **Create a Resend Audience** (newsletter) — copy its Audience ID.
+      *(NEWSLETTER-SETUP step 1)*
+- [ ] **Cloudflare account + Worker** — from `apps/functions/`: `wrangler login`,
+      `wrangler d1 create beansprout` (paste the id into `wrangler.toml`),
+      `wrangler d1 migrations apply beansprout`, then `wrangler deploy`.
+      *(ENQUIRY-SETUP Part B)*
+- [ ] **Set Worker secrets** (`wrangler secret put <NAME>`):
+      | Key | Value |
+      |---|---|
+      | `RESEND_API_KEY` | the `re_…` key |
+      | `ARTIST_EMAIL` | `roksanaklaudia.z@gmail.com` |
+      | `FROM_EMAIL` | `roxy@beansprout.ink` (or `onboarding@resend.dev` while testing) |
+      | `RESEND_AUDIENCE_ID` | the Audience ID |
+      | `RATE_*` | *(optional vars — defaults are sane)* |
+- [ ] **Note the Worker URL** — `https://beansprout-forms.<subdomain>.workers.dev/`
+      (routes: `/enquiry`, `/newsletter`, `/flash-status`).
+
+> **Why Cloudflare, not Netlify:** the previous host paused the whole project when a
+> monthly **credit limit** was hit (taking the live forms down). Cloudflare's free
+> Workers + D1 tiers have no credit-pause model, so the forms can't go dark that way.
+
+## Phase 3 — Wire the inbox (email forwarding) (👤 YOU)
+
+So `hello@` / `roxy@beansprout.ink` actually **receive**, and Roxy can reply *as*
+the domain. Full detail in `docs/EMAIL-DOMAIN-SETUP.md`. This uses **MX/TXT** only
+and does **not** touch the website's A/CNAME — so it's safe to do before cutover.
+
+- [ ] **ImprovMX** (free) — add `beansprout.ink`, create `hello@` and `roxy@`
+      aliases → Roxy's Gmail.
+- [ ] **GoDaddy DNS** — add ImprovMX's MX records + SPF TXT; **remove GoDaddy's
+      default `*.secureserver.net` MX** (after confirming no current mail relies on
+      them). Keep nameservers on GoDaddy.
+- [ ] **One SPF record only** at `@` (edit the existing default, don't add a second).
+- [ ] **Add a DMARC record** at `_dmarc` (`p=none` to start).
+- [ ] **Gmail "Send mail as"** `roxy@beansprout.ink` **via Resend SMTP**
+      (`smtp.resend.com`, port 465/587, user `resend`, pass = `RESEND_API_KEY`) so
+      manual replies stay DKIM-aligned and don't land in spam.
+- [ ] **Test:** email `hello@beansprout.ink` from your phone → lands in Gmail.
+
+## Phase 4 — Content sign-off (👤 YOU, with 🛠 CODE to apply edits)
+
+Content is mostly in, but a few items need your confirmation before launch.
+(Edits land via PR — give me the values and I'll wire them.)
+
+- [ ] **Services prices** — `apps/web/services/index.html` flags prices as
+      *placeholders from the design brief*. Confirm real prices/tiers. 🛠 apply.
+- [ ] **Terms & privacy effective date + legal review** — `terms/index.html` has a
+      placeholder effective date and a note to have wording reviewed against current
+      consumer law; deposit figures must match `/services/`. 👤 review → 🛠 apply.
+- [ ] **`og-image.jpg` (1200×630)** — referenced site-wide for social cards and the
+      default piece-page OG image, **still missing** (Backlog P3). 👤 supply image →
+      🛠 add to `apps/web/public/images/og-image.jpg`.
+- [ ] **Portfolio / flash spot-check** — 28 pieces + 12 flash are populated with real
+      photos; eyeball them for any remaining placeholders/tone-swatch fallbacks.
+- [ ] *(Optional)* **Testimonials** — the "Kind words" homepage block is `hidden`
+      while empty. Add real quotes to `src/data/testimonials.js` and remove `hidden`
+      to switch it on. Fine to launch without.
+
+## Phase 5 — End-to-end verification on staging (👤 YOU + 🛠 CODE)
+
+Do this on the Pages project URL **before** any apex change. The fastest loop is
+**local** (`wrangler dev` + `npm run dev`), which needs no cloud at all
+(`ENQUIRY-SETUP.md` Part D).
+
+- [ ] **Set the build-time Worker URLs.** Repo → Settings → Secrets and variables →
+      Actions → **Variables** → `VITE_ENQUIRY_FN_URL`, `VITE_NEWSLETTER_FN_URL`,
+      `VITE_FLASH_STATUS_FN_URL` = your `…workers.dev/<route>` URLs (the workers.dev
+      subdomain is account-specific, so all three must be set). 👤
+- [ ] **Enable GitHub Pages** — Settings → Pages → Source = **GitHub Actions**.
+      Safe now: the apex `CNAME` has been removed (Phase 6), so Pages serves only on
+      the `*.github.io` URL until the deliberate cutover. 👤
+- [ ] **End-to-end email test** — the acceptance test below. 👤
+- [ ] **Erasure runbook dry-run** — run an access `SELECT` and the prune preview
+      against D1 (the Phase 1 / `DATA-COMPLIANCE.md` path). 👤
+- [ ] **Console clean** — no errors on each page; nav status light, sitemap, robots,
+      404 all render. 👤
+
+### End-to-end email test (go-live acceptance)
+
+A repeatable test of the **full email round-trip**. Run it twice:
+- **(a) Staging** — `FROM_EMAIL=onboarding@resend.dev`, `ARTIST_EMAIL=harrisonfisher1990@gmail.com`
+  (Resend's test sender only delivers to the Resend-account owner).
+- **(b) Production** — after the Phase 6 email switch-over, repeat against
+  `https://beansprout.ink` with `FROM_EMAIL=roxy@beansprout.ink` / `ARTIST_EMAIL=roksanaklaudia.z@gmail.com`.
+
+Both runs must pass before the launch is "done":
+
+1. **Enquiry → inbox.** Submit `/enquire/` with 1–2 photos → land on
+   `/enquiry-received/`. Within seconds a "New enquiry — …" email reaches
+   `ARTIST_EMAIL`, **photos attached**, fields laid out.
+2. **Reply path.** Hit **Reply** — the `To:` is the *enquirer's* address (the form's
+   `reply_to`), not the Worker. Send it; confirm it reaches the address you entered.
+   *(Production: replies go out as `roxy@beansprout.ink` via Gmail "Send mail as" —
+   `EMAIL-DOMAIN-SETUP.md` Step 2.)*
+3. **Flash claim → inbox.** Claim a `/flash/` piece → a "Flash claim — …" email
+   arrives; reload the grid → the piece reads claimed; a second claim is rejected (409).
+4. **Newsletter → Audience.** Sign up at `/newsletter/` → the contact appears in the
+   Resend Audience and a row lands in the `newsletter_consent` D1 table.
+5. **Source-of-truth (independent of mail).** D1 console:
+   `SELECT id, kind, email, email_status FROM submissions ORDER BY received_at DESC;`
+   — each test submission is present with `email_status = 'sent'` (persist-before-email
+   means the row exists even if delivery fails — so this isolates *send* from *deliver*).
+6. **Deliverability (production run only).** Confirm the email lands in the **inbox,
+   not spam**, and that auth passes (Gmail → "Show original" → `SPF`/`DKIM`/`DMARC`
+   all **PASS**). If it spams, re-check the Resend domain verification + the DMARC
+   record (`EMAIL-DOMAIN-SETUP.md`).
+
+If a row shows `email_status = 'failed'`, `wrangler tail` (or the Worker's
+Observability → Logs) shows the Resend response — usually an unverified domain or a
+bad key.
+
+## Phase 6 — The apex cutover (👤 YOU) — LAST, only after 0–5 are green
+
+This is the actual go-live switch and the one irreversible-ish step. It moves
+`beansprout.ink` from **v1** to **v2**.
+
+✅ **CNAME landmine — resolved for staging.** `apps/web/public/CNAME` (which
+contained `beansprout.ink`) has been **removed**, restoring the guardrail in
+`CLAUDE.md` / `ENQUIRY-SETUP.md` ("intentionally no `public/CNAME`"). With it gone,
+enabling GitHub Pages in Phase 5 serves only on the `*.github.io` URL and **cannot**
+prematurely claim the apex off v1. Re-adding it is now the deliberate cutover step
+below.
+
+> **Two test → production switch-overs happen at cutover** (both are flips of
+> staging/test values to real ones — do them together):
+> 1. **DNS** — point the apex at v2 (below).
+> 2. **Email config** — flip the Worker secrets off the test sender/inbox (below).
+> Until both are done, the site is staging: forms email the *developer's* inbox via
+> Resend's test sender, and the apex still serves v1.
+
+When ready to go live:
+
+- [ ] **Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) and let Pages deploy.
+- [ ] **Point DNS at GitHub Pages** (👤, GoDaddy): apex `A` records to GitHub's Pages
+      IPs + `www` `CNAME` to `<user>.github.io` (or per your Pages custom-domain
+      instructions). This is what actually moves traffic off v1.
+- [ ] **Switch the email config from test → production** (👤, Worker → Settings →
+      Variables and Secrets). During staging these point at the developer's Resend
+      account; at go-live flip all three:
+      | Secret | Test (now) | Production |
+      |---|---|---|
+      | `FROM_EMAIL` | `onboarding@resend.dev` | `roxy@beansprout.ink` |
+      | `ARTIST_EMAIL` | `harrisonfisher1990@gmail.com` | `roksanaklaudia.z@gmail.com` |
+      Requires **`beansprout.ink` verified in Resend** (Phase 2/3) — until then
+      `roxy@beansprout.ink` sends are rejected. `RESEND_API_KEY` /
+      `RESEND_AUDIENCE_ID` stay the same. Saving a secret redeploys the Worker.
+- [ ] **Add `beansprout.ink` as a verified custom domain** in the repo's Pages
+      settings; enable **Enforce HTTPS** once the cert provisions. 👤
+- [ ] **Confirm the Worker CORS allowlist** already includes `https://beansprout.ink`
+      and `https://www.beansprout.ink` — it does (`src/lib/http.js`), so no change needed.
+- [ ] **Smoke-test the live apex** — repeat the Phase 5 form tests against
+      `https://beansprout.ink`.
+- [ ] **Decommission/redirect v1** as appropriate once v2 is confirmed healthy. 👤
+
+## Critical path (the shortest route to live)
+
+```
+Phase 0 decisions
+   └─► Phase 1 erasure runbook (CODE)  ┐
+   └─► Phase 2 Resend+Cloudflare (YOU) ├─► Phase 5 verify on staging ─► Phase 6 apex cutover
+   └─► Phase 3 email forwarding (YOU)  ┤
+   └─► Phase 4 content sign-off        ┘
+```
+
+Phases 1–4 are parallelisable. The only ordering that matters: **everything before
+Phase 5**, and **Phase 6 dead last** (resolve the CNAME landmine before enabling
+Pages in Phase 5).
+
+## Your immediate next actions (👤)
+
+1. ~~Confirm Roxy's Gmail + DNS access~~ ✅ done.
+2. ~~Choose the erasure approach~~ ✅ done — minimal runbook built (Phase 1).
+3. Start the Resend + Cloudflare accounts (Phase 2) — `wrangler deploy` the Worker;
+   this gates deployed form testing (local `wrangler dev` works without it).
+4. Send me confirmed **service prices**, a signed-off **terms effective date**, and
+   the **og-image** (Phase 4) and I'll apply them.
+
+**Post-launch (Phase 7) is the [Backlog](#backlog-post-launch--extends-past-go-live)
+below** — the same items, in rough priority order. Launch first; pick those up once
+the site is live.
+
+---
+
+# Backlog (post-launch — extends past go-live)
+
+Everything that outlives the launch. None of it blocks the apex cutover; it's picked
+up after the site is live, in rough priority order.
+
+## P2 — toward booking/enquiry *management*
 
 - **Artist-facing view + status lifecycle** _(parked — to be researched)._
   - **Goal:** make the captured data manageable — a list of submissions/claims
@@ -89,17 +337,20 @@ the deploy guardrail in `CLAUDE.md`.
     the D1 tables, plus a write-path to flip a record's status. It
     delivers a real lifecycle view with the least new surface area. Pairs with a
     `status` write-path so replies/bookings update the record.
-  - **Dependency:** the GDPR erasure path (go-live blocker) naturally lives in
-    the same admin surface (delete-by-key).
+  - **Dependency:** the GDPR erasure UI (below) naturally lives in the same admin
+    surface (delete-by-email).
 
 - **Stripe deposit capture.** The no-show defence the copy already promises
   (Stripe is named in the enquire page). A Payment Link / Checkout wired into the
   enquiry-confirmation flow, with the deposit recorded against the submission.
 
-- **GDPR retention/erasure** — also a go-live blocker (above); the erasure UI
-  belongs with the artist-facing view.
+- **GDPR retention/erasure — management UI.** The MVP runbook is done (Phase 1, plain
+  SQL via `wrangler d1 execute`); the post-launch step is a **per-subject view,
+  one-click erasure, and auto-retention** (a `booked` flag so the prune can run
+  automatically + an audit log of who erased what). The erasure UI belongs with the
+  artist-facing view above.
 
-### P2 — content dashboard (CMS for Roxy) _(planned — decided, deferred until after go-live)_
+## P2 — content dashboard (CMS for Roxy) _(planned — decided, deferred until after go-live)_
 
 Let Roxy manage **site content** herself (distinct from the artist-facing view
 above, which manages *enquiries/claims*). Full plan, decisions, architecture and
@@ -118,17 +369,18 @@ security: [`CMS.md`](./CMS.md).
 - **Palette tie-in:** colour/swatch pickers generate from `src/data/palette.js` and
   honour the *never hard-code colour* rule, so the dashboard can't drift off-brand.
 
-### P1 leftovers (decision-blocked)
+## P1 leftovers (decision-blocked)
 
-- **Retargeting pixel** (Meta/TikTok) — blocked on the analytics-vendor decision.
-- **Instagram feed embed** — blocked on the feed-mechanism decision.
+- **Retargeting pixel** (Meta/TikTok) — blocked on the analytics-vendor decision
+  (Phase 0).
+- **Instagram feed embed** — blocked on the feed-mechanism decision (Phase 0).
 
-### P3 — polish
+## P3 — polish
 
 - **Self-host + subset the fonts** (LCP + EU-privacy) — currently the Google
   Fonts CDN, render-blocking, with wide variable-font ranges.
 - **Add `/images/og-image.jpg`** (1200×630) — referenced site-wide for social
-  cards (and the default piece-page OG image), still missing.
+  cards (and the default piece-page OG image), still missing (also Phase 4).
 - **Firm up `src/build/seo.js`** — the `<head>` injection is regex-on-HTML and
   attribute-order-sensitive; pin it with tests or move to a parser.
 - **Palette visual QA (follow-up to the colour centralisation).** The migration is
