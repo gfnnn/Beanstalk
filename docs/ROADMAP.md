@@ -118,8 +118,9 @@ security: [`CMS.md`](./CMS.md).
 
 - **Self-host + subset the fonts** (LCP + EU-privacy) — currently the Google
   Fonts CDN, render-blocking, with wide variable-font ranges.
-- **Add `/images/og-image.jpg`** (1200×630) — referenced site-wide for social
-  cards (and the default piece-page OG image), still missing.
+- **Replace the `/images/og-image.jpg` placeholder.** A generated brand placeholder
+  now ships (1200×630, cream + hero sprig + wordmark) so social cards render; before
+  final launch swap it for a real photo (close crop of a finished tattoo, warm light).
 - **Firm up `src/build/seo.js`** — the `<head>` injection is regex-on-HTML and
   attribute-order-sensitive; pin it with tests or move to a parser.
 - **Palette visual QA (follow-up to the colour centralisation).** The migration is

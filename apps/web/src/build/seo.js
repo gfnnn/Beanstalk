@@ -12,8 +12,9 @@
 export const SITE_URL = 'https://beansprout.ink'
 export const SITE_NAME = 'Beansprout'
 export const SITE_LOCALE = 'en_GB'
-// Shared social share image (1200×630). The asset itself is still pending — see
-// the "IMAGE NEEDED" note in index.html's <head>.
+// Shared social share image (1200×630). Currently a generated brand placeholder
+// (apps/web/public/images/og-image.jpg) — swap for a real photo before final launch;
+// see the note in index.html's <head>.
 export const OG_IMAGE = `${SITE_URL}/images/og-image.jpg`
 
 // Public, indexable routes, highest priority first. Single source of truth for
