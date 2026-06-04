@@ -28,9 +28,9 @@ Shipped (audience-capture + early management layer):
   duplicated across four files — are defined once in `styles/components/tones.css`
   from the palette `tones`. See the design-system section of `CLAUDE.md`.
 - **Redundancy/health cleanup** — shared HTML helpers `esc`/`HAS_EXT`
-  (`src/build/html.js`), `EMAIL_RE` in `_shared.js`, and a sticky-shadow helper
-  (`src/js/modules/sticky.js`) replace 2–3 copies each; the enquiry image-preview
-  object-URL leak is fixed.
+  (`src/build/html.js`), `EMAIL_RE` in the worker's `src/lib/http.js`, and a
+  sticky-shadow helper (`src/js/modules/sticky.js`) replace 2–3 copies each; the
+  enquiry image-preview object-URL leak is fixed.
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live blockers below are cleared — see
