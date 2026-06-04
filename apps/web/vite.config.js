@@ -7,6 +7,8 @@ import { renderFlashCards } from './src/build/flash-cards.js'
 import { injectSeoHead, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
+import { testimonials } from './src/data/testimonials.js'
+import { renderTestimonials } from './src/build/testimonials.js'
 import { homepage } from './src/data/homepage.js'
 import {
   renderStatus, renderNotices,
@@ -32,6 +34,10 @@ const generatedGrids = {
       // Inline newsletter-capture band (homepage / flash / post-enquiry).
       if (html.includes('<!-- newsletter:inline -->')) {
         html = html.replace('<!-- newsletter:inline -->', () => renderNewsletterInline())
+      }
+      // Homepage testimonials (src/data/testimonials.js).
+      if (html.includes('<!-- testimonials -->')) {
+        html = html.replace('<!-- testimonials -->', () => renderTestimonials(testimonials))
       }
       // Homepage content (src/data/homepage.js). The nav status "light" markers
       // live on every page; the hero/notice markers only on the homepage.
