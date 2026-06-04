@@ -27,8 +27,8 @@ npm run dev           # Vite dev server for apps/web at http://localhost:5173
 npm run build         # production build of apps/web → apps/web/dist/
 npm run preview       # serve the built apps/web/dist/ locally
 npm test              # run BOTH workspaces' Vitest suites
-npm run test:web      # only apps/web (renderers + data integrity)
-npm run test:functions # only apps/functions (enquiry, newsletter, _shared)
+npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
+npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, _shared)
 ```
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
@@ -47,48 +47,76 @@ static site, not the functions.
 ### Monorepo layout
 ```
 apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
-  index.html + page folders (about/, portfolio/, flash/, …)
-  src/{build,data,js,styles}             # all frontend source
-  public/                                # CNAME, favicons, manifest (copied to dist root)
+  index.html (home) + 404.html + page folders:
+    portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
+    newsletter/ enquiry-received/ privacy/ terms/
+  src/data/      pieces, flash, homepage, testimonials, palette  (content = single sources of truth)
+  src/build/     renderers that turn the data files into HTML strings at build time
+  src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
+  src/styles/    main.css → @imports reset/typography/layout + components/ + pages/
+  public/        CNAME, robots.txt, favicons, manifest, images/ (copied to dist root)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Netlify (the form/email app)
-  netlify/functions/{enquiry,newsletter,_shared}.js
+  netlify/functions/{enquiry,newsletter,flash-status,_shared}.js
   public/index.html                      # placeholder publish dir for the functions-only site
   vitest.config.js  tests/
-docs/             ENQUIRY-SETUP.md, NEWSLETTER-SETUP.md
+docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  CMS.md  ROADMAP.md
 netlify.toml      base = apps/functions  (Netlify deploys functions only)
 .github/workflows/{test.yml, deploy-web.yml}
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
-workspace; nothing needs path edits when adding pages.
+workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
+backlog (what's shipped / what's next); `docs/CMS.md` is the (not-yet-built) content-CMS
+plan. Read `ROADMAP.md` for current priorities before starting larger work.
 
 ### Multi-page Vite build
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
-`flash/`, `enquire/`, …) and is registered as a Rollup input in `apps/web/vite.config.js`.
-Add a new page → add the folder/`index.html` **and** a matching entry in the `input` map, or
-it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
+`flash/`, `enquire/`, `services/`, `visit/`, `newsletter/`, `privacy/`, `terms/`, …), plus
+the homepage `index.html` and the branded `404.html`. Each is registered as a Rollup input
+in `apps/web/vite.config.js`. **Add a new page → add the folder/`index.html` AND a matching
+entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's indexable),
+or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
+The five Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+work: `palette` (inject colour custom properties), `generatedGrids` (the content pipeline
+below), `seoHead` (structural SEO tags), `piecePages` (per-piece portfolio pages), and
+`sitemap`. All run in **both dev and build** so what you see on `npm run dev` is what ships.
+
 ### Data → build-time HTML pipeline (the non-obvious part)
-The portfolio masonry and the flash grid are **generated at build time from data files**,
-not hand-written markup:
+Lots of page content is **generated at build time from data files**, not hand-written
+markup. `src/data/*.js` are the **single sources of truth**; `src/build/*.js` render them to
+HTML strings (sharing escaping/image helpers from `src/build/html.js`); the `generatedGrids`
+plugin replaces an HTML comment marker on the relevant page with that output. Each marker
+lives on only one page, so other pages pass through untouched. The data files' header
+comments document every field — **read them before editing**.
 
-- `src/data/pieces.js` (portfolio) and `src/data/flash.js` (flash) are the **single
-  sources of truth**. Each file's header comment documents every field — read it before
-  editing.
-- `src/build/portfolio-tiles.js` and `src/build/flash-cards.js` render those arrays to
-  HTML strings (responsive `<picture>` with avif/webp/jpg, or an SVG line-art placeholder
-  when no `img` is set yet).
-- The `generatedGrids` plugin in `apps/web/vite.config.js` (`transformIndexHtml`, runs in **both**
-  dev and build) replaces the `<!-- pieces:masonry -->` marker in `portfolio/index.html`
-  and the `<!-- flash:grid -->` marker in `flash/index.html` with that output. Grids ship
-  as static HTML (good for SEO/no-JS/LCP).
+| Data file               | Renderer (`src/build/`)        | Marker → page                                         |
+|-------------------------|--------------------------------|------------------------------------------------------|
+| `pieces.js` (portfolio) | `portfolio-tiles.js`           | `<!-- pieces:masonry -->` → `portfolio/`             |
+| `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/`                     |
+| `homepage.js`           | `homepage.js`                  | `<!-- homepage:* -->` (status light, notices, hero, specialisms) |
+| `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (previews pulled live from pieces) |
+| `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
+| (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
 
-**Never hand-edit the generated tile/card markup** — edit the data file and let the build
-regenerate it. Tokens in the data (`styles`, `placement`, `status`, `tone`, `glyph`) must
-match the filter chips / `<select>` options in the HTML and the label maps in the
-renderers; change them together.
+The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*
+page's nav, not just the homepage. The homepage "Kind words" section is `hidden` while
+`testimonials` is empty — add real quotes AND remove the `hidden` attribute to switch it on.
+
+**Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
+testimonials) — edit the data file and let the build regenerate it. Tokens in the data
+(`styles`, `placement`, `status`, `tone`, `glyph`) must match the filter chips / `<select>`
+options in the HTML and the label maps in the renderers; change them together.
+
+### Per-piece portfolio pages
+Each portfolio piece also gets its own shareable page at `/portfolio/<slug>/` (the masonry
+tiles link there). These are generated from `pieces.js` by `src/build/piece-page.js` via the
+`piecePages` plugin — **dev** serves them from a middleware, **build** emits one full HTML
+file each (whole document, including SEO + nav status, pointing at the hashed main bundle).
+The `slug` field on each piece is the URL segment and must be unique. They're added to the
+sitemap automatically (the `sitemap` plugin appends `/portfolio/<slug>/` for every piece).
 
 ### SEO structure
 Core SEO is centralised in `src/build/seo.js` and applied at build/dev via two
@@ -102,7 +130,8 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
   authored by hand in each page — only the derived/constant tags are injected.
 - **`sitemap` plugin** emits `/sitemap.xml` at build (and serves it in dev) from the
-  `ROUTES` list in `seo.js` — keep that list in sync when adding indexable pages.
+  `ROUTES` list in `seo.js` **plus** a `/portfolio/<slug>/` entry per piece — keep `ROUTES`
+  in sync when adding an indexable page.
 - `public/robots.txt` is static (allows all, disallows `/enquiry-received/`, points
   at the sitemap). The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`,
   with Tiny Knives as `workLocation`) — Beansprout is the artist, not the studio.
@@ -110,12 +139,16 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
 ### Front-end JS — single orchestrated init
 `src/js/main.js` is the only entry point. On `DOMContentLoaded` it calls each module's
 `initX()` in a deliberate order (Lenis smooth-scroll first so it drives the GSAP ticker,
-then nav, animations, portfolio load-more/filter/lightbox, aftercare, faq, enquire, flash,
-newsletter). **Every module no-ops when its target element is absent**, so the one bundle
-runs safely on every page. Portfolio load-more, filter/sort and lightbox cooperate via
-callbacks wired in `main.js` (load-more owns the visible window; filter re-applies after a
-reveal/sort). New page behaviour = a new `modules/<name>.js` exporting `initX()`, added to
-`main.js`.
+then nav, hero/scroll animations, portfolio load-more + filter + lightbox, gallery,
+aftercare, faq, enquire, flash, newsletter, analytics). **Every module no-ops when its
+target element is absent**, so the one bundle runs safely on every page. Modules under
+`src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`, `filter`, `lightbox`,
+`gallery`, `sticky` (shared sticky-shadow helper for pinned bars), `aftercare`, `faq`,
+`enquire`, `flash`, `newsletter`, `analytics` (vendor-agnostic `track()` scaffold that
+no-ops until a provider is wired in — no cookie banner owed yet), and `config` (function
+URLs). Portfolio load-more, filter/sort and lightbox cooperate via callbacks wired in
+`main.js` (load-more owns the visible window; filter re-applies after a reveal/sort). New
+page behaviour = a new `modules/<name>.js` exporting `initX()`, added to `main.js`.
 
 ### Forms → Netlify functions → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to
@@ -124,18 +157,32 @@ serverless functions; there is no backend server.
 - `apps/functions/netlify/functions/enquiry.js` handles **both** the enquiry and flash-claim
   forms, distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines
   the required fields, consent boxes, image support and email layout per kind. Images are
-  downscaled in the browser before upload. Sends via **Resend**.
+  downscaled in the browser, then **type-sniffed by magic bytes** server-side (the client's
+  MIME isn't trusted), with request-body and per-image size caps. It **persists the
+  submission before emailing**, and for flash claims **reserves the piece server-side** (see
+  flash inventory below) so it can't be double-claimed. Sends via **Resend**.
 - `apps/functions/netlify/functions/newsletter.js` adds a subscriber to a Resend Audience.
+- `apps/functions/netlify/functions/flash-status.js` is a **read-only** `GET` endpoint the
+  flash grid calls on load to reflect *live* availability. The grid ships as static HTML
+  (status baked in at build), so this overlays pieces claimed since the last build. Returns
+  `{ claims: { "<piece-id>": "pending" | "claimed" } }`; no secrets, no writes, fails safe
+  to an empty map.
+- **Flash inventory** lives in Netlify Blobs via `_shared.js` helpers: `reserveFlashPiece`
+  (atomic-ish reserve; refuses an already-taken piece), `releaseFlashPiece` (roll back if
+  the email send fails so the piece can be reclaimed), and `getFlashClaims` (what
+  `flash-status` returns). A claim goes `pending` on reserve → `claimed` once mailed.
 - `apps/functions/netlify/functions/_shared.js` is shared support code (the leading `_` keeps
-  Netlify from deploying it as a function): the **CORS origin allowlist** and the **rate
+  Netlify from deploying it as a function): the **CORS origin allowlist**, the **rate
   limiter** (per-IP sliding window + global daily ceiling, backed by Netlify Blobs, **fails
-  open** so an outage never blocks real enquiries). CORS lives here, **not** in `netlify.toml`.
+  open** so an outage never blocks real enquiries), the flash-inventory helpers above,
+  `clientIp` (anti-spoof IP extraction), and `persistSubmission`. CORS lives here, **not** in
+  `netlify.toml`.
 - `apps/web/src/js/modules/config.js` holds the function URLs, overridable at build time via
   `VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` (see `.env.example`). Rebuild after
   changing them — Vite bakes them into the bundle. Server-side secrets
   (`RESEND_API_KEY`, `ARTIST_EMAIL`, `FROM_EMAIL`, `RESEND_AUDIENCE_ID`) live in the
   Netlify dashboard, never in the repo. Full setup: `docs/ENQUIRY-SETUP.md`,
-  `docs/NEWSLETTER-SETUP.md`.
+  `docs/NEWSLETTER-SETUP.md`, `docs/EMAIL-DOMAIN-SETUP.md` (Resend domain/DNS).
 
 ### Deploy targets — one repo, two independent deploys
 The two workspaces deploy to **different places**, each gated so only relevant changes ship:
