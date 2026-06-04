@@ -28,23 +28,32 @@ Shipped (audience-capture + early management layer):
   duplicated across four files — are defined once in `styles/components/tones.css`
   from the palette `tones`. See the design-system section of `CLAUDE.md`.
 - **Redundancy/health cleanup** — shared HTML helpers `esc`/`HAS_EXT`
-  (`src/build/html.js`), `EMAIL_RE` in `_shared.js`, and a sticky-shadow helper
-  (`src/js/modules/sticky.js`) replace 2–3 copies each; the enquiry image-preview
-  object-URL leak is fixed.
+  (`src/build/html.js`), `EMAIL_RE` in the worker's `src/lib/http.js`, and a
+  sticky-shadow helper (`src/js/modules/sticky.js`) replace 2–3 copies each; the
+  enquiry image-preview object-URL leak is fixed.
 
-Deploys to **staging only** (GitHub Pages + the `beansprout.netlify.app` mirror).
-The apex `beansprout.ink` stays on **v1** until the go-live blockers below are
-cleared — see the deploy guardrail in `CLAUDE.md`.
+Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
+`beansprout.ink` stays on **v1** until the go-live blockers below are cleared — see
+the deploy guardrail in `CLAUDE.md`.
+
+> **Backend migrated off Netlify → Cloudflare (Workers + D1).** Netlify's free tier
+> now pauses the whole project on a monthly **credit limit** (it took the staging
+> functions down), so the three functions were ported to one Cloudflare Worker and
+> personal data moved to **D1 (SQLite)** — which also delivers the "proper,
+> compliance-manageable store" we wanted (erasure/retention are now plain SQL).
 
 ## Go-live blockers (clear before pointing the apex at v2)
 
-- **Submissions retention/erasure (GDPR).** The `submissions` and `flash-claims`
-  Netlify Blobs stores hold personal / special-category data (allergies, DOB).
-  Before launch they need a concrete **retention period** and a working
-  **erasure path** (delete-by-key), and the privacy page must state both.
-  Already flagged in `apps/functions/netlify/functions/_shared.js`
-  (`persistSubmission`), `ENQUIRY-SETUP.md`, and the privacy page
-  ("How long we keep it").
+- **Submissions retention/erasure (GDPR).** ✅ **Cleared (MVP).** The `submissions`
+  / `newsletter_consent` **D1 tables** hold personal / special-category data. A
+  concrete **retention period** (12 months) and a working **erasure path**
+  (delete-by-email) now exist as plain SQL via `wrangler d1 execute`, documented in
+  `docs/DATA-COMPLIANCE.md`; the privacy page already states the retention period
+  and one-month response. The remaining strategic step is the **management UI +
+  automation** (per-subject view, one-click erasure, auto-retention), folded into
+  the P2 artist-facing admin view below.
+  - 👤 Remaining: once the Worker + D1 are live, dry-run the runbook once (an access
+    `SELECT` + the prune preview) and set a quarterly prune reminder.
 - Real copy + images (content track — out of scope for engineering).
 
 ## Open decisions (needed before the blocked work)
@@ -65,19 +74,19 @@ cleared — see the deploy guardrail in `CLAUDE.md`.
     with a status lifecycle (new → replied → booked → completed) and a
     flash-claimed view, so enquiries don't live only in an inbox.
   - **The data already exists:** every enquiry/flash claim is persisted to the
-    `submissions` store (with `emailStatus`), and flash reservations to
-    `flash-claims` — both written in `apps/functions/netlify/functions/_shared.js`.
-    What's missing is a **read/manage surface** and a **status write-path**.
+    `submissions` D1 table (with `email_status`), and flash reservations to
+    `flash_claims` — both written in `apps/functions/src/lib/db.js`. What's missing
+    is a **read/manage surface** and a **status write-path**. D1 being a real SQL DB
+    makes this a normal query layer, not a scan.
   - **Open decision — where it lives:**
-    - **(a) Gated page on the site** (e.g. `/admin/`) backed by an authenticated
-      function that reads the two Blobs stores. Auth via Netlify Identity, HTTP
-      Basic on the function, or a shared secret. _Smallest step; reuses existing
-      functions/Blobs; no new infra._
-    - **(b) Separate lightweight admin app/route.** More isolation, more infra.
+    - **(a) Gated admin route on the Worker** (e.g. `/admin`) that reads/writes the
+      D1 tables, behind a shared secret / Cloudflare Access. _Smallest step; reuses
+      the existing Worker + D1; no new infra._
+    - **(b) Separate lightweight admin app.** More isolation, more infra.
     - **(c) No UI** — structured email labelling / a Resend-side workflow, with
-      the Blobs store as the system of record. Cheapest; least "management".
-  - **Recommendation (for when you pick this up):** **(a)** — a gated page reading
-    the existing stores, plus a small function to flip a record's status. It
+      D1 as the system of record. Cheapest; least "management".
+  - **Recommendation (for when you pick this up):** **(a)** — a gated route querying
+    the D1 tables, plus a write-path to flip a record's status. It
     delivers a real lifecycle view with the least new surface area. Pairs with a
     `status` write-path so replies/bookings update the record.
   - **Dependency:** the GDPR erasure path (go-live blocker) naturally lives in

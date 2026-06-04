@@ -1,0 +1,42 @@
+# wrangler.toml — Beansprout form/email Worker (Cloudflare).
+# ──────────────────────────────────────────────────────────────────────────────
+# Replaces the old Netlify functions. The marketing site is still served from
+# GitHub Pages; this Worker only handles the enquiry / flash-claim / newsletter
+# forms and talks to Resend + D1.
+#
+# First-time setup (see docs/ENQUIRY-SETUP.md):
+#   npm i -g wrangler && wrangler login
+#   wrangler d1 create beansprout         # paste the printed database_id below
+#   wrangler d1 migrations apply beansprout
+#   wrangler secret put RESEND_API_KEY    # (and ARTIST_EMAIL / FROM_EMAIL / RESEND_AUDIENCE_ID)
+#   wrangler deploy
+#
+# Local dev (no Cloudflare credits used):
+#   wrangler dev        # http://localhost:8787  → /enquiry /newsletter /flash-status
+# ──────────────────────────────────────────────────────────────────────────────
+
+name = "beansprout-forms"
+main = "src/index.js"
+compatibility_date = "2025-01-15"
+# `Buffer` (image magic-byte sniffing in the enquiry handler) needs Node compat.
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# D1 — the system of record (submissions, newsletter consent, flash inventory,
+# rate-limit events). Create it with `wrangler d1 create beansprout` and paste the
+# database_id it prints here.
+[[d1_databases]]
+binding = "DB"
+database_name = "beansprout"
+database_id = "a00316e2-098b-46a7-bfd9-5e0facf5275a"
+migrations_dir = "migrations"
+
+# Non-secret vars. Secrets (RESEND_API_KEY, and you may keep the rest as secrets
+# too) are set with `wrangler secret put` and are NOT committed here.
+[vars]
+# FROM_EMAIL   = "roxy@beansprout.ink"   # or onboarding@resend.dev while testing
+# ARTIST_EMAIL = "roksanaklaudia.z@gmail.com"
+# Abuse limits (optional — sane defaults applied if unset):
+# RATE_MAX_PER_IP    = "5"
+# RATE_IP_WINDOW_MIN = "15"
+# RATE_MAX_PER_DAY   = "80"

@@ -2,8 +2,7 @@
 
 Unit tests for the **build-time HTML renderers** and the **data contract** that
 feeds them — the parts of the frontend where a silent regression actually causes
-harm. (The Netlify function tests live in the other workspace,
-`apps/functions/tests/`.)
+harm. (The Worker tests live in the other workspace, `apps/functions/tests/`.)
 
 ```bash
 npm run test:web          # from the repo root

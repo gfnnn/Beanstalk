@@ -230,15 +230,15 @@
 /* ── Claim modal ─────────────────────────────────────────────────────────── */
 /*
   DEV NOTE — CLAIM FLOW
-  On submit: JS POSTs JSON { kind:'flash', fields } to the Netlify function
-  (see flash.js / netlify/functions/enquiry.js).
+  On submit: JS POSTs JSON { kind:'flash', fields } to the Cloudflare Worker
+  (see flash.js / apps/functions/src/handlers/enquiry.js).
   UI flow:
     1. User clicks "Claim this" → modal opens
     2. Form submitted → card UI marks data-status="pending"
     3. Backend marks ticket "Pending" for 48h
     4. Stripe link sent by email; payment confirms as "Claimed"
-  For full automation: serverless function (Vercel/Netlify) that writes
-  claim, sends Stripe link, and webhooks on payment completion.
+  For full automation: a Worker route that writes the claim, sends the Stripe
+  link, and webhooks on payment completion.
 */
 .modal-overlay {
   position: fixed;

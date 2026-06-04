@@ -194,9 +194,9 @@
 
 <!-- ==========================================================================
      CLAIM MODAL
-     DEV NOTE: JS POSTs JSON { kind:'flash', fields } to the Netlify function
-     (see flash.js / netlify/functions/enquiry.js), which emails the artist via
-     Resend. Hidden piece/price are populated by JS when a card is clicked.
+     DEV NOTE: JS POSTs JSON { kind:'flash', fields } to the Cloudflare Worker
+     (see flash.js / apps/functions/src/handlers/enquiry.js), which emails the artist
+     via Resend. Hidden piece/price are populated by JS when a card is clicked.
      ========================================================================== -->
 <div class="modal-overlay" id="claim-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
   <div class="modal">

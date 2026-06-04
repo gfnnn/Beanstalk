@@ -1,22 +1,21 @@
 // Shared front-end config.
 //
-// The Netlify function both the enquiry form and the flash-claim form POST to.
-// Set VITE_ENQUIRY_FN_URL at build time (see .env.example); the fallback string
-// is here so you can also just hardcode the URL.
+// The Cloudflare Worker both the enquiry form and the flash-claim form POST to.
+// Defaults below point at the project's Worker on the `harrisonfisher1990`
+// workers.dev subdomain; override per-build with VITE_ENQUIRY_FN_URL (e.g. the
+// local `wrangler dev` URL, http://localhost:8787/enquiry). See .env.example.
 export const ENQUIRY_FN_URL =
   import.meta.env.VITE_ENQUIRY_FN_URL ||
-  'https://beansprout.netlify.app/.netlify/functions/enquiry'
+  'https://beansprout-forms.harrisonfisher1990.workers.dev/enquiry'
 
-// The Netlify function the newsletter signup form POSTs to — adds the subscriber
-// to a Resend Audience. Set VITE_NEWSLETTER_FN_URL at build time; the fallback
-// mirrors the enquiry URL on the same Netlify site.
+// The Worker route the newsletter signup form POSTs to — adds the subscriber to a
+// Resend Audience. Override with VITE_NEWSLETTER_FN_URL.
 export const NEWSLETTER_FN_URL =
   import.meta.env.VITE_NEWSLETTER_FN_URL ||
-  'https://beansprout.netlify.app/.netlify/functions/newsletter'
+  'https://beansprout-forms.harrisonfisher1990.workers.dev/newsletter'
 
-// Read-only endpoint the flash grid calls on load to reflect live availability
-// (a piece claimed since the last build). Set VITE_FLASH_STATUS_FN_URL at build
-// time; the fallback mirrors the other functions on the same Netlify site.
+// Read-only route the flash grid calls on load to reflect live availability (a
+// piece claimed since the last build). Override with VITE_FLASH_STATUS_FN_URL.
 export const FLASH_STATUS_FN_URL =
   import.meta.env.VITE_FLASH_STATUS_FN_URL ||
-  'https://beansprout.netlify.app/.netlify/functions/flash-status'
+  'https://beansprout-forms.harrisonfisher1990.workers.dev/flash-status'

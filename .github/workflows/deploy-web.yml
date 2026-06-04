@@ -2,12 +2,12 @@
 #
 # Path-gated: this only runs when the frontend workspace (or this workflow, or
 # the lockfile) changes — a functions-only change never triggers a Pages
-# redeploy. The functions deploy separately to Netlify (see netlify.toml).
+# redeploy. The Worker deploys separately to Cloudflare (see wrangler.toml).
 #
 # One-time setup: GitHub repo → Settings → Pages → Build and deployment →
-# Source = "GitHub Actions". Then set the function URL so the enquiry form is
+# Source = "GitHub Actions". Then set the Worker URL so the enquiry form is
 # wired at build time: Settings → Secrets and variables → Actions → Variables →
-# New variable → VITE_ENQUIRY_FN_URL = https://<your-site>.netlify.app/.netlify/functions/enquiry
+# New variable → VITE_ENQUIRY_FN_URL = https://beansprout-forms.<subdomain>.workers.dev/enquiry
 
 name: Deploy site to GitHub Pages
 

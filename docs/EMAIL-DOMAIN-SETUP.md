@@ -6,7 +6,7 @@ domain. This is separate from the app's outbound mail (Resend), which is covered
 in `ENQUIRY-SETUP.md`.
 
 > **Two different jobs, don't confuse them.**
-> - **Sending** as `@beansprout.ink` — done by **Resend** (the Netlify functions,
+> - **Sending** as `@beansprout.ink` — done by **Resend** (the Cloudflare Worker,
 >   and Roxy's manual replies). Resend is a sending API; it gives you no inbox.
 > - **Receiving** at `@beansprout.ink` — done by **forwarding** the addresses to a
 >   Gmail account. This is the piece this doc adds.
@@ -83,8 +83,9 @@ Optionally set `roxy@beansprout.ink` as the default "from" so every reply uses i
 
 ## Step 3 — Point the app at the inbox
 
-In Netlify → **Site configuration → Environment variables** (these are the only
-config touchpoints — no code change):
+In Cloudflare, set these as **Worker secrets** (`wrangler secret put <NAME>` from
+`apps/functions/`, or the dashboard → Worker → Settings → Variables) — these are
+the only config touchpoints, no code change:
 
 | Key | Value | Why |
 |---|---|---|

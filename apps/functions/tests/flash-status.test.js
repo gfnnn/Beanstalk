@@ -1,44 +1,38 @@
-// Tests for netlify/functions/flash-status.js — the read-only endpoint the flash
-// grid calls on load to reflect live availability. @netlify/blobs is mocked.
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+// Tests for src/handlers/flash-status.js — the read-only endpoint the flash grid
+// calls on load to reflect live availability. The D1 binding is the in-memory fake.
+import { describe, it, expect, beforeEach } from 'vitest'
+import { handler } from '../src/handlers/flash-status.js'
+import { makeD1 } from './helpers/fake-d1.js'
 
-const { stores } = vi.hoisted(() => ({ stores: new Map() }))
-vi.mock('@netlify/blobs', () => ({
-  getStore: (name) => {
-    if (!stores.has(name)) stores.set(name, new Map())
-    const m = stores.get(name)
-    return {
-      get: async (key) => (m.has(key) ? m.get(key) : null),
-      set: async (key, val) => { m.set(key, val) },
-      setJSON: async (key, val) => { m.set(key, val) },
-    }
-  },
-}))
+let d1, env
+const H = (event) => handler(event, env)
+const get = (headers = {}) => ({ httpMethod: 'GET', headers: { origin: 'https://beansprout.ink', ...headers } })
 
-const { handler } = await import('../netlify/functions/flash-status.js')
-const get = (headers = {}) => ({ httpMethod: 'GET', headers: { origin: 'https://beansprout.netlify.app', ...headers } })
-
-beforeEach(() => stores.clear())
+beforeEach(() => {
+  d1 = makeD1()
+  env = { DB: d1.DB }
+})
 
 describe('flash-status handler', () => {
   it('answers the CORS preflight with 204', async () => {
-    const res = await handler({ httpMethod: 'OPTIONS', headers: {} })
+    const res = await H({ httpMethod: 'OPTIONS', headers: {} })
     expect(res.statusCode).toBe(204)
   })
 
   it('rejects non-GET methods with 405', async () => {
-    expect((await handler({ httpMethod: 'POST', headers: {} })).statusCode).toBe(405)
+    expect((await H({ httpMethod: 'POST', headers: {} })).statusCode).toBe(405)
   })
 
   it('returns the live claims map', async () => {
-    stores.set('flash-claims', new Map([['claims', { 'flash-03': 'claimed', 'flash-07': 'pending' }]]))
-    const res = await handler(get())
+    d1.data.flash.set('flash-03', { status: 'claimed', updated_at: 'x' })
+    d1.data.flash.set('flash-07', { status: 'pending', updated_at: 'x' })
+    const res = await H(get())
     expect(res.statusCode).toBe(200)
     expect(JSON.parse(res.body)).toEqual({ claims: { 'flash-03': 'claimed', 'flash-07': 'pending' } })
   })
 
   it('returns an empty map when nothing has been claimed', async () => {
-    const res = await handler(get())
+    const res = await H(get())
     expect(res.statusCode).toBe(200)
     expect(JSON.parse(res.body)).toEqual({ claims: {} })
   })

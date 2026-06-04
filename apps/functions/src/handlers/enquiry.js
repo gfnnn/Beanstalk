@@ -1,4 +1,4 @@
-// netlify/functions/enquiry.js
+// src/handlers/enquiry.js
 // ─────────────────────────────────────────────────────────────────────────────
 // Beansprout form handler — serves both the enquiry form and the flash-claim
 // form, told apart by `kind` ('enquiry' | 'flash').
@@ -7,19 +7,21 @@
 // validates it, builds a formatted email, and sends it via Resend to the
 // artist's inbox (reference images attached, for enquiries).
 //
-// Required environment variables (Netlify → Site configuration → Environment):
+// Required environment (Cloudflare → Worker → Settings → Variables, or wrangler):
 //   RESEND_API_KEY   re_xxxxxxxx           (resend.com → API Keys)
 //   ARTIST_EMAIL     inbox that receives submissions
 //   FROM_EMAIL       roxy@beansprout.ink   (must be on a Resend-verified domain —
 //                    use onboarding@resend.dev only while testing)
+//   DB               D1 binding (persistence + rate limit + flash inventory)
 //
-// Abuse protection (CORS allowlist + Blobs rate limiting) is shared with the
-// newsletter function — see ./_shared.js. Otherwise uses the global fetch in
-// Netlify's Node runtime; @netlify/blobs is the only dependency.
+// Abuse protection (CORS allowlist + D1 rate limiting) is shared with the
+// newsletter function — see ../lib. `Buffer` (image sniffing) is provided by the
+// `nodejs_compat` flag; `fetch` is the runtime global.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, rateLimit, persistSubmission, reserveFlashPiece, releaseFlashPiece, EMAIL_RE } from './_shared.js'
+import { corsFor, replyWith, clientIp, EMAIL_RE } from '../lib/http.js'
+import { rateLimit, persistSubmission, reserveFlashPiece, releaseFlashPiece } from '../lib/db.js'
 
-// Kept comfortably under Netlify's ~6 MB synchronous request-body cap.
+// Kept comfortably under typical synchronous request-body caps.
 const MAX_IMAGES      = 8
 const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // 5 MB of decoded image data
 const MAX_BODY_BYTES  = 6 * 1024 * 1024 // reject oversized bodies before parsing
@@ -70,14 +72,14 @@ const FORMS = {
   },
 }
 
-export async function handler(event) {
+export async function handler(event, env = {}) {
   const cors  = corsFor(event)
   const reply = replyWith(cors)
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' }
   if (event.httpMethod !== 'POST')    return reply(405, { error: 'Method not allowed.' })
 
-  const { RESEND_API_KEY, ARTIST_EMAIL, FROM_EMAIL } = process.env
+  const { RESEND_API_KEY, ARTIST_EMAIL, FROM_EMAIL } = env
   if (!RESEND_API_KEY || !ARTIST_EMAIL || !FROM_EMAIL) {
     console.error('Missing env vars:', {
       RESEND_API_KEY: !!RESEND_API_KEY, ARTIST_EMAIL: !!ARTIST_EMAIL, FROM_EMAIL: !!FROM_EMAIL,
@@ -135,7 +137,7 @@ export async function handler(event) {
   }
 
   // ── Rate limit — only valid, about-to-send requests count ───────────────────
-  const limiter = await rateLimit(clientIp(event), { storeName: 'enquiry-rate' })
+  const limiter = await rateLimit(env, clientIp(event), { storeName: 'enquiry-rate' })
   if (!limiter.ok) {
     return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
   }
@@ -148,7 +150,7 @@ export async function handler(event) {
   const pieceId = kind === 'flash' ? String(fields.piece_id || '').trim() : ''
   let reservedHere = false
   if (kind === 'flash') {
-    const reservation = await reserveFlashPiece(pieceId)
+    const reservation = await reserveFlashPiece(env, pieceId)
     if (!reservation.ok) {
       return reply(409, {
         error: 'Sorry — that piece was just claimed by someone else. Have a look at what’s still available.',
@@ -173,7 +175,7 @@ export async function handler(event) {
     skipped,
     emailStatus: 'pending',
   }
-  const submissionId = await persistSubmission(record)
+  const submissionId = await persistSubmission(env, record)
 
   // ── Send via Resend ─────────────────────────────────────────────────────────
   const from = FROM_EMAIL.includes('<') ? FROM_EMAIL : `Beansprout <${FROM_EMAIL}>`
@@ -194,19 +196,19 @@ export async function handler(event) {
     })
     if (!res.ok) {
       console.error('Resend error', res.status, await res.text().catch(() => ''))
-      await persistSubmission({ ...record, emailStatus: 'failed' }, submissionId)
+      await persistSubmission(env, { ...record, emailStatus: 'failed' }, submissionId)
       // The notification never reached the artist, so don't strand the piece as
       // 'pending' (taken on the grid, invisible to her) — free it to be reclaimed.
-      if (reservedHere) await releaseFlashPiece(pieceId)
+      if (reservedHere) await releaseFlashPiece(env, pieceId)
       return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
     }
     await limiter.commit()   // record the successful send against the limits
-    await persistSubmission({ ...record, emailStatus: 'sent' }, submissionId)
+    await persistSubmission(env, { ...record, emailStatus: 'sent' }, submissionId)
     return reply(200, { ok: true })
   } catch (err) {
     console.error('Send failed', err)
-    await persistSubmission({ ...record, emailStatus: 'failed' }, submissionId)
-    if (reservedHere) await releaseFlashPiece(pieceId)
+    await persistSubmission(env, { ...record, emailStatus: 'failed' }, submissionId)
+    if (reservedHere) await releaseFlashPiece(env, pieceId)
     return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
   }
 }

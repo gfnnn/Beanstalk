@@ -136,19 +136,17 @@
     <section class="legal-section">
       <h2>How long we keep it</h2>
       <!-- COPY: retention periods, esp. any legal minimum for tattoo/health records. -->
-      <!-- ⚠ GO-LIVE BLOCKER: enquiries are now persisted to a Netlify Blobs
-           `submissions` store (see _shared.js / docs/ENQUIRY-SETUP.md). Those
-           records can include special-category data (allergies, DOB). Before
-           go-live this MUST state a concrete retention period and there must be
-           a working erasure path for the store (delete by key), so a data-subject
-           erasure request can actually be honoured. -->
+      <!-- Enquiries are persisted to the Cloudflare D1 `submissions` table (see
+           src/lib/db.js / docs/DATA-COMPLIANCE.md). Those records can include
+           special-category data (allergies, DOB). Retention period stated below;
+           the erasure path (delete-by-email, plain SQL) is in DATA-COMPLIANCE.md. -->
       <p>We keep records only as long as we need them. Enquiries that don't lead to a booking are kept for up to 12&nbsp;months and then deleted. Records relating to a tattoo we've carried out — including consent and any health details — are kept for the period required by our insurer and local-authority registration, normally up to a few years. Newsletter details are kept until you unsubscribe.</p>
     </section>
 
     <section class="legal-section">
       <h2>Who we share it with</h2>
-      <!-- COPY: confirm this list matches the live stack before launch (Netlify, Resend, GitHub Pages). -->
-      <p>We never sell your data. We share it only with the service providers that help us run Beansprout, and only as far as they need it: <strong>Netlify</strong> (which hosts the enquiry and newsletter forms and securely stores submissions), <strong>Resend</strong> (which delivers our emails and holds the newsletter list), and <strong>GitHub Pages</strong> (which hosts the website). These providers act on our instructions under their own data-protection terms.</p>
+      <!-- COPY: confirm this list matches the live stack before launch (Cloudflare, Resend, GitHub Pages). -->
+      <p>We never sell your data. We share it only with the service providers that help us run Beansprout, and only as far as they need it: <strong>Cloudflare</strong> (which runs the enquiry and newsletter forms and securely stores submissions), <strong>Resend</strong> (which delivers our emails and holds the newsletter list), and <strong>GitHub Pages</strong> (which hosts the website). These providers act on our instructions under their own data-protection terms.</p>
     </section>
 
     <section class="legal-section">
