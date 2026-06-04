@@ -223,12 +223,13 @@ describe('renderNewsletterInline', () => {
 describe('renderPiecePage', () => {
   const withImage = {
     slug: 'foxglove', title: 'Foxglove', subject: 'foxglove sprig',
-    styles: ['fine-line', 'botanical'], placement: 'forearm', order: 30,
-    tone: 't-moss', glyph: 'sprig', ph: 340, img: '/images/tattoos/foxglove', w: 800, h: 1000,
+    styles: ['fine-line', 'botanical'], placement: 'forearm', date: '2026-03-01',
+    tone: 't-moss', glyph: 'sprig', img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
+  const exportImage = { ...withImage, slug: 'koi', title: 'Koi', img: '/images/tattoos/Koi.webp' }
   const placeholder = {
     slug: 'luna-moth', title: 'Luna moth', subject: 'luna moth', styles: ['black-grey'],
-    placement: 'wrist', order: 10, tone: 't-ink', glyph: 'moth', ph: 260, img: null, w: null, h: null,
+    placement: 'wrist', date: '2026-01-01', tone: 't-ink', glyph: 'moth', img: null, w: null, h: null,
   }
 
   it('renders a full HTML document with per-piece SEO', () => {
@@ -249,11 +250,19 @@ describe('renderPiecePage', () => {
     expect(html).toContain('/images/og-image.jpg') // falls back to the site OG image
   })
 
-  it('renders a <picture> and a piece-specific OG image when img is set', () => {
+  it('builds a multi-size <picture> + OG image for a no-extension base path', () => {
     const html = renderPiecePage(withImage)
     expect(html).toContain('<picture>')
     expect(html).toContain('/images/tattoos/foxglove-1200.jpg')
     expect(html).toContain('content="https://beansprout.ink/images/tattoos/foxglove-1200.jpg"')
+  })
+
+  it('serves an extension-bearing export as-is (no broken -1200.jpg suffix)', () => {
+    const html = renderPiecePage(exportImage)
+    expect(html).not.toContain('<picture>')                         // single export, no srcset
+    expect(html).toContain('<img src="/images/tattoos/Koi.webp"')
+    expect(html).not.toContain('Koi.webp-1200.jpg')                 // the bug we fixed
+    expect(html).toContain('content="https://beansprout.ink/images/tattoos/Koi.webp"') // og:image as-is
   })
 
   it('shows style + placement tags and the enquiry / back CTAs', () => {
@@ -274,14 +283,19 @@ describe('renderPiecePage', () => {
 
 describe('piecePagesData', () => {
   const data = [
-    { slug: 'a', order: 10 }, { slug: 'b', order: 30 }, { slug: 'c', order: 20 },
+    { slug: 'a', date: '2026-01-01' }, { slug: 'b', date: '2026-03-01' }, { slug: 'c', date: '2026-02-01' },
   ]
-  it('orders newest-first and links each piece to its neighbours', () => {
+  it('orders newest-first by date and links each piece to its neighbours', () => {
     const out = piecePagesData(data)
-    expect(out.map(d => d.piece.slug)).toEqual(['b', 'c', 'a']) // 30, 20, 10
+    expect(out.map(d => d.piece.slug)).toEqual(['b', 'c', 'a']) // Mar, Feb, Jan
     expect(out[0].prev).toBeNull()              // newest has no newer
     expect(out[0].next.slug).toBe('c')
     expect(out[2].next).toBeNull()              // oldest has no older
     expect(out[2].prev.slug).toBe('c')
+  })
+
+  it('is stable for pieces sharing a date (keeps source order)', () => {
+    const same = [{ slug: 'x', date: '2026-05-15' }, { slug: 'y', date: '2026-05-15' }]
+    expect(piecePagesData(same).map(d => d.piece.slug)).toEqual(['x', 'y'])
   })
 })
