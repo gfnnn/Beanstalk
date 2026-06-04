@@ -196,9 +196,12 @@ export function initScrollAnimations() {
     })
   })
 
-  // ── Masonry tiles (gallery--masonry, legacy inner pages) ──────────────────
-  document.querySelectorAll('.gallery--masonry').forEach(grid => {
-    const tiles = grid.querySelectorAll('.tile')
+  // ── Masonry tiles — the portfolio grid (.masonry/.masonry-tile) plus any
+  //    legacy .gallery--masonry inner pages. The portfolio markup uses
+  //    .masonry-tile; load-more hides all but the first window via inline
+  //    display:none, so this entrance only ever reveals the visible page. ──────
+  document.querySelectorAll('.masonry, .gallery--masonry').forEach(grid => {
+    const tiles = grid.querySelectorAll('.masonry-tile, .tile')
     if (!tiles.length) return
     gsap.from(tiles, {
       scrollTrigger: { trigger: grid, start: 'top 85%', once: true },

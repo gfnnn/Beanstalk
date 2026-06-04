@@ -21,6 +21,7 @@
   <title>Privacy · Beansprout</title>
 </head>
 <body>
+<a class="skip-link" href="#maincontent">Skip to main content</a>
 
 <!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
@@ -97,7 +98,7 @@
      Replace every placeholder paragraph with approved legal copy before launch.
      This is scaffolding, not legal advice; have the final wording reviewed.
  -->
-<main class="legal" role="main">
+<main class="legal" role="main" id="maincontent" tabindex="-1">
   <article class="legal-prose">
 
     <!-- COPY: real effective date, e.g. "Last updated 1 March 2026" -->
@@ -136,6 +137,12 @@
     <section class="legal-section">
       <h2>How long we keep it</h2>
       <!-- COPY: retention periods, esp. any legal minimum for tattoo/health records. -->
+      <!-- ⚠ GO-LIVE BLOCKER: enquiries are now persisted to a Netlify Blobs
+           `submissions` store (see _shared.js / docs/ENQUIRY-SETUP.md). Those
+           records can include special-category data (allergies, DOB). Before
+           go-live this MUST state a concrete retention period and there must be
+           a working erasure path for the store (delete by key), so a data-subject
+           erasure request can actually be honoured. -->
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna. We keep records only as long as necessary for the purposes above or as required by law.</p>
     </section>
 

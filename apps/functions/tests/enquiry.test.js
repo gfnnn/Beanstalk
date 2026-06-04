@@ -45,7 +45,7 @@ const validEnquiry = (over = {}) => ({
 })
 const post = (body, headers = {}) => ({
   httpMethod: 'POST',
-  headers: { origin: 'https://beansprout.netlify.app', 'x-forwarded-for': '5.5.5.5', ...headers },
+  headers: { origin: 'https://beansprout.netlify.app', 'x-nf-client-connection-ip': '5.5.5.5', ...headers },
   body: JSON.stringify(body),
 })
 const sentBody = (fetchMock) => JSON.parse(fetchMock.mock.calls[0][1].body)
@@ -190,6 +190,50 @@ describe('enquiry handler — image sniffing & filenames', () => {
     const res = await handler({ ...post(validEnquiry()), body: JSON.stringify({ ...validEnquiry(), images }) })
     expect(res.statusCode).toBe(400)
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('enquiry handler — persistence & size limits', () => {
+  const submissions = () => stores.get('submissions')
+
+  it('persists the submission with emailStatus "sent" on a successful send', async () => {
+    const res = await handler(post(validEnquiry()))
+    expect(res.statusCode).toBe(200)
+    const subs = submissions()
+    expect(subs.size).toBe(1)                       // one record, updated in place
+    const rec = [...subs.values()][0]
+    expect(rec.emailStatus).toBe('sent')
+    expect(rec.kind).toBe('enquiry')
+    expect(rec.ip).toBe('5.5.5.5')
+    expect(rec.fields.email).toBe('ada@example.com')
+  })
+
+  it('still persists the enquiry (status "failed") when Resend errors — nothing is lost', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'x', json: async () => ({}) })
+    const res = await handler(post(validEnquiry()))
+    expect(res.statusCode).toBe(502)
+    const rec = [...submissions().values()][0]
+    expect(rec.emailStatus).toBe('failed')
+    expect(rec.fields.email).toBe('ada@example.com')
+  })
+
+  it('rejects an oversized request body before parsing it (413)', async () => {
+    const huge = 'x'.repeat(6 * 1024 * 1024 + 1)
+    const res = await handler({ httpMethod: 'POST', headers: { origin: 'https://beansprout.netlify.app' }, body: huge })
+    expect(res.statusCode).toBe(413)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('drops a single image that exceeds the per-image ceiling, but still sends', async () => {
+    const tooBig = IMG.jpeg + 'A'.repeat(6_000_000) // ~4.5 MB decoded, over the 4 MB cap
+    const res = await handler({
+      ...post(validEnquiry()),
+      body: JSON.stringify({ ...validEnquiry(), images: [{ name: 'big.jpg', type: 'image/jpeg', data: tooBig }] }),
+    })
+    expect(res.statusCode).toBe(200)
+    const body = sentBody(fetchMock)
+    expect(body.attachments).toBeUndefined() // the oversized image was skipped
+    expect(body.html).toContain('skipped')
   })
 })
 

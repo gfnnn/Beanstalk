@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 const { getStoreMock } = vi.hoisted(() => ({ getStoreMock: vi.fn() }))
 vi.mock('@netlify/blobs', () => ({ getStore: getStoreMock }))
 
-const { corsFor, replyWith, clientIp, rateLimit, ALLOWED_ORIGINS, CANONICAL_ORIGIN } =
+const { corsFor, replyWith, clientIp, rateLimit, persistSubmission, ALLOWED_ORIGINS, CANONICAL_ORIGIN } =
   await import('../netlify/functions/_shared.js')
 
 // In-memory stand-in for a Netlify Blobs store.
@@ -69,16 +69,51 @@ describe('replyWith', () => {
 })
 
 describe('clientIp', () => {
-  it('prefers the Netlify connection-IP header', () => {
+  it('uses the Netlify edge connection-IP header', () => {
     expect(clientIp({ headers: { 'x-nf-client-connection-ip': '1.2.3.4' } })).toBe('1.2.3.4')
   })
 
-  it('falls back to the first IP in x-forwarded-for', () => {
-    expect(clientIp({ headers: { 'x-forwarded-for': '9.9.9.9, 10.0.0.1' } })).toBe('9.9.9.9')
+  it('takes the first hop of the Netlify header if it carries a list', () => {
+    expect(clientIp({ headers: { 'x-nf-client-connection-ip': '1.2.3.4, 10.0.0.1' } })).toBe('1.2.3.4')
   })
 
-  it('returns "unknown" when no IP header is present', () => {
+  it('ignores client-controlled x-forwarded-for (anti-spoof)', () => {
+    // XFF is attacker-settable; honouring it would mint a fresh rate-limit
+    // bucket per request. It must NOT influence the result.
+    expect(clientIp({ headers: { 'x-forwarded-for': '9.9.9.9, 10.0.0.1' } })).toBe('unknown')
+    expect(clientIp({ headers: { 'x-nf-client-connection-ip': '1.2.3.4', 'x-forwarded-for': '9.9.9.9' } })).toBe('1.2.3.4')
+  })
+
+  it('returns "unknown" when no trusted IP header is present', () => {
     expect(clientIp({ headers: {} })).toBe('unknown')
+  })
+})
+
+describe('persistSubmission', () => {
+  it('writes a JSON record and returns a generated id', async () => {
+    const store = makeStore()
+    getStoreMock.mockReturnValue(store)
+
+    const id = await persistSubmission({ kind: 'enquiry', emailStatus: 'pending', fields: { email: 'a@b.co' } })
+    expect(typeof id).toBe('string')
+    expect(id.startsWith('enquiry/')).toBe(true)
+    expect(store.setJSON).toHaveBeenCalledWith(id, expect.objectContaining({ id, emailStatus: 'pending' }))
+  })
+
+  it('updates a prior record in place when given its id', async () => {
+    const store = makeStore()
+    getStoreMock.mockReturnValue(store)
+
+    const id = await persistSubmission({ kind: 'enquiry', emailStatus: 'pending' })
+    await persistSubmission({ kind: 'enquiry', emailStatus: 'sent' }, id)
+    expect(store._map.size).toBe(1)            // same key, overwritten
+    expect(store._map.get(id).emailStatus).toBe('sent')
+  })
+
+  it('fails safe (returns the id / null, never throws) when the store is down', async () => {
+    getStoreMock.mockImplementation(() => { throw new Error('blobs down') })
+    await expect(persistSubmission({ kind: 'flash' })).resolves.toBeNull()
+    await expect(persistSubmission({ kind: 'flash' }, 'keep-id')).resolves.toBe('keep-id')
   })
 })
 

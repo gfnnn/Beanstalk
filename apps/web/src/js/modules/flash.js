@@ -1,5 +1,6 @@
 import { pauseScroll, resumeScroll } from './lenis.js'
 import { ENQUIRY_FN_URL } from './config.js'
+import { track } from './analytics.js'
 
 export function initFlash() {
   const grid = document.getElementById('flash-grid')
@@ -215,11 +216,6 @@ export function initFlash() {
       e.preventDefault()
       clearModalError()
 
-      if (ENQUIRY_FN_URL.includes('YOUR-SITE')) {
-        showModalError('Claims aren’t connected yet. (Set VITE_ENQUIRY_FN_URL.)')
-        return
-      }
-
       const label = submitBtn ? submitBtn.textContent : ''
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…' }
 
@@ -235,6 +231,7 @@ export function initFlash() {
         const json = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
+        track('flash_claim', { piece: pieceInput ? pieceInput.value : 'unknown' })
         markPending()
         closeModal()
         form.reset()

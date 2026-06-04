@@ -1,4 +1,5 @@
 import { ENQUIRY_FN_URL as FUNCTION_URL } from './config.js'
+import { track } from './analytics.js'
 
 export function initEnquire() {
   const steps = [1, 2, 3, 4].map(n => document.getElementById('step-' + n))
@@ -136,11 +137,16 @@ export function initEnquire() {
   if (refsInput && thumbRow) {
     refsInput.addEventListener('change', () => {
       thumbRow.innerHTML = ''
-      Array.from(refsInput.files).slice(0, 7).forEach(file => {
+      Array.from(refsInput.files).slice(0, 8).forEach(file => {
         const url   = URL.createObjectURL(file)
         const thumb = document.createElement('div')
         thumb.className = 'thumb'
-        thumb.innerHTML = `<img src="${url}" alt="${file.name}">`
+        // Build via DOM properties — file.name is user-controlled, so never
+        // interpolate it into innerHTML (attribute-break / onerror injection).
+        const img = document.createElement('img')
+        img.src = url
+        img.alt = file.name
+        thumb.appendChild(img)
         thumbRow.appendChild(thumb)
       })
     })
@@ -282,11 +288,6 @@ export function initEnquire() {
       return
     }
 
-    if (FUNCTION_URL.includes('YOUR-SITE')) {
-      showFormError('The enquiry form isn’t connected yet. (Set VITE_ENQUIRY_FN_URL to your Netlify function URL.)')
-      return
-    }
-
     const btn   = document.getElementById('submit-btn')
     const label = btn?.textContent
     clearFormError()
@@ -303,6 +304,7 @@ export function initEnquire() {
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
+      track('enquiry_submit', { type: fields.tattoo_type || 'unknown' })
       try { sessionStorage.removeItem('beansprout_step') } catch (_) {}
       window.location.href = '/enquiry-received/'
     } catch (err) {

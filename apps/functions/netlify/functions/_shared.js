@@ -40,10 +40,37 @@ export function replyWith(cors) {
   })
 }
 
+// The client IP, used to bucket the per-IP rate limit. Trust ONLY the header
+// Netlify's edge sets (`x-nf-client-connection-ip`) — `x-forwarded-for` is
+// fully client-controlled, so honouring it lets an attacker mint a fresh bucket
+// per request and defeat the per-IP window. If the trusted header is absent
+// (e.g. local `netlify dev`), fall back to 'unknown' so those requests share a
+// single bucket rather than bypassing the limit entirely.
 export function clientIp(event) {
   const h = event.headers || {}
-  return String(h['x-nf-client-connection-ip'] || h['x-forwarded-for'] || '')
-    .split(',')[0].trim() || 'unknown'
+  return String(h['x-nf-client-connection-ip'] || '').split(',')[0].trim() || 'unknown'
+}
+
+// Durably record a submission BEFORE we attempt to email it, so an enquiry
+// survives a mail-provider outage (the email is best-effort; this is the record
+// of truth) and becomes queryable/recoverable. Best-effort and fail-safe: if the
+// store is unavailable we log and return null rather than block a real customer.
+// Pass an existing `id` to update a prior record in place (e.g. with the final
+// email status). ⚠ GO-LIVE BLOCKER: records may contain special-category data
+// (allergies, DOB), so before pointing the apex at this site the `submissions`
+// store needs a retention period + an erasure path (delete-by-key). See
+// docs/ENQUIRY-SETUP.md and the privacy page ("How long we keep it").
+export async function persistSubmission(record, id) {
+  try {
+    const store = getStore('submissions')
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const sid   = id || `${record.kind || 'item'}/${stamp}-${Math.random().toString(36).slice(2, 8)}`
+    await store.setJSON(sid, { id: sid, ...record })
+    return sid
+  } catch (err) {
+    console.error('Submission persistence failed (continuing):', err?.message || err)
+    return id || null
+  }
 }
 
 // Shared env-tunable limits (apply to every function; each keeps its own bucket

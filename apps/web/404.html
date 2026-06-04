@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beansprout · Enquiry received</title>
-<!-- COPY: meta description -->
-<meta name="description" content="Thanks, your enquiry has been sent to Beansprout.">
-<!-- A post-submit confirmation page: keep it out of search results. -->
+<title>Beansprout · Page not found</title>
+<meta name="description" content="That page couldn't be found. Browse the portfolio, flash, or start an enquiry.">
+<!-- A 404 response page: keep it out of search results. -->
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F7F1E3">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -43,6 +42,7 @@
   </ul>
   <div class="nav-right">
     <!-- homepage:status -->
+    <a href="/enquire/" class="btn btn-primary btn-sm">Enquire</a>
     <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
   </div>
 </nav>
@@ -60,36 +60,24 @@
   </div>
   <div class="drawer-bottom">
     <!-- homepage:status-drawer -->
+    <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
   </div>
 </div>
 
-<!-- CONFIRMATION -->
+<!-- NOT FOUND -->
 <main class="confirm" role="main" id="maincontent" tabindex="-1">
   <div class="confirm-inner">
     <div class="confirm-mark" aria-hidden="true">🌱</div>
-    <!-- COPY: confirmation eyebrow -->
-    <p class="page-eyebrow">Enquiry received</p>
-    <!-- COPY: confirmation heading -->
-    <h1 class="confirm-title">Thank you, your enquiry's <em>on its way.</em></h1>
-    <!-- COPY: confirmation body -->
-    <p class="confirm-text">It's landed in my inbox. You'll get a reply to the email address you gave me, usually within a few days. No need to send anything again.</p>
-
-    <div class="confirm-timeline">
-      <!-- COPY: "what happens next" steps -->
-      <ol class="timeline-list">
-        <li class="timeline-item">We read through your idea, references and dates.</li>
-        <li class="timeline-item">You'll hear back by email with next steps or a few questions.</li>
-        <li class="timeline-item">Once it's a fit, we book a date and take the deposit.</li>
-      </ol>
-    </div>
+    <p class="page-eyebrow">Error 404</p>
+    <h1 class="confirm-title">This page has <em>gone to seed.</em></h1>
+    <p class="confirm-text">The link's broken or the page has moved. Nothing's lost — try one of these instead.</p>
 
     <div class="confirm-actions">
       <a href="/" class="btn btn-outline">Back to home</a>
       <a href="/portfolio/" class="btn btn-primary">Browse the portfolio →</a>
     </div>
 
-    <!-- COPY: fallback contact line -->
-    <p class="confirm-note">Didn't mean to send that, or need to add something? Email <a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a>.</p>
+    <p class="confirm-note">Looking for something specific? Email <a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a> or <a href="/enquire/">start an enquiry</a>.</p>
   </div>
 </main>
 
@@ -126,7 +114,7 @@
 </footer>
 
 <style>
-/* Confirmation page — scoped here; promote to a CSS module if it grows. */
+/* 404 — reuses the confirmation page's centred layout; scoped here. */
 .confirm{
   display:flex;align-items:center;justify-content:center;
   min-height:calc(100vh - var(--nav-h));
@@ -144,12 +132,7 @@
   line-height:1.02;letter-spacing:-0.03em;margin-bottom:18px;
 }
 .confirm-title em{font-style:italic;color:var(--moss)}
-.confirm-text{font-size:18px;color:var(--ink-soft);line-height:1.6;margin-inline:auto;max-width:460px}
-.confirm-timeline{
-  margin:36px auto;max-width:420px;text-align:left;
-  background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);
-  padding:8px 24px;
-}
+.confirm-text{font-size:18px;color:var(--ink-soft);line-height:1.6;margin-inline:auto;max-width:460px;margin-bottom:28px}
 .confirm-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
 .confirm-note{font-size:13px;color:var(--ink-faint);line-height:1.5}
 .confirm-note a{color:var(--moss);border-bottom:1px solid rgba(74,93,63,0.35)}
