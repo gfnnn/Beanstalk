@@ -35,10 +35,9 @@ Everything else is wiring (Phases 2–3) and verification (Phase 5).
 
 These unblock later phases. None require code to decide.
 
-- [ ] **Where Roxy reads mail** — confirm the Gmail account that `@beansprout.ink`
-      will forward to (drives `ARTIST_EMAIL`). See `EMAIL-DOMAIN-SETUP.md`.
-- [ ] **Confirm DNS access** — you need login to **GoDaddy** (DNS for
-      `beansprout.ink`) to add email records now, and A/CNAME records at cutover.
+- [x] **Where Roxy reads mail** — confirmed: **`roksanazielonka.z@gmail.com`** is
+      `ARTIST_EMAIL` (where `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
+- [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
 - [ ] **Analytics vendor (optional for MVP)** — Plausible/Fathom (cookieless, no
       consent banner) vs GA4 (needs a banner). The `track()` scaffold no-ops until
       one is wired, so the site is launch-legal without it. *Recommend deferring to
@@ -49,32 +48,25 @@ These unblock later phases. None require code to decide.
 
 ---
 
-## Phase 1 — Engineering go-live blocker: GDPR erasure (🛠 CODE)
+## Phase 1 — Engineering go-live blocker: GDPR erasure ✅ DONE (🛠 CODE)
 
-The blocker flagged in `_shared.js`, `ENQUIRY-SETUP.md`, and ROADMAP. Build the
-minimum that makes a UK-GDPR erasure request honourable and retention real.
+**Decision taken: (b) the minimal offline runbook** — least surface area now, with
+the strategic plan to move data into a dedicated secure store post-launch (see
+`docs/DATA-COMPLIANCE.md`). Built and shipped:
 
-- [ ] **Erasure path (delete-by-key).** Add an authenticated way to delete a record
-      from the `submissions` (and `flash-claims` / `newsletter-consent`) Blobs
-      stores by key. MVP-minimal options, smallest first:
-      - **(a) Authenticated admin function** — a Netlify function behind a shared
-        secret / HTTP Basic that lists + deletes by key. (ROADMAP P2 recommends this
-        lives with the future artist-facing view; for MVP a thin delete endpoint is
-        enough.)
-      - **(b) Documented manual runbook** — a script using `@netlify/blobs` +
-        `netlify env` to list/delete by key, run by hand on request. *Cheapest path
-        to "we can honour erasure"; acceptable for MVP given studio volume.*
-- [ ] **Retention enforcement.** The privacy page promises "enquiries that don't
-      lead to a booking are kept up to 12 months". Implement either a scheduled
-      Netlify function that prunes `submissions` older than the retention window, or
-      document a manual quarterly prune in the runbook. (MVP: a documented manual
-      prune is defensible; automate post-launch.)
-- [ ] **Reconcile the privacy page** with whatever you build — confirm the stated
-      retention period and erasure route match reality before launch.
+- [x] **Erasure path (delete-by-key)** + **access (find-by-email)** + **retention
+      prune** via `apps/functions/scripts/data-admin.mjs` (no public endpoint =
+      no new attack surface). Unit-tested; full doc + runbook in
+      `docs/DATA-COMPLIANCE.md`.
+- [x] **Retention window** defined at **12 months** (the runbook default), matching
+      the privacy page. Pruned manually on a quarterly reminder.
+- [x] **Privacy page reconciled** — already states the 12-month retention and the
+      one-month response window; no change needed.
 
-👤 **YOU:** decide (a) vs (b) above. *Recommendation: ship (b) the manual runbook
-for MVP — it makes erasure genuinely honourable with zero new attack surface — and
-fold the admin UI in later with the P2 artist-facing view.*
+👤 **Remaining (you):** generate `NETLIFY_SITE_ID` + `NETLIFY_API_TOKEN`, do one
+dry-run (`find` a test record, `prune` dry-run) so the runbook is proven before a
+real request, and set a quarterly prune reminder. *(These belong after Phase 2,
+since they need the live Netlify site.)*
 
 ---
 
@@ -233,10 +225,10 @@ Pages in Phase 5).
 
 ## Your immediate next actions (👤)
 
-1. Confirm Roxy's Gmail + that you have GoDaddy DNS access (Phase 0).
-2. Tell me **(a) admin function or (b) manual runbook** for erasure (Phase 1) — I'll
-   build it.
-3. Start the Resend + Netlify accounts (Phase 2) — these gate all form testing.
+1. ~~Confirm Roxy's Gmail + DNS access~~ ✅ done.
+2. ~~Choose the erasure approach~~ ✅ done — minimal runbook built (Phase 1).
+3. Start the Resend + Netlify accounts (Phase 2) — these gate all form testing **and**
+   the Phase 1 runbook dry-run (it needs the live site's id/token).
 4. Send me confirmed **service prices**, a signed-off **terms effective date**, and
    the **og-image** (Phase 4) and I'll apply them.
 </content>

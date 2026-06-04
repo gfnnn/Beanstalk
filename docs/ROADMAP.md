@@ -38,13 +38,18 @@ cleared — see the deploy guardrail in `CLAUDE.md`.
 
 ## Go-live blockers (clear before pointing the apex at v2)
 
-- **Submissions retention/erasure (GDPR).** The `submissions` and `flash-claims`
-  Netlify Blobs stores hold personal / special-category data (allergies, DOB).
-  Before launch they need a concrete **retention period** and a working
-  **erasure path** (delete-by-key), and the privacy page must state both.
-  Already flagged in `apps/functions/netlify/functions/_shared.js`
-  (`persistSubmission`), `ENQUIRY-SETUP.md`, and the privacy page
-  ("How long we keep it").
+- **Submissions retention/erasure (GDPR).** ✅ **Cleared (MVP).** The `submissions`
+  / `newsletter-consent` Blobs stores hold personal / special-category data. A
+  concrete **retention period** (12 months) and a working **erasure path**
+  (delete-by-key) now exist via the offline runbook
+  `apps/functions/scripts/data-admin.mjs` (`find`/`delete`/`prune`), documented in
+  `docs/DATA-COMPLIANCE.md`; the privacy page already states the retention period
+  and one-month response. **Decision:** this is the deliberately minimal path — the
+  agreed direction is to move captured data **out of the project** into a dedicated
+  secure store with first-class compliance tooling (see the P2 admin item below and
+  the "Strategic direction" in `DATA-COMPLIANCE.md`).
+  - 👤 Remaining: generate `NETLIFY_SITE_ID` + `NETLIFY_API_TOKEN`, dry-run the
+    runbook once, and set a quarterly prune reminder.
 - Real copy + images (content track — out of scope for engineering).
 
 ## Open decisions (needed before the blocked work)
