@@ -23,7 +23,7 @@ Per `docs/ROADMAP.md`, two things gate the apex cutover:
    data: allergies, DOB). The privacy page already *states* retention periods, but
    there is **no working erasure path** (delete-by-key) and no retention enforcement.
    → **Phase 1** (code). This is the one real engineering blocker.
-2. **Real copy + images.** Largely done (#53; 29 portfolio pieces with real photos,
+2. **Real copy + images.** Largely done (#53; 28 portfolio pieces with real photos,
    12 flash pieces). Remaining gaps are small and listed in **Phase 4**.
 
 Everything else is wiring (Phases 2–3) and verification (Phase 5).
@@ -132,7 +132,7 @@ Content is mostly in, but a few items need your confirmation before launch.
 - [ ] **`og-image.jpg` (1200×630)** — referenced site-wide for social cards and the
       default piece-page OG image, **still missing** (ROADMAP P3). 👤 supply image →
       🛠 add to `apps/web/public/images/og-image.jpg`.
-- [ ] **Portfolio / flash spot-check** — 29 pieces + 12 flash are populated with real
+- [ ] **Portfolio / flash spot-check** — 28 pieces + 12 flash are populated with real
       photos; eyeball them for any remaining placeholders/tone-swatch fallbacks.
 - [ ] *(Optional)* **Testimonials** — the "Kind words" homepage block is `hidden`
       while empty. Add real quotes to `src/data/testimonials.js` and remove `hidden`
@@ -276,5 +276,3 @@ Pages in Phase 5).
    this gates deployed form testing (local `wrangler dev` works without it).
 4. Send me confirmed **service prices**, a signed-off **terms effective date**, and
    the **og-image** (Phase 4) and I'll apply them.
-</content>
-</invoke>

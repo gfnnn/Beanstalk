@@ -156,4 +156,3 @@ hosted editing path or the production site. Required controls:
 2. **Header-light tie-break** when notices share a priority.
 3. **Auto-suggest swatch** — dominant-colour → nearest-swatch algorithm + where it runs.
 4. **Content format** — JSON throughout vs. MD/MDX for the prose pages (About/Aftercare).
-</content>

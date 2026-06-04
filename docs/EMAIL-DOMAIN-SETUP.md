@@ -117,5 +117,3 @@ reply go out as `roxy@beansprout.ink`. No app change needed.
 - **External (can't be done from the repo):** the ImprovMX account, the Gmail
   "Send mail as", and the DNS records — all live in the ImprovMX / Gmail / GoDaddy
   accounts.
-</content>
-</invoke>

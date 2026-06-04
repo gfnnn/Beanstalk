@@ -5,9 +5,11 @@
 # redeploy. The Worker deploys separately to Cloudflare (see wrangler.toml).
 #
 # One-time setup: GitHub repo → Settings → Pages → Build and deployment →
-# Source = "GitHub Actions". Then set the Worker URL so the enquiry form is
-# wired at build time: Settings → Secrets and variables → Actions → Variables →
-# New variable → VITE_ENQUIRY_FN_URL = https://beansprout-forms.<subdomain>.workers.dev/enquiry
+# Source = "GitHub Actions". Then set the Worker URLs so the forms are wired at
+# build time: Settings → Secrets and variables → Actions → Variables → New variable
+# → VITE_ENQUIRY_FN_URL / VITE_NEWSLETTER_FN_URL / VITE_FLASH_STATUS_FN_URL, each
+# = https://beansprout-forms.<subdomain>.workers.dev/<route>. Any left unset fall
+# back to the production defaults baked into apps/web/src/js/modules/config.js.
 
 name: Deploy site to GitHub Pages
 
@@ -43,6 +45,8 @@ jobs:
       - run: npm run build
         env:
           VITE_ENQUIRY_FN_URL: ${{ vars.VITE_ENQUIRY_FN_URL }}
+          VITE_NEWSLETTER_FN_URL: ${{ vars.VITE_NEWSLETTER_FN_URL }}
+          VITE_FLASH_STATUS_FN_URL: ${{ vars.VITE_FLASH_STATUS_FN_URL }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist

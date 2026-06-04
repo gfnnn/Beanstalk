@@ -193,7 +193,8 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
 The two workspaces deploy to **different places**, each gated so only relevant changes ship:
 
 - **Frontend → GitHub Pages.** `.github/workflows/deploy-web.yml` builds `apps/web` (with
-  `VITE_ENQUIRY_FN_URL` from repo Actions Variables) and publishes `apps/web/dist`. It is
+  the `VITE_*_FN_URL` Worker routes from repo Actions Variables — any left unset fall back
+  to the `config.js` defaults) and publishes `apps/web/dist`. It is
   **path-gated** (`paths: apps/web/**`, lockfile, the workflow itself), so a functions-only
   change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`)
   is copied to the site root as-is. **No `public/CNAME`** until the apex cutover (see the
