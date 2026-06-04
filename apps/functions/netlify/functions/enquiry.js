@@ -17,7 +17,7 @@
 // newsletter function — see ./_shared.js. Otherwise uses the global fetch in
 // Netlify's Node runtime; @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, rateLimit, persistSubmission, reserveFlashPiece } from './_shared.js'
+import { corsFor, replyWith, clientIp, rateLimit, persistSubmission, reserveFlashPiece, EMAIL_RE } from './_shared.js'
 
 // Kept comfortably under Netlify's ~6 MB synchronous request-body cap.
 const MAX_IMAGES      = 8
@@ -106,7 +106,7 @@ export async function handler(event) {
   // ── Validate ──────────────────────────────────────────────────────────────
   const missing = form.required.filter(k => !String(fields[k] || '').trim())
   if (missing.length) return reply(400, { error: 'Please complete the required fields.' })
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(fields.email))) {
+  if (!EMAIL_RE.test(String(fields.email))) {
     return reply(400, { error: 'Please enter a valid email address.' })
   }
   if (form.consent.some(k => !fields[k])) {

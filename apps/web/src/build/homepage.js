@@ -4,16 +4,10 @@
 // Imported by vite.config.js. The generated-grids plugin swaps these into the
 // homepage markers in both dev and build. Edit the copy in src/data/homepage.js,
 // not here — these functions only turn that data into markup.
+import { esc } from './html.js'
 
 const TONES = new Set(['moss', 'clay', 'faint'])
 const tone = t => (TONES.has(t) ? t : 'moss')
-
-// Escape plain-text fields (labels, hero copy) so they can't inject markup.
-const esc = s => String(s ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
 
 // The nav "light" — the live status pill shared by every page. `center` is the
 // mobile-drawer variant. Returns '' when status.show is false (pill removed).

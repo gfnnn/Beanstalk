@@ -12,7 +12,8 @@
 // hand-editing here. Which styles are featured (and the per-card copy) lives in
 // src/data/homepage.js → `specialisms`; this file only turns that into markup.
 
-import { STYLE_LABELS, styleLabel, altText, dateKey, esc } from './portfolio-tiles.js'
+import { STYLE_LABELS, styleLabel, altText, dateKey } from './portfolio-tiles.js'
+import { esc, HAS_EXT } from './html.js'
 
 // How many preview thumbnails sit in each card (the .specialism-previews row).
 const PREVIEWS = 3
@@ -21,7 +22,6 @@ const PREVIEWS = 3
 // already carries an extension (e.g. "…/Koi.webp") is served as-is; a no-extension
 // base path resolves to its 400px derivative (these tiles are small squares, so a
 // single small source is plenty — no srcset needed).
-const HAS_EXT = /\.(avif|webp|jpe?g|png)$/i
 const thumbSrc = p => (HAS_EXT.test(p.img) ? p.img : `${p.img}-400.jpg`)
 
 // The newest pieces with a real photo that carry `style`, up to `n`. Newest-first

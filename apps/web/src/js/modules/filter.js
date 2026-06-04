@@ -4,6 +4,8 @@
 // `resetWindow` (from initLoadMore) re-windows the "load more" set after a sort
 // reorders the tiles. The returned `applyFilters` is handed back to load-more so
 // newly-revealed tiles get filtered too (see main.js).
+import { initStickyShadow } from './sticky.js'
+
 export function initFilter({ resetWindow } = {}) {
   const grid = document.getElementById('masonry-grid')
   if (!grid) return
@@ -27,17 +29,7 @@ export function initFilter({ resetWindow } = {}) {
   const stylesOf = tile => (tile.dataset.style || '').split(/\s+/).filter(Boolean)
 
   // ── Sticky detection (shadow when filter bar is pinned) ──────────────────
-  if (filterBar && 'IntersectionObserver' in window) {
-    const stickyObs = new IntersectionObserver(
-      ([entry]) => filterBar.classList.toggle('stuck', !entry.isIntersecting),
-      {
-        threshold: 1,
-        rootMargin: `-${getComputedStyle(document.documentElement)
-          .getPropertyValue('--nav-h').trim()} 0px 0px 0px`,
-      }
-    )
-    stickyObs.observe(filterBar)
-  }
+  initStickyShadow(filterBar)
 
   // ── Chip counts — from the full catalogue, not the loaded window ──────────
   function updateCounts() {

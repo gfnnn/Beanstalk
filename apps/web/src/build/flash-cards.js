@@ -6,6 +6,7 @@
 // The markup is exactly what flash.js expects to read: a .flash-card with
 // data-status/price/size/drop, a .card-status badge, and a .claim-btn carrying
 // data-piece/data-price (live) or disabled (pending/claimed).
+import { esc } from './html.js'
 
 // Square line-art placeholders, shown until a card has a real `img`. Inner SVG
 // only — wrapped with shared attrs in `placeholder()`. Exported so the
@@ -31,12 +32,6 @@ export const STATUS = {
   pending:   { cls: 'pending',        label: 'Pending'   },
   claimed:   { cls: 'claimed-status', label: 'Claimed'   },
 }
-
-const esc = s => String(s ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
 
 // Real square photo — responsive <picture>. Styled by `.flash-card .card-image img`.
 function photo(p) {

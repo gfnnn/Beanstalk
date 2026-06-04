@@ -1,6 +1,7 @@
 import { pauseScroll, resumeScroll } from './lenis.js'
 import { ENQUIRY_FN_URL, FLASH_STATUS_FN_URL } from './config.js'
 import { track } from './analytics.js'
+import { initStickyShadow } from './sticky.js'
 
 export function initFlash() {
   const grid = document.getElementById('flash-grid')
@@ -50,16 +51,7 @@ export function initFlash() {
   updateCounts()
 
   // ── Filter bar sticky shadow ─────────────────────────────────────────────
-  if (filterBar && 'IntersectionObserver' in window) {
-    const navH = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('--nav-h')
-    ) || 65
-    const obs = new IntersectionObserver(
-      ([e]) => filterBar.classList.toggle('stuck', !e.isIntersecting),
-      { threshold: 1, rootMargin: `-${navH}px 0px 0px 0px` }
-    )
-    obs.observe(filterBar)
-  }
+  initStickyShadow(filterBar)
 
   // ── Filter + sort ────────────────────────────────────────────────────────
   let activeFilter = 'all'
