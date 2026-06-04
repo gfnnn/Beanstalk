@@ -89,6 +89,13 @@ https://beansprout-forms.<your-subdomain>.workers.dev/enquiry
                                                       /flash-status
 ```
 
+> **Auto-deploy (optional).** `.github/workflows/deploy-functions.yml` runs the D1
+> migrations + `wrangler deploy` on every push to `main` under `apps/functions/**`,
+> so you don't deploy by hand. One-time: mint a Cloudflare API token (dashboard →
+> My Profile → API Tokens → **"Edit Cloudflare Workers"** template) and add it as a
+> repo secret `CLOUDFLARE_API_TOKEN` (Settings → Secrets and variables → Actions).
+> Secrets (`wrangler secret put`) are still set once by hand — they're never in CI.
+
 ---
 
 ## Part C — Connect the form & deploy the site
