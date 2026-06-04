@@ -10,11 +10,14 @@
 //   name    Attribution shown in the credit, e.g. "M. Hartley" (COPY).
 //   piece   Optional piece descriptor shown after the name, e.g. "Fine line study".
 //
-// These are placeholders so the section renders today; swap in real quotes as
-// they come in. An empty array renders nothing (the section header still shows).
+// Real quotes only — never fabricate. Source these from DMs or feedback given at
+// the time of the visit, then add them here. An empty array renders nothing.
+//
+// NOTE: empty for now because there are no approved real quotes yet. While this is
+// empty, the homepage "Kind words" section is hidden (the `hidden` attribute on its
+// <section> in index.html). Add quotes below AND remove that `hidden` to switch it
+// back on.
 export const testimonials = [
-  // COPY: replace with real client quotes + attributions.
-  { quote: '[Client quote, authentic, max ~40 words.]', name: '[Initial Last.]', piece: 'Fine line study' },
-  { quote: '[Client quote.]', name: '[Initial Last.]', piece: 'Botanical piece' },
-  { quote: '[Client quote.]', name: '[Initial Last.]', piece: 'Custom design' },
+  // Example shape (delete this comment, keep the format):
+  // { quote: 'Roxy made my first tattoo so easy…', name: 'M. Hartley', piece: 'Fine line botanical' },
 ]

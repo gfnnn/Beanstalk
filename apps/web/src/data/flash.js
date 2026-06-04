@@ -33,17 +33,20 @@
 //   w, h        Intrinsic px dimensions (square crop). Required when img is set.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// NOTE: titles, specs and prices below are placeholders matched to each card's
+// line-art glyph so the grid reads sensibly until real flash photos are added.
+// Swap in the real piece names, sizes and prices (and `img`) per drop.
 export const flash = [
-  { id: 'flash-01', title: 'Lorem ipsum dolor',     specs: '0 inches · Lorem ipsum, lorem lorem · Lorem', price: 180, size: 3, drop: 12, status: 'available', tone: 'ci-sage',  glyph: 'sprig',  img: null, w: null, h: null },
-  { id: 'flash-02', title: 'Lorem ipsum dolor sit', specs: '0 inches · Lorem ipsum · Lorem lorem',         price: 160, size: 2, drop: 12, status: 'available', tone: 'ci-cream', glyph: 'bud',    img: null, w: null, h: null },
-  { id: 'flash-03', title: 'Lorem ipsum dolor',     specs: '0 inches · Lorem ipsum · Lorem',               price: 220, size: 4, drop: 12, status: 'claimed',   tone: 'ci-ink',   glyph: 'moth',   img: null, w: null, h: null },
-  { id: 'flash-04', title: 'Lorem ipsum',           specs: '0 inches · Lorem lorem ipsum · Lorem',         price: 200, size: 3, drop: 12, status: 'available', tone: 'ci-moss',  glyph: 'wheat',  img: null, w: null, h: null },
-  { id: 'flash-05', title: 'Lorem ipsum dolor sit', specs: '0 inches · Lorem ipsum · Lorem lorem',         price: 170, size: 3, drop: 12, status: 'available', tone: 'ci-warm',  glyph: 'tulip',  img: null, w: null, h: null },
-  { id: 'flash-06', title: 'Lorem ipsum dolor',     specs: '0 inches · Lorem ipsum · Lorem',               price: 190, size: 3, drop: 12, status: 'claimed',   tone: 'ci-deep',  glyph: 'leaf',   img: null, w: null, h: null },
-  { id: 'flash-07', title: 'Lorem ipsum',           specs: '0 inches · Lorem ipsum · Lorem lorem',         price: 130, size: 2, drop: 12, status: 'available', tone: 'ci-blush', glyph: 'peaks',  img: null, w: null, h: null },
-  { id: 'flash-08', title: 'Lorem ipsum dolor sit', specs: '0 inches · Lorem ipsum lorem · Lorem',         price: 240, size: 4, drop: 12, status: 'available', tone: 'ci-sage',  glyph: 'arch',   img: null, w: null, h: null },
-  { id: 'flash-09', title: 'Lorem ipsum dolor',     specs: '0 inches · Lorem ipsum · Lorem lorem',         price: 150, size: 2, drop: 12, status: 'pending',   tone: 'ci-cream', glyph: 'blob',   img: null, w: null, h: null },
-  { id: 'flash-10', title: 'Lorem ipsum',           specs: '0 inches · Lorem ipsum lorem · Lorem',         price: 180, size: 3, drop: 12, status: 'available', tone: 'ci-clay',  glyph: 'branch', img: null, w: null, h: null },
-  { id: 'flash-11', title: 'Lorem ipsum dolor sit', specs: '0 inches · Lorem ipsum · Lorem',               price: 160, size: 2, drop: 12, status: 'claimed',   tone: 'ci-warm',  glyph: 'star',   img: null, w: null, h: null },
-  { id: 'flash-12', title: 'Lorem ipsum dolor',     specs: '0 inches · Lorem ipsum, lorem · Lorem',        price: 210, size: 3, drop: 12, status: 'available', tone: 'ci-moss',  glyph: 'sprout', img: null, w: null, h: null },
+  { id: 'flash-01', title: 'Wildflower sprig', specs: '3 inches · Forearm, calf · Fine line',          price: 180, size: 3, drop: 12, status: 'available', tone: 'ci-sage',  glyph: 'sprig',  img: null, w: null, h: null },
+  { id: 'flash-02', title: 'Poppy bud',        specs: '2 inches · Wrist, ankle · Fine line',           price: 160, size: 2, drop: 12, status: 'available', tone: 'ci-cream', glyph: 'bud',    img: null, w: null, h: null },
+  { id: 'flash-03', title: 'Luna moth',        specs: '4 inches · Forearm, spine · Black & grey',      price: 220, size: 4, drop: 12, status: 'claimed',   tone: 'ci-ink',   glyph: 'moth',   img: null, w: null, h: null },
+  { id: 'flash-04', title: 'Wheat stems',      specs: '3 inches · Forearm, spine · Fine line',         price: 200, size: 3, drop: 12, status: 'available', tone: 'ci-moss',  glyph: 'wheat',  img: null, w: null, h: null },
+  { id: 'flash-05', title: 'Single tulip',     specs: '3 inches · Forearm, calf · Fine line',          price: 170, size: 3, drop: 12, status: 'available', tone: 'ci-warm',  glyph: 'tulip',  img: null, w: null, h: null },
+  { id: 'flash-06', title: 'Fern frond',       specs: '3 inches · Forearm, calf · Botanical',          price: 190, size: 3, drop: 12, status: 'claimed',   tone: 'ci-deep',  glyph: 'leaf',   img: null, w: null, h: null },
+  { id: 'flash-07', title: 'Mountain line',    specs: '2 inches · Wrist, ankle · Fine line',           price: 130, size: 2, drop: 12, status: 'available', tone: 'ci-blush', glyph: 'peaks',  img: null, w: null, h: null },
+  { id: 'flash-08', title: 'Garden arch',      specs: '4 inches · Forearm, thigh · Fine line',         price: 240, size: 4, drop: 12, status: 'available', tone: 'ci-sage',  glyph: 'arch',   img: null, w: null, h: null },
+  { id: 'flash-09', title: 'Harvest moon',     specs: '2 inches · Wrist, ankle · Dotwork',             price: 150, size: 2, drop: 12, status: 'pending',   tone: 'ci-cream', glyph: 'blob',   img: null, w: null, h: null },
+  { id: 'flash-10', title: 'Berry branch',     specs: '3 inches · Forearm, calf · Fine line',          price: 180, size: 3, drop: 12, status: 'available', tone: 'ci-clay',  glyph: 'branch', img: null, w: null, h: null },
+  { id: 'flash-11', title: 'North star',       specs: '2 inches · Wrist, ankle · Black & grey',        price: 160, size: 2, drop: 12, status: 'claimed',   tone: 'ci-warm',  glyph: 'star',   img: null, w: null, h: null },
+  { id: 'flash-12', title: 'First sprout',     specs: '3 inches · Forearm, spine · Fine line',         price: 210, size: 3, drop: 12, status: 'available', tone: 'ci-moss',  glyph: 'sprout', img: null, w: null, h: null },
 ]

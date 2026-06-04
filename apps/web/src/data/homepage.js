@@ -57,22 +57,22 @@ export const homepage = {
   },
 
   notices: [
-    { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Now open for [Month]. <a href="/enquire/">Request a slot</a>' },
-    { show: true,  tone: 'clay',  label: 'Flash day',  html: 'New designs dropping [Date]. <a href="/flash/">Preview flash</a>' },
+    { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open for summer. <a href="/enquire/">Request a slot</a>' },
+    { show: true,  tone: 'clay',  label: 'Flash day',  html: 'New flash dropping soon. <a href="/flash/">Preview the sheet</a>' },
     { show: false, tone: 'faint', label: 'Guest spot', html: 'Guest artist [Name], [Dates].' },
   ],
 
   hero: {
-    eyebrow:  '[Location] · [Defining phrase]',
-    headLead: '[Headline — plain]',
-    headEm:   '[Headline — italic]',
-    body:     '[2–3 sentence descriptor in your voice as the artist. Style, location, approach. Keep it honest and specific.]',
+    eyebrow:  'Winchester · Fine line & botanical',
+    headLead: 'Quietly considered',
+    headEm:   'custom tattoo.',
+    body:     "I'm Roxy — the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed.",
     mediaTag: 'Tiny Knives · Winchester',
   },
 
   specialisms: [
-    { style: 'fine-line',  em: '[adjective]', body: '[Description of fine line work — what it is, how it is executed, who it suits. 2–3 sentences.]' },
-    { style: 'botanical',  em: '[adjective]', body: '[Description of botanical work. 2–3 sentences.]' },
-    { style: 'black-grey', em: '[adjective]', body: '[Description of black & grey work. 2–3 sentences.]' },
+    { style: 'fine-line',  em: 'precise', body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile — drawn to age as well as it looks on day one.' },
+    { style: 'botanical',  em: 'living',  body: 'Flowers, ferns and foliage with the small botanical details that make a piece feel grown rather than stamped on. My favourite thing to draw.' },
+    { style: 'black-grey', em: 'soft',    body: 'Smooth black and grey with gentle, smoky shading — animals, portraits and illustrative work with depth, contrast and a soft edge.' },
   ],
 }
