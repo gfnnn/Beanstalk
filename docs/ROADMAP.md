@@ -19,6 +19,18 @@ Shipped (audience-capture + early management layer):
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
   (reject double-claims with 409); the grid reflects live availability.
+- **Centralised colour palette** — every colour now lives in one content file
+  (`src/data/palette.js`); `src/build/palette.js` turns the **active** palette into
+  CSS custom properties that a build plugin injects into each page's `<head>` (dev
+  + build), so no CSS hard-codes a colour. Switch `active` (or edit a palette's
+  hexes) to recolour the whole site; ships with `woodland` (the original look) and
+  a `dusk` example. The decorative tile/flash/hero swatch gradients — previously
+  duplicated across four files — are defined once in `styles/components/tones.css`
+  from the palette `tones`. See the design-system section of `CLAUDE.md`.
+- **Redundancy/health cleanup** — shared HTML helpers `esc`/`HAS_EXT`
+  (`src/build/html.js`), `EMAIL_RE` in `_shared.js`, and a sticky-shadow helper
+  (`src/js/modules/sticky.js`) replace 2–3 copies each; the enquiry image-preview
+  object-URL leak is fixed.
 
 Deploys to **staging only** (GitHub Pages + the `beansprout.netlify.app` mirror).
 The apex `beansprout.ink` stays on **v1** until the go-live blockers below are
@@ -91,3 +103,15 @@ cleared — see the deploy guardrail in `CLAUDE.md`.
   cards (and the default piece-page OG image), still missing.
 - **Firm up `src/build/seo.js`** — the `<head>` injection is regex-on-HTML and
   attribute-order-sensitive; pin it with tests or move to a parser.
+- **Palette visual QA (follow-up to the colour centralisation).** The migration is
+  behaviour-preserving for the default `woodland` palette — every token resolves to
+  the original value — and tests + build are green, but it was **not** browser-
+  verified in-session (no screenshot tooling). One intentional non-identical change:
+  the masonry placeholder-tile gradient angle was normalised 160°→155° to match the
+  flash/about/hero surfaces. Before relying on a palette swap, eyeball the
+  image-less portfolio/flash/about placeholders and the homepage hero, and try
+  `active: 'dusk'` to confirm a full recolour reads well.
+- **Dev-tooling audit advisories.** `npm audit` flags moderate/critical issues in
+  **Vite/Vitest only** — the dev server and test UI, which never ship to the static
+  site — so they don't affect production. Clear them with a Vite 8 / Vitest 4 bump
+  when convenient (a breaking major).
