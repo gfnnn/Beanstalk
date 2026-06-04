@@ -121,4 +121,21 @@ describe('homepage data (homepage.js)', () => {
       expect(typeof homepage.hero[k], `hero.${k}`).toBe('string')
     }
   })
+
+  // The "What I do" cards pull previews live from pieces.js by style token, so a
+  // token the portfolio doesn't know would render an empty card (no matching
+  // previews) and a dead "Browse … work" link. Guard the tokens against the same
+  // STYLE_LABELS source of truth the pieces use, and that there's data to back
+  // each featured style.
+  it('specialisms feature known portfolio styles with copy fields', () => {
+    expect(Array.isArray(homepage.specialisms), 'specialisms is an array').toBe(true)
+    homepage.specialisms.forEach((s) => {
+      expect(PORTFOLIO_STYLES, `specialism style "${s.style}"`).toContain(s.style)
+      expect(typeof s.em, `specialism "${s.style}" em`).toBe('string')
+      expect(typeof s.body, `specialism "${s.style}" body`).toBe('string')
+      // at least one real, photographed piece backs the card's previews
+      const backed = pieces.some(p => p.img && p.styles.includes(s.style))
+      expect(backed, `specialism "${s.style}" has a photographed piece`).toBe(true)
+    })
+  })
 })

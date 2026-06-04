@@ -34,6 +34,19 @@
 // ── hero — the headline + intro copy (homepage only) ──────────────────────────
 //   Plain text, auto-escaped. headLead is the plain part of the H1, headEm the
 //   italic part rendered after a line break.
+//
+// ── specialisms — the "What I do" cards (homepage only) ───────────────────────
+//   The three style cards under the portfolio teaser. Each card showcases ONE
+//   portfolio style and pulls its preview thumbnails LIVE from src/data/pieces.js
+//   (the newest pieces with a photo carrying that style — see
+//   src/build/specialisms.js). You only choose the style + the copy here:
+//     style  a portfolio style TOKEN — must match the chips / STYLE_LABELS:
+//            fine-line · botanical · black-grey · illustrative · dotwork · colour · script
+//            The card title + "Browse … work" link + previews all derive from it.
+//     em     the italic adjective after the style name in the <h3>          (COPY)
+//     body   2–3 sentences describing the style — what it is, who it suits  (COPY)
+//   Card order = array order; the "0X / 0Y" numbering is computed from it. The
+//   grid is laid out for three — keep this to three featured styles.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const homepage = {
@@ -56,4 +69,10 @@ export const homepage = {
     body:     '[2–3 sentence descriptor in your voice as the artist. Style, location, approach. Keep it honest and specific.]',
     mediaTag: 'Tiny Knives · Winchester',
   },
+
+  specialisms: [
+    { style: 'fine-line',  em: '[adjective]', body: '[Description of fine line work — what it is, how it is executed, who it suits. 2–3 sentences.]' },
+    { style: 'botanical',  em: '[adjective]', body: '[Description of botanical work. 2–3 sentences.]' },
+    { style: 'black-grey', em: '[adjective]', body: '[Description of black & grey work. 2–3 sentences.]' },
+  ],
 }

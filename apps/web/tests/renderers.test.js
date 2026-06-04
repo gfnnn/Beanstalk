@@ -10,12 +10,14 @@ import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
 import { renderTestimonials } from '../src/build/testimonials.js'
 import { testimonials } from '../src/data/testimonials.js'
+import { renderSpecialisms, piecesForStyle } from '../src/build/specialisms.js'
 import {
   renderStatus, renderNotices,
   renderHeroHeadline, renderHeroBody,
 } from '../src/build/homepage.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
+import { homepage } from '../src/data/homepage.js'
 
 describe('renderPortfolioTiles', () => {
   const withImage = {
@@ -316,6 +318,57 @@ describe('renderTestimonials', () => {
   it('renders the real testimonials data without throwing, one figure each', () => {
     const html = renderTestimonials(testimonials)
     expect(html.match(/class="testimonial"/g)).toHaveLength(testimonials.length)
+  })
+})
+
+describe('renderSpecialisms (homepage "What I do" cards)', () => {
+  const sample = [
+    { slug: 'newest-fl', title: 'Newest', subject: 'a sprig', styles: ['fine-line'],            placement: 'forearm', date: '2026-05-15', img: '/images/tattoos/Newest.webp', w: 700, h: 930 },
+    { slug: 'older-fl',  title: 'Older',  subject: 'a leaf',  styles: ['fine-line', 'botanical'], placement: 'leg',     date: '2025-01-01', img: '/images/tattoos/Older.webp',  w: 700, h: 930 },
+    { slug: 'no-photo',  title: 'Pending', subject: 'a moth', styles: ['fine-line'],            placement: 'wrist',   date: '2026-06-01', img: null, w: null, h: null },
+    { slug: 'bw',        title: 'Tiger',  subject: 'a tiger', styles: ['black-grey'],           placement: 'forearm', date: '2025-03-11', img: '/images/tattoos/Tiger.webp', w: 700, h: 930 },
+  ]
+
+  it('renders one card per configured specialism with "0X / 0Y" numbering', () => {
+    const html = renderSpecialisms(sample, [{ style: 'fine-line' }, { style: 'black-grey' }])
+    expect(html.match(/class="specialism-card"/g)).toHaveLength(2)
+    expect(html).toContain('01 / 02')
+    expect(html).toContain('02 / 02')
+    expect(html).toContain('data-num="01"')
+  })
+
+  it('titles + deep-links each card from its style token (label is the single source of truth)', () => {
+    const html = renderSpecialisms(sample, [{ style: 'black-grey', em: 'soft' }])
+    expect(html).toContain('<h3 class="specialism-title">Black &amp; grey <em>soft</em></h3>')
+    expect(html).toContain('href="/portfolio/?style=black-grey"')
+    expect(html).toContain('Browse black &amp; grey work')
+  })
+
+  it('pulls preview thumbnails from matching pieces, newest first, skipping photoless pieces', () => {
+    const html = renderSpecialisms(sample, [{ style: 'fine-line' }])
+    // newest fine-line piece appears before the older one…
+    expect(html.indexOf('/portfolio/newest-fl/')).toBeLessThan(html.indexOf('/portfolio/older-fl/'))
+    // …and the img-less piece is never previewed (no broken thumbnail)
+    expect(html).not.toContain('/portfolio/no-photo/')
+    expect(html).toContain('src="/images/tattoos/Newest.webp"')
+  })
+
+  it('escapes author copy in the body to prevent markup injection', () => {
+    const html = renderSpecialisms(sample, [{ style: 'fine-line', body: '<script>x</script>' }])
+    expect(html).not.toContain('<script>x</script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+
+  it('renders the real homepage specialisms against the real catalogue without throwing', () => {
+    const html = renderSpecialisms(pieces, homepage.specialisms)
+    expect(html.match(/class="specialism-card"/g)).toHaveLength(homepage.specialisms.length)
+    // every configured style surfaces at least one real preview from the catalogue
+    expect(html).not.toContain('src=""')
+  })
+
+  it('piecesForStyle caps the selection (default three previews per card)', () => {
+    expect(piecesForStyle(pieces, 'fine-line').length).toBeLessThanOrEqual(3)
+    expect(piecesForStyle(pieces, 'fine-line').every(p => p.img && p.styles.includes('fine-line'))).toBe(true)
   })
 })
 
