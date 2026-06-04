@@ -10,7 +10,7 @@
 // emitted assets bypass Vite's HTML transforms, this renders the COMPLETE
 // document — head/SEO, nav status, the shared nav/footer — itself, reusing the
 // same constants/labels as the rest of the site so nothing drifts.
-import { GLYPHS, STYLE_LABELS, PLACEMENT_LABELS, esc, altText } from './portfolio-tiles.js'
+import { GLYPHS, STYLE_LABELS, PLACEMENT_LABELS, esc, altText, dateKey } from './portfolio-tiles.js'
 import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE } from './seo.js'
 import { renderStatus } from './homepage.js'
 import { homepage } from '../data/homepage.js'
@@ -20,10 +20,21 @@ const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@
 const styleLabel = t => STYLE_LABELS[t] || t
 const placeLabel = t => PLACEMENT_LABELS[t] || t
 
-// Detail-page media: a larger <picture> for real photos, or the line-art swatch
-// placeholder (reusing the global tone class) until a photo is dropped in.
+// `img` may be a final web export carrying its own extension (e.g. "…/Koi.webp")
+// or a base path with no extension (the documented multi-size convention). Mirror
+// the grid renderer: serve a single export as-is, build a srcset otherwise.
+const HAS_EXT = /\.(avif|webp|jpe?g|png)$/i
+const ogImagePath = img => (HAS_EXT.test(img) ? img : `${img}-1200.jpg`)
+
+// Detail-page media: the real photo (single export or responsive <picture>), or
+// the line-art swatch placeholder (reusing the global tone class) until a photo
+// is dropped in.
 function media(p) {
   if (p.img) {
+    if (HAS_EXT.test(p.img)) {
+      return `<img src="${esc(p.img)}" alt="${esc(altText(p))}"
+               width="${p.w}" height="${p.h}" decoding="async">`
+    }
     const srcset = ext => `${p.img}-400.${ext} 400w, ${p.img}-800.${ext} 800w, ${p.img}-1200.${ext} 1200w`
     const sizes  = '(min-width:900px) 56vw, 100vw'
     return `<picture>
@@ -53,7 +64,7 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
   const url     = `${SITE_URL}/portfolio/${p.slug}/`
   const title   = `${p.title} · ${SITE_NAME}`
   const desc    = `${altText(p)} — by ${SITE_NAME} at Tiny Knives, Winchester.`
-  const ogImage = p.img ? `${SITE_URL}${p.img}-1200.jpg` : OG_IMAGE
+  const ogImage = p.img ? `${SITE_URL}${ogImagePath(p.img)}` : OG_IMAGE
   const tags    = [...p.styles.map(styleLabel), placeLabel(p.placement)]
     .map(t => `<li class="piece-tag">${esc(t)}</li>`).join('')
 
@@ -207,10 +218,14 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
 </html>`
 }
 
-// Ordered newest-first (matching the grid's default), with each piece's
+// Ordered newest-first by `date`, matching the grid's default sort exactly
+// (stable: pieces sharing a date keep pieces.js order), with each piece's
 // neighbours resolved for the pager. Returns [{ piece, prev, next }].
 export function piecePagesData(pieces) {
-  const ordered = [...pieces].sort((a, b) => b.order - a.order)
+  const ordered = pieces
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => dateKey(b.p) - dateKey(a.p) || a.i - b.i)
+    .map(o => o.p)
   return ordered.map((piece, i) => ({
     piece,
     prev: ordered[i - 1] || null, // newer
