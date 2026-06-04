@@ -27,6 +27,7 @@ npm run test:functions # functions tests only
 ## Docs
 
 - `CLAUDE.md` — architecture and conventions (start here)
+- `docs/ROADMAP.md` — outstanding work, open decisions, and go-live blockers
 - `docs/ENQUIRY-SETUP.md` — enquiry / flash-claim form + email setup
 - `docs/NEWSLETTER-SETUP.md` — newsletter (Resend Audience) setup
 - `.env.example` — environment variables (copy to `.env` for local work)
