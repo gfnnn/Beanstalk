@@ -200,12 +200,14 @@ The two workspaces deploy to **different places**, each gated so only relevant c
   guardrail below).
 - **Worker → Cloudflare.** `apps/functions/wrangler.toml` defines the Worker (`name`, the D1
   binding, vars). Deployment is via **Cloudflare Workers Builds** — the Worker is Git-connected
-  to this repo with **root directory `apps/functions`**: a push to `main` runs `npx wrangler
-  deploy` (non-`main` branches run `npx wrangler versions upload` for a preview). You can also
-  deploy by hand with `wrangler deploy` from `apps/functions`. Local dev is `wrangler dev`
-  (with a local D1). Chosen over Netlify after Netlify's free tier began pausing the project on
-  a monthly **credit limit**; Cloudflare's free Workers + D1 tiers have no credit-pause model.
-  The canonical site is GitHub Pages.
+  to this repo, building from the **repo root** (Root directory `/`, so `npm ci` finds the
+  single workspace lockfile) with wrangler pointed at the config: a push to `main` runs
+  `npx wrangler deploy --config apps/functions/wrangler.toml` (non-`main` branches run
+  `npx wrangler versions upload --config …` for a preview). You can also deploy by hand with
+  `wrangler deploy` from `apps/functions`. Local dev is `wrangler dev` (with a local D1).
+  Chosen over Netlify after Netlify's free tier began pausing the project on a monthly
+  **credit limit**; Cloudflare's free Workers + D1 tiers have no credit-pause model. The
+  canonical site is GitHub Pages.
 
 This separation is the point of the monorepo split: **frontend changes deploy to Pages,
 Worker changes deploy to Cloudflare, and neither drags the other along.**

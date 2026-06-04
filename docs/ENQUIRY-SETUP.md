@@ -91,9 +91,17 @@ https://beansprout-forms.<your-subdomain>.workers.dev/enquiry
 
 > **Auto-deploy via Cloudflare Workers Builds (browser, recommended).** Instead of
 > running `wrangler deploy` by hand, connect the Worker to this repo: Worker →
-> **Settings → Build → Connect to Git** → pick the repo, set **Root directory =
-> `apps/functions`**, **Deploy command `npx wrangler deploy`** (non-`main` branches
-> use `npx wrangler versions upload` for a preview). A push to `main` then deploys
+> **Settings → Build → Connect to Git** → pick the repo, then in **Build
+> configuration** set:
+> - **Root directory = `/`** — the repo root. This is an npm-workspaces monorepo
+>   with a single `package-lock.json` at the root, and Cloudflare runs `npm ci`
+>   there; pointing the root at `apps/functions` makes `npm ci` fail (no lockfile).
+> - **Deploy command** `npx wrangler deploy --config apps/functions/wrangler.toml`
+> - **Version command** `npx wrangler versions upload --config apps/functions/wrangler.toml`
+>   (used on non-`main` branches for a preview)
+>
+> wrangler resolves `main`/`migrations` relative to the config file, so `--config`
+> makes it find `apps/functions/src/index.js`. A push to `main` then deploys
 > automatically. Set the runtime secrets (above) on the Worker's **Settings →
 > Variables and Secrets** as encrypted **Secret**s — `wrangler deploy` preserves
 > them across builds. The D1 schema is created once via the **D1 → Console** (paste
