@@ -16,6 +16,7 @@ import {
 } from './src/build/homepage.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
+import { renderCspMeta } from './src/build/security.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -173,9 +174,43 @@ const sitemap = {
   },
 }
 
+// Inject the Content-Security-Policy <meta> into every page's <head> at BUILD
+// only (see src/build/security.js for why it's a meta tag, and why dev is
+// skipped — a strict policy would break Vite's HMR client). Two hooks, because
+// the two kinds of page reach the bundle differently:
+//   • The statically-built pages go through transformIndexHtml; we guard on
+//     ctx.server (set only in dev) so the policy ships in build but never in dev.
+//   • The per-piece portfolio pages are emitted straight into the bundle by the
+//     `piecePages` plugin (they skip transformIndexHtml), so generateBundle picks
+//     them up — it runs after `piecePages` (ordered below) and never fires in dev.
+const securityHead = {
+  name: 'beansprout-security-head',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html, ctx) {
+      if (ctx?.server) return html // dev server — leave HMR unconstrained
+      if (html.includes('http-equiv="Content-Security-Policy"')) return html
+      return html.replace('</head>', `  ${renderCspMeta()}\n</head>`)
+    },
+  },
+  generateBundle(_, bundle) {
+    const meta = renderCspMeta()
+    for (const file of Object.values(bundle)) {
+      if (
+        file.type === 'asset' &&
+        file.fileName.endsWith('.html') &&
+        typeof file.source === 'string' &&
+        !file.source.includes('http-equiv="Content-Security-Policy"')
+      ) {
+        file.source = file.source.replace('</head>', `  ${meta}\n</head>`)
+      }
+    }
+  },
+}
+
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, piecePages, sitemap, securityHead],
   build: {
     outDir: 'dist',
     rollupOptions: {
