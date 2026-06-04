@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 const { getStoreMock } = vi.hoisted(() => ({ getStoreMock: vi.fn() }))
 vi.mock('@netlify/blobs', () => ({ getStore: getStoreMock }))
 
-const { corsFor, replyWith, clientIp, rateLimit, persistSubmission, ALLOWED_ORIGINS, CANONICAL_ORIGIN } =
+const { corsFor, replyWith, clientIp, rateLimit, persistSubmission, getFlashClaims, reserveFlashPiece, ALLOWED_ORIGINS, CANONICAL_ORIGIN } =
   await import('../netlify/functions/_shared.js')
 
 // In-memory stand-in for a Netlify Blobs store.
@@ -114,6 +114,45 @@ describe('persistSubmission', () => {
     getStoreMock.mockImplementation(() => { throw new Error('blobs down') })
     await expect(persistSubmission({ kind: 'flash' })).resolves.toBeNull()
     await expect(persistSubmission({ kind: 'flash' }, 'keep-id')).resolves.toBe('keep-id')
+  })
+})
+
+describe('flash inventory (getFlashClaims / reserveFlashPiece)', () => {
+  it('reserves a free piece as pending and returns ok', async () => {
+    const store = makeStore()
+    getStoreMock.mockReturnValue(store)
+    const r = await reserveFlashPiece('flash-07')
+    expect(r).toEqual({ ok: true })
+    expect(store._map.get('claims')).toEqual({ 'flash-07': 'pending' })
+  })
+
+  it('rejects a second claim of the same piece with its current status', async () => {
+    const store = makeStore({ claims: { 'flash-07': 'pending' } })
+    getStoreMock.mockReturnValue(store)
+    const r = await reserveFlashPiece('flash-07')
+    expect(r).toEqual({ ok: false, status: 'pending' })
+    expect(store.setJSON).not.toHaveBeenCalled() // nothing re-written
+  })
+
+  it('treats a missing id as nothing to reserve (ok, no write)', async () => {
+    const store = makeStore()
+    getStoreMock.mockReturnValue(store)
+    expect(await reserveFlashPiece('')).toEqual({ ok: true })
+    expect(store.setJSON).not.toHaveBeenCalled()
+  })
+
+  it('getFlashClaims returns the map, or {} when empty / store down', async () => {
+    getStoreMock.mockReturnValue(makeStore({ claims: { a: 'claimed' } }))
+    expect(await getFlashClaims()).toEqual({ a: 'claimed' })
+    getStoreMock.mockReturnValue(makeStore())
+    expect(await getFlashClaims()).toEqual({})
+    getStoreMock.mockImplementation(() => { throw new Error('down') })
+    expect(await getFlashClaims()).toEqual({})
+  })
+
+  it('FAILS OPEN — allows the claim when the store is unavailable', async () => {
+    getStoreMock.mockImplementation(() => { throw new Error('blobs down') })
+    expect(await reserveFlashPiece('flash-07')).toEqual({ ok: true })
   })
 })
 

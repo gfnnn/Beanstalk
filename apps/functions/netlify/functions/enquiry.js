@@ -17,7 +17,7 @@
 // newsletter function — see ./_shared.js. Otherwise uses the global fetch in
 // Netlify's Node runtime; @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, rateLimit, persistSubmission } from './_shared.js'
+import { corsFor, replyWith, clientIp, rateLimit, persistSubmission, reserveFlashPiece } from './_shared.js'
 
 // Kept comfortably under Netlify's ~6 MB synchronous request-body cap.
 const MAX_IMAGES      = 8
@@ -138,6 +138,19 @@ export async function handler(event) {
   const limiter = await rateLimit(clientIp(event), { storeName: 'enquiry-rate' })
   if (!limiter.ok) {
     return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
+  }
+
+  // ── Flash inventory — reserve the piece so it can't be double-claimed ───────
+  // A flash design is one-of-a-kind. Reserve it before emailing; if someone got
+  // there first, tell the claimant rather than quietly emailing a second claim.
+  if (kind === 'flash') {
+    const reservation = await reserveFlashPiece(String(fields.piece_id || '').trim())
+    if (!reservation.ok) {
+      return reply(409, {
+        error: 'Sorry — that piece was just claimed by someone else. Have a look at what’s still available.',
+        status: reservation.status,
+      })
+    }
   }
 
   // ── Persist first, email second ─────────────────────────────────────────────

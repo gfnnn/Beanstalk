@@ -237,6 +237,35 @@ describe('enquiry handler — persistence & size limits', () => {
   })
 })
 
+describe('enquiry handler — flash inventory', () => {
+  const flashClaim = (over = {}) => ({
+    kind: 'flash',
+    fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', ...over },
+  })
+
+  it('reserves the piece on a successful claim and emails once', async () => {
+    const res = await handler(post(flashClaim()))
+    expect(res.statusCode).toBe(200)
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(stores.get('flash-claims').get('claims')).toEqual({ 'flash-03': 'pending' })
+  })
+
+  it('rejects a second claim of the same piece with 409 and sends no email', async () => {
+    expect((await handler(post(flashClaim()))).statusCode).toBe(200) // first reserves
+    fetchMock.mockClear()
+    const res = await handler(post(flashClaim({ email: 'bob@example.com' })))
+    expect(res.statusCode).toBe(409)
+    expect(JSON.parse(res.body).status).toBe('pending')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('still sends a claim that carries no piece_id (nothing to reserve)', async () => {
+    const res = await handler(post(flashClaim({ piece_id: '' })))
+    expect(res.statusCode).toBe(200)
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+})
+
 describe('enquiry handler — rate limiting', () => {
   it('blocks with 429 once the same IP exceeds the per-IP window (default 5)', async () => {
     for (let i = 0; i < 5; i++) {

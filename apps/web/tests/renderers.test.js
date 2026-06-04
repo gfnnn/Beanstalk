@@ -89,6 +89,11 @@ describe('renderFlashCards', () => {
     expect(html).toContain('class="card-status available"')
   })
 
+  it('exposes the piece id on the card (so live claim state can target it)', () => {
+    const html = renderFlashCards([{ ...base, status: 'available' }])
+    expect(html).toContain('class="flash-card" data-id="f1"')
+  })
+
   it('disables the button and labels "Pending deposit" for pending cards', () => {
     const html = renderFlashCards([{ ...base, status: 'pending' }])
     expect(html).toContain('disabled aria-disabled="true"')
