@@ -148,7 +148,8 @@ apex change. (`ENQUIRY-SETUP.md` Part D.)
       only the enquiry var is strictly required; set the others if your Netlify
       subdomain differs from `beansprout`.) 👤
 - [ ] **Enable GitHub Pages** — Settings → Pages → Source = **GitHub Actions**.
-      ⚠️ See the CNAME note in Phase 6 *before* doing this. 👤
+      Safe now: the apex `CNAME` has been removed (Phase 6), so Pages serves only on
+      the `*.github.io` URL until the deliberate cutover. 👤
 - [ ] **Enquiry form** — submit with 1–2 photos → land on `/enquiry-received/`,
       email arrives at `ARTIST_EMAIL` with attachments, **Reply** goes to the
       enquirer. 👤
@@ -168,18 +169,14 @@ apex change. (`ENQUIRY-SETUP.md` Part D.)
 This is the actual go-live switch and the one irreversible-ish step. It moves
 `beansprout.ink` from **v1** to **v2**.
 
-⚠️ **CNAME landmine (must resolve first).** `apps/web/public/CNAME` currently
-contains `beansprout.ink`, which **contradicts** the guardrail in `CLAUDE.md` /
-`ENQUIRY-SETUP.md` ("intentionally no `public/CNAME`"). With this file present,
-**the first GitHub Pages deploy will try to bind the apex to v2** — i.e. enabling
-Pages in Phase 5 could prematurely claim `beansprout.ink` and disrupt v1. Choose:
+✅ **CNAME landmine — resolved for staging.** `apps/web/public/CNAME` (which
+contained `beansprout.ink`) has been **removed**, restoring the guardrail in
+`CLAUDE.md` / `ENQUIRY-SETUP.md` ("intentionally no `public/CNAME`"). With it gone,
+enabling GitHub Pages in Phase 5 serves only on the `*.github.io` URL and **cannot**
+prematurely claim the apex off v1. Re-adding it is now the deliberate cutover step
+below.
 
-- [ ] 🛠 **For staging (Phases 1–5): remove `apps/web/public/CNAME`** (or change it to
-      a non-apex you control) so Pages serves only on the `*.github.io` URL while you
-      test. **Then re-add `beansprout.ink` as the deliberate cutover step below.**
-      *(Recommended — keeps Phase 5 from touching the live apex.)*
-
-Then, when ready to go live:
+When ready to go live:
 
 - [ ] **Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) and let Pages deploy.
 - [ ] **Point DNS at GitHub Pages** (👤, GoDaddy): apex `A` records to GitHub's Pages
