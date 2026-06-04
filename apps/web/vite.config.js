@@ -14,6 +14,7 @@ import {
   renderStatus, renderNotices,
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody, renderHeroMediaTag,
 } from './src/build/homepage.js'
+import { renderSpecialisms } from './src/build/specialisms.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -61,6 +62,10 @@ const generatedGrids = {
       }
       if (html.includes('<!-- homepage:hero-media-tag -->')) {
         html = html.replace('<!-- homepage:hero-media-tag -->', () => renderHeroMediaTag(homepage.hero))
+      }
+      // "What I do" specialism cards — previews pulled live from pieces.js.
+      if (html.includes('<!-- homepage:specialisms -->')) {
+        html = html.replace('<!-- homepage:specialisms -->', () => renderSpecialisms(pieces, homepage.specialisms))
       }
       return html
     },

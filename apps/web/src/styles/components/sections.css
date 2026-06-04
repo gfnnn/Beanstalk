@@ -62,7 +62,16 @@
   aspect-ratio: 1;
   border-radius: var(--radius-sm);
   overflow: hidden;
+  background: var(--bg-alt);
+  display: block;
 }
+.specialism-previews .preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms var(--ease), filter 500ms var(--ease);
+}
+.specialism-previews .preview:hover img { transform: scale(1.04); filter: brightness(1.04); }
 
 .specialism-title {
   font-family: var(--serif);

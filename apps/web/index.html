@@ -413,11 +413,14 @@
 
 <!-- ══ SPECIALISMS ═══════════════════════════════════════════════════════════ -->
 <!--
-  COPY NEEDED per card:
-  - specialism-title: short style name, italic part for the distinctive word
-  - specialism-body: 2–3 sentences describing this style — what it looks like, who it suits
-  - specialism-link: CTA text (links to /portfolio/?style=...)
-  Replace .preview .tile [gradient] divs with real image thumbnails
+  The three style cards are generated at build time from src/data/pieces.js by the
+  generatedGrids plugin (vite.config.js → src/build/specialisms.js). Each card's
+  preview thumbnails are the newest portfolio pieces carrying that style, so they
+  stay in step with the catalogue. Choose the featured styles + author the per-card
+  copy in src/data/homepage.js → `specialisms` — don't hand-edit the cards here.
+
+  COPY still NEEDED: the section heading + supporting sentence below, and each
+  card's italic adjective + body (in src/data/homepage.js).
 -->
 <section class="section section-alt" aria-labelledby="specialisms-heading">
 
@@ -434,52 +437,7 @@
   </div>
 
   <div class="specialism-grid">
-
-    <article class="specialism-card" data-num="01">
-      <div class="specialism-num">01 / 03</div>
-      <div class="specialism-content">
-        <div class="specialism-previews">
-          <div class="preview tile gradient-moss"></div>
-          <div class="preview tile gradient-cream"></div>
-          <div class="preview tile gradient-sage"></div>
-        </div>
-        <!-- COPY: specialism 1 -->
-        <h3 class="specialism-title">[Style] <em>[adjective]</em></h3>
-        <p class="specialism-body">[Description of this style, what it is, how it's executed, who it suits. 2–3 sentences.]</p>
-        <a href="/portfolio/?style=fine-line" class="specialism-link">Browse [style] work</a>
-      </div>
-    </article>
-
-    <article class="specialism-card" data-num="02">
-      <div class="specialism-num">02 / 03</div>
-      <div class="specialism-content">
-        <div class="specialism-previews">
-          <div class="preview tile gradient-moss"></div>
-          <div class="preview tile gradient-sage"></div>
-          <div class="preview tile gradient-warm"></div>
-        </div>
-        <!-- COPY: specialism 2 -->
-        <h3 class="specialism-title">[Style] <em>[adjective]</em></h3>
-        <p class="specialism-body">[Description, 2–3 sentences.]</p>
-        <a href="/portfolio/?style=botanical" class="specialism-link">Browse [style] work</a>
-      </div>
-    </article>
-
-    <article class="specialism-card" data-num="03">
-      <div class="specialism-num">03 / 03</div>
-      <div class="specialism-content">
-        <div class="specialism-previews">
-          <div class="preview tile gradient-ink"></div>
-          <div class="preview tile gradient-ink" style="opacity:.7"></div>
-          <div class="preview tile" style="background:#3A3830"></div>
-        </div>
-        <!-- COPY: specialism 3 -->
-        <h3 class="specialism-title">[Style] <em>[adjective]</em></h3>
-        <p class="specialism-body">[Description, 2–3 sentences.]</p>
-        <a href="/portfolio/?style=blackwork" class="specialism-link">Browse [style] work</a>
-      </div>
-    </article>
-
+    <!-- homepage:specialisms -->
   </div>
 
 </section>
