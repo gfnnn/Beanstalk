@@ -179,12 +179,29 @@ enabling GitHub Pages in Phase 5 serves only on the `*.github.io` URL and **cann
 prematurely claim the apex off v1. Re-adding it is now the deliberate cutover step
 below.
 
+> **Two test → production switch-overs happen at cutover** (both are flips of
+> staging/test values to real ones — do them together):
+> 1. **DNS** — point the apex at v2 (below).
+> 2. **Email config** — flip the Worker secrets off the test sender/inbox (below).
+> Until both are done, the site is staging: forms email the *developer's* inbox via
+> Resend's test sender, and the apex still serves v1.
+
 When ready to go live:
 
 - [ ] **Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) and let Pages deploy.
 - [ ] **Point DNS at GitHub Pages** (👤, GoDaddy): apex `A` records to GitHub's Pages
       IPs + `www` `CNAME` to `<user>.github.io` (or per your Pages custom-domain
       instructions). This is what actually moves traffic off v1.
+- [ ] **Switch the email config from test → production** (👤, Worker → Settings →
+      Variables and Secrets). During staging these point at the developer's Resend
+      account; at go-live flip all three:
+      | Secret | Test (now) | Production |
+      |---|---|---|
+      | `FROM_EMAIL` | `onboarding@resend.dev` | `roxy@beansprout.ink` |
+      | `ARTIST_EMAIL` | `harrisonfisher1990@gmail.com` | `roksanaklaudia.z@gmail.com` |
+      Requires **`beansprout.ink` verified in Resend** (Phase 2/3) — until then
+      `roxy@beansprout.ink` sends are rejected. `RESEND_API_KEY` /
+      `RESEND_AUDIENCE_ID` stay the same. Saving a secret redeploys the Worker.
 - [ ] **Add `beansprout.ink` as a verified custom domain** in the repo's Pages
       settings; enable **Enforce HTTPS** once the cert provisions. 👤
 - [ ] **Confirm the Worker CORS allowlist** already includes `https://beansprout.ink`
