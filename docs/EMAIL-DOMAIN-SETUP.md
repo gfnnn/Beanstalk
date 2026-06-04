@@ -31,17 +31,35 @@ relies on (check what's there first).
 | `roxy@beansprout.ink` | The app's **sending** identity (`FROM_EMAIL`), and the "from" on Roxy's manual replies | Forwards → Roxy's Gmail (so out-of-app replies reach her too) |
 | Roxy's Gmail | Where she actually **reads and works** | — |
 
-## Step 1 — Forward the addresses to Gmail
+## Step 1 — Forward the addresses to Gmail (GoDaddy DNS)
 
-Pick one forwarder and add the DNS records it gives you:
+`beansprout.ink`'s DNS is on **GoDaddy**. **Keep the nameservers on GoDaddy** and
+just *add records* — do **not** move DNS to Cloudflare, because changing
+nameservers migrates *every* record (including the v1 website's A/CNAME) and risks
+taking the live apex down. Email needs only record additions, which is safe.
 
-- **Cloudflare Email Routing** (free) — cleanest, but the domain's nameservers
-  must be on Cloudflare. Add `hello@` and `roxy@` as routes → Roxy's Gmail; it
-  adds the MX records + an SPF `TXT` for you and sends Gmail a verify link.
-- **ImprovMX** or **ForwardEmail.net** (free tiers) — work with any DNS host. Add
-  their MX records + the SPF `TXT` they specify, then add the two aliases.
+Use **ImprovMX** (free, works with any DNS host; ForwardEmail.net is an equivalent
+alternative). GoDaddy's own forwarding is now largely paywalled behind Microsoft
+365 — skip it.
 
-Verify by emailing `hello@beansprout.ink` from a phone — it should land in Gmail.
+1. **ImprovMX** ([improvmx.com](https://improvmx.com)) → add `beansprout.ink` →
+   create aliases `hello@` and `roxy@`, both → Roxy's Gmail. ImprovMX shows you the
+   exact records to add (use *its* values; the well-known ones are below).
+2. **GoDaddy** → *Domain Portfolio* → `beansprout.ink` → **DNS → Manage Zones /
+   Manage DNS**. Add:
+
+   | Type | Name/Host | Value | Priority |
+   |---|---|---|---|
+   | `MX` | `@` | `mx1.improvmx.com` | 10 |
+   | `MX` | `@` | `mx2.improvmx.com` | 20 |
+   | `TXT` | `@` | `v=spf1 include:spf.improvmx.com ~all` | — |
+
+3. **Remove GoDaddy's default MX records** at `@` (the ones pointing to
+   `*.secureserver.net`) — otherwise mail routes to GoDaddy instead of ImprovMX.
+   ⚠ First confirm no *current* email relies on them; the v1 **website** uses
+   A/CNAME, not MX, so removing default MX is normally safe here.
+4. Back in ImprovMX, hit **verify**, then send a test email to
+   `hello@beansprout.ink` from your phone — it should land in Gmail within a minute.
 
 ## Step 2 — Let Gmail reply *as* the domain (the deliverability-critical bit)
 
@@ -79,11 +97,11 @@ reply go out as `roxy@beansprout.ink`. No app change needed.
 
 ## DNS sanity checks (avoid the common foot-guns)
 
-- **Only one SPF record per name.** If both Resend and the forwarder want an SPF
-  `TXT` at the same name, **merge the includes into a single record** (e.g.
-  `v=spf1 include:<forwarder> include:<resend> ~all`) — two separate SPF records
-  break both. (Resend often puts its SPF on a `send.` subdomain, in which case
-  there's no clash at the root.)
+- **Only one SPF record per name.** GoDaddy often ships a *default* SPF `TXT` at
+  `@` (e.g. `v=spf1 include:secureserver.net -all`). **Edit that existing record**
+  to the ImprovMX one above rather than adding a second — two SPF records at `@`
+  break both. Resend puts its own SPF on the `send.beansprout.ink` subdomain (not
+  the root), so it won't clash with ImprovMX's root SPF.
 - **Add one DMARC record** at `_dmarc.beansprout.ink`
   (`v=DMARC1; p=none; rua=mailto:hello@beansprout.ink` to start, then tighten to
   `quarantine`/`reject` once you've confirmed Resend + Gmail-send-as both pass).
@@ -95,8 +113,8 @@ reply go out as `roxy@beansprout.ink`. No app change needed.
 
 - **Repo / config:** `ARTIST_EMAIL`, `FROM_EMAIL` (this doc + `.env.example` +
   `ENQUIRY-SETUP.md`). All site contact links already use `hello@beansprout.ink`.
-- **External (can't be done from the repo):** the forwarder account, the Gmail
-  "Send mail as", and the DNS records — all live in the registrar / Cloudflare /
-  ImprovMX / Gmail accounts.
+- **External (can't be done from the repo):** the ImprovMX account, the Gmail
+  "Send mail as", and the DNS records — all live in the ImprovMX / Gmail / GoDaddy
+  accounts.
 </content>
 </invoke>
