@@ -1,5 +1,5 @@
 import { pauseScroll, resumeScroll } from './lenis.js'
-import { ENQUIRY_FN_URL } from './config.js'
+import { ENQUIRY_FN_URL, FLASH_STATUS_FN_URL } from './config.js'
 import { track } from './analytics.js'
 
 export function initFlash() {
@@ -82,6 +82,45 @@ export function initFlash() {
   // excluded) and in default sort order, not just after the first interaction.
   applyFilterSort()
 
+  // ── Live availability ──────────────────────────────────────────────────────
+  // The grid ships static (status baked in at build), so a piece claimed since
+  // then would still look available. On load, reconcile against the server's
+  // live claim map. Best-effort: if the call fails, the static grid still works.
+  function applyCardStatus(id, status) {
+    if (!id || (status !== 'pending' && status !== 'claimed')) return false
+    const card = cards.find(c => c.dataset.id === id)
+    if (!card || card.dataset.status === status) return false
+    if (card.dataset.status === 'claimed' && status === 'pending') return false // don't downgrade
+    card.dataset.status = status
+    const badge = card.querySelector('.card-status')
+    if (badge) {
+      badge.className   = `card-status ${status === 'claimed' ? 'claimed-status' : 'pending'}`
+      badge.textContent = status === 'claimed' ? 'Claimed' : 'Pending'
+    }
+    const btn = card.querySelector('.claim-btn')
+    if (btn) {
+      btn.disabled = true
+      btn.setAttribute('aria-disabled', 'true')
+      btn.textContent = status === 'pending' ? 'Pending deposit' : 'Claimed'
+    }
+    return true
+  }
+
+  async function loadLiveStatus() {
+    try {
+      const res = await fetch(FLASH_STATUS_FN_URL)
+      if (!res.ok) return
+      const { claims } = await res.json().catch(() => ({}))
+      if (!claims || typeof claims !== 'object') return
+      let changed = false
+      for (const [id, status] of Object.entries(claims)) {
+        if (applyCardStatus(id, status)) changed = true
+      }
+      if (changed) { updateCounts(); applyFilterSort() }
+    } catch (_) { /* availability is best-effort */ }
+  }
+  loadLiveStatus()
+
   function applyFilterSort() {
     const sortVal = sortSel ? sortSel.value : 'default'
 
@@ -134,16 +173,18 @@ export function initFlash() {
   const pieceName  = document.getElementById('modal-piece-name')
   const pieceInput = document.getElementById('modal-piece-input')
   const priceInput = document.getElementById('modal-price-input')
+  const idInput    = document.getElementById('modal-id-input')
   const firstField = document.getElementById('claim-name')
 
   let lastFocused = null
 
-  function openModal(name, price) {
+  function openModal(name, price, id) {
     lastFocused = document.activeElement
 
     if (pieceName)  pieceName.textContent = name
     if (pieceInput) pieceInput.value      = name
     if (priceInput) priceInput.value      = price
+    if (idInput)    idInput.value         = id || ''
 
     overlay.hidden = false
     requestAnimationFrame(() => overlay.classList.add('open'))
@@ -169,7 +210,7 @@ export function initFlash() {
     const btn = card.querySelector('.claim-btn:not(:disabled)')
     if (btn) {
       btn.addEventListener('click', () =>
-        openModal(btn.dataset.piece, btn.dataset.price)
+        openModal(btn.dataset.piece, btn.dataset.price, card.dataset.id)
       )
     }
   })
@@ -196,18 +237,12 @@ export function initFlash() {
   }
   const clearModalError = () => document.getElementById('claim-error')?.remove()
 
-  function markPending() {
-    if (!pieceInput) return
-    const claimedCard = cards.find(c =>
-      c.querySelector('.claim-btn')?.dataset.piece === pieceInput.value
-    )
-    if (!claimedCard) return
-    claimedCard.dataset.status = 'pending'
-    const statusEl = claimedCard.querySelector('.card-status')
-    if (statusEl) { statusEl.className = 'card-status pending'; statusEl.textContent = 'Pending' }
-    const claimBtnEl = claimedCard.querySelector('.claim-btn')
-    if (claimBtnEl) { claimBtnEl.disabled = true; claimBtnEl.textContent = 'Pending deposit' }
-    updateCounts()
+  // Reflect a just-changed piece in the grid (by id) and refresh counts/filter.
+  function markCard(status) {
+    if (idInput && applyCardStatus(idInput.value, status)) {
+      updateCounts()
+      applyFilterSort()
+    }
   }
 
   // Form submit → Netlify function (kind: 'flash') → Resend
@@ -229,10 +264,19 @@ export function initFlash() {
           body: JSON.stringify({ kind: 'flash', fields }),
         })
         const json = await res.json().catch(() => ({}))
+
+        // Someone claimed this piece first — mark it claimed in the grid and
+        // keep the modal open so the message is seen.
+        if (res.status === 409) {
+          markCard('claimed')
+          showModalError(json.error || 'That piece was just claimed by someone else.')
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+          return
+        }
         if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
         track('flash_claim', { piece: pieceInput ? pieceInput.value : 'unknown' })
-        markPending()
+        markCard('pending')
         closeModal()
         form.reset()
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }

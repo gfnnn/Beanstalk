@@ -25,7 +25,7 @@ export function corsFor(event) {
   const origin = event.headers?.origin || event.headers?.Origin || ''
   return {
     'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : CANONICAL_ORIGIN,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Vary': 'Origin',
   }
@@ -70,6 +70,46 @@ export async function persistSubmission(record, id) {
   } catch (err) {
     console.error('Submission persistence failed (continuing):', err?.message || err)
     return id || null
+  }
+}
+
+// ── Flash inventory state ───────────────────────────────────────────────────
+// A flash piece is one-of-a-kind, so a successful claim must RESERVE it or two
+// people can claim the same design. State lives in a Blobs store keyed by piece
+// id → 'pending' | 'claimed'; the flash grid reads it (flash-status function) to
+// reflect live availability, and a claim reserves the piece here before emailing.
+const FLASH_STORE = 'flash-claims'
+const FLASH_KEY   = 'claims'
+
+// The current map of claimed/pending flash piece ids → status. Fails safe to {}.
+export async function getFlashClaims() {
+  try {
+    const store = getStore(FLASH_STORE)
+    return (await store.get(FLASH_KEY, { type: 'json' })) || {}
+  } catch (err) {
+    console.error('flash-claims read failed:', err?.message || err)
+    return {}
+  }
+}
+
+// Reserve a flash piece. Returns { ok: true } if it was free and is now reserved
+// ('pending'), or { ok: false, status } if it was already taken. FAILS OPEN: a
+// Blobs outage allows the claim (worst case a double-claim the artist resolves)
+// rather than blocking a real customer. Read-check-write is non-atomic, so two
+// simultaneous claims of the same piece could both win — the window is tiny at
+// studio volume and the artist sees both in the submissions store either way.
+export async function reserveFlashPiece(id) {
+  if (!id) return { ok: true }          // no id supplied → nothing to reserve
+  try {
+    const store  = getStore(FLASH_STORE)
+    const claims = (await store.get(FLASH_KEY, { type: 'json' })) || {}
+    if (claims[id]) return { ok: false, status: claims[id] }
+    claims[id] = 'pending'
+    await store.setJSON(FLASH_KEY, claims)
+    return { ok: true }
+  } catch (err) {
+    console.error('flash-claims reserve failed (allowing claim):', err?.message || err)
+    return { ok: true }
   }
 }
 

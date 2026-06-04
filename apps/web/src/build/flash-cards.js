@@ -67,7 +67,7 @@ function button(p) {
 
 function card(p) {
   const s = STATUS[p.status] || STATUS.available
-  return `    <div class="flash-card" data-status="${esc(p.status)}" data-price="${p.price}" data-size="${p.size}" data-drop="${p.drop}">
+  return `    <div class="flash-card" data-id="${esc(p.id)}" data-status="${esc(p.status)}" data-price="${p.price}" data-size="${p.size}" data-drop="${p.drop}">
       <div class="card-image">
         ${p.img ? photo(p) : placeholder(p)}
       </div>
