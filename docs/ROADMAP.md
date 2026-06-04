@@ -90,6 +90,34 @@ cleared — see the deploy guardrail in `CLAUDE.md`.
 - **GDPR retention/erasure** — also a go-live blocker (above); the erasure UI
   belongs with the artist-facing view.
 
+### P2 — content dashboard (CMS for Roxy) _(planned — requirements + tool decided, not started)_
+
+Let Roxy manage **site content** herself (distinct from the artist-facing view
+above, which manages *enquiries/claims*). Full evaluation in
+[`CMS-FINDINGS.md`](./CMS-FINDINGS.md); full spec in
+[`CMS-REQUIREMENTS.md`](./CMS-REQUIREMENTS.md).
+
+- **Scope:** portfolio (image + data, hide, delete), flash (upload + data),
+  homepage alert system (status light + notice bars) + hero, testimonials, FAQ,
+  services + pricing, about, aftercare.
+- **Tool decided — Sanity.** Hosted headless CMS: email/Google login (no GitHub
+  account), best editor for a non-technical solo editor; free tier ample at one
+  editor / ~200 viewers. Site fetches at build, rebuild via webhook. Trade-off
+  accepted: a SaaS free-tier dependency vs the zero-cost git-based Sveltia.
+- **Decisions (2026-06-04):** single editor (Roxy); named-field editing
+  (layout-safe); single-image upload now, responsive derivatives later; the
+  top-priority active announcement auto-drives the nav status light; filters
+  fixed/assign-only; palette swatches bound to `src/data/palette.js` with an
+  auto-suggested closest-swatch. **Out of scope:** flash status (stays on the live
+  claim flow / inventory state), Visit home/guest mode, editable filters.
+- **Build shape:** expose the already data-driven content first — homepage/palette,
+  portfolio, flash, **testimonials** (`src/data/testimonials.js` already exists) —
+  then refactor the still hand-authored pages (FAQ, services, about, aftercare)
+  into Sanity-fed renderers.
+- **Palette tie-in:** colour pickers generate from `src/data/palette.js` and honour
+  the *never hard-code colour* rule from the palette centralisation (above), so the
+  dashboard can't drift off-brand.
+
 ### P1 leftovers (decision-blocked)
 
 - **Retargeting pixel** (Meta/TikTok) — blocked on the analytics-vendor decision.
