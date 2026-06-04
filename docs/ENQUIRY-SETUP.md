@@ -51,8 +51,14 @@ There are **3 secrets to set** (all on free accounts) and **1 URL to paste back*
      email*, so set `ARTIST_EMAIL` to that address during that test.
 
 You'll end up with: `RESEND_API_KEY`, a verified `FROM_EMAIL`
-(`roxy@beansprout.ink`), and `ARTIST_EMAIL` (wherever the artist reads mail —
-`roxy@beansprout.ink` for now).
+(`roxy@beansprout.ink`), and `ARTIST_EMAIL` (wherever the artist reads mail).
+
+> **`ARTIST_EMAIL` must be a real inbox.** Resend only *sends* — it gives you no
+> mailbox, so a bare `@beansprout.ink` address won't *receive* anything unless
+> forwarding is set up. The recommended setup forwards the domain addresses to a
+> Gmail account (and replies as the domain) — see **`EMAIL-DOMAIN-SETUP.md`**.
+> Point `ARTIST_EMAIL` at that Gmail (most reliable, no extra hop) and keep
+> `FROM_EMAIL` as `roxy@beansprout.ink`.
 
 ---
 
@@ -68,7 +74,7 @@ You'll end up with: `RESEND_API_KEY`, a verified `FROM_EMAIL`
    | Key | Value |
    |-----|-------|
    | `RESEND_API_KEY` | `re_…` from Part A |
-   | `ARTIST_EMAIL`   | inbox that receives submissions (`roxy@beansprout.ink` for now) |
+   | `ARTIST_EMAIL`   | the real inbox submissions land in — Roxy's Gmail (see `EMAIL-DOMAIN-SETUP.md`) |
    | `FROM_EMAIL`     | `roxy@beansprout.ink` (or `onboarding@resend.dev` while testing) |
 
 4. **Deploys → Trigger deploy → Deploy site** so the function picks up the vars.

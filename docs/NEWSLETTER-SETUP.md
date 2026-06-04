@@ -39,10 +39,19 @@ That's it — the signup form is live. The function URL is already wired via
 
 ## Notes
 
-- **Single opt-in.** Resend Audiences has no native double opt-in, so the consent
-  checkbox on the form is the record of consent. If you later want double opt-in
-  (a confirmation email before a subscriber is active), that's an add-on: send a
-  tokenised confirm link and only flip `unsubscribed:false` once it's clicked.
+- **Single opt-in, with a consent ledger.** Resend Audiences has no native double
+  opt-in, and we deliberately *don't* add one — a confirmation email per signup
+  would burn the Resend free-tier quota and isn't legally required (single opt-in
+  with clear, recorded consent is lawful under UK GDPR/PECR). To make that
+  defensible, every accepted signup writes a record to the **`newsletter-consent`**
+  Netlify Blobs store — email, the exact consent wording + its version
+  (`CONSENT_VERSION` in `newsletter.js`), timestamp, source, and IP. That's the
+  audit trail proving *when* and *to what* each subscriber consented; no email is
+  sent. **Bump `CONSENT_VERSION` whenever the consent wording or privacy policy
+  changes**, keeping it in step with the label in `apps/web/newsletter/index.html`
+  and `src/build/newsletter-inline.js`. If you ever do want double opt-in, it's an
+  add-on: send a tokenised confirm link and only flip `unsubscribed:false` once
+  it's clicked.
 - **Sending the newsletter** itself is done from Resend (Broadcasts), not from
   this site. This setup only captures subscribers.
 - **Unsubscribes** are handled by Resend's unsubscribe link in broadcasts; no

@@ -17,7 +17,7 @@
 // newsletter function — see ./_shared.js. Otherwise uses the global fetch in
 // Netlify's Node runtime; @netlify/blobs is the only dependency.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, rateLimit, persistSubmission, reserveFlashPiece, EMAIL_RE } from './_shared.js'
+import { corsFor, replyWith, clientIp, rateLimit, persistSubmission, reserveFlashPiece, releaseFlashPiece, EMAIL_RE } from './_shared.js'
 
 // Kept comfortably under Netlify's ~6 MB synchronous request-body cap.
 const MAX_IMAGES      = 8
@@ -143,14 +143,19 @@ export async function handler(event) {
   // ── Flash inventory — reserve the piece so it can't be double-claimed ───────
   // A flash design is one-of-a-kind. Reserve it before emailing; if someone got
   // there first, tell the claimant rather than quietly emailing a second claim.
+  // `reservedHere` tracks whether WE actually wrote the reservation (vs. a no-id
+  // no-op or a fail-open) so the send-failure path can roll it back precisely.
+  const pieceId = kind === 'flash' ? String(fields.piece_id || '').trim() : ''
+  let reservedHere = false
   if (kind === 'flash') {
-    const reservation = await reserveFlashPiece(String(fields.piece_id || '').trim())
+    const reservation = await reserveFlashPiece(pieceId)
     if (!reservation.ok) {
       return reply(409, {
         error: 'Sorry — that piece was just claimed by someone else. Have a look at what’s still available.',
         status: reservation.status,
       })
     }
+    reservedHere = reservation.reserved === true
   }
 
   // ── Persist first, email second ─────────────────────────────────────────────
@@ -190,6 +195,9 @@ export async function handler(event) {
     if (!res.ok) {
       console.error('Resend error', res.status, await res.text().catch(() => ''))
       await persistSubmission({ ...record, emailStatus: 'failed' }, submissionId)
+      // The notification never reached the artist, so don't strand the piece as
+      // 'pending' (taken on the grid, invisible to her) — free it to be reclaimed.
+      if (reservedHere) await releaseFlashPiece(pieceId)
       return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
     }
     await limiter.commit()   // record the successful send against the limits
@@ -198,6 +206,7 @@ export async function handler(event) {
   } catch (err) {
     console.error('Send failed', err)
     await persistSubmission({ ...record, emailStatus: 'failed' }, submissionId)
+    if (reservedHere) await releaseFlashPiece(pieceId)
     return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
   }
 }

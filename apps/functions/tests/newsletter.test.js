@@ -26,11 +26,14 @@ const post = (fields, headers = {}) => ({
 })
 const valid = (over = {}) => ({ email: 'ada@example.com', consent: 'on', ...over })
 
+// A real Resend Audience ID is a UUID; the function now validates the shape.
+const AUDIENCE_ID = '78261eea-1c2d-4e3f-9a0b-1c2d3e4f5a6b'
+
 let fetchMock
 beforeEach(() => {
   stores.clear()
   vi.stubEnv('RESEND_API_KEY', 're_test')
-  vi.stubEnv('RESEND_AUDIENCE_ID', 'aud_123')
+  vi.stubEnv('RESEND_AUDIENCE_ID', AUDIENCE_ID)
   fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ id: 'c1' }) }))
   vi.stubGlobal('fetch', fetchMock)
 })
@@ -49,6 +52,11 @@ describe('newsletter handler — protocol & config', () => {
   it('returns 500 when env vars are missing', async () => {
     vi.unstubAllEnvs()
     expect((await handler(post(valid()))).statusCode).toBe(500)
+  })
+  it('returns 500 (no Resend call) when the audience id is not a valid UUID', async () => {
+    vi.stubEnv('RESEND_AUDIENCE_ID', 'not-a-uuid')
+    expect((await handler(post(valid()))).statusCode).toBe(500)
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })
 
@@ -75,7 +83,26 @@ describe('newsletter handler — Resend integration', () => {
     expect(body.email).toBe('ada@example.com')
     expect(body.first_name).toBe('Ada')
     expect(body.unsubscribed).toBe(false)
-    expect(fetchMock.mock.calls[0][0]).toContain('/audiences/aud_123/contacts')
+    expect(fetchMock.mock.calls[0][0]).toContain(`/audiences/${AUDIENCE_ID}/contacts`)
+  })
+
+  it('files a consent record on signup without sending any extra email', async () => {
+    const res = await handler(post(valid({ email: 'ADA@Example.com', first_name: 'Ada' })))
+    expect(res.statusCode).toBe(200)
+    expect(fetchMock).toHaveBeenCalledOnce() // only the Audience add — no confirmation mail
+
+    const ledger = stores.get('newsletter-consent')
+    expect(ledger.size).toBe(1)
+    const record = [...ledger.values()][0]
+    expect(record).toMatchObject({ email: 'ada@example.com', first_name: 'Ada', consentVersion: expect.any(String) })
+    expect(record.consentStatement).toBeTruthy()
+    expect(record.consentedAt).toBeTruthy()
+  })
+
+  it('also files a consent record when the subscriber already exists', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({}) })
+    await handler(post(valid()))
+    expect(stores.get('newsletter-consent').size).toBe(1)
   })
 
   it('treats a 409 (already subscribed) as idempotent success', async () => {
