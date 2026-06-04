@@ -90,33 +90,24 @@ cleared — see the deploy guardrail in `CLAUDE.md`.
 - **GDPR retention/erasure** — also a go-live blocker (above); the erasure UI
   belongs with the artist-facing view.
 
-### P2 — content dashboard (CMS for Roxy) _(planned — requirements + tool decided, not started)_
+### P2 — content dashboard (CMS for Roxy) _(planned — decided, deferred until after go-live)_
 
 Let Roxy manage **site content** herself (distinct from the artist-facing view
-above, which manages *enquiries/claims*). Full evaluation in
-[`CMS-FINDINGS.md`](./CMS-FINDINGS.md); full spec in
-[`CMS-REQUIREMENTS.md`](./CMS-REQUIREMENTS.md).
+above, which manages *enquiries/claims*). Full plan, decisions, architecture and
+security: [`CMS.md`](./CMS.md).
 
-- **Scope:** portfolio (image + data, hide, delete), flash (upload + data),
-  homepage alert system (status light + notice bars) + hero, testimonials, FAQ,
-  services + pricing, about, aftercare.
-- **Tool decided — Sanity.** Hosted headless CMS: email/Google login (no GitHub
-  account), best editor for a non-technical solo editor; free tier ample at one
-  editor / ~200 viewers. Site fetches at build, rebuild via webhook. Trade-off
-  accepted: a SaaS free-tier dependency vs the zero-cost git-based Sveltia.
-- **Decisions (2026-06-04):** single editor (Roxy); named-field editing
-  (layout-safe); single-image upload now, responsive derivatives later; the
-  top-priority active announcement auto-drives the nav status light; filters
-  fixed/assign-only; palette swatches bound to `src/data/palette.js` with an
-  auto-suggested closest-swatch. **Out of scope:** flash status (stays on the live
-  claim flow / inventory state), Visit home/guest mode, editable filters.
-- **Build shape:** expose the already data-driven content first — homepage/palette,
-  portfolio, flash, **testimonials** (`src/data/testimonials.js` already exists) —
-  then refactor the still hand-authored pages (FAQ, services, about, aftercare)
-  into Sanity-fed renderers.
-- **Palette tie-in:** colour pickers generate from `src/data/palette.js` and honour
-  the *never hard-code colour* rule from the palette centralisation (above), so the
-  dashboard can't drift off-brand.
+- **Scope:** portfolio (image + data, hide), flash (upload + data), homepage alert
+  system + hero, testimonials, then the hand-authored pages (FAQ, services, about,
+  aftercare). **Out:** editable filters, flash status, Visit home/guest.
+- **Tool decided — TinaCMS** (git-backed: content + images stay in the repo, build
+  stays self-contained) with email login via Tina Cloud (free tier, 1 editor).
+  **Publish = direct to live** (commits to `main` → existing Pages build). Chosen
+  over Sanity (which would move content/images off git to a SaaS + CDN) and Sveltia
+  (GitHub-account friction). Hardening + CVE controls in `CMS.md` §7.
+- **Sequencing:** a post-launch track — ship the site first (GDPR + images), add the
+  CMS once content churns. First step is a POC to validate Tina end-to-end.
+- **Palette tie-in:** colour/swatch pickers generate from `src/data/palette.js` and
+  honour the *never hard-code colour* rule, so the dashboard can't drift off-brand.
 
 ### P1 leftovers (decision-blocked)
 
