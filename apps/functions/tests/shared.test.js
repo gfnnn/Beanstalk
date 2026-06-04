@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 const { getStoreMock } = vi.hoisted(() => ({ getStoreMock: vi.fn() }))
 vi.mock('@netlify/blobs', () => ({ getStore: getStoreMock }))
 
-const { corsFor, replyWith, clientIp, rateLimit, persistSubmission, getFlashClaims, reserveFlashPiece, ALLOWED_ORIGINS, CANONICAL_ORIGIN } =
+const { corsFor, replyWith, clientIp, rateLimit, persistSubmission, persistConsent, getFlashClaims, reserveFlashPiece, releaseFlashPiece, ALLOWED_ORIGINS, CANONICAL_ORIGIN } =
   await import('../netlify/functions/_shared.js')
 
 // In-memory stand-in for a Netlify Blobs store.
@@ -118,11 +118,11 @@ describe('persistSubmission', () => {
 })
 
 describe('flash inventory (getFlashClaims / reserveFlashPiece)', () => {
-  it('reserves a free piece as pending and returns ok', async () => {
+  it('reserves a free piece as pending and signals it actually reserved', async () => {
     const store = makeStore()
     getStoreMock.mockReturnValue(store)
     const r = await reserveFlashPiece('flash-07')
-    expect(r).toEqual({ ok: true })
+    expect(r).toEqual({ ok: true, reserved: true })
     expect(store._map.get('claims')).toEqual({ 'flash-07': 'pending' })
   })
 
@@ -152,7 +152,51 @@ describe('flash inventory (getFlashClaims / reserveFlashPiece)', () => {
 
   it('FAILS OPEN — allows the claim when the store is unavailable', async () => {
     getStoreMock.mockImplementation(() => { throw new Error('blobs down') })
+    // No `reserved` flag → the caller knows nothing was written and won't roll back.
     expect(await reserveFlashPiece('flash-07')).toEqual({ ok: true })
+  })
+})
+
+describe('releaseFlashPiece', () => {
+  it('frees a still-pending reservation so the piece can be reclaimed', async () => {
+    const store = makeStore({ claims: { 'flash-07': 'pending' } })
+    getStoreMock.mockReturnValue(store)
+    await releaseFlashPiece('flash-07')
+    expect(store._map.get('claims')).toEqual({})
+  })
+
+  it('never clears a confirmed claim', async () => {
+    const store = makeStore({ claims: { 'flash-07': 'claimed' } })
+    getStoreMock.mockReturnValue(store)
+    await releaseFlashPiece('flash-07')
+    expect(store._map.get('claims')).toEqual({ 'flash-07': 'claimed' }) // untouched
+    expect(store.setJSON).not.toHaveBeenCalled()
+  })
+
+  it('is a no-op for a missing id, and fails safe when the store is down', async () => {
+    const store = makeStore({ claims: { 'flash-07': 'pending' } })
+    getStoreMock.mockReturnValue(store)
+    await releaseFlashPiece('')
+    expect(store.setJSON).not.toHaveBeenCalled()
+
+    getStoreMock.mockImplementation(() => { throw new Error('blobs down') })
+    await expect(releaseFlashPiece('flash-07')).resolves.toBeUndefined() // never throws
+  })
+})
+
+describe('persistConsent', () => {
+  it('files a dated consent record keyed by timestamp + email', async () => {
+    const store = makeStore()
+    getStoreMock.mockReturnValue(store)
+    const key = await persistConsent({ email: 'ada@example.com', consentVersion: '2026-06' })
+    expect(typeof key).toBe('string')
+    expect(key).toContain('ada@example.com')
+    expect(store.setJSON).toHaveBeenCalledWith(key, expect.objectContaining({ id: key, email: 'ada@example.com' }))
+  })
+
+  it('fails safe (returns null, never throws) when the store is down', async () => {
+    getStoreMock.mockImplementation(() => { throw new Error('blobs down') })
+    await expect(persistConsent({ email: 'a@b.co' })).resolves.toBeNull()
   })
 })
 

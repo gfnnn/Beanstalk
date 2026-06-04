@@ -77,6 +77,28 @@ export async function persistSubmission(record, id) {
   }
 }
 
+// Durably record a newsletter consent BEFORE/at the point it's given, so the
+// studio holds defensible proof of lawful consent (UK GDPR/PECR) WITHOUT sending
+// any confirmation email — Resend Audiences store the contact but not WHEN it
+// consented, to WHAT wording, or from which IP. This server-side ledger is that
+// audit trail and the basis for single opt-in (no double opt-in, so no extra mail
+// on the Resend quota). Best-effort and fail-safe: a store outage logs and returns
+// null rather than blocking a genuine signup (the consent checkbox is still
+// required and the contact still lands in the Audience).
+export async function persistConsent(record) {
+  try {
+    const store = getStore('newsletter-consent')
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const safe  = String(record.email || 'unknown').replace(/[^\w.@-]+/g, '_').slice(0, 80)
+    const key   = `${stamp}-${safe}`
+    await store.setJSON(key, { id: key, ...record })
+    return key
+  } catch (err) {
+    console.error('Consent persistence failed (continuing):', err?.message || err)
+    return null
+  }
+}
+
 // ── Flash inventory state ───────────────────────────────────────────────────
 // A flash piece is one-of-a-kind, so a successful claim must RESERVE it or two
 // people can claim the same design. State lives in a Blobs store keyed by piece
@@ -96,12 +118,15 @@ export async function getFlashClaims() {
   }
 }
 
-// Reserve a flash piece. Returns { ok: true } if it was free and is now reserved
-// ('pending'), or { ok: false, status } if it was already taken. FAILS OPEN: a
-// Blobs outage allows the claim (worst case a double-claim the artist resolves)
-// rather than blocking a real customer. Read-check-write is non-atomic, so two
-// simultaneous claims of the same piece could both win — the window is tiny at
-// studio volume and the artist sees both in the submissions store either way.
+// Reserve a flash piece. Returns { ok: true, reserved: true } if it was free and
+// is now reserved ('pending'), or { ok: false, status } if it was already taken.
+// FAILS OPEN: a Blobs outage allows the claim (worst case a double-claim the
+// artist resolves) rather than blocking a real customer — but signals it did NOT
+// actually write a reservation by omitting `reserved`, so the caller never tries
+// to roll back a reservation that was never made. Likewise a missing id is a
+// no-op `{ ok: true }`. Read-check-write is non-atomic, so two simultaneous
+// claims of the same piece could both win — the window is tiny at studio volume
+// and the artist sees both in the submissions store either way.
 export async function reserveFlashPiece(id) {
   if (!id) return { ok: true }          // no id supplied → nothing to reserve
   try {
@@ -110,10 +135,30 @@ export async function reserveFlashPiece(id) {
     if (claims[id]) return { ok: false, status: claims[id] }
     claims[id] = 'pending'
     await store.setJSON(FLASH_KEY, claims)
-    return { ok: true }
+    return { ok: true, reserved: true }
   } catch (err) {
     console.error('flash-claims reserve failed (allowing claim):', err?.message || err)
     return { ok: true }
+  }
+}
+
+// Release a reservation we made but couldn't follow through on (e.g. the claim
+// email failed to send) so the piece doesn't get stranded as 'pending' — invisible
+// to the artist yet showing as taken on the grid. Only ever clears a still-'pending'
+// reservation; a piece marked 'claimed' (confirmed) is left untouched. Best-effort
+// and never throws: a failed rollback just leaves the piece pending (the prior,
+// safe state), which the artist can clear manually.
+export async function releaseFlashPiece(id) {
+  if (!id) return
+  try {
+    const store  = getStore(FLASH_STORE)
+    const claims = (await store.get(FLASH_KEY, { type: 'json' })) || {}
+    if (claims[id] === 'pending') {
+      delete claims[id]
+      await store.setJSON(FLASH_KEY, claims)
+    }
+  } catch (err) {
+    console.error('flash-claims release failed (leaving pending):', err?.message || err)
   }
 }
 

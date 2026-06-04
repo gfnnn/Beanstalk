@@ -264,6 +264,19 @@ describe('enquiry handler — flash inventory', () => {
     expect(res.statusCode).toBe(200)
     expect(fetchMock).toHaveBeenCalledOnce()
   })
+
+  it('releases the reservation when the send fails, so the piece is claimable again', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'boom', json: async () => ({}) })
+    const res = await handler(post(flashClaim()))
+    expect(res.statusCode).toBe(502)
+    // Rolled back — not stranded as 'pending'.
+    expect(stores.get('flash-claims').get('claims')).toEqual({})
+
+    // …and a retry can reserve + send cleanly.
+    const retry = await handler(post(flashClaim()))
+    expect(retry.statusCode).toBe(200)
+    expect(stores.get('flash-claims').get('claims')).toEqual({ 'flash-03': 'pending' })
+  })
 })
 
 describe('enquiry handler — rate limiting', () => {
