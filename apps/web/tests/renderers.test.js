@@ -8,6 +8,8 @@ import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
 import { renderFlashCards } from '../src/build/flash-cards.js'
 import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
+import { renderTestimonials } from '../src/build/testimonials.js'
+import { testimonials } from '../src/data/testimonials.js'
 import {
   renderStatus, renderNotices,
   renderHeroHeadline, renderHeroBody,
@@ -278,6 +280,37 @@ describe('renderPiecePage', () => {
     const html = renderPiecePage(withImage, { prev: placeholder, next: null })
     expect(html).toContain('href="/portfolio/luna-moth/"')      // prev link
     expect(html).toContain('piece-pager-link is-empty')          // empty next slot
+  })
+})
+
+describe('renderTestimonials', () => {
+  it('renders one figure per testimonial with quote + credit', () => {
+    const html = renderTestimonials([{ quote: 'Loved it', name: 'M. H.', piece: 'Fine line study' }])
+    expect(html.match(/class="testimonial"/g)).toHaveLength(1)
+    expect(html).toContain('<blockquote class="quote-text">Loved it</blockquote>')
+    expect(html).toContain('M. H. · Fine line study')
+  })
+
+  it('omits the piece descriptor when not given', () => {
+    const html = renderTestimonials([{ quote: 'Great', name: 'A. B.' }])
+    expect(html).toContain('class="quote-credit">A. B.</figcaption>')
+    expect(html).not.toContain(' · ')
+  })
+
+  it('escapes the quote, name and piece (no markup injection)', () => {
+    const html = renderTestimonials([{ quote: '<script>x</script>', name: 'A & B', piece: '<i>p</i>' }])
+    expect(html).not.toContain('<script>x</script>')
+    expect(html).toContain('&lt;script&gt;')
+    expect(html).toContain('A &amp; B')
+  })
+
+  it('renders nothing for an empty list', () => {
+    expect(renderTestimonials([])).toBe('')
+  })
+
+  it('renders the real testimonials data without throwing, one figure each', () => {
+    const html = renderTestimonials(testimonials)
+    expect(html.match(/class="testimonial"/g)).toHaveLength(testimonials.length)
   })
 })
 
