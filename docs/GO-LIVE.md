@@ -1,8 +1,7 @@
 # MVP go-live plan — Beansprout v2
 
 A step-by-step path to take this repo from **staging** (GitHub Pages + the
-`beansprout.netlify.app` mirror) to **live on the apex `beansprout.ink`**,
-replacing the v1 site.
+Cloudflare Worker) to **live on the apex `beansprout.ink`**, replacing the v1 site.
 
 This plan is derived from a full review of `CLAUDE.md`, `docs/ROADMAP.md`,
 `docs/ENQUIRY-SETUP.md`, `docs/NEWSLETTER-SETUP.md`, `docs/EMAIL-DOMAIN-SETUP.md`,
@@ -54,23 +53,22 @@ These unblock later phases. None require code to decide.
 the strategic plan to move data into a dedicated secure store post-launch (see
 `docs/DATA-COMPLIANCE.md`). Built and shipped:
 
-- [x] **Erasure path (delete-by-key)** + **access (find-by-email)** + **retention
-      prune** via `apps/functions/scripts/data-admin.mjs` (no public endpoint =
-      no new attack surface). Unit-tested; full doc + runbook in
-      `docs/DATA-COMPLIANCE.md`.
-- [x] **Retention window** defined at **12 months** (the runbook default), matching
-      the privacy page. Pruned manually on a quarterly reminder.
+- [x] **Erasure (delete-by-email)** + **access (select-by-email)** + **retention
+      prune** as plain SQL via `wrangler d1 execute` (no public endpoint = no new
+      attack surface). Personal data lives in **Cloudflare D1**, so these are one
+      query each; full runbook in `docs/DATA-COMPLIANCE.md`.
+- [x] **Retention window** defined at **12 months**, matching the privacy page.
+      Pruned manually on a quarterly reminder.
 - [x] **Privacy page reconciled** — already states the 12-month retention and the
       one-month response window; no change needed.
 
-👤 **Remaining (you):** generate `NETLIFY_SITE_ID` + `NETLIFY_API_TOKEN`, do one
-dry-run (`find` a test record, `prune` dry-run) so the runbook is proven before a
-real request, and set a quarterly prune reminder. *(These belong after Phase 2,
-since they need the live Netlify site.)*
+👤 **Remaining (you):** after Phase 2 (the Worker + D1 are live), run one dry-run
+(an access `SELECT` + the prune preview) so the runbook is proven before a real
+request, and set a quarterly prune reminder.
 
 ---
 
-## Phase 2 — Stand up the backend (Resend + Netlify) (👤 YOU)
+## Phase 2 — Stand up the backend (Resend + Cloudflare) (👤 YOU)
 
 Follow `docs/ENQUIRY-SETUP.md` and `docs/NEWSLETTER-SETUP.md`. Summary:
 
@@ -80,19 +78,24 @@ Follow `docs/ENQUIRY-SETUP.md` and `docs/NEWSLETTER-SETUP.md`. Summary:
       are rejected. *(ENQUIRY-SETUP Part A; EMAIL-DOMAIN-SETUP)*
 - [ ] **Create a Resend Audience** (newsletter) — copy its Audience ID.
       *(NEWSLETTER-SETUP step 1)*
-- [ ] **Netlify site** — import `gfnnn/beanstalk`; build is read from `netlify.toml`
-      (`base = apps/functions`). Set **Base directory = `apps/functions`** in the
-      dashboard to match. *(ENQUIRY-SETUP Part B)*
-- [ ] **Set Netlify env vars** (Site configuration → Environment variables):
+- [ ] **Cloudflare account + Worker** — from `apps/functions/`: `wrangler login`,
+      `wrangler d1 create beansprout` (paste the id into `wrangler.toml`),
+      `wrangler d1 migrations apply beansprout`, then `wrangler deploy`.
+      *(ENQUIRY-SETUP Part B)*
+- [ ] **Set Worker secrets** (`wrangler secret put <NAME>`):
       | Key | Value |
       |---|---|
       | `RESEND_API_KEY` | the `re_…` key |
-      | `ARTIST_EMAIL` | Roxy's real inbox (the Gmail from Phase 0) |
-      | `FROM_EMAIL` | `roxy@beansprout.ink` |
+      | `ARTIST_EMAIL` | `roksanazielonka.z@gmail.com` |
+      | `FROM_EMAIL` | `roxy@beansprout.ink` (or `onboarding@resend.dev` while testing) |
       | `RESEND_AUDIENCE_ID` | the Audience ID |
-      | `RATE_*` | *(optional — defaults are sane)* |
-- [ ] **Trigger a Netlify deploy** so the functions pick up the vars. Note the
-      function base URL: `https://<subdomain>.netlify.app/.netlify/functions/…`.
+      | `RATE_*` | *(optional vars — defaults are sane)* |
+- [ ] **Note the Worker URL** — `https://beansprout-forms.<subdomain>.workers.dev/`
+      (routes: `/enquiry`, `/newsletter`, `/flash-status`).
+
+> **Why Cloudflare, not Netlify:** the previous host paused the whole project when a
+> monthly **credit limit** was hit (taking the live forms down). Cloudflare's free
+> Workers + D1 tiers have no credit-pause model, so the forms can't go dark that way.
 
 ---
 
@@ -139,14 +142,14 @@ Content is mostly in, but a few items need your confirmation before launch.
 
 ## Phase 5 — End-to-end verification on staging (👤 YOU + 🛠 CODE)
 
-Do this on the `beansprout.netlify.app` mirror / Pages project URL **before** any
-apex change. (`ENQUIRY-SETUP.md` Part D.)
+Do this on the Pages project URL **before** any apex change. The fastest loop is
+**local** (`wrangler dev` + `npm run dev`), which needs no cloud at all
+(`ENQUIRY-SETUP.md` Part D).
 
-- [ ] **Set the build-time function URL.** Repo → Settings → Secrets and variables →
-      Actions → **Variables** → `VITE_ENQUIRY_FN_URL` = the Netlify function URL.
-      (Newsletter/flash-status default to the same Netlify site via `config.js`, so
-      only the enquiry var is strictly required; set the others if your Netlify
-      subdomain differs from `beansprout`.) 👤
+- [ ] **Set the build-time Worker URLs.** Repo → Settings → Secrets and variables →
+      Actions → **Variables** → `VITE_ENQUIRY_FN_URL`, `VITE_NEWSLETTER_FN_URL`,
+      `VITE_FLASH_STATUS_FN_URL` = your `…workers.dev/<route>` URLs (the workers.dev
+      subdomain is account-specific, so all three must be set). 👤
 - [ ] **Enable GitHub Pages** — Settings → Pages → Source = **GitHub Actions**.
       Safe now: the apex `CNAME` has been removed (Phase 6), so Pages serves only on
       the `*.github.io` URL until the deliberate cutover. 👤
@@ -157,8 +160,8 @@ apex change. (`ENQUIRY-SETUP.md` Part D.)
       pending/claimed on the grid (verify double-claim is rejected). 👤
 - [ ] **Newsletter** — sign up → "You're on the list", contact appears in the Resend
       Audience, consent ledger written. 👤
-- [ ] **Erasure runbook dry-run** — confirm you can delete a test submission by key
-      (the Phase 1 path). 👤
+- [ ] **Erasure runbook dry-run** — run an access `SELECT` and the prune preview
+      against D1 (the Phase 1 / `DATA-COMPLIANCE.md` path). 👤
 - [ ] **Console clean** — no errors on each page; nav status light, sitemap, robots,
       404 all render. 👤
 
@@ -184,8 +187,8 @@ When ready to go live:
       instructions). This is what actually moves traffic off v1.
 - [ ] **Add `beansprout.ink` as a verified custom domain** in the repo's Pages
       settings; enable **Enforce HTTPS** once the cert provisions. 👤
-- [ ] **Confirm the Netlify CORS allowlist** already includes `https://beansprout.ink`
-      and `https://www.beansprout.ink` — it does (`_shared.js`), so no change needed.
+- [ ] **Confirm the Worker CORS allowlist** already includes `https://beansprout.ink`
+      and `https://www.beansprout.ink` — it does (`src/lib/http.js`), so no change needed.
 - [ ] **Smoke-test the live apex** — repeat the Phase 5 form tests against
       `https://beansprout.ink`.
 - [ ] **Decommission/redirect v1** as appropriate once v2 is confirmed healthy. 👤
@@ -211,7 +214,7 @@ From ROADMAP, in rough priority order:
 ```
 Phase 0 decisions
    └─► Phase 1 erasure runbook (CODE)  ┐
-   └─► Phase 2 Resend+Netlify (YOU)    ├─► Phase 5 verify on staging ─► Phase 6 apex cutover
+   └─► Phase 2 Resend+Cloudflare (YOU) ├─► Phase 5 verify on staging ─► Phase 6 apex cutover
    └─► Phase 3 email forwarding (YOU)  ┤
    └─► Phase 4 content sign-off        ┘
 ```
@@ -224,8 +227,8 @@ Pages in Phase 5).
 
 1. ~~Confirm Roxy's Gmail + DNS access~~ ✅ done.
 2. ~~Choose the erasure approach~~ ✅ done — minimal runbook built (Phase 1).
-3. Start the Resend + Netlify accounts (Phase 2) — these gate all form testing **and**
-   the Phase 1 runbook dry-run (it needs the live site's id/token).
+3. Start the Resend + Cloudflare accounts (Phase 2) — `wrangler deploy` the Worker;
+   this gates deployed form testing (local `wrangler dev` works without it).
 4. Send me confirmed **service prices**, a signed-off **terms effective date**, and
    the **og-image** (Phase 4) and I'll apply them.
 </content>

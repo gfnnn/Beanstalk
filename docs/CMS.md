@@ -126,7 +126,7 @@ separate initiative — ROADMAP **P2 submissions view**, a different data plane)
 
 Tina's *production* posture is strong — the live site is static HTML on Pages with **no
 Tina runtime**, so a visitor's attack surface is unchanged, and the personal-data plane
-(enquiries in Netlify Blobs) is entirely separate and never touches Tina. The risk sits
+(enquiries in Cloudflare D1) is entirely separate and never touches Tina. The risk sits
 in the **authoring/build tooling** and the **Tina Cloud ↔ GitHub** link. Early-2026 CVEs
 (incl. a 9.7) were all in the **CLI dev server** / **self-hosted backend**, not the
 hosted editing path or the production site. Required controls:

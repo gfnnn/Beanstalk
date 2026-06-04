@@ -130,8 +130,8 @@
        In production, only the active .form-step is visible (display:none
        on inactive ones). JS validates required fields before advancing,
        saves progress to sessionStorage (key: "beansprout_step"), and on
-       submit POSTs JSON { fields, images[] } to the Netlify function, which
-       emails the artist via Resend (see netlify/functions/enquiry.js).
+       submit POSTs JSON { fields, images[] } to the Cloudflare Worker, which
+       emails the artist via Resend (see apps/functions/src/handlers/enquiry.js).
        On success it redirects to /enquiry-received/.
 
        Set the function URL via VITE_ENQUIRY_FN_URL (see .env.example) or the
@@ -361,8 +361,8 @@
                 <!--
                   DEV NOTE — FILE UPLOAD
                   Images are downscaled in the browser and sent as base64 to the
-                  Netlify function (see enquire.js / enquiry.js). Up to 8 images,
-                  ~5 MB total after downscaling to stay under Netlify's request cap.
+                  Cloudflare Worker (see enquire.js / handlers/enquiry.js). Up to 8
+                  images, ~5 MB total after downscaling (self-imposed cap).
                 -->
                 <label class="upload-zone" for="refs" id="upload-zone">
                   <input type="file" id="refs" name="references[]"

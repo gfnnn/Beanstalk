@@ -237,7 +237,7 @@ export function initFlash() {
     }
   }
 
-  // Form submit → Netlify function (kind: 'flash') → Resend
+  // Form submit → Cloudflare Worker (kind: 'flash') → Resend
   if (form) {
     form.addEventListener('submit', async e => {
       e.preventDefault()

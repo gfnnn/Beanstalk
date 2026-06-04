@@ -167,11 +167,11 @@ export function initEnquire() {
     if (saved > 1 && saved <= TOTAL) setStep(saved)
   } catch (_) {}
 
-  // ── Submit → Netlify function → Resend ────────────────────────────────────
+  // ── Submit → Cloudflare Worker → Resend ───────────────────────────────────
   // FUNCTION_URL is the shared endpoint (see config.js / .env.example).
   const MAX_IMAGES      = 8
   const MAX_FILE_MB     = 8               // ceiling for originals we can't downscale (e.g. HEIC)
-  const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // keep the JSON POST under Netlify's ~6 MB cap
+  const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // self-imposed cap to keep the JSON POST small
 
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {

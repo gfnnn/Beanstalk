@@ -1,20 +1,21 @@
 {
   "name": "@beansprout/functions",
   "version": "0.1.0",
-  "description": "Beansprout.ink serverless app — enquiry/flash + newsletter form functions, deployed to Netlify.",
+  "description": "Beansprout.ink serverless app — enquiry/flash + newsletter form Worker, deployed to Cloudflare (Workers + D1).",
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate": "wrangler d1 migrations apply beansprout",
+    "migrate:local": "wrangler d1 migrations apply beansprout --local",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "data": "node scripts/data-admin.mjs"
-  },
-  "dependencies": {
-    "@netlify/blobs": "^10.7.9"
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.0.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "wrangler": "^3.90.0"
   }
 }

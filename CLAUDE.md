@@ -11,8 +11,9 @@ app that backs it. This is an **npm-workspaces monorepo** with two deployable pa
   styling in modular CSS under `apps/web/src/styles/`, behaviour in ES modules under
   `apps/web/src/js/modules/` wired through `apps/web/src/js/main.js`. Design tokens live in
   `apps/web/src/styles/variables.css`. **Deploys to GitHub Pages.**
-- **`apps/functions`** — the app. The Netlify serverless functions that receive the forms
-  and send mail (`apps/functions/netlify/functions/`). **Deploys to Netlify only.**
+- **`apps/functions`** — the app. A single Cloudflare Worker (`src/index.js` → handlers in
+  `src/handlers/`) that receives the forms, stores submissions in **D1 (SQLite)**, and sends
+  mail via Resend. **Deploys to Cloudflare Workers only.**
 
 Shared docs live in `docs/`; each workspace owns its own `package.json`, `vitest.config.js`
 and `tests/`. The two parts deploy independently — see **Deploy targets** below.
@@ -28,7 +29,7 @@ npm run build         # production build of apps/web → apps/web/dist/
 npm run preview       # serve the built apps/web/dist/ locally
 npm test              # run BOTH workspaces' Vitest suites
 npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
-npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, _shared)
+npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
 ```
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
@@ -36,11 +37,12 @@ or `cd apps/web && npm run build`.
 
 Tests run on **Vitest** and in CI on every push/PR (`.github/workflows/test.yml`, a matrix
 over both workspaces). `apps/web/tests/` covers the build-time renderers + data integrity;
-`apps/functions/tests/` covers the Netlify functions with the network mocked (no real
-Resend/Blobs calls). There is **no linter or formatter** — don't invent `npm run lint`. To
-exercise the Netlify functions for real locally you need the Netlify CLI (`netlify dev`,
-serves on :8888) plus a `.env` (`cp .env.example .env`); plain `npm run dev` serves only the
-static site, not the functions.
+`apps/functions/tests/` covers the Worker handlers with the network mocked and an in-memory
+D1 fake (`tests/helpers/fake-d1.js`) running the real storage logic — no real Resend/DB
+calls. There is **no linter or formatter** — don't invent `npm run lint`. To exercise the
+Worker for real locally you need Wrangler (`wrangler dev`, serves on :8787, with a local D1)
+plus secrets in `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site,
+not the Worker.
 
 ## Architecture
 
@@ -54,14 +56,15 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/layout + components/ + pages/
-  public/        CNAME, robots.txt, favicons, manifest, images/ (copied to dist root)
+  public/        robots.txt, favicons, manifest, images/ (copied to dist root; no CNAME yet)
   vite.config.js  vitest.config.js  tests/
-apps/functions/   @beansprout/functions  → Netlify (the form/email app)
-  netlify/functions/{enquiry,newsletter,flash-status,_shared}.js
-  public/index.html                      # placeholder publish dir for the functions-only site
-  vitest.config.js  tests/
-docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  CMS.md  ROADMAP.md
-netlify.toml      base = apps/functions  (Netlify deploys functions only)
+apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email app)
+  src/index.js                           # Worker entry — routes /enquiry /newsletter /flash-status
+  src/handlers/{enquiry,newsletter,flash-status}.js
+  src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
+  migrations/0001_init.sql                # D1 schema
+  wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
+docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  GO-LIVE.md  CMS.md  ROADMAP.md
 .github/workflows/{test.yml, deploy-web.yml}
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -150,38 +153,40 @@ URLs). Portfolio load-more, filter/sort and lightbox cooperate via callbacks wir
 `main.js` (load-more owns the visible window; filter re-applies after a reveal/sort). New
 page behaviour = a new `modules/<name>.js` exporting `initX()`, added to `main.js`.
 
-### Forms → Netlify functions → Resend
-The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to
-serverless functions; there is no backend server.
+### Forms → Cloudflare Worker → Resend
+The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
+Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js` routes
+`/enquiry`, `/newsletter`, `/flash-status` to the handlers in `src/handlers/`.
 
-- `apps/functions/netlify/functions/enquiry.js` handles **both** the enquiry and flash-claim
-  forms, distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines
-  the required fields, consent boxes, image support and email layout per kind. Images are
+- `src/handlers/enquiry.js` handles **both** the enquiry and flash-claim forms,
+  distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines the
+  required fields, consent boxes, image support and email layout per kind. Images are
   downscaled in the browser, then **type-sniffed by magic bytes** server-side (the client's
-  MIME isn't trusted), with request-body and per-image size caps. It **persists the
-  submission before emailing**, and for flash claims **reserves the piece server-side** (see
-  flash inventory below) so it can't be double-claimed. Sends via **Resend**.
-- `apps/functions/netlify/functions/newsletter.js` adds a subscriber to a Resend Audience.
-- `apps/functions/netlify/functions/flash-status.js` is a **read-only** `GET` endpoint the
-  flash grid calls on load to reflect *live* availability. The grid ships as static HTML
-  (status baked in at build), so this overlays pieces claimed since the last build. Returns
+  MIME isn't trusted, `Buffer` via the `nodejs_compat` flag), with request-body and
+  per-image size caps. It **persists the submission before emailing**, and for flash claims
+  **reserves the piece server-side** so it can't be double-claimed. Sends via **Resend**.
+- `src/handlers/newsletter.js` adds a subscriber to a Resend Audience and files a consent row.
+- `src/handlers/flash-status.js` is a **read-only** `GET` endpoint the flash grid calls on
+  load to reflect *live* availability. The grid ships as static HTML (status baked in at
+  build), so this overlays pieces claimed since the last build. Returns
   `{ claims: { "<piece-id>": "pending" | "claimed" } }`; no secrets, no writes, fails safe
   to an empty map.
-- **Flash inventory** lives in Netlify Blobs via `_shared.js` helpers: `reserveFlashPiece`
-  (atomic-ish reserve; refuses an already-taken piece), `releaseFlashPiece` (roll back if
-  the email send fails so the piece can be reclaimed), and `getFlashClaims` (what
-  `flash-status` returns). A claim goes `pending` on reserve → `claimed` once mailed.
-- `apps/functions/netlify/functions/_shared.js` is shared support code (the leading `_` keeps
-  Netlify from deploying it as a function): the **CORS origin allowlist**, the **rate
-  limiter** (per-IP sliding window + global daily ceiling, backed by Netlify Blobs, **fails
-  open** so an outage never blocks real enquiries), the flash-inventory helpers above,
-  `clientIp` (anti-spoof IP extraction), and `persistSubmission`. CORS lives here, **not** in
-  `netlify.toml`.
-- `apps/web/src/js/modules/config.js` holds the function URLs, overridable at build time via
-  `VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` (see `.env.example`). Rebuild after
-  changing them — Vite bakes them into the bundle. Server-side secrets
-  (`RESEND_API_KEY`, `ARTIST_EMAIL`, `FROM_EMAIL`, `RESEND_AUDIENCE_ID`) live in the
-  Netlify dashboard, never in the repo. Full setup: `docs/ENQUIRY-SETUP.md`,
+- `src/lib/db.js` is the **D1 (SQLite) storage layer** (binding `DB`), and the system of
+  record: `persistSubmission`/`persistConsent`, the **flash inventory** (`reserveFlashPiece`
+  — atomic via `ON CONFLICT DO NOTHING`; `releaseFlashPiece` rolls back if the send fails;
+  `getFlashClaims`), and the **rate limiter** (per-IP sliding window + global daily ceiling).
+  Every function **fails safe / fails open** — a DB outage never blocks a real enquiry.
+  Schema in `migrations/0001_init.sql`. GDPR retention/erasure is plain SQL — see
+  `docs/DATA-COMPLIANCE.md`.
+- `src/lib/http.js` is the HTTP plumbing: the **CORS origin allowlist** (the *site* origins,
+  not the Worker's own URL), the JSON reply helper, `clientIp` (anti-spoof — trusts only
+  `cf-connecting-ip`), and the Request→event adapter that keeps handlers `(event, env)`-shaped.
+- `apps/web/src/js/modules/config.js` holds the Worker route URLs, overridable at build time
+  via `VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` / `VITE_FLASH_STATUS_FN_URL` (see
+  `.env.example`); the workers.dev subdomain is account-specific so these MUST be set. Rebuild
+  after changing them — Vite bakes them in. Server-side secrets (`RESEND_API_KEY`,
+  `ARTIST_EMAIL`, `FROM_EMAIL`, `RESEND_AUDIENCE_ID`) are **Cloudflare Worker secrets**
+  (`wrangler secret put`), never in the repo. Full setup: `docs/ENQUIRY-SETUP.md`,
   `docs/NEWSLETTER-SETUP.md`, `docs/EMAIL-DOMAIN-SETUP.md` (Resend domain/DNS).
 
 ### Deploy targets — one repo, two independent deploys
@@ -190,22 +195,23 @@ The two workspaces deploy to **different places**, each gated so only relevant c
 - **Frontend → GitHub Pages.** `.github/workflows/deploy-web.yml` builds `apps/web` (with
   `VITE_ENQUIRY_FN_URL` from repo Actions Variables) and publishes `apps/web/dist`. It is
   **path-gated** (`paths: apps/web/**`, lockfile, the workflow itself), so a functions-only
-  change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`,
-  `CNAME`) is copied to the site root as-is.
-- **Functions → Netlify.** `netlify.toml` sets `base = "apps/functions"`, so Netlify's build
-  is scoped to the functions workspace and only redeploys when `apps/functions/**` changes
-  (set the **Base directory = `apps/functions`** once in the Netlify dashboard to match).
-  Netlify no longer mirrors the whole site — it publishes a tiny placeholder page plus the
-  function bundle. The canonical site is GitHub Pages.
+  change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`)
+  is copied to the site root as-is. **No `public/CNAME`** until the apex cutover (see the
+  guardrail below).
+- **Worker → Cloudflare.** `apps/functions/wrangler.toml` defines the Worker (`name`, the D1
+  binding, vars). Deploy with `wrangler deploy` from `apps/functions`; local dev is
+  `wrangler dev` (with a local D1). Chosen over Netlify after Netlify's free tier began
+  pausing the project on a monthly **credit limit**; Cloudflare's free Workers + D1 tiers
+  have no credit-pause model. The canonical site is GitHub Pages.
 
 This separation is the point of the monorepo split: **frontend changes deploy to Pages,
-function changes deploy to Netlify, and neither drags the other along.**
+Worker changes deploy to Cloudflare, and neither drags the other along.**
 
 ## Git workflow — keep `main` clean
 
-`main` is the **deploy branch**: every push triggers a GitHub Pages build *and* a
-Netlify build. So `main` must only ever receive reviewed, self-contained commits —
-never work-in-progress.
+`main` is the **deploy branch**: a push under `apps/web/**` triggers a GitHub Pages
+build, and the Cloudflare Worker is deployed from `apps/functions` (`wrangler deploy`).
+So `main` must only ever receive reviewed, self-contained commits — never work-in-progress.
 
 1. **Branch before you build.** `git switch -c feat/<thing>` off an up-to-date `main`.
    Never commit directly on `main`.
@@ -280,10 +286,11 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
 ## Deploy guardrail — do NOT switch the apex domain
 
 `beansprout.ink` (apex) is intentionally still served by the **v1** repo
-(`gfnnn/beansprout`). This v2 repo publishes only to the staging mirror
-**beansprout.netlify.app** (Netlify) and GitHub Pages. **Do not point the apex at v2**
-— and don't add apex A-records for Pages — until the copy and real images are
-finalised. Netlify also hosts the enquiry/flash email function (Resend).
+(`gfnnn/beansprout`). This v2 repo publishes only to GitHub Pages (the staging Pages
+URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
+**no `apps/web/public/CNAME`**, and don't add apex A-records for Pages — until the
+copy and real images are finalised (see `docs/GO-LIVE.md` Phase 6). Cloudflare hosts
+the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security
 

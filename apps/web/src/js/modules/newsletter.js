@@ -1,7 +1,7 @@
 import { NEWSLETTER_FN_URL } from './config.js'
 import { track } from './analytics.js'
 
-// Newsletter signup — POSTs { fields } to the Netlify function, which adds the
+// Newsletter signup — POSTs { fields } to the Cloudflare Worker, which adds the
 // subscriber to a Resend Audience. Drives EVERY `form[data-newsletter]` on the
 // page, so the dedicated /newsletter/ form and the inline capture band (see
 // src/build/newsletter-inline.js) share one implementation. No-ops on pages with

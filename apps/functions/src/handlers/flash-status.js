@@ -1,4 +1,4 @@
-// netlify/functions/flash-status.js
+// src/handlers/flash-status.js
 // ─────────────────────────────────────────────────────────────────────────────
 // Read-only endpoint the flash grid calls on load to reflect LIVE availability.
 // The grid ships as static HTML (status baked in at build), so without this a
@@ -7,18 +7,19 @@
 //
 //   GET → 200 { claims: { "<piece-id>": "pending" | "claimed", … } }
 //
-// No secrets, no writes. CORS + the Blobs-backed state are shared with the other
-// functions (see ./_shared.js). Fails safe to an empty map.
+// No secrets, no writes. CORS + the D1-backed state are shared with the other
+// functions (see ../lib). Fails safe to an empty map.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, getFlashClaims } from './_shared.js'
+import { corsFor, replyWith } from '../lib/http.js'
+import { getFlashClaims } from '../lib/db.js'
 
-export async function handler(event) {
+export async function handler(event, env = {}) {
   const cors  = corsFor(event)
   const reply = replyWith(cors)
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' }
   if (event.httpMethod !== 'GET')     return reply(405, { error: 'Method not allowed.' })
 
-  const claims = await getFlashClaims()
+  const claims = await getFlashClaims(env)
   return reply(200, { claims })
 }

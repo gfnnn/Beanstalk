@@ -4,14 +4,14 @@ An npm-workspaces monorepo for the Beansprout tattoo studio site and its form/em
 
 ## Workspaces
 
-| Path             | Package                  | What it is                                   | Deploys to      |
-| ---------------- | ------------------------ | -------------------------------------------- | --------------- |
-| `apps/web`       | `@beansprout/web`        | Vite multi-page marketing site (frontend)    | GitHub Pages    |
-| `apps/functions` | `@beansprout/functions`  | Netlify serverless forms/email app (backend) | Netlify         |
+| Path             | Package                  | What it is                                       | Deploys to       |
+| ---------------- | ------------------------ | ------------------------------------------------ | ---------------- |
+| `apps/web`       | `@beansprout/web`        | Vite multi-page marketing site (frontend)        | GitHub Pages     |
+| `apps/functions` | `@beansprout/functions`  | Cloudflare Worker (+ D1) forms/email app (backend) | Cloudflare Workers |
 
-The two parts deploy **independently** and are each gated so only relevant changes ship:
-the GitHub Pages workflow is path-filtered to `apps/web/**`, and Netlify's build is scoped
-to `apps/functions` via the `base` directory in `netlify.toml`.
+The two parts deploy **independently**: the GitHub Pages workflow is path-filtered to
+`apps/web/**`, and the Worker deploys from `apps/functions` via `wrangler deploy`
+(`wrangler.toml`). Personal data is stored in **Cloudflare D1** (SQLite).
 
 ## Quick start
 
