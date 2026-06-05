@@ -136,7 +136,11 @@ export async function handler(event, env = {}) {
   const attachments = []
   for (const img of images) {
     if (!img || typeof img.data !== 'string' || !img.data) { skipped++; continue }
-    const bytes = Math.floor(img.data.length * 3 / 4) // base64 → byte estimate
+    // Decoded-size estimate from the base64 length (4 chars → 3 bytes). It ignores
+    // padding/whitespace so it slightly OVER-estimates the true size — the safe
+    // direction for a cap (it can only reject sooner, never wave an oversized file
+    // through). Good enough as a guard; the exact bytes aren't needed here.
+    const bytes = Math.floor(img.data.length * 3 / 4)
     if (bytes > MAX_IMAGE_BYTES) { skipped++; continue } // one huge file → drop it
     const sig = sniffImage(img.data)
     if (!sig) { skipped++; continue }   // not a recognised image → drop it
