@@ -46,7 +46,19 @@
 //     em     the italic adjective after the style name in the <h3>          (COPY)
 //     body   2–3 sentences describing the style — what it is, who it suits  (COPY)
 //   Card order = array order; the "0X / 0Y" numbering is computed from it. The
-//   grid is laid out for three — keep this to three featured styles.
+//   grid shows THREE across on desktop and stacks three on phones. One extra
+//   entry may carry `fill: true`: a tablet-only balance tile that squares off the
+//   2-column grid (where three would leave an orphan). It renders only at tablet
+//   widths, is left out of the "0X / 0Y" count, and is labelled "Also" instead.
+//   Keep the always-on featured styles to three.
+//
+// ── videoCredit — crediting whoever shot the hero video ───────────────────────
+//   A small credit line over the hero media (the column that will hold the
+//   process video). Off until the video + credit are confirmed.
+//     show    true → render the line, false → leave it off entirely
+//     label   short mono lead-in, e.g. 'Film by'                            (COPY)
+//     name    the person/handle shown after the label                      (COPY)
+//     url     where the credit links (their social) — '' for no link       (COPY)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const homepage = {
@@ -66,13 +78,23 @@ export const homepage = {
     eyebrow:  'Winchester · Fine line & botanical',
     headLead: 'Quietly considered',
     headEm:   'custom tattoo.',
-    body:     "I'm Roxy — the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed.",
+    body:     "I'm Roxy, the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed.",
     mediaTag: 'Tiny Knives · Winchester',
   },
 
   specialisms: [
-    { style: 'fine-line',  em: 'precise', body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile — drawn to age as well as it looks on day one.' },
+    { style: 'fine-line',  em: 'precise', body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile, drawn to age as well as it looks on day one.' },
     { style: 'botanical',  em: 'living',  body: 'Flowers, ferns and foliage with the small botanical details that make a piece feel grown rather than stamped on. My favourite thing to draw.' },
-    { style: 'black-grey', em: 'soft',    body: 'Smooth black and grey with gentle, smoky shading — animals, portraits and illustrative work with depth, contrast and a soft edge.' },
+    { style: 'black-grey', em: 'soft',    body: 'Smooth black and grey with gentle, smoky shading: animals, portraits and illustrative work with depth, contrast and a soft edge.' },
+    // Tablet-only balance tile (fill) — squares the 2-column grid; hidden on
+    // phone and desktop. Not counted in the "0X / 0Y" numbering.
+    { style: 'illustrative', fill: true, em: 'characterful', body: 'Story-led pieces with movement and personality: creatures, folklore and bold little compositions, with linework and shading working together to bring them to life.' },
   ],
+
+  videoCredit: {
+    show:  false,
+    label: 'Film by',
+    name:  '@handle',          // COPY: the videographer's social handle
+    url:   '',                 // COPY: link to their profile, or '' for no link
+  },
 }

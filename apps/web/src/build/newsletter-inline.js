@@ -19,7 +19,7 @@ export function renderNewsletterInline() {
       <p class="eyebrow">The newsletter</p>
       <!-- COPY: inline newsletter band heading + subhead -->
       <h2 class="newsletter-band-title" id="nl-band-title">New work &amp; flash, <em>before anywhere else.</em></h2>
-      <p class="newsletter-band-sub">Drops, fresh flash and the occasional studio note — in your inbox before they go up on Instagram.</p>
+      <p class="newsletter-band-sub">Drops, fresh flash and the occasional studio note, in your inbox before they go up on Instagram.</p>
     </div>
 
     <form class="newsletter-band-form" data-newsletter data-nl-success="#nl-band-success" novalidate>
@@ -53,7 +53,7 @@ export function renderNewsletterInline() {
              stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
       </div>
       <h3>You're <em>on the list.</em></h3>
-      <p>Thanks for signing up — keep an eye on your inbox. <span data-already hidden>(Looks like you were already subscribed; you're all set.)</span></p>
+      <p>Thanks for signing up, keep an eye on your inbox. <span data-already hidden>(Looks like you were already subscribed; you're all set.)</span></p>
     </div>
   </div>
 </section>`

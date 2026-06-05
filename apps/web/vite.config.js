@@ -13,6 +13,7 @@ import { homepage } from './src/data/homepage.js'
 import {
   renderStatus, renderNotices,
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody, renderHeroMediaTag,
+  renderVideoCredit,
 } from './src/build/homepage.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
@@ -68,6 +69,9 @@ const generatedGrids = {
       }
       if (html.includes('<!-- homepage:hero-media-tag -->')) {
         html = html.replace('<!-- homepage:hero-media-tag -->', () => renderHeroMediaTag(homepage.hero))
+      }
+      if (html.includes('<!-- homepage:video-credit -->')) {
+        html = html.replace('<!-- homepage:video-credit -->', () => renderVideoCredit(homepage.videoCredit))
       }
       // "What I do" specialism cards — previews pulled live from pieces.js.
       if (html.includes('<!-- homepage:specialisms -->')) {

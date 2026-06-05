@@ -116,6 +116,35 @@ describe('initFilter', () => {
     expect(document.getElementById('empty-state').classList.contains('visible')).toBe(false)
   })
 
+  // Homepage specialism cards deep-link as /portfolio/?style=<token>; the filter
+  // must honour that on load so the customer lands with the style pre-applied.
+  it('pre-applies a known style from the URL (?style=…) on load', () => {
+    setup([
+      { style: 'fine-line', placement: 'forearm', shown: 'true' },
+      { style: 'script', placement: 'wrist', shown: 'true' },
+    ])
+    window.history.replaceState({}, '', '/portfolio/?style=script')
+    initFilter()
+    window.history.replaceState({}, '', '/') // restore so other tests are unaffected
+    expect(
+      document.querySelector('.chip[data-filter="script"]').classList.contains('active'),
+    ).toBe(true)
+    expect(visible()).toHaveLength(1)
+    expect(visible()[0].dataset.style).toBe('script')
+  })
+
+  it('ignores an unknown ?style= value and browses unfiltered', () => {
+    setup([
+      { style: 'fine-line', placement: 'forearm', shown: 'true' },
+      { style: 'script', placement: 'wrist', shown: 'true' },
+    ])
+    window.history.replaceState({}, '', '/portfolio/?style=bogus')
+    initFilter()
+    window.history.replaceState({}, '', '/')
+    expect(document.querySelectorAll('.chip.active')).toHaveLength(0)
+    expect(visible()).toHaveLength(2)
+  })
+
   it('shows the empty state when a filter matches nothing', () => {
     setup([{ style: 'fine-line', placement: 'forearm' }])
     initFilter()

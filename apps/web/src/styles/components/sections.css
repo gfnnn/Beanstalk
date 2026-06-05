@@ -116,6 +116,15 @@
   .specialism-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* Tablet-only balance tile (the `fill` specialism). At 1-col (phone) three cards
+   stack cleanly and at 3-col (≥1100px) three fill a row, so the extra card is
+   hidden there; only the 2-col tablet range would orphan the third card, so the
+   fill tile shows then to square the grid to 2×2. See homepage.js → specialisms. */
+.specialism-card--fill { display: none; }
+@media (min-width: 640px) and (max-width: 1099.98px) {
+  .specialism-card--fill { display: flex; }
+}
+
 
 /* ── Process — mobile-first ──────────────────────────────────────────────── */
 .process-grid {
