@@ -7,7 +7,8 @@ function/secret setup in [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md),
 [`NEWSLETTER-SETUP.md`](./NEWSLETTER-SETUP.md) and
 [`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the content-CMS plan in
-[`CMS.md`](./CMS.md).
+[`CMS.md`](./CMS.md); hero video/GIF serving in [`MEDIA.md`](./MEDIA.md); the
+deposits / flash-purchase plan in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
 
 The work was derived from a platform evaluation (senior-dev / artist / marketer /
 customer lenses) plus a review of the setup docs, the privacy page, and the function
@@ -45,6 +46,18 @@ Shipped (audience-capture + early management layer):
   `nosniff` / `default-src 'none'` / `no-referrer` on every Worker JSON response
   (`SECURITY_HEADERS` in `src/lib/http.js`). The clickjacking/HSTS gap that a `<meta>`
   CSP can't close on Pages is tracked under infrastructure consolidation (Tier 3).
+- **Hero video/GIF support** — the homepage and About hero frames can serve a real
+  edited clip through one shared build component (`src/build/media.js` + `src/data/media.js`
+  + `src/js/modules/media.js`); reduced-motion-aware, plays on-screen only, falls back to
+  the existing placeholder until a slot is switched on. Files drop into
+  `apps/web/public/videos/`. Full how-to in [`MEDIA.md`](./MEDIA.md).
+- **Accessibility pass** — a Lighthouse-driven review: a dedicated `styles/a11y.css` that
+  honours OS `prefers-reduced-motion` / `prefers-contrast`, focus-visible handling, and a
+  `noindex` guard so staging isn't indexed before the apex cutover.
+- **Responsive filter bar** — the portfolio + flash chip rows collapse overflow into a
+  shared "More" toggle (`src/js/modules/chip-overflow.js`) across desktop, tablet and
+  mobile, plus a desktop/tablet/mobile footer reflow and a two-column studio-notice grid.
+- **Enquiry budget bands** aligned with the `/services` pricing tiers.
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
@@ -97,9 +110,12 @@ These unblock later phases. None require code to decide.
       (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
       launch-legal without it. *Recommend deferring to post-launch unless you want
       launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
-- [ ] **Deposit capture (Stripe)** — the enquire copy mentions deposits, but Stripe
-      is **not** wired (Backlog P2). Decide: launch without it (manual deposit
-      requests) or build it first. *Recommend launch without; add post-launch.*
+- [ ] **Deposit capture (PayPal + Monzo)** — the enquire/FAQ/services copy mentions
+      deposits (and still *names Stripe*, to be replaced), but no payment backend is
+      wired (Backlog P2). The studio confirmed **PayPal + Monzo, manually reconciled** —
+      full design in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). Decide: launch without it
+      (manual deposit requests) or build it first. *Recommend launch without; add
+      post-launch.*
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
@@ -383,9 +399,12 @@ up after the site is live, in rough priority order.
   - **Dependency:** the GDPR erasure UI (below) naturally lives in the same admin
     surface (delete-by-email).
 
-- **Stripe deposit capture.** The no-show defence the copy already promises
-  (Stripe is named in the enquire page). A Payment Link / Checkout wired into the
-  enquiry-confirmation flow, with the deposit recorded against the submission.
+- **Deposit capture (PayPal + Monzo).** The no-show defence the copy already promises
+  (the enquire page still names Stripe — to be replaced). Confirmed approach:
+  **PayPal.Me + Monzo.me links, manually reconciled** (no gateway integration, no card
+  data on-site), with the deposit amount + a unique reference recorded against the
+  submission and an artist "mark paid" path. Full phased design — data, Worker, frontend
+  panel, reconciliation, compliance — in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
 
 - **GDPR retention/erasure — management UI.** The MVP runbook is done (Phase 1, plain
   SQL via `wrangler d1 execute`); the post-launch step is a **per-subject view,

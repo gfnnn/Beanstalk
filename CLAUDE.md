@@ -104,7 +104,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/data/      pieces, flash, homepage, testimonials, palette  (content = single sources of truth)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
-  src/styles/    main.css → @imports reset/typography/layout + components/ + pages/
+  src/styles/    main.css → @imports reset/typography/layout/a11y + components/ + pages/
   public/        robots.txt, favicons, manifest, images/ (copied to dist root; no CNAME yet)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email app)
@@ -113,7 +113,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  ROADMAP.md
+docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  PAYMENTS-PLAN.md  ROADMAP.md
 .github/workflows/{test.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -216,13 +216,16 @@ Two layers, both centralised so new pages/responses inherit them:
 `src/js/main.js` is the only entry point. On `DOMContentLoaded` it calls each module's
 `initX()` in a deliberate order (Lenis smooth-scroll first so it drives the GSAP ticker,
 then nav, hero/scroll animations, portfolio load-more + filter + lightbox, gallery,
-aftercare, faq, enquire, flash, newsletter, analytics). **Every module no-ops when its
-target element is absent**, so the one bundle runs safely on every page. Modules under
-`src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`, `filter`, `lightbox`,
-`gallery`, `sticky` (shared sticky-shadow helper for pinned bars), `aftercare`, `faq`,
-`enquire`, `flash`, `newsletter`, `analytics` (vendor-agnostic `track()` scaffold that
-no-ops until a provider is wired in — no cookie banner owed yet), and `config` (function
-URLs). Portfolio load-more, filter/sort and lightbox cooperate via callbacks wired in
+aftercare, faq, enquire, flash, newsletter, hero media, analytics). **Every module no-ops
+when its target element is absent**, so the one bundle runs safely on every page. Modules
+under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`, `filter`, `lightbox`,
+`gallery`, `sticky` (shared sticky-shadow helper for pinned bars), `chip-overflow` (shared
+filter-bar "More" collapse for overflowing chip rows — used by `filter` + `flash`, not
+wired through `main.js`), `aftercare`, `faq`, `enquire`, `flash`, `newsletter`, `media`
+(hero video/GIF playback — reduced-motion-aware, plays on-screen only; see `docs/MEDIA.md`),
+`analytics` (vendor-agnostic `track()` scaffold that no-ops until a provider is wired in —
+no cookie banner owed yet), and `config` (function URLs). Portfolio load-more, filter/sort
+and lightbox cooperate via callbacks wired in
 `main.js` (load-more owns the visible window; filter re-applies after a reveal/sort). New
 page behaviour = a new `modules/<name>.js` exporting `initX()`, added to `main.js`.
 

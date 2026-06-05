@@ -32,4 +32,9 @@ npm run preview:branch -- <branch>  # fetch a branch, install, and run its dev s
 - `docs/ROADMAP.md` — outstanding work, open decisions, and go-live blockers
 - `docs/ENQUIRY-SETUP.md` — enquiry / flash-claim form + email setup
 - `docs/NEWSLETTER-SETUP.md` — newsletter (Resend Audience) setup
+- `docs/EMAIL-DOMAIN-SETUP.md` — sending domain + inbox forwarding (Resend / DNS)
+- `docs/DATA-COMPLIANCE.md` — GDPR retention / erasure runbook (D1)
+- `docs/MEDIA.md` — hero video/GIF encoding + serving
+- `docs/PAYMENTS-PLAN.md` — deposits / flash-purchase plan (PayPal + Monzo, not yet built)
+- `docs/CMS.md` — content-CMS plan (planned, post-launch)
 - `.env.example` — environment variables (copy to `.env` for local work)
