@@ -38,6 +38,7 @@ describe('vite.config plugins are all registered', () => {
     'beansprout-palette',
     'beansprout-generated-grids',
     'beansprout-seo-head',
+    'beansprout-security-headers',
     'beansprout-piece-pages',
     'beansprout-sitemap',
   ])('%s is in the plugin list', name => {
@@ -78,6 +79,23 @@ describe('transformIndexHtml pipeline', () => {
     const out = transformHtml(page(''))
     expect(out).toContain('<link rel="canonical" href="https://beansprout.ink/portfolio/">')
     expect(out).toContain('property="og:site_name"')
+  })
+
+  it('injects the CSP + Referrer-Policy security meta into the head', () => {
+    const out = transformHtml(page(''))
+    expect(out).toContain('http-equiv="Content-Security-Policy"')
+    expect(out).toContain("default-src 'self'")
+    expect(out).toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
+    // the policy must pin the Worker connect-src and the Google Fonts/Maps origins
+    expect(out).toContain('connect-src')
+    expect(out).toContain('workers.dev')
+    expect(out).toContain('https://fonts.gstatic.com')
+  })
+
+  it('does not double-inject the security meta when the head already carries it', () => {
+    const out = transformHtml(page(''))
+    const again = transformHtml(out)
+    expect(again.match(/http-equiv="Content-Security-Policy"/g)).toHaveLength(1)
   })
 
   it('leaves a noindex page out of SEO injection', () => {
@@ -138,5 +156,11 @@ describe('piece-pages generateBundle', () => {
     const sample = htmlFiles[0].source
     expect(sample).toContain('/assets/main-abc123.js')
     expect(sample).toContain('/assets/main-abc123.css')
+  })
+
+  it('carries the CSP security meta (it bypasses the transform plugin)', () => {
+    const sample = htmlFiles[0].source
+    expect(sample).toContain('http-equiv="Content-Security-Policy"')
+    expect(sample).toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
   })
 })

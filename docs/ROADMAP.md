@@ -40,6 +40,11 @@ Shipped (audience-capture + early management layer):
   (`src/build/html.js`), `EMAIL_RE` in the worker's `src/lib/http.js`, and a
   sticky-shadow helper (`src/js/modules/sticky.js`) replace 2–3 copies each; the
   enquiry image-preview object-URL leak is fixed.
+- **Security headers (Tier 1)** — a build-time CSP + Referrer-Policy `<meta>` on every
+  HTML page (`src/build/security.js` + the `securityHeaders` Vite plugin), and
+  `nosniff` / `default-src 'none'` / `no-referrer` on every Worker JSON response
+  (`SECURITY_HEADERS` in `src/lib/http.js`). The clickjacking/HSTS gap that a `<meta>`
+  CSP can't close on Pages is tracked under infrastructure consolidation (Tier 3).
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
@@ -119,24 +124,27 @@ the strategic plan to move data into a dedicated secure store post-launch (see
 (an access `SELECT` + the prune preview) so the runbook is proven before a real
 request, and set a quarterly prune reminder.
 
-## Pre-launch hardening — security headers, Tier 1 (🛠 CODE)
+## Pre-launch hardening — security headers, Tier 1 ✅ DONE (🛠 CODE)
 
-Add the security headers that **are** achievable on the current split deploy (static
-HTML on GitHub Pages + the JSON Worker). Parallelisable with Phases 2–4; not a hard
-blocker, but cheap and worth shipping for MVP.
+The security headers that **are** achievable on the current split deploy (static HTML on
+GitHub Pages + the JSON Worker). Built and shipped — both layers below are in code with
+tests; verified against a production build (`npm run build`) and preview.
 
-- [ ] **Site CSP + Referrer-Policy via a Vite head plugin.** A sixth plugin in
-      `apps/web/vite.config.js` (alongside `palette` / `injectSeoHead`) injects
+- [x] **Site CSP + Referrer-Policy via a Vite head plugin.** A sixth plugin
+      (`securityHeaders`) in `apps/web/vite.config.js` injects
       `<meta http-equiv="Content-Security-Policy">` and
       `<meta name="referrer" content="strict-origin-when-cross-origin">` into every
-      page's `<head>` — including the generated per-piece pages — so it stays
-      consistent and new pages inherit it. Pin `connect-src` to the `*.workers.dev`
-      Worker origins from `config.js`; allow `fonts.googleapis.com` /
-      `fonts.gstatic.com` until the fonts are self-hosted (P3), then tighten.
-- [ ] **Security headers on the Worker's JSON responses.** Add to `replyWith()`
-      (`apps/functions/src/lib/http.js`): `X-Content-Type-Options: nosniff`,
-      `Content-Security-Policy: default-src 'none'`, `Referrer-Policy: no-referrer`.
-      One-function change; good hygiene even for JSON-only endpoints.
+      page's `<head>` — including the generated per-piece pages (handed the same string
+      via `renderPiecePage`). Policy + rationale live in `apps/web/src/build/security.js`.
+      `connect-src` is pinned to the `*.workers.dev` Worker origin (derived from the
+      `VITE_*_FN_URL` vars, falling back to the `config.js` default); `fonts.googleapis.com`
+      / `fonts.gstatic.com` are allowed until the fonts are self-hosted (P3), then tighten.
+      **Build/preview only** (`apply: 'build'`) — a strict CSP breaks the dev HMR client.
+- [x] **Security headers on the Worker's JSON responses.** `SECURITY_HEADERS` in
+      `apps/functions/src/lib/http.js` (`X-Content-Type-Options: nosniff`,
+      `Content-Security-Policy: default-src 'none'`, `Referrer-Policy: no-referrer`) is
+      spread into every `replyWith()` reply and the Worker's 404. CORS still wins where
+      it overlaps.
 
 > **What Tier 1 can't cover (a real GitHub Pages limit).** A `<meta>` CSP can't set
 > `frame-ancestors`, and `X-Frame-Options` / `Strict-Transport-Security` /
@@ -145,29 +153,33 @@ blocker, but cheap and worth shipping for MVP.
 > **Enforce HTTPS** is on in Phase 6.) Closing that gap needs a layer that owns the
 > responses — see *infrastructure consolidation* in the Backlog (Tier 3).
 
-## Phase 2 — Stand up the backend (Resend + Cloudflare) (👤 YOU)
+## Phase 2 — Stand up the backend (Resend + Cloudflare) ✅ DONE (👤 YOU)
 
-Follow `docs/ENQUIRY-SETUP.md` and `docs/NEWSLETTER-SETUP.md`. Summary:
+**Confirmed done (June 2026):** Resend account + API key, sending domain, and Audience
+are all set up; Cloudflare account, the Worker, and D1 are deployed with secrets in
+place. The **only** Phase-2-adjacent item left is the **test → production email flip**
+(`FROM_EMAIL` / `ARTIST_EMAIL`), which is deliberately deferred to the **Phase 6 cutover**
+(the secrets currently hold the staging/test sender + inbox). Follow `docs/ENQUIRY-SETUP.md`
+and `docs/NEWSLETTER-SETUP.md` for reference.
 
-- [ ] **Resend account** — sign up, create an API key (`re_…`). *(ENQUIRY-SETUP Part A)*
-- [ ] **Verify the sending domain** in Resend — add Resend's DNS records (MX/TXT/DKIM
-      on the `send.` subdomain) at GoDaddy, click **Verify**. Until verified, sends
-      are rejected. *(ENQUIRY-SETUP Part A; EMAIL-DOMAIN-SETUP)*
-- [ ] **Create a Resend Audience** (newsletter) — copy its Audience ID.
+- [x] **Resend account** — API key (`re_…`) created. *(ENQUIRY-SETUP Part A)*
+- [x] **Verify the sending domain** in Resend — Resend's DNS records (MX/TXT/DKIM on the
+      `send.` subdomain) added at GoDaddy and verified. *(ENQUIRY-SETUP Part A; EMAIL-DOMAIN-SETUP)*
+- [x] **Create a Resend Audience** (newsletter) — Audience ID copied.
       *(NEWSLETTER-SETUP step 1)*
-- [ ] **Cloudflare account + Worker** — from `apps/functions/`: `wrangler login`,
-      `wrangler d1 create beansprout` (paste the id into `wrangler.toml`),
-      `wrangler d1 migrations apply beansprout`, then `wrangler deploy`.
-      *(ENQUIRY-SETUP Part B)*
-- [ ] **Set Worker secrets** (`wrangler secret put <NAME>`):
+- [x] **Cloudflare account + Worker** — `wrangler d1 create` / `migrations apply` /
+      `deploy` done; the Worker is live. *(ENQUIRY-SETUP Part B)*
+- [x] **Set Worker secrets** (`wrangler secret put <NAME>`) — set. `FROM_EMAIL` /
+      `ARTIST_EMAIL` currently hold the **test** values (`onboarding@resend.dev` /
+      `harrisonfisher1990@gmail.com`); they flip to production at Phase 6.
       | Key | Value |
       |---|---|
       | `RESEND_API_KEY` | the `re_…` key |
-      | `ARTIST_EMAIL` | `roksanaklaudia.z@gmail.com` |
-      | `FROM_EMAIL` | `roxy@beansprout.ink` (or `onboarding@resend.dev` while testing) |
+      | `ARTIST_EMAIL` | `roksanaklaudia.z@gmail.com` (production; test = `harrisonfisher1990@gmail.com`) |
+      | `FROM_EMAIL` | `roxy@beansprout.ink` (production; test = `onboarding@resend.dev`) |
       | `RESEND_AUDIENCE_ID` | the Audience ID |
       | `RATE_*` | *(optional vars — defaults are sane)* |
-- [ ] **Note the Worker URL** — `https://beansprout-forms.<subdomain>.workers.dev/`
+- [x] **Note the Worker URL** — `https://beansprout-forms.<subdomain>.workers.dev/`
       (routes: `/enquiry`, `/newsletter`, `/flash-status`).
 
 > **Why Cloudflare, not Netlify:** the previous host paused the whole project when a
@@ -325,9 +337,14 @@ Pages in Phase 5).
 
 1. ~~Confirm Roxy's Gmail + DNS access~~ ✅ done.
 2. ~~Choose the erasure approach~~ ✅ done — minimal runbook built (Phase 1).
-3. Start the Resend + Cloudflare accounts (Phase 2) — `wrangler deploy` the Worker;
-   this gates deployed form testing (local `wrangler dev` works without it).
-4. Send me confirmed **service prices**, a signed-off **terms effective date**, and
+3. ~~Start the Resend + Cloudflare accounts (Phase 2)~~ ✅ done — Resend (key/domain/
+   Audience) + Cloudflare Worker + D1 are live. The production email flip is held for
+   Phase 6.
+4. **Wire the inbox (Phase 3)** — ImprovMX aliases + the GoDaddy MX/SPF/DMARC records,
+   and Gmail "Send mail as". Safe before cutover (MX/TXT only, no A/CNAME change).
+5. **Set the build-time Worker URLs** (Phase 5) — `VITE_*_FN_URL` as repo Actions
+   Variables — then enable GitHub Pages and run the staging email test.
+6. Send me confirmed **service prices**, a signed-off **terms effective date**, and
    the **og-image** (Phase 4) and I'll apply them.
 
 **Post-launch (Phase 7) is the [Backlog](#backlog-post-launch--extends-past-go-live)

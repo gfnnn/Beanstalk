@@ -83,10 +83,13 @@ entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's i
 or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The five Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+The six Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
 work: `palette` (inject colour custom properties), `generatedGrids` (the content pipeline
-below), `seoHead` (structural SEO tags), `piecePages` (per-piece portfolio pages), and
-`sitemap`. All run in **both dev and build** so what you see on `npm run dev` is what ships.
+below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
+`<meta>` — see SEO/security below), `piecePages` (per-piece portfolio pages), and
+`sitemap`. Most run in **both dev and build** so what you see on `npm run dev` is what
+ships — **except `securityHeaders`, which is `apply: 'build'`** (a strict CSP would break
+the dev server's HMR client), so it lands at build/preview only.
 
 ### Data → build-time HTML pipeline (the non-obvious part)
 Lots of page content is **generated at build time from data files**, not hand-written
@@ -139,6 +142,25 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
 - `public/robots.txt` is static (allows all, disallows `/enquiry-received/`, points
   at the sitemap). The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`,
   with Tiny Knives as `workLocation`) — Beansprout is the artist, not the studio.
+
+### Security headers
+Two layers, both centralised so new pages/responses inherit them:
+
+- **Site (HTML) — CSP + Referrer-Policy `<meta>`.** `src/build/security.js` defines the
+  policy; the `securityHeaders` plugin (`apply: 'build'`) injects both tags into every
+  page's `<head>`, and `piece-page.js` takes the same string for the per-piece pages
+  (which bypass the HTML transform). `connect-src` is pinned to the Worker origin the
+  build points the forms at — derived from the `VITE_*_FN_URL` vars, falling back to the
+  `config.js` default. The allowances map 1:1 to what the site loads (inline palette
+  style + `style=""` attrs → `style-src 'unsafe-inline'`; Google Fonts; `blob:` image
+  previews; the `/visit/` Google-Maps iframe). **Build/preview only** — a strict CSP
+  breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**
+  set `frame-ancestors`/`X-Frame-Options`/HSTS on Pages — that clickjacking gap waits for
+  the Cloudflare-front consolidation (`ROADMAP.md` → infrastructure consolidation).
+- **Worker (JSON) — response headers.** `SECURITY_HEADERS` in `src/lib/http.js`
+  (`nosniff`, `default-src 'none'`, `no-referrer`) is spread into every `replyWith()`
+  reply and the 404; CORS still wins where it overlaps. No clickjacking/HSTS headers —
+  those belong on the HTML, not a JSON API.
 
 ### Front-end JS — single orchestrated init
 `src/js/main.js` is the only entry point. On `DOMContentLoaded` it calls each module's
