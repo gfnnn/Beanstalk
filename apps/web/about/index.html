@@ -88,21 +88,13 @@
 
   <div class="portrait-wrap">
     <!--
-      DEV NOTE — PORTRAIT
-      Replace with:
-      <img src="/images/artist-portrait.jpg"
-           alt="[Artist name], Beansprout"
-           class="portrait-img">
+      ABOUT HERO — the portrait frame. Generated from src/data/media.js →
+      `aboutHero` by the SAME component as the homepage hero (src/build/media.js).
+      Shows the placeholder below until that slot's show:true; then it becomes the
+      client's looping clip (video or GIF). A still photo can also live here — see
+      docs/MEDIA.md. Don't hand-author the frame; edit the data file.
     -->
-    <div class="portrait-placeholder" role="img" aria-label="Artist portrait placeholder">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
-           stroke="rgba(var(--cream-rgb), 0.4)" stroke-width="1.5"
-           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="32" cy="24" r="12"/>
-        <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24"/>
-      </svg>
-      <span class="portrait-caption">Tiny Knives · Winchester</span>
-    </div>
+    <!-- about:hero-media -->
   </div>
 
   <div class="intro-text">

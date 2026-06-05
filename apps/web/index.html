@@ -182,13 +182,10 @@
 
   <!--
     VIDEO COLUMN
-    Replace .video-placeholder with:
-
-    <video class="hero-video" autoplay muted loop playsinline
-           poster="/images/hero-poster.jpg" preload="none">
-      <source src="/videos/hero.webm" type="video/webm" />
-      <source src="/videos/hero.mp4"  type="video/mp4" />
-    </video>
+    The <video>/GIF here is GENERATED from src/data/media.js → `hero`. To go live:
+    drop the exported files into apps/web/public/videos/ (served at /videos/…),
+    then set media.hero.show = true and rebuild. Don't hand-author the element
+    here — see docs/MEDIA.md for formats, sizes and naming.
 
     Shoot brief:
     — Subject:  Hands + needle on skin, close crop, ink saturating
@@ -201,20 +198,10 @@
        Ink pooling/absorption is fine and intentional.
   -->
   <div class="hero-media">
-    <div class="video-placeholder" role="img" aria-label="Tattooing process, hands at work">
-      <div class="video-placeholder-inner">
-        <svg width="56" height="56" viewBox="0 0 64 64" fill="none"
-             stroke="rgba(var(--cream-rgb), 0.45)" stroke-width="1.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M24 52L24 36L20 30L20 22Q20 18 24 18L40 18Q44 18 44 22L44 30L40 36L40 52Z"/>
-          <path d="M28 18L28 12L36 12L36 18"/>
-          <circle cx="32" cy="56" r="4"/>
-          <path d="M28 36L36 36"/>
-          <path d="M26 42L38 42"/>
-        </svg>
-        <p class="video-placeholder-label">Process video · replace this div</p>
-      </div>
-    </div>
+    <!-- Hero media — the process clip. Generated from src/data/media.js → hero
+         (renderer src/build/media.js). Shows the placeholder below until that
+         slot's show:true; then it becomes a muted looping <video> (or GIF). -->
+    <!-- homepage:hero-media -->
 
     <!--
       BOTANICAL SPROUT — PLACEHOLDER line-art for the artist to replace. Built to

@@ -143,11 +143,17 @@
   will-change: transform, opacity;
 }
 
-.hero-video {
+/* The generated hero clip (video or GIF, src/build/media.js — the same component
+   as the About hero). Fills the media column on the same crop the placeholder
+   used, so swapping a clip in doesn't shift the layout. min-height carries the
+   mobile height the parent doesn't set. */
+.hero-media .media-clip {
+  display: block;
   width: 100%;
-  height: 100%;
+  min-height: 72vw;
   object-fit: cover;
   object-position: center;
+  background: var(--bg-alt);
 }
 
 /* Placeholder — remove once video is ready */
@@ -302,7 +308,8 @@ a.video-credit-name:focus-visible {
   .hero-text  { padding: 56px var(--pad-x); }
   .hero-body  { font-size: 17px; }
   .hero h1    { margin-bottom: 24px; }
-  .video-placeholder { min-height: 55vw; }
+  .video-placeholder,
+  .hero-media .media-clip { min-height: 55vw; }
 }
 
 @media (min-width: 900px) {
@@ -328,6 +335,7 @@ a.video-credit-name:focus-visible {
   .notice-item    { padding: 11px 0; }
 
   .video-placeholder { min-height: 100%; }
+  .hero-media .media-clip { min-height: 100%; height: 100%; }
 
   .hero-media-tag    { bottom: 24px; left: 24px; }
   .hero-video-credit { bottom: 24px; right: 24px; }

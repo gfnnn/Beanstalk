@@ -10,6 +10,7 @@ import { initFaq } from './modules/faq.js'
 import { initEnquire } from './modules/enquire.js'
 import { initFlash } from './modules/flash.js'
 import { initNewsletter } from './modules/newsletter.js'
+import { initMedia } from './modules/media.js'
 import { initAnalytics } from './modules/analytics.js'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -50,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 11. Newsletter page — signup form → Resend Audience
   initNewsletter()
+
+  // 11a. Hero media clips (homepage + About hero) — reduced-motion +
+  //      on-screen-only playback. No-ops when the page has no generated clip.
+  initMedia()
 
   // 11b. Analytics — outbound social-link tracking (conversion events fire
   //      inline from their own modules). No-op until a provider is configured.
