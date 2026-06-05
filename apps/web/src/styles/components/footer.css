@@ -6,13 +6,31 @@
   padding: 56px var(--pad-x) 32px;
 }
 
+/* The dark band runs full-bleed (padding on .footer), but the CONTENT is
+   centred at the site's content measure so it never sprawls on wide displays —
+   same convention as the newsletter band and per-piece pages. */
+.footer-top,
+.footer-bottom {
+  width: 100%;
+  max-width: var(--max-w, 1200px);
+  margin-inline: auto;
+}
+
+/* Mobile base: brand spans the full width, the link lists pack 2-up to halve
+   the footer's height. Follow spans both columns (its email/handles are long)
+   and lays out as a wrapping row. */
 .footer-top {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px 24px;
   padding-bottom: 40px;
   border-bottom: 1px solid rgba(var(--bg-rgb), 0.1);
   margin-bottom: 24px;
+}
+
+.footer-brand,
+.footer-col:last-child {
+  grid-column: 1 / -1;
 }
 
 .footer-brand .wordmark {
@@ -47,6 +65,14 @@
   gap: 11px;
 }
 
+/* Full-width Follow column on mobile flows its links in a wrapping row so the
+   long email/handles sit on one compact block rather than a tall stack. */
+.footer-col:last-child ul {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
 .footer-col a {
   font-size: 14px;
   color: rgba(var(--bg-rgb), 0.6);
@@ -78,19 +104,31 @@
   .footer { padding-bottom: calc(32px + 72px); }
 }
 
+/* Tablet: brand spans the full width on top, the three link lists sit as an
+   even 3-up row beneath — cleaner than a lopsided 2×2. */
 @media (min-width: 640px) {
   .footer { padding: 72px var(--pad-x) 32px; }
   .footer-brand .wordmark { font-size: 44px; }
-  .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; padding-bottom: 48px; }
+  .footer-top {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    padding-bottom: 48px;
+  }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-col:last-child { grid-column: auto; }
+  .footer-col:last-child ul { flex-direction: column; gap: 11px; }
 }
 
+/* Desktop: brand anchors left, link columns cluster as an even group to the
+   right, all inside the centred 1200px measure — no ultrawide sprawl, no void. */
 @media (min-width: 900px) {
   .footer { padding: 80px var(--pad-x) 32px; }
   .footer-brand .wordmark { font-size: 50px; }
   .footer-top {
-    grid-template-columns: 1.8fr 1fr 1fr 1fr;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
     gap: 48px;
     padding-bottom: 56px;
     margin-bottom: 28px;
   }
+  .footer-brand { grid-column: auto; }
 }
