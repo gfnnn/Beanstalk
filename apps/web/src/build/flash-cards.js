@@ -85,3 +85,13 @@ export function renderFlashCards(items) {
   // into the "Past drops" view, so they need no separate file or page.
   return items.map(card).join('\n')
 }
+
+// The CURRENT drop number — the highest `drop` value in the data. Same definition
+// the client uses to scope the live grid (src/js/modules/flash.js → currentDrop) and
+// that src/data/flash.js documents, so the page eyebrow ("Drop N") can never drift
+// from the cards: add a new drop's records and this follows automatically. Empty
+// data → '' (the eyebrow then reads as just its authored season text).
+export function renderFlashDrop(items = []) {
+  if (!items.length) return ''
+  return String(Math.max(...items.map(i => +i.drop || 0)))
+}

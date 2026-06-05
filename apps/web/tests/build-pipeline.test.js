@@ -60,6 +60,12 @@ describe('transformIndexHtml pipeline', () => {
     expect(out.match(/class="flash-card"/g)).toHaveLength(flash.length)
   })
 
+  it('replaces the flash:drop marker with the current drop number', () => {
+    const out = transformHtml(page('Drop <!-- flash:drop --> · 2026'))
+    expect(out).not.toContain('<!-- flash:drop -->')
+    expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · 2026`)
+  })
+
   it('injects the palette <style> and repoints theme-color at the palette bg', () => {
     const out = transformHtml(page(''))
     expect(out).toContain('<style id="palette">')

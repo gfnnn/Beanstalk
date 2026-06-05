@@ -5,7 +5,7 @@
 // rather than exact byte-for-byte HTML, so cosmetic tweaks don't break the suite.
 import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
-import { renderFlashCards } from '../src/build/flash-cards.js'
+import { renderFlashCards, renderFlashDrop } from '../src/build/flash-cards.js'
 import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
 import { renderTestimonials } from '../src/build/testimonials.js'
@@ -134,6 +134,21 @@ describe('renderFlashCards', () => {
   it('renders the real flash data without throwing, one card per item', () => {
     const html = renderFlashCards(flash)
     expect(html.match(/class="flash-card"/g)).toHaveLength(flash.length)
+  })
+})
+
+describe('renderFlashDrop (current-drop number for the page eyebrow)', () => {
+  it('returns the highest `drop` value present (the current drop)', () => {
+    expect(renderFlashDrop([{ drop: 11 }, { drop: 13 }, { drop: 12 }])).toBe('13')
+  })
+
+  it('matches the real data and the client\'s current-drop definition', () => {
+    expect(renderFlashDrop(flash)).toBe(String(Math.max(...flash.map(f => f.drop))))
+  })
+
+  it('returns an empty string for empty data (no NaN/-Infinity in the markup)', () => {
+    expect(renderFlashDrop([])).toBe('')
+    expect(renderFlashDrop()).toBe('')
   })
 })
 
