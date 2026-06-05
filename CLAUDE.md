@@ -113,15 +113,19 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  ROADMAP.md
-.github/workflows/{test.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
+docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+.github/workflows/{test.yml, e2e.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
-content-CMS plan. Read `ROADMAP.md` for current priorities before starting larger work.
+content-CMS plan; `docs/PAYMENTS-PLAN.md` is the (not-yet-built) **PayPal + Monzo** deposit /
+flash-purchase spec — manual reconciliation, no payment gateway to build, supersedes the old
+Stripe backlog item; `docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** spec
+that co-ships with it (request/hold + manual confirm). Read `ROADMAP.md` for current
+priorities before starting larger work.
 
 ### Multi-page Vite build
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
