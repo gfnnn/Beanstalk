@@ -66,17 +66,22 @@
 
 /* ── Studio notices ──────────────────────────────────────────────────────── */
 .studio-notices {
-  display: flex;
-  flex-direction: column;
+  /* A grid whose middle (label) column sizes to the widest label, so every
+     row's copy starts on the same vertical line. Each .notice-item adopts
+     these tracks via subgrid, keeping its own per-row border/padding. */
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  column-gap: 12px;
   border-top: 1px solid var(--line-soft);
   padding-top: 20px;
   max-width: 420px;
 }
 
 .notice-item {
-  display: flex;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--line-soft);
   font-size: 13px;
@@ -89,7 +94,6 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  flex-shrink: 0;
 }
 .notice-dot.moss  { background: var(--moss); }
 .notice-dot.clay  { background: var(--clay); }
@@ -101,7 +105,6 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  flex-shrink: 0;
 }
 
 /* In-body link with a growing underline (§3-F). A faint rule stays at rest (so the
