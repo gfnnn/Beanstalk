@@ -1,6 +1,5 @@
 import { initNav } from './modules/nav.js'
 import { initAftercare } from './modules/aftercare.js'
-import { initGallery } from './modules/gallery.js'
 import { initLenis } from './modules/lenis.js'
 import { initHeroAnimation, initScrollAnimations } from './modules/animations.js'
 import { initFilter } from './modules/filter.js'
@@ -34,33 +33,30 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMore?.setOnReveal(filter?.applyFilters)
   initLightbox()
 
-  // 6. Portfolio page gallery — stub for future
-  initGallery()
-
-  // 7. Aftercare page — tab switcher + sticky shadow
+  // 6. Aftercare page — tab switcher + sticky shadow
   initAftercare()
 
-  // 8. FAQ page — accordion, category filter, search
+  // 7. FAQ page — accordion, category filter, search
   initFaq()
 
-  // 9. Enquire page — multi-step form, progress, conditional fields
+  // 8. Enquire page — multi-step form, progress, conditional fields
   initEnquire()
 
-  // 10. Flash page — filter/sort, claim modal
+  // 9. Flash page — filter/sort, claim modal
   initFlash()
 
-  // 11. Newsletter page — signup form → Resend Audience
+  // 10. Newsletter page — signup form → Resend Audience
   initNewsletter()
 
-  // 11a. Hero media clips (homepage + About hero) — reduced-motion +
+  // 10a. Hero media clips (homepage + About hero) — reduced-motion +
   //      on-screen-only playback. No-ops when the page has no generated clip.
   initMedia()
 
-  // 11b. Analytics — outbound social-link tracking (conversion events fire
+  // 10b. Analytics — outbound social-link tracking (conversion events fire
   //      inline from their own modules). No-op until a provider is configured.
   initAnalytics()
 
-  // 12. Mobile sticky CTA — shown on inner pages on small screens
+  // 11. Mobile sticky CTA — shown on inner pages on small screens
   const mobileCta = document.getElementById('mobile-cta')
   const hero      = document.querySelector('.hero')
   if (mobileCta && !hero && window.innerWidth < 640) {
