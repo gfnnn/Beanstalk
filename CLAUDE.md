@@ -58,6 +58,7 @@ npm install           # install all workspaces (hoisted to the root node_modules
 npm run dev           # Vite dev server for apps/web at http://localhost:5173
 npm run build         # production build of apps/web → apps/web/dist/
 npm run preview       # serve the built apps/web/dist/ locally
+npm run preview:branch -- <branch>  # LOCAL helper: fetch a branch, install, run its dev server (one command)
 npm test              # run BOTH workspaces' Vitest suites
 npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
 npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
@@ -67,6 +68,13 @@ npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-sit
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
 or `cd apps/web && npm run build`.
+
+**Reviewing a web session's work on your own machine** is one command:
+`npm run preview:branch -- <branch>` (`scripts/preview-branch.mjs`) fetches the branch,
+fast-forwards to its tip, installs, and starts the dev server at
+`http://localhost:5173`. It's a *local* helper — it fails safe (`git switch` +
+`pull --ff-only`, never discarding uncommitted work) and is cross-platform. Add
+`--no-serve` to just prepare the checkout without booting the server.
 
 Tests run on **Vitest** and in CI on every push/PR (`.github/workflows/test.yml`, a matrix
 over both workspaces). `apps/web/tests/` covers the build-time renderers + data integrity;

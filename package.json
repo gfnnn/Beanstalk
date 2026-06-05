@@ -13,6 +13,7 @@
     "dev": "npm run dev --workspace @beansprout/web",
     "build": "npm run build --workspace @beansprout/web",
     "preview": "npm run preview --workspace @beansprout/web",
+    "preview:branch": "node scripts/preview-branch.mjs",
     "test": "npm run test --workspaces --if-present",
     "test:web": "npm run test --workspace @beansprout/web",
     "test:functions": "npm run test --workspace @beansprout/functions",
