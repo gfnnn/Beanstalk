@@ -6,7 +6,7 @@
 // rate-limit and flash-reservation paths are exercised for real.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { handler } from '../src/handlers/enquiry.js'
-import { makeD1, flashMap } from './helpers/fake-d1.js'
+import { makeD1, brokenD1, flashMap } from './helpers/fake-d1.js'
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 const b64 = (bytes) => {
@@ -206,6 +206,12 @@ describe('enquiry handler — persistence & size limits', () => {
     const res = await H({ httpMethod: 'POST', headers: { origin: 'https://beansprout.ink' }, body: huge })
     expect(res.statusCode).toBe(413)
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('still delivers the enquiry (200) when the DB is down — a storage outage never blocks a real send', async () => {
+    const res = await H(post(validEnquiry()), { ...env, DB: brokenD1() })
+    expect(res.statusCode).toBe(200)
+    expect(fetchMock).toHaveBeenCalledOnce() // the email went out regardless
   })
 
   it('drops a single image that exceeds the per-image ceiling, but still sends', async () => {

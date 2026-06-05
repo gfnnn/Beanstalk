@@ -2,7 +2,7 @@
 // calls on load to reflect live availability. The D1 binding is the in-memory fake.
 import { describe, it, expect, beforeEach } from 'vitest'
 import { handler } from '../src/handlers/flash-status.js'
-import { makeD1 } from './helpers/fake-d1.js'
+import { makeD1, brokenD1 } from './helpers/fake-d1.js'
 
 let d1, env
 const H = (event) => handler(event, env)
@@ -33,6 +33,12 @@ describe('flash-status handler', () => {
 
   it('returns an empty map when nothing has been claimed', async () => {
     const res = await H(get())
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.body)).toEqual({ claims: {} })
+  })
+
+  it('fails safe to an empty map when the DB is down (the grid never errors)', async () => {
+    const res = await handler(get(), { DB: brokenD1() })
     expect(res.statusCode).toBe(200)
     expect(JSON.parse(res.body)).toEqual({ claims: {} })
   })
