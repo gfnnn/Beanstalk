@@ -136,6 +136,21 @@ export function initFilter({ resetWindow } = {}) {
   }
   if (emptyClear) emptyClear.addEventListener('click', clearFilters)
 
+  // ── Deep link — apply a style from the URL (?style=…) on load ─────────────
+  // The homepage specialism cards link here as /portfolio/?style=<token>, so the
+  // customer lands with that style already filtered. Only honour a token that
+  // maps to a real chip (ignore unknown/empty values → normal "All" browse).
+  function applyStyleFromUrl() {
+    const wanted = new URLSearchParams(location.search).get('style')
+    if (!wanted) return
+    const chip = chips.find(c => c.dataset.filter === wanted)
+    if (!chip) return
+    chips.forEach(c => c.classList.remove('active'))
+    chip.classList.add('active')
+    activeStyle = wanted
+  }
+
+  applyStyleFromUrl()
   updateCounts()
   applyFilters()
 

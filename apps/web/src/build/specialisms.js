@@ -49,15 +49,23 @@ function preview(p) {
 // plain part is its label (single source of truth, STYLE_LABELS), `em` + `body`
 // are author copy. `i`/`total` drive the "0X / 0Y" numbering + the background
 // numeral. The CTA deep-links to the matching portfolio style filter.
+// `i` is the 1-based position among the *numbered* (non-fill) cards, or -1 for a
+// fill card. Fill cards are the tablet-only balance tile: they carry the --fill
+// modifier (CSS shows them only at tablet widths), sit outside the "0X / 0Y"
+// numbering and read "Also" instead.
 function card(spec, pieces, i, total) {
+  const fill  = i < 0
   const style = spec.style
   const num   = String(i + 1).padStart(2, '0')
   const denom = String(total).padStart(2, '0')
   const label = styleLabel(style)
   const previews = piecesForStyle(pieces, style).map(preview).join('\n          ')
   const em = spec.em ? ` <em>${esc(spec.em)}</em>` : ''
-  return `    <article class="specialism-card" data-num="${num}">
-      <div class="specialism-num">${num} / ${denom}</div>
+  const cls     = fill ? 'specialism-card specialism-card--fill' : 'specialism-card'
+  const dataNum = fill ? String(total + 1).padStart(2, '0') : num
+  const counter = fill ? 'Also' : `${num} / ${denom}`
+  return `    <article class="${cls}" data-num="${dataNum}">
+      <div class="specialism-num">${counter}</div>
       <div class="specialism-content">
         <div class="specialism-previews">
           ${previews}
@@ -71,10 +79,14 @@ function card(spec, pieces, i, total) {
 
 // Render every configured specialism card. Entries naming an unknown style still
 // render (styleLabel falls back to the raw token) — the data-contract test guards
-// the tokens, the same way it does for pieces.js.
+// the tokens, the same way it does for pieces.js. A `fill: true` entry is the
+// tablet-only balance tile: it's skipped in the running count and the denominator
+// reflects only the numbered (non-fill) cards.
 export function renderSpecialisms(pieces, specialisms = []) {
-  const list = specialisms || []
-  return list.map((spec, i) => card(spec, pieces, i, list.length)).join('\n')
+  const list  = specialisms || []
+  const total = list.filter(s => !s.fill).length
+  let n = 0
+  return list.map(spec => card(spec, pieces, spec.fill ? -1 : n++, total)).join('\n')
 }
 
 // Re-exported so the data-contract test can derive the valid style set from the

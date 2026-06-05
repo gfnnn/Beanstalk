@@ -110,6 +110,10 @@
 .notice-item a {
   color: var(--moss);
   position: relative;
+  /* inline-block gives the anchor a definite box so the absolutely-positioned
+     underline (::after, left:0/right:0) spans its width — as a bare inline it
+     collapsed to zero width, so the grow-in on hover never showed. */
+  display: inline-block;
   border-bottom: 1px solid rgba(var(--moss-rgb), 0.25);
 }
 .notice-item a::after {
@@ -195,6 +199,47 @@
   width: 20px;
   height: 1px;
   background: rgba(var(--cream-rgb), 0.4);
+  transition: width var(--dur) var(--ease-soft);
+}
+/* Click-through to /visit/ — brightens and extends its rule on hover/focus so it
+   reads as interactive against the media. Inherits the mono/uppercase tag style. */
+.hero-media-tag-link {
+  color: inherit;
+  transition: color var(--dur) var(--ease-soft);
+}
+.hero-media-tag:hover .hero-media-tag-link,
+.hero-media-tag-link:focus-visible {
+  color: var(--cream);
+}
+.hero-media-tag:hover::before { width: 32px; }
+
+/* Video credit — small line in the opposite bottom corner from the studio tag,
+   crediting whoever shot the hero video. Same mono register as the tag; the name
+   carries a faint underline when it links out. Rendered only when toggled on. */
+.hero-video-credit {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 2; /* above the botanical sprig, like the studio tag */
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(var(--cream-rgb), 0.55);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.video-credit-label { color: rgba(var(--cream-rgb), 0.4); }
+.video-credit-name  { color: rgba(var(--cream-rgb), 0.75); }
+a.video-credit-name {
+  border-bottom: 1px solid rgba(var(--cream-rgb), 0.3);
+  transition: color var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+}
+a.video-credit-name:hover,
+a.video-credit-name:focus-visible {
+  color: var(--cream);
+  border-bottom-color: rgba(var(--cream-rgb), 0.7);
 }
 
 /* ── Botanical sprig (PLACEHOLDER) — grows on load + faint living ink ────────
@@ -281,7 +326,8 @@
 
   .video-placeholder { min-height: 100%; }
 
-  .hero-media-tag { bottom: 24px; left: 24px; }
+  .hero-media-tag    { bottom: 24px; left: 24px; }
+  .hero-video-credit { bottom: 24px; right: 24px; }
 
   .scroll-hint {
     display: flex;

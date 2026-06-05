@@ -378,9 +378,26 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
 
   it('renders the real homepage specialisms against the real catalogue without throwing', () => {
     const html = renderSpecialisms(pieces, homepage.specialisms)
-    expect(html.match(/class="specialism-card"/g)).toHaveLength(homepage.specialisms.length)
+    // count card openings regardless of any modifier class (e.g. --fill)
+    expect(html.match(/class="specialism-card[ "]/g)).toHaveLength(homepage.specialisms.length)
     // every configured style surfaces at least one real preview from the catalogue
     expect(html).not.toContain('src=""')
+  })
+
+  it('treats a `fill` entry as a tablet-only balance tile, outside the numbering', () => {
+    const html = renderSpecialisms(sample, [
+      { style: 'fine-line' },
+      { style: 'black-grey' },
+      { style: 'fine-line', fill: true },
+    ])
+    // modifier class present exactly once; numbered cards keep the bare class
+    expect(html.match(/class="specialism-card--fill"|specialism-card specialism-card--fill/g)).toHaveLength(1)
+    // numbered cards count only the non-fill entries (denominator stays 02)
+    expect(html).toContain('01 / 02')
+    expect(html).toContain('02 / 02')
+    expect(html).not.toContain('/ 03')
+    // the fill card reads "Also" rather than a running number
+    expect(html).toContain('>Also<')
   })
 
   it('piecesForStyle caps the selection (default three previews per card)', () => {
