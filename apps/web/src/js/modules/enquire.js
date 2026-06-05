@@ -21,8 +21,12 @@ export function initEnquire() {
     steps.forEach((s, i) => {
       if (!s) return
       const sNum = i + 1
-      s.classList.toggle('inactive', sNum > current)
+      const upcoming = sNum > current
+      s.classList.toggle('inactive', upcoming)
       s.classList.toggle('complete', sNum < current)
+      // Future steps aren't reachable yet — keep them out of the tab order and the
+      // a11y tree (mirrors the visual dimming; pointer-events:none already blocks mouse).
+      s.toggleAttribute('inert', upcoming)
     })
     if (fill) fill.style.width = (current / TOTAL * 100) + '%'
     if (pct)  pct.textContent = 'Step ' + current + ' of ' + TOTAL
