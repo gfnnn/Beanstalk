@@ -11,6 +11,8 @@ export function initFilter({ resetWindow } = {}) {
   if (!grid) return
 
   const filterBar     = document.getElementById('filter-bar')
+  const filterChips   = document.querySelector('.filter-chips')
+  const chipMoreBtn   = document.getElementById('chip-more-btn')
   const chips         = [...document.querySelectorAll('.chip')]
   const tiles         = [...grid.querySelectorAll('.masonry-tile')]
   const placementSel  = document.getElementById('placement-filter')
@@ -104,6 +106,17 @@ export function initFilter({ resetWindow } = {}) {
     chips.forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'))
     if (placementSel) placementSel.value = 'all'
     applyFilters()
+  }
+
+  // ── "More" toggle (narrow viewports) ─────────────────────────────────────
+  // Reveals the secondary style chips (illustrative, dotwork, colour, script)
+  // that collapse on mobile. No-ops on desktop where the toggle is hidden and
+  // every chip is already shown.
+  if (chipMoreBtn && filterChips) {
+    chipMoreBtn.addEventListener('click', () => {
+      const expanded = filterChips.classList.toggle('expanded')
+      chipMoreBtn.setAttribute('aria-expanded', String(expanded))
+    })
   }
 
   // ── Chip clicks ──────────────────────────────────────────────────────────

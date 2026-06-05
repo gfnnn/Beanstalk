@@ -162,6 +162,34 @@ describe('initFilter', () => {
     ).toBe(true)
   })
 
+  it('the "More" toggle expands the secondary chips and tracks aria-expanded', () => {
+    // Mirror the real markup: a `.filter-chips` wrapper with a `#chip-more-btn`
+    // toggle that flips `.expanded` (CSS reveals `.chips-secondary` on mobile).
+    document.body.innerHTML = `
+      <div id="filter-bar">
+        <div class="filter-chips">
+          ${chip('all', 'All')}
+          <button class="chip-more" id="chip-more-btn" aria-expanded="false">More</button>
+          <span class="chips-secondary" id="chips-secondary">${chip('script', 'Script')}</span>
+        </div>
+      </div>
+      <div id="masonry-grid">
+        <article class="masonry-tile" data-style="all" data-placement="forearm" data-order="0" data-shown="true"></article>
+      </div>
+    `
+    initFilter()
+    const btn = document.getElementById('chip-more-btn')
+    const wrap = document.querySelector('.filter-chips')
+    expect(wrap.classList.contains('expanded')).toBe(false)
+    expect(btn.getAttribute('aria-expanded')).toBe('false')
+    click(btn)
+    expect(wrap.classList.contains('expanded')).toBe(true)
+    expect(btn.getAttribute('aria-expanded')).toBe('true')
+    click(btn)
+    expect(wrap.classList.contains('expanded')).toBe(false)
+    expect(btn.getAttribute('aria-expanded')).toBe('false')
+  })
+
   it('exposes applyFilters so load-more can re-filter newly revealed tiles', () => {
     setup([{ style: 'fine-line', placement: 'forearm' }])
     const api = initFilter()

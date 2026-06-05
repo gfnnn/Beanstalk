@@ -125,6 +125,15 @@
 
   <!-- Style chips — update chip labels and data-filter values to match real categories -->
   <!-- COPY: chip labels are the style category display names -->
+  <!--
+    PRIORITY vs SECONDARY chips: the first cluster (All + the three styles the
+    homepage "specialisms" cards feature — fine-line, botanical, black-grey) is
+    always visible. The rest live in `.chips-secondary` and, on a narrow
+    viewport, collapse behind the "More" toggle (filter.js wires it up; CSS in
+    components/filter-bar.css hides them until `.filter-chips.expanded`). On
+    desktop every chip shows and the toggle is hidden. Keep the homepage's
+    featured styles in the priority cluster so they lead on mobile.
+  -->
   <div class="filter-chips" role="group" aria-label="Filter by style">
 
     <button class="chip active" data-filter="all">
@@ -139,18 +148,27 @@
     <button class="chip" data-filter="black-grey">
       Black &amp; grey <span class="chip-count" data-count="0">0</span>
     </button>
-    <button class="chip" data-filter="illustrative">
-      Illustrative <span class="chip-count" data-count="0">0</span>
+
+    <!-- Narrow-viewport toggle for the secondary chips (hidden on desktop) -->
+    <button class="chip-more" id="chip-more-btn" type="button"
+            aria-expanded="false" aria-controls="chips-secondary">
+      More <span class="chip-more-chevron" aria-hidden="true"></span>
     </button>
-    <button class="chip" data-filter="dotwork">
-      Dotwork <span class="chip-count" data-count="0">0</span>
-    </button>
-    <button class="chip" data-filter="colour">
-      Colour <span class="chip-count" data-count="0">0</span>
-    </button>
-    <button class="chip" data-filter="script">
-      Script <span class="chip-count" data-count="0">0</span>
-    </button>
+
+    <span class="chips-secondary" id="chips-secondary">
+      <button class="chip" data-filter="illustrative">
+        Illustrative <span class="chip-count" data-count="0">0</span>
+      </button>
+      <button class="chip" data-filter="dotwork">
+        Dotwork <span class="chip-count" data-count="0">0</span>
+      </button>
+      <button class="chip" data-filter="colour">
+        Colour <span class="chip-count" data-count="0">0</span>
+      </button>
+      <button class="chip" data-filter="script">
+        Script <span class="chip-count" data-count="0">0</span>
+      </button>
+    </span>
 
   </div>
 

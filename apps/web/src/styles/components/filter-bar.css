@@ -21,18 +21,53 @@
 }
 
 /* ── Style chips ─────────────────────────────────────────────────────────── */
+/* Mobile-first: chips WRAP onto as many rows as needed (no hidden horizontal
+   scroll — that left most filters off-screen with no affordance). The secondary
+   cluster collapses behind the "More" toggle until `.expanded`; desktop below
+   restores the single-row layout and shows everything. */
 .filter-chips {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  flex-wrap: wrap;
   flex: 1;
   min-width: 0;
 }
-.filter-chips::-webkit-scrollbar { display: none; }
+
+/* `display: contents` so the secondary chips flow as direct flex items (they
+   wrap alongside the priority chips). Collapsed by default on mobile. */
+.chips-secondary { display: contents; }
+.filter-chips:not(.expanded) .chips-secondary { display: none; }
+
+/* "More" toggle — chip-shaped, only shown on mobile */
+.chip-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  min-height: 44px; /* touch target */
+  font-family: var(--sans);
+  font-size: 13px;
+  border: 1px dashed var(--line);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color var(--dur), color var(--dur);
+}
+.chip-more:hover { border-color: var(--ink); color: var(--ink); }
+
+.chip-more-chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--dur) var(--ease);
+}
+.filter-chips.expanded .chip-more-chevron { transform: rotate(-135deg); }
 
 .chip {
   display: inline-flex;
@@ -160,4 +195,17 @@
     padding: 7px 14px;
     min-height: auto;
   }
+
+  /* Single-row scroll on desktop; every chip shown, no "More" toggle */
+  .filter-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .filter-chips::-webkit-scrollbar { display: none; }
+
+  .chips-secondary { display: contents; }
+  .filter-chips:not(.expanded) .chips-secondary { display: contents; }
+  .chip-more { display: none; }
 }
