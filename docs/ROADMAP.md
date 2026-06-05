@@ -110,12 +110,12 @@ These unblock later phases. None require code to decide.
       (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
       launch-legal without it. *Recommend deferring to post-launch unless you want
       launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
-- [ ] **Deposit capture (PayPal + Monzo)** — the enquire/FAQ/services copy mentions
-      deposits (and still *names Stripe*, to be replaced), but no payment backend is
-      wired (Backlog P2). The studio confirmed **PayPal + Monzo, manually reconciled** —
-      full design in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). Decide: launch without it
-      (manual deposit requests) or build it first. *Recommend launch without; add
-      post-launch.*
+- [x] **Deposit capture — decided: post-launch.** Online deposits are a **post-go-live
+      MVP** item, not a launch gate. Confirmed approach is **PayPal + Monzo, manually
+      reconciled** (the enquire/FAQ/services copy still *names Stripe* — to be replaced as
+      part of that work); full design in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). The site
+      launches without it — deposits are requested manually until then. Tracked in the
+      [Backlog](#p2--toward-bookingenquiry-management).
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
