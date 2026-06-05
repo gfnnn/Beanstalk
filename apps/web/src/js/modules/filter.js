@@ -108,15 +108,61 @@ export function initFilter({ resetWindow } = {}) {
     applyFilters()
   }
 
-  // ── "More" toggle (narrow viewports) ─────────────────────────────────────
-  // Reveals the secondary style chips (illustrative, dotwork, colour, script)
-  // that collapse on mobile. No-ops on desktop where the toggle is hidden and
-  // every chip is already shown.
+  // ── "More" toggle + overflow-aware collapse ──────────────────────────────
+  // The secondary style chips (illustrative, dotwork, colour, script) collapse
+  // behind a "More" toggle whenever they don't fit — always on narrow
+  // viewports (pure CSS), and on desktop too once the row can't hold every chip
+  // alongside the selects. "Enough space" depends on the chip labels, not a
+  // fixed breakpoint, so the desktop case is measured here in JS: when the full
+  // chip row overflows the available width we set `.needs-more` on the bar and
+  // the CSS reuses the same collapse, instead of silently clipping chips.
+  const desktopMq = window.matchMedia?.('(min-width: 640px)') ?? null
+  let fullChipsWidth = 0   // cached natural width of every chip in one row
+
+  function setExpanded(expanded) {
+    filterChips.classList.toggle('expanded', expanded)
+    filterBar.classList.toggle('chips-open', expanded)
+    if (chipMoreBtn) chipMoreBtn.setAttribute('aria-expanded', String(expanded))
+  }
+
+  // Natural single-row width of all chips (priority + secondary). Only valid
+  // while they're all rendered, so callers refresh it only when not collapsed.
+  function measureChips() {
+    const gap = parseFloat(getComputedStyle(filterChips).columnGap) || 0
+    let total = 0, n = 0
+    chips.forEach(c => { if (c.offsetWidth) { total += c.offsetWidth; n++ } })
+    return n ? total + gap * (n - 1) : 0
+  }
+
+  function syncChipOverflow() {
+    if (!desktopMq?.matches) {           // mobile (or no matchMedia): CSS owns the collapse
+      filterBar.classList.remove('needs-more')
+      return
+    }
+    const collapsed = filterBar.classList.contains('needs-more') &&
+                      !filterChips.classList.contains('expanded')
+    if (!collapsed) {                    // every chip rendered → safe to measure
+      const w = measureChips()
+      if (w) fullChipsWidth = w
+    }
+    const fits = fullChipsWidth <= filterChips.clientWidth
+    filterBar.classList.toggle('needs-more', !fits)
+    if (fits) setExpanded(false)         // roomy again → drop any open state
+  }
+
   if (chipMoreBtn && filterChips) {
     chipMoreBtn.addEventListener('click', () => {
-      const expanded = filterChips.classList.toggle('expanded')
-      chipMoreBtn.setAttribute('aria-expanded', String(expanded))
+      setExpanded(!filterChips.classList.contains('expanded'))
     })
+
+    syncChipOverflow()
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(syncChipOverflow).observe(filterBar)
+    } else {
+      window.addEventListener('resize', syncChipOverflow)
+    }
+    desktopMq?.addEventListener?.('change', syncChipOverflow)
+    document.fonts?.ready.then(syncChipOverflow)   // labels resize once fonts load
   }
 
   // ── Chip clicks ──────────────────────────────────────────────────────────
