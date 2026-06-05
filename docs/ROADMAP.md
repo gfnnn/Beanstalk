@@ -383,9 +383,20 @@ up after the site is live, in rough priority order.
   - **Dependency:** the GDPR erasure UI (below) naturally lives in the same admin
     surface (delete-by-email).
 
-- **Stripe deposit capture.** The no-show defence the copy already promises
-  (Stripe is named in the enquire page). A Payment Link / Checkout wired into the
-  enquiry-confirmation flow, with the deposit recorded against the submission.
+- **Deposit capture (PayPal + Monzo, manual).** The no-show defence the copy already
+  promises. Reserve → deposit links (PayPal.Me/Monzo.me) → artist marks paid → claim
+  confirmed, with a stale-pending auto-release. Manual reconciliation (no gateway/webhooks).
+  Full plan: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Supersedes the earlier "Stripe" framing — the studio confirmed PayPal + Monzo.)_
+
+- **Scheduling / appointment booking** _(planned — post-go-live switch-over, several
+  decisions parked for Roxy)._ A calendar layer over the flash claim (and later the custom
+  enquiry) so a booking moves toward a **confirmed date** instead of an open email thread.
+  Because deposits are reconciled by hand (above), the model is **request/hold + manual
+  confirm**, not instant self-serve — it reuses the flash atomic-reserve, the stale-pending
+  TTL/cron, the `/studio` admin and the customer-email work the deposit plan already needs,
+  so the two **co-ship as one track**. Couples with the artist-facing view below (same admin
+  surface). Build-vs-buy and ~12 product questions are open. Full plan + the questions for
+  Roxy: [`SCHEDULING.md`](./SCHEDULING.md).
 
 - **GDPR retention/erasure — management UI.** The MVP runbook is done (Phase 1, plain
   SQL via `wrangler d1 execute`); the post-launch step is a **per-subject view,

@@ -8,6 +8,10 @@ of it is wired yet. It supersedes the "Stripe deposit capture" backlog item in
 > **Status:** not implemented. The enquire/FAQ/services copy currently *names Stripe* and
 > *promises* deposits, but no payment backend exists. See [Copy to fix](#copy-to-fix).
 
+> **Related:** the deposit is the confirmation trigger for the **scheduling layer** —
+> [`SCHEDULING.md`](./SCHEDULING.md) builds on this plan's reserve/TTL/`/studio`/customer-email
+> primitives and the two are designed to **co-ship as one track**.
+
 ```
 Flash claim (today)                       Flash claim + deposit (this plan)
 ─────────────────                         ────────────────────────────────
