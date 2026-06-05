@@ -140,16 +140,10 @@
   will-change: transform, opacity;
 }
 
-.hero-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-/* The generated hero clip (video or GIF, src/build/media.js). Fills the media
-   column on the same crop the placeholder used, so swapping a clip in doesn't
-   shift the layout. min-height carries the mobile height the parent doesn't set. */
+/* The generated hero clip (video or GIF, src/build/media.js — the same component
+   as the About hero). Fills the media column on the same crop the placeholder
+   used, so swapping a clip in doesn't shift the layout. min-height carries the
+   mobile height the parent doesn't set. */
 .hero-media .media-clip {
   display: block;
   width: 100%;

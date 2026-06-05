@@ -108,7 +108,7 @@ comments document every field — **read them before editing**.
 | `homepage.js`           | `homepage.js`                  | `<!-- homepage:* -->` (status light, notices, hero, specialisms) |
 | `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (previews pulled live from pieces) |
 | `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
-| `media.js`              | `media.js`                     | `<!-- homepage:hero-media -->` → home / `<!-- about:portrait -->` → about |
+| `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
 
 The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*

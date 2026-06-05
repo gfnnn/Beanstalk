@@ -72,9 +72,9 @@ describe('transformIndexHtml pipeline', () => {
     expect(out).toContain('class="video-placeholder"')
   })
 
-  it('replaces the about:portrait marker (placeholder while the clip is off)', () => {
-    const out = transformHtml(page('<!-- about:portrait -->'))
-    expect(out).not.toContain('<!-- about:portrait -->')
+  it('replaces the about:hero-media marker (placeholder while the clip is off)', () => {
+    const out = transformHtml(page('<!-- about:hero-media -->'))
+    expect(out).not.toContain('<!-- about:hero-media -->')
     expect(out).toContain('class="portrait-placeholder"')
   })
 

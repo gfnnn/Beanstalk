@@ -2,11 +2,12 @@
 // MEDIA (video / GIF clips) — single source of truth
 // ─────────────────────────────────────────────────────────────────────────────
 // The client is supplying finished, edited clips (short looping video, or GIFs)
-// for the homepage hero and the About page. This file is where each clip is
-// turned ON and pointed at its files — the markup is generated at BUILD TIME by
-// the renderers in src/build/media.js (wired through vite.config.js), exactly
-// like homepage.js / pieces.js. Edit the values here; never hand-edit the
-// generated <video>/<img> in the page HTML.
+// for the two HERO frames — the homepage hero and the About page hero. Both run
+// through ONE shared component (renderHeroMedia in src/build/media.js), so they
+// behave identically; this file is just where each clip is turned ON and pointed
+// at its files. The markup is generated at BUILD TIME (wired through
+// vite.config.js), exactly like homepage.js / pieces.js. Edit the values here;
+// never hand-edit the generated <video>/<img> in the page HTML.
 //
 // HOW THE SITE SERVES THESE  (full guide: docs/MEDIA.md)
 //   • Drop the exported files into apps/web/public/videos/ — Vite copies that
@@ -50,9 +51,10 @@ export const media = {
     gif:    '/videos/hero.gif',
   },
 
-  // About page — the portrait frame in the intro (a calm looping clip of the
-  // artist at work reads warmer here than a still). 4:5 portrait crop.
-  aboutPortrait: {
+  // About page hero — the portrait frame in the intro (a calm looping clip of
+  // the artist at work reads warmer here than a still). 4:5 portrait crop.
+  // Same component as the homepage hero — see src/build/media.js.
+  aboutHero: {
     show:    false,
     kind:    'video',
     alt:     'Roxy tattooing in the studio',

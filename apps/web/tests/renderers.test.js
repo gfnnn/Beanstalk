@@ -16,7 +16,7 @@ import {
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody,
   renderHeroMediaTag, renderVideoCredit,
 } from '../src/build/homepage.js'
-import { renderHeroMedia, renderAboutPortrait } from '../src/build/media.js'
+import { renderHeroMedia } from '../src/build/media.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
 import { homepage } from '../src/data/homepage.js'
@@ -262,12 +262,15 @@ describe('renderVideoCredit (hero media credit line)', () => {
   })
 })
 
-describe('renderHeroMedia (homepage hero clip → placeholder until switched on)', () => {
-  it('falls back to the .video-placeholder when off (or slot missing)', () => {
-    expect(renderHeroMedia({ show: false })).toContain('class="video-placeholder"')
-    expect(renderHeroMedia()).toContain('class="video-placeholder"')
+describe('renderHeroMedia (the one shared hero component — both pages)', () => {
+  it('falls back to each page placeholder when off, per variant', () => {
+    // homepage variant
+    expect(renderHeroMedia({ show: false }, { variant: 'hero' })).toContain('class="video-placeholder"')
+    expect(renderHeroMedia()).toContain('class="video-placeholder"') // defaults to hero
+    // About variant
+    expect(renderHeroMedia({ show: false }, { variant: 'about' })).toContain('class="portrait-placeholder"')
     // no real media leaks in while off
-    expect(renderHeroMedia({ show: false, kind: 'video' })).not.toContain('<video')
+    expect(renderHeroMedia({ show: false, kind: 'video' }, { variant: 'about' })).not.toContain('<video')
   })
 
   it('renders a muted, looping, inline <video> with NO autoplay when on', () => {
@@ -278,7 +281,7 @@ describe('renderHeroMedia (homepage hero clip → placeholder until switched on)
         { src: '/videos/hero.mp4',  type: 'video/mp4'  },
       ],
     })
-    expect(html).toContain('<video class="media-clip hero-video"')
+    expect(html).toContain('<video class="media-clip"')
     expect(html).toContain('muted')
     expect(html).toContain('loop')
     expect(html).toContain('playsinline')
@@ -291,12 +294,21 @@ describe('renderHeroMedia (homepage hero clip → placeholder until switched on)
     expect(html).not.toContain('class="video-placeholder"')
   })
 
+  it('emits identical clip markup regardless of variant (same functionality)', () => {
+    const slot = {
+      show: true, kind: 'video', poster: '/videos/x-poster.jpg', alt: 'x',
+      sources: [{ src: '/videos/x.mp4', type: 'video/mp4' }],
+    }
+    expect(renderHeroMedia(slot, { variant: 'hero' }))
+      .toBe(renderHeroMedia(slot, { variant: 'about' }))
+  })
+
   it('renders a lazy GIF <img> (with the poster for reduced-motion swap) for kind:gif', () => {
     const html = renderHeroMedia({
       show: true, kind: 'gif', gif: '/videos/hero.gif',
       poster: '/videos/hero-poster.jpg', alt: 'Hands at work',
     })
-    expect(html).toContain('<img class="media-clip hero-video"')
+    expect(html).toContain('<img class="media-clip"')
     expect(html).toContain('src="/videos/hero.gif"')
     expect(html).toContain('loading="lazy"')
     expect(html).toContain('data-media-gif')
@@ -304,55 +316,39 @@ describe('renderHeroMedia (homepage hero clip → placeholder until switched on)
     expect(html).not.toContain('<video')
   })
 
+  it('overlays an optional caption (used by the About hero), omitted when unset', () => {
+    const base = {
+      show: true, kind: 'video', alt: 'Roxy at work',
+      sources: [{ src: '/videos/about-hero.mp4', type: 'video/mp4' }],
+    }
+    const withCap = renderHeroMedia({ ...base, caption: 'Tiny Knives · Winchester' }, { variant: 'about' })
+    expect(withCap).toContain('<span class="media-caption">Tiny Knives · Winchester</span>')
+    expect(renderHeroMedia(base, { variant: 'about' })).not.toContain('media-caption')
+  })
+
   it('escapes the slot fields', () => {
     const html = renderHeroMedia({
-      show: true, kind: 'video', alt: '<b>x</b>', poster: 'p"onerror="y',
+      show: true, kind: 'video', alt: '<b>x</b>', poster: 'p"onerror="y', caption: '<i>c</i>',
       sources: [{ src: 'a"b', type: 'video/mp4' }],
     })
     expect(html).not.toContain('<b>x</b>')
     expect(html).toContain('&lt;b&gt;')
     expect(html).toContain('&quot;onerror=')
-  })
-})
-
-describe('renderAboutPortrait (About intro clip → placeholder until switched on)', () => {
-  it('falls back to the .portrait-placeholder when off', () => {
-    expect(renderAboutPortrait({ show: false })).toContain('class="portrait-placeholder"')
-    expect(renderAboutPortrait()).toContain('class="portrait-placeholder"')
-  })
-
-  it('renders the clip with the .portrait-img frame class and overlaid caption when on', () => {
-    const html = renderAboutPortrait({
-      show: true, kind: 'video', poster: '/videos/about-portrait-poster.jpg',
-      alt: 'Roxy at work', caption: 'Tiny Knives · Winchester',
-      sources: [{ src: '/videos/about-portrait.mp4', type: 'video/mp4' }],
-    })
-    expect(html).toContain('<video class="media-clip portrait-img"')
-    expect(html).toContain('class="portrait-caption portrait-caption-over"')
-    expect(html).toContain('Tiny Knives · Winchester')
-    expect(html).not.toContain('class="portrait-placeholder"')
-  })
-
-  it('omits the caption span when no caption is set', () => {
-    const html = renderAboutPortrait({
-      show: true, kind: 'video', alt: 'x',
-      sources: [{ src: '/videos/about-portrait.mp4', type: 'video/mp4' }],
-    })
-    expect(html).not.toContain('portrait-caption')
+    expect(html).toContain('&lt;i&gt;c&lt;/i&gt;') // caption escaped
   })
 })
 
 describe('media data (src/data/media.js)', () => {
-  it('ships with both clips OFF so the pages render their placeholders until assets land', () => {
+  it('ships with both hero clips OFF so the pages render their placeholders until assets land', () => {
     expect(media.hero.show).toBe(false)
-    expect(media.aboutPortrait.show).toBe(false)
+    expect(media.aboutHero.show).toBe(false)
   })
 
   it('points every clip at /videos/ (the public/ folder copied to the site root)', () => {
     const paths = [
       ...media.hero.sources.map(s => s.src), media.hero.poster, media.hero.gif,
-      ...media.aboutPortrait.sources.map(s => s.src),
-      media.aboutPortrait.poster, media.aboutPortrait.gif,
+      ...media.aboutHero.sources.map(s => s.src),
+      media.aboutHero.poster, media.aboutHero.gif,
     ]
     paths.forEach(p => expect(p.startsWith('/videos/')).toBe(true))
   })

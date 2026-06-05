@@ -1,4 +1,4 @@
-// Media clips (homepage hero, About portrait) — playback as progressive
+// Hero media clips (homepage hero + About hero) — playback as progressive
 // enhancement. The build (src/build/media.js) ships each clip WITHOUT autoplay,
 // so no-JS visitors see only the poster. Here we:
 //   • respect prefers-reduced-motion — never start a clip, and freeze a GIF to

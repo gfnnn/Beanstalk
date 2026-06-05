@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 11. Newsletter page — signup form → Resend Audience
   initNewsletter()
 
-  // 11a. Media clips (hero / About portrait) — reduced-motion + on-screen-only
-  //      playback. No-ops when the page has no generated clip.
+  // 11a. Hero media clips (homepage + About hero) — reduced-motion +
+  //      on-screen-only playback. No-ops when the page has no generated clip.
   initMedia()
 
   // 11b. Analytics — outbound social-link tracking (conversion events fire

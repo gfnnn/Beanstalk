@@ -1,7 +1,10 @@
 # Media (video / GIF) serving
 
-How the site serves the client's finished, edited clips for the **homepage hero**
-and the **About portrait** — and how to switch each one on when the files land.
+How the site serves the client's finished, edited clips for the two hero frames —
+the **homepage hero** and the **About hero** (the portrait frame in the intro) —
+and how to switch each one on when the files land. Both run through **one shared
+component** ([`apps/web/src/build/media.js`](../apps/web/src/build/media.js)), so
+they behave identically.
 
 ## Where the files live
 
@@ -31,7 +34,7 @@ reduce motion; otherwise the **poster** still shows. So every video needs a post
 | Slot (in `media.js`) | Files | Crop | Notes |
 |---|---|---|---|
 | `hero` (video)         | `hero.webm`, `hero.mp4`, `hero-poster.jpg` | 16:9 landscape | above the fold — keep it small |
-| `aboutPortrait` (video)| `about-portrait.webm`, `about-portrait.mp4`, `about-portrait-poster.jpg` | 4:5 portrait | |
+| `aboutHero` (video)    | `about-portrait.webm`, `about-portrait.mp4`, `about-portrait-poster.jpg` | 4:5 portrait | |
 | either, as a GIF       | `<name>.gif` (+ a `*-poster.jpg`) | — | only if a real GIF was supplied — see below |
 
 Rename freely — the paths are just the `sources` / `gif` / `poster` values in
@@ -42,7 +45,7 @@ Rename freely — the paths are just the `sources` / `gif` / `poster` values in
 - **Two video formats per clip:** **WebM** (VP9 or AV1) first, **MP4** (H.264,
   `yuv420p`, `+faststart`) as the fallback. The browser picks the first it can play.
 - **Muted, seamless loop, last frame ≈ first frame.** No audio track.
-- **Budget:** hero **< 4 MB**, About portrait **< 3 MB**. Trim duration (≈ 8–20 s),
+- **Budget:** homepage hero **< 4 MB**, About hero **< 3 MB**. Trim duration (≈ 8–20 s),
   drop the framerate (24–30 fps), size to display (hero ≈ 1280×720, portrait
   ≈ 720×900 — 2× is plenty, the column is small).
 - **Poster:** a JPG/WebP still (first frame), same aspect ratio.
