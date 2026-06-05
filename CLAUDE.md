@@ -30,6 +30,7 @@ npm run preview       # serve the built apps/web/dist/ locally
 npm test              # run BOTH workspaces' Vitest suites
 npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
 npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
+npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke)
 ```
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
@@ -39,10 +40,14 @@ Tests run on **Vitest** and in CI on every push/PR (`.github/workflows/test.yml`
 over both workspaces). `apps/web/tests/` covers the build-time renderers + data integrity;
 `apps/functions/tests/` covers the Worker handlers with the network mocked and an in-memory
 D1 fake (`tests/helpers/fake-d1.js`) running the real storage logic — no real Resend/DB
-calls. There is **no linter or formatter** — don't invent `npm run lint`. To exercise the
-Worker for real locally you need Wrangler (`wrangler dev`, serves on :8787, with a local D1)
-plus secrets in `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site,
-not the Worker.
+calls. There's also a **Playwright E2E/smoke tier** (`apps/web/e2e/`, `npm run test:e2e`, CI
+in `.github/workflows/e2e.yml`) that drives the real production build in a browser for the
+paths jsdom can't reach (lightbox, the enquiry image preview/downscale, the mobile nav
+drawer) plus a whole-site load sweep; it stubs the Worker so it's hermetic, and needs a
+browser binary (`npx playwright install chromium`, done automatically in CI). There is **no
+linter or formatter** — don't invent `npm run lint`. To exercise the Worker for real locally
+you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
+`apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
 
 ## Architecture
 

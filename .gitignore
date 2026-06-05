@@ -2,6 +2,11 @@ node_modules/
 dist/
 .vite/
 coverage/
+# Playwright E2E artifacts (reports, traces, screenshots) and downloaded browsers
+playwright-report/
+test-results/
+.playwright/
+blob-report/
 .claude/
 .DS_Store
 *.local

@@ -15,6 +15,7 @@
     "preview": "npm run preview --workspace @beansprout/web",
     "test": "npm run test --workspaces --if-present",
     "test:web": "npm run test --workspace @beansprout/web",
-    "test:functions": "npm run test --workspace @beansprout/functions"
+    "test:functions": "npm run test --workspace @beansprout/functions",
+    "test:e2e": "npm run test:e2e --workspace @beansprout/web"
   }
 }

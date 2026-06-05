@@ -1,0 +1,60 @@
+# End-to-end / smoke tier (Playwright) for the marketing site (apps/web).
+#
+# This complements test.yml (Vitest unit suites): it drives the REAL production
+# build in a real browser to cover the browser-only paths the unit tier can't —
+# the portfolio lightbox, the enquiry image preview + downscale, the mobile nav
+# drawer — plus a whole-site smoke sweep. The forms' Cloudflare Worker is stubbed
+# in-test (see apps/web/e2e/helpers.js), so this job needs no secrets and makes no
+# external calls.
+#
+# Path-gated to web changes (like deploy-web.yml) so a functions-only PR doesn't
+# pay for a browser run. Read-only token, no privileged triggers — same security
+# posture as test.yml (see CLAUDE.md → "CI / GitHub Actions security").
+name: E2E
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'package-lock.json'
+      - '.github/workflows/e2e.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'package-lock.json'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same ref supersedes an in-flight run.
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    name: e2e (chromium)
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Chromium + its OS dependencies. Pinned to the @playwright/test version in
+      # the lockfile so the browser build matches the runner library.
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      # The Playwright config builds the site and serves the built dist itself
+      # (vite build → vite preview), so this is the whole run.
+      - run: npm run test:e2e --workspace @beansprout/web
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

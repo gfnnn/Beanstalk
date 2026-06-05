@@ -36,19 +36,23 @@ renderer/data tests.
 | `tests/faq.test.js` | `src/js/modules/faq.js` under **jsdom** — the single-open accordion (+ keyboard + `aria-expanded`), the exclusive category filter, the live search (resets chips to "All"), and the shared empty-state. |
 | `tests/nav.test.js` | `src/js/modules/nav.js` under **jsdom** — current-page active-link marking (incl. the More-dropdown trigger), the dropdown open/close (toggle, outside-click, Escape), the mobile drawer (open/close, close-on-link, Escape, body scroll-lock), and the `.scrolled` state. |
 
-## Not yet covered
+## Not covered here (lives in the E2E tier instead)
 
-The remaining gaps are the **browser-only** modules and paths, which lean on APIs
-jsdom doesn't implement and so belong in a future browser/E2E tier (e.g.
-Playwright) rather than these unit tests:
+The **browser-only** modules and paths lean on APIs jsdom doesn't implement, so
+they're covered by the Playwright tier in [`../e2e/`](../e2e), not these unit
+tests:
 
-- **image downscale** in `enquire.js` (FileReader, `createImageBitmap`, canvas) —
-  the rest of `enquire.js` (step-gating, conditional fields) *is* covered;
-- **smooth-scroll / GSAP animation** — `lenis.js`, `animations.js`, and the
-  scroll-driven `gallery.js` / `aftercare.js`;
-- **the lightbox** (`lightbox.js`) — image-viewer transitions and focus timing.
+- **image preview + downscale** in `enquire.js` (`URL.createObjectURL`,
+  `createImageBitmap`, canvas, `toBlob`) — the rest of `enquire.js` (step-gating,
+  conditional fields) *is* covered here;
+- **the lightbox** (`lightbox.js`) — open-on-tile, paging, image-viewer transitions;
+- **the mobile nav drawer** at a real viewport (`nav.js`) — the synchronous logic
+  is unit-tested here, the real-CSS-driven drawer in E2E;
+- a whole-site **smoke sweep** (every page loads without throwing).
 
-`src/js/**` is excluded from the headline coverage *report* (see
-`vitest.config.js`) so those browser-only modules don't skew it as mostly-uncovered
-— but the synchronous, correctness-critical modules above (`flash`, `newsletter`,
-`faq`, `nav`, `enquire`, `filter`, `loadmore`) are exercised under jsdom regardless.
+Genuinely untestable-without-a-browser-AND-low-value paths remain uncovered by
+design: **smooth-scroll / GSAP** (`lenis.js`, `animations.js`) and the
+scroll-reveal hooks. `src/js/**` is excluded from the headline coverage *report*
+(see `vitest.config.js`) so those don't skew it — but the synchronous,
+correctness-critical modules (`flash`, `newsletter`, `faq`, `nav`, `enquire`,
+`filter`, `loadmore`) are exercised under jsdom regardless.
