@@ -6,6 +6,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   injectSeoHead,
+  injectStagingNoindex,
+  isProductionBuild,
+  ROBOTS_NOINDEX,
   renderSitemap,
   ROUTES,
   SITE_URL,
@@ -81,6 +84,43 @@ describe('injectSeoHead', () => {
       '<meta name="twitter:card" content="summary_large_image">',
     ].join('\n'))
     expect(injectSeoHead(full)).toBe(full)
+  })
+})
+
+describe('injectStagingNoindex (keep the pre-launch staging site out of search)', () => {
+  const ogPage = () => page('<meta property="og:url" content="https://beansprout.ink/about/">')
+  const withEnv = (val, fn) => {
+    const prev = process.env.SITE_ENV
+    if (val === undefined) delete process.env.SITE_ENV
+    else process.env.SITE_ENV = val
+    try { return fn() } finally {
+      if (prev === undefined) delete process.env.SITE_ENV
+      else process.env.SITE_ENV = prev
+    }
+  }
+
+  it('keeps the apex build indexable (SITE_ENV=production)', () => {
+    withEnv('production', () => {
+      expect(isProductionBuild()).toBe(true)
+      expect(injectStagingNoindex(ogPage())).not.toContain('noindex')
+    })
+  })
+
+  it('adds a site-wide noindex on a staging build (no apex CNAME)', () => {
+    withEnv(undefined, () => {
+      // Repo invariant pre-launch: no apps/web/public/CNAME → staging build.
+      if (isProductionBuild()) return // a CNAME/apex build legitimately wouldn't noindex
+      expect(injectStagingNoindex(ogPage())).toContain(ROBOTS_NOINDEX)
+    })
+  })
+
+  it('never doubles up on a page that already declares robots noindex', () => {
+    const html = page('<meta name="robots" content="noindex, follow">')
+    expect(injectStagingNoindex(html)).toBe(html)
+  })
+
+  it('leaves injectSeoHead itself pure — the SEO injector never adds a robots tag', () => {
+    expect(injectSeoHead(ogPage())).not.toContain('robots')
   })
 })
 

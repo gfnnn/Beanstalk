@@ -7,7 +7,12 @@ const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // ── Hero entrance ─────────────────────────────────────────────────────────────
 export function initHeroAnimation() {
-  if (reduced) return
+  if (reduced) {
+    // CSS prefers-reduced-motion can't reach SMIL: freeze the hero sprig's
+    // looping feTurbulence wobble so the page holds completely still.
+    document.querySelector('.hero-sprig')?.pauseAnimations?.()
+    return
+  }
 
   const eyebrow = document.querySelector('.hero-eyebrow')
   const heading = document.querySelector('.hero h1')

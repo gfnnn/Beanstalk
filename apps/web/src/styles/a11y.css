@@ -1,0 +1,70 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Accessibility — honour the user's OS / browser settings
+   ════════════════════════════════════════════════════════════════════════════
+   Motion is handled elsewhere (reset.css's global `*` guard + the JS bail-outs
+   in lenis.js / animations.js / aftercare.js, which all read
+   prefers-reduced-motion). This file covers the rest of the platform
+   accessibility signals the OS exposes to the browser:
+
+     · keyboard focus visibility   — a site-wide floor for every control
+     · forced-colors               — Windows High Contrast / Contrast Themes
+     · prefers-contrast: more       — macOS "Increase contrast", and similar
+     · prefers-reduced-transparency — macOS "Reduce transparency", and similar
+
+   Everything here is additive and degrades gracefully: a browser that doesn't
+   support a query simply skips that block and renders the normal design.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyboard focus — a visible ring on every interactive element ─────────────
+   :focus-visible only fires for keyboard / assistive-tech input, so pointer
+   users never see it. `:where()` holds this at ZERO specificity, so any
+   component that defines its own :focus-visible (e.g. the aftercare cards) still
+   wins — this is just the floor for the many controls that define none. */
+:where(a[href], button, input, select, textarea, summary,
+       [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ── Windows High Contrast Mode / forced-colors ──────────────────────────────
+   The OS swaps in its own palette, so every colour-only cue disappears: the
+   border-colour focus highlight on inputs, the clay button fill, hairline
+   borders. Restore the meaning with system colours and real outlines.
+   `!important` is deliberate here — it's an accessibility safety net that must
+   beat the design's `outline: none` on form fields, and it only applies when
+   the user has actively turned forced-colors on. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px;
+  }
+  /* Link-styled buttons (<a class="btn">) get no native button chrome — give
+     them a border so they still read as buttons. */
+  .btn { border: 1px solid ButtonText; }
+  /* Keep "active" states legible without relying on colour. */
+  .nav-links a.active,
+  .nav-drawer a.active,
+  .chip.active { outline: 1px solid Highlight; }
+}
+
+/* ── Increased contrast (macOS "Increase Contrast", and similar) ─────────────
+   Strengthen the hairline rules and dividers that low-vision users ask to see;
+   they read from these two tokens site-wide (cards, form fields, sections). */
+@media (prefers-contrast: more) {
+  :root {
+    --line:      rgba(var(--ink-rgb), 0.5);
+    --line-soft: rgba(var(--ink-rgb), 0.25);
+  }
+  .btn-outline { border-width: 2px; }
+}
+
+/* ── Reduced transparency (macOS "Reduce Transparency", and similar) ──────────
+   Drop the translucent texture/scrim layers in favour of solid surfaces. */
+@media (prefers-reduced-transparency: reduce) {
+  body::after { display: none; }              /* the ~3% paper-grain film */
+  .modal-overlay {
+    background: rgba(var(--ink-rgb), 0.92);
+    backdrop-filter: none;
+  }
+}

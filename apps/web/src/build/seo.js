@@ -9,12 +9,46 @@
 // authored by hand in each page's <head>; this module only adds the structural
 // tags that are derived or constant, so adding a new page gets them for free.
 
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
 export const SITE_URL = 'https://beansprout.ink'
 export const SITE_NAME = 'Beansprout'
 export const SITE_LOCALE = 'en_GB'
 // Shared social share image (1200×630). The asset itself is still pending — see
 // the "IMAGE NEEDED" note in index.html's <head>.
 export const OG_IMAGE = `${SITE_URL}/images/og-image.jpg`
+
+// ── Staging vs apex: keep the pre-launch staging site out of search ──────────
+// The whole site lives on the GitHub Pages *.github.io URL until the apex
+// cut-over, which (per docs/ROADMAP.md → go-live plan, Phase 6) is the moment
+// `apps/web/public/CNAME` is added so Pages serves beansprout.ink. We key
+// indexability off that exact file: no CNAME → staging → noindex every page;
+// CNAME present → the apex build → index normally. That makes this
+// self-disarming — adding the CNAME for go-live turns indexing back on by
+// itself, so it can never strand the live site on a forgotten noindex. Set
+// SITE_ENV=production to force the apex behaviour for a manual/local build.
+const CNAME_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '../../public/CNAME')
+
+export function isProductionBuild() {
+  return process.env.SITE_ENV === 'production' || existsSync(CNAME_PATH)
+}
+
+export const ROBOTS_NOINDEX = '<meta name="robots" content="noindex, nofollow">'
+
+/**
+ * On a staging build (no apex CNAME), add a site-wide noindex so the GitHub
+ * Pages preview can't be indexed before launch. A no-op on the apex build and
+ * on any page that already declares its own robots tag (e.g. the confirmation
+ * page), so it never doubles up.
+ */
+export function injectStagingNoindex(html) {
+  if (isProductionBuild()) return html
+  if (/<meta[^>]+name=["']robots["'][^>]+noindex/i.test(html)) return html
+  if (!html.includes('</head>')) return html
+  return html.replace('</head>', `  ${ROBOTS_NOINDEX}\n</head>`)
+}
 
 // Public, indexable routes, highest priority first. Single source of truth for
 // the sitemap — keep in sync with the `input` map in vite.config.js when pages

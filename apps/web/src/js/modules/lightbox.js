@@ -28,6 +28,7 @@ export function initLightbox() {
     updateLightbox()
     lightbox.classList.add('open')
     lightbox.setAttribute('aria-hidden', 'false')
+    lightbox.removeAttribute('inert')
     document.body.style.overflow = 'hidden'
     pauseScroll()
     lbClose?.focus()
@@ -36,6 +37,8 @@ export function initLightbox() {
   function closeLightbox() {
     lightbox.classList.remove('open')
     lightbox.setAttribute('aria-hidden', 'true')
+    // Closed dialog keeps its controls out of the tab order / a11y tree.
+    lightbox.setAttribute('inert', '')
     document.body.style.overflow = ''
     resumeScroll()
   }

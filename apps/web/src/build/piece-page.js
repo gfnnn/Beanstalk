@@ -61,7 +61,7 @@ const pagerLink = (rel, label, piece) => piece
  * @param opts  { prev, next } neighbouring pieces for the pager, and the asset
  *              hrefs to reference (dev `/src/...` vs the hashed build paths).
  */
-export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css', jsHref = '/src/js/main.js', securityMeta = '' } = {}) {
+export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css', jsHref = '/src/js/main.js', securityMeta = '', robotsMeta = '' } = {}) {
   const url     = `${SITE_URL}/portfolio/${p.slug}/`
   const title   = `${p.title} · ${SITE_NAME}`
   const desc    = `${altText(p)} — by ${SITE_NAME} at Tiny Knives, Winchester.`
@@ -84,7 +84,7 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-${securityMeta ? `${securityMeta}\n` : ''}<title>${esc(title)}</title>
+${securityMeta ? `${securityMeta}\n` : ''}${robotsMeta ? `${robotsMeta}\n` : ''}<title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}">
 <meta property="og:title" content="${esc(title)}">
@@ -115,7 +115,7 @@ ${renderPaletteStyle()}
 
 <!-- NAV — Portfolio active -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
-  <a href="/" aria-label="Beansprout home"><div class="nav-logo-placeholder">logo.svg</div></a>
+  <a href="/" aria-label="Beansprout home"><div class="nav-logo-placeholder" aria-hidden="true">logo.svg</div></a>
   <ul class="nav-links" role="list">
     <li><a href="/">Home</a></li>
     <li><a href="/portfolio/" class="active" aria-current="page">Portfolio</a></li>
@@ -138,7 +138,7 @@ ${renderPaletteStyle()}
     <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer"><span></span><span></span><span></span></button>
   </div>
 </nav>
-<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true" inert>
   <a href="/">Home</a>
   <a href="/portfolio/" class="active">Portfolio</a>
   <a href="/flash/">Flash</a>
@@ -190,20 +190,20 @@ ${renderPaletteStyle()}
       <p class="wordmark">beansprout<em>.ink</em></p>
       <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
     </div>
-    <nav class="footer-col" aria-label="Site links"><h4>Explore</h4><ul>
+    <nav class="footer-col" aria-label="Site links"><h2>Explore</h2><ul>
       <li><a href="/portfolio/">Portfolio</a></li>
       <li><a href="/flash/">Flash</a></li>
       <li><a href="/about/">About</a></li>
       <li><a href="/services/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
     </ul></nav>
-    <nav class="footer-col" aria-label="Visit links"><h4>Visit</h4><ul>
+    <nav class="footer-col" aria-label="Visit links"><h2>Visit</h2><ul>
       <li><a href="/visit/">Find me</a></li>
       <li><a href="/aftercare/">Aftercare</a></li>
       <li><a href="/visit/#access">Accessibility</a></li>
       <li><a href="/visit/#hours">Hours</a></li>
     </ul></nav>
-    <nav class="footer-col" aria-label="Social links"><h4>Follow</h4><ul>
+    <nav class="footer-col" aria-label="Social links"><h2>Follow</h2><ul>
       <li><a href="https://www.instagram.com/beansprouttattoo" target="_blank" rel="noopener noreferrer">Instagram</a></li>
       <li><a href="/newsletter/">Newsletter</a></li>
       <li><a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a></li>
