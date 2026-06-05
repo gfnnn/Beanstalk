@@ -22,6 +22,8 @@ npm run build          # build the site → apps/web/dist
 npm test               # run both workspaces' test suites
 npm run test:web       # site tests only
 npm run test:functions # functions tests only
+
+npm run preview:branch -- <branch>  # fetch a branch, install, and run its dev server (one command)
 ```
 
 ## Docs

@@ -18,6 +18,37 @@ app that backs it. This is an **npm-workspaces monorepo** with two deployable pa
 Shared docs live in `docs/`; each workspace owns its own `package.json`, `vitest.config.js`
 and `tests/`. The two parts deploy independently — see **Deploy targets** below.
 
+## Working in a Claude Code web session (read this first)
+
+When this repo is opened in **Claude Code on the web** (a remote, ephemeral container —
+not your laptop), these are the ground rules so a session is productive from the first
+command instead of rediscovering the environment each time:
+
+- **Dependencies are installed for you.** A committed **SessionStart hook**
+  (`.claude/hooks/session-start.sh`, registered in `.claude/settings.json`) runs
+  `npm install` in the remote container before the session starts, so `npm test` and
+  `npm run build` work immediately — there is no "install first" dance. It's a no-op on a
+  developer's local machine (gated on `$CLAUDE_CODE_REMOTE`). It is **synchronous** (the
+  session waits for install to finish, trading a little startup latency for no race where
+  the agent runs a command before deps exist). These two files are the *only* tracked
+  things under `.claude/`; everything else there (incl. `settings.local.json`) stays
+  git-ignored.
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (313 web + 90
+  functions) run fully in the sandbox.
+- **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
+  browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
+  allowlist blocks (`403 Host not in allowlist`). `npm run test:e2e` therefore routes
+  through `apps/web/scripts/run-e2e.mjs`, which **skips cleanly (exit 0) when no Chromium
+  is installed**. Real browser coverage comes from CI (`.github/workflows/e2e.yml`, which
+  installs the browser) and from local runs. Don't treat a skipped E2E run as broken, and
+  don't burn time trying to install the browser in a web session.
+- **The web git proxy only lets a session push its own branch.** It **rejects remote
+  branch deletion** (`git push origin --delete …` → HTTP 403) and other cross-ref
+  surgery, and the GitHub MCP server exposes no delete-ref tool. So **branch cleanup,
+  rebasing other people's branches, and anything touching a ref other than the session's
+  own must be done locally or in the GitHub UI** — not from a web session. Plan around
+  this; don't keep retrying the 403.
+
 ## Commands
 
 Run from the repo root; the root scripts delegate to the right workspace.
@@ -27,14 +58,23 @@ npm install           # install all workspaces (hoisted to the root node_modules
 npm run dev           # Vite dev server for apps/web at http://localhost:5173
 npm run build         # production build of apps/web → apps/web/dist/
 npm run preview       # serve the built apps/web/dist/ locally
+npm run preview:branch -- <branch>  # LOCAL helper: fetch a branch, install, run its dev server (one command)
 npm test              # run BOTH workspaces' Vitest suites
 npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
 npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
-npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke)
+npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke);
+                      #   skips cleanly if no Chromium is installed — see the web-session note above
 ```
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
 or `cd apps/web && npm run build`.
+
+**Reviewing a web session's work on your own machine** is one command:
+`npm run preview:branch -- <branch>` (`scripts/preview-branch.mjs`) fetches the branch,
+fast-forwards to its tip, installs, and starts the dev server at
+`http://localhost:5173`. It's a *local* helper — it fails safe (`git switch` +
+`pull --ff-only`, never discarding uncommitted work) and is cross-platform. Add
+`--no-serve` to just prepare the checkout without booting the server.
 
 Tests run on **Vitest** and in CI on every push/PR (`.github/workflows/test.yml`, a matrix
 over both workspaces). `apps/web/tests/` covers the build-time renderers + data integrity;
@@ -44,7 +84,11 @@ calls. There's also a **Playwright E2E/smoke tier** (`apps/web/e2e/`, `npm run t
 in `.github/workflows/e2e.yml`) that drives the real production build in a browser for the
 paths jsdom can't reach (lightbox, the enquiry image preview/downscale, the mobile nav
 drawer) plus a whole-site load sweep; it stubs the Worker so it's hermetic, and needs a
-browser binary (`npx playwright install chromium`, done automatically in CI). There is **no
+browser binary (`npx playwright install chromium`, done automatically in CI). `test:e2e`
+runs through `apps/web/scripts/run-e2e.mjs`, which **skips with exit 0 when that binary
+isn't installed** (e.g. a web sandbox that can't reach `cdn.playwright.dev`) so the tier is
+a clean no-op where it can't run rather than a false failure — it still executes normally
+once the browser is present (CI, local). There is **no
 linter or formatter** — don't invent `npm run lint`. To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
@@ -317,6 +361,27 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
 **Resolving a stale branch** (the standard recovery): from its worktree,
 `git fetch && git rebase origin/main`, fix conflicts, `npm test && npm run build`, then
 `git push --force-with-lease`, then `gh pr merge --squash --delete-branch`.
+
+**Stop the tangle at the source — delete merged branches automatically.** This repo
+squash-merges, which discards a branch's individual commits, so a merged branch never
+becomes an ancestor of `main` and therefore looks "unmerged" forever — that's how dozens
+of dead `claude/*`, `feat/*`, `docs/*` heads accumulate. Two defences:
+- **Turn on GitHub → Settings → General → Pull Requests → "Automatically delete head
+  branches".** Then every squash-merge removes its own head and the pile never forms. This
+  is the single highest-leverage fix for the recurring branch-head pain.
+- **Prune what's already merged from a *local* clone** (a web session can't — the proxy
+  403s on remote-ref deletion, see the web-session note up top). The authoritative test for
+  "merged" under squash-merge is the PR state, not `git branch --merged`, so drive it off
+  the merged PR list:
+  ```bash
+  # from a local clone, with the gh CLI authenticated:
+  gh pr list --state merged --limit 200 --json headRefName -q '.[].headRefName' \
+    | sort -u > /tmp/merged-heads
+  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+    | grep -vxF main \
+    | grep -xF -f /tmp/merged-heads \
+    | xargs -r -n1 git push origin --delete   # deletes only confirmed-merged heads
+  ```
 
 ## Deploy guardrail — do NOT switch the apex domain
 
