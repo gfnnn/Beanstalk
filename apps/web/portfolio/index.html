@@ -128,11 +128,12 @@
   <!--
     PRIORITY vs SECONDARY chips: the first cluster (All + the three styles the
     homepage "specialisms" cards feature — fine-line, botanical, black-grey) is
-    always visible. The rest live in `.chips-secondary` and, on a narrow
-    viewport, collapse behind the "More" toggle (filter.js wires it up; CSS in
-    components/filter-bar.css hides them until `.filter-chips.expanded`). On
-    desktop every chip shows and the toggle is hidden. Keep the homepage's
-    featured styles in the priority cluster so they lead on mobile.
+    always visible. The rest live in `.chips-secondary` and collapse behind the
+    "More" toggle whenever they don't fit — always on narrow viewports, and on
+    desktop too once the row can't hold every chip beside the selects (filter.js
+    measures the overflow and sets `.needs-more`; CSS in
+    components/filter-bar.css hides them until `.filter-chips.expanded`). Keep
+    the homepage's featured styles in the priority cluster so they lead first.
   -->
   <div class="filter-chips" role="group" aria-label="Filter by style">
 

@@ -196,7 +196,10 @@
     min-height: auto;
   }
 
-  /* Single-row scroll on desktop; every chip shown, no "More" toggle */
+  /* Single row that shows every chip WHILE THEY FIT. When they don't,
+     filter.js measures the overflow and sets `.needs-more` on the bar, and the
+     secondary cluster collapses behind the same "More" toggle used on mobile —
+     so nothing is silently cut off when the labels outgrow the row. */
   .filter-chips {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -205,7 +208,23 @@
   }
   .filter-chips::-webkit-scrollbar { display: none; }
 
-  .chips-secondary { display: contents; }
+  /* Roomy desktop (default): secondary chips inline, "More" hidden. */
+  .chips-secondary,
   .filter-chips:not(.expanded) .chips-secondary { display: contents; }
   .chip-more { display: none; }
+
+  /* Tight desktop: not enough room → collapse the secondary chips behind
+     "More" (the `.needs-more` flag is toggled by JS). */
+  .filter-bar.needs-more .filter-chips:not(.expanded) .chips-secondary { display: none; }
+  .filter-bar.needs-more .chip-more { display: inline-flex; }
+
+  /* "More" opened on a tight desktop → let the revealed chips wrap onto a
+     second row and grow the otherwise fixed-height single-row bar. */
+  .filter-chips.expanded { flex-wrap: wrap; }
+  .filter-bar.chips-open {
+    height: auto;
+    align-items: flex-start;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
 }
