@@ -4,7 +4,7 @@ import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
 import { flash } from './src/data/flash.js'
 import { renderFlashCards, renderFlashDrop } from './src/build/flash-cards.js'
-import { injectSeoHead, renderSitemap, ROUTES } from './src/build/seo.js'
+import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
 import { testimonials } from './src/data/testimonials.js'
@@ -124,7 +124,9 @@ const seoHead = {
   name: 'beansprout-seo-head',
   transformIndexHtml: {
     order: 'post',
-    handler: (html) => injectSeoHead(html),
+    // Structural SEO tags, then the staging noindex (a no-op on the apex build —
+    // see isProductionBuild in src/build/seo.js).
+    handler: (html) => injectStagingNoindex(injectSeoHead(html)),
   },
 }
 
@@ -185,11 +187,14 @@ const piecePages = {
     // bypass transformIndexHtml), so hand them the same CSP/Referrer meta here —
     // build only, matching the plugin's apply:'build'. Dev serves them without it.
     const securityMeta = renderSecurityMeta()
+    // Emitted assets bypass the seoHead transform too, so apply the same staging
+    // noindex here (no-op on the apex build).
+    const robotsMeta = isProductionBuild() ? '' : ROBOTS_NOINDEX
     for (const { piece, prev, next } of piecePagesData(pieces)) {
       this.emitFile({
         type: 'asset',
         fileName: `portfolio/${piece.slug}/index.html`,
-        source: renderPiecePage(piece, { prev, next, cssHref, jsHref, securityMeta }),
+        source: renderPiecePage(piece, { prev, next, cssHref, jsHref, securityMeta, robotsMeta }),
       })
     }
   },

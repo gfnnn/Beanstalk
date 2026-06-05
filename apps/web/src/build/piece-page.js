@@ -61,7 +61,7 @@ const pagerLink = (rel, label, piece) => piece
  * @param opts  { prev, next } neighbouring pieces for the pager, and the asset
  *              hrefs to reference (dev `/src/...` vs the hashed build paths).
  */
-export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css', jsHref = '/src/js/main.js', securityMeta = '' } = {}) {
+export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css', jsHref = '/src/js/main.js', securityMeta = '', robotsMeta = '' } = {}) {
   const url     = `${SITE_URL}/portfolio/${p.slug}/`
   const title   = `${p.title} · ${SITE_NAME}`
   const desc    = `${altText(p)} — by ${SITE_NAME} at Tiny Knives, Winchester.`
@@ -84,7 +84,7 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-${securityMeta ? `${securityMeta}\n` : ''}<title>${esc(title)}</title>
+${securityMeta ? `${securityMeta}\n` : ''}${robotsMeta ? `${robotsMeta}\n` : ''}<title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}">
 <meta property="og:title" content="${esc(title)}">
