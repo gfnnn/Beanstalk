@@ -4,7 +4,7 @@
 // subscribed" response is idempotent success, and a consent record is filed.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { handler } from '../src/handlers/newsletter.js'
-import { makeD1 } from './helpers/fake-d1.js'
+import { makeD1, brokenD1 } from './helpers/fake-d1.js'
 
 // A real Resend Audience ID is a UUID; the function validates the shape.
 const AUDIENCE_ID = '78261eea-1c2d-4e3f-9a0b-1c2d3e4f5a6b'
@@ -107,6 +107,14 @@ describe('newsletter handler — Resend integration', () => {
   it('returns 502 when fetch throws', async () => {
     fetchMock.mockRejectedValueOnce(new Error('network down'))
     expect((await H(post(valid()))).statusCode).toBe(502)
+  })
+
+  it('still subscribes (200) when the consent-ledger DB is down — signup is never blocked', async () => {
+    // rate limiter fails open, the Resend add succeeds, and persistConsent fails
+    // safe — so a DB outage costs the audit row, not the subscriber.
+    const res = await H(post(valid()), { RESEND_API_KEY: 're_test', RESEND_AUDIENCE_ID: AUDIENCE_ID, DB: brokenD1() })
+    expect(res.statusCode).toBe(200)
+    expect(fetchMock).toHaveBeenCalledOnce()
   })
 })
 

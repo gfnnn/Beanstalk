@@ -16,10 +16,12 @@ export default defineConfig({
       // src/build (renderers/seo/palette) and src/data (content contracts) are
       // pure Node modules the suites exercise directly. src/js/** is only PARTLY
       // exercisable here: the synchronous, correctness-critical modules (enquire,
-      // filter, loadmore, flash, newsletter, faq, nav) are tested under jsdom, but
-      // the browser-only paths — image downscale, GSAP/smooth-scroll, the lightbox
-      // — need a real browser. So src/js/** is excluded from the headline report so
-      // those unavoidable gaps don't skew it until a browser/E2E tier exists.
+      // filter, loadmore, flash, newsletter, faq, nav, aftercare, chip-overflow,
+      // and the IntersectionObserver helpers sticky/media) are tested under jsdom,
+      // but the irreducibly browser-only paths — image downscale, GSAP/smooth-
+      // scroll (animations/lenis), the lightbox — need a real browser and live in
+      // the Playwright E2E tier. So src/js/** is excluded from the headline report
+      // so those unavoidable gaps don't skew it.
       include: ['src/build/**', 'src/data/**'],
       reporter: ['text', 'html'],
     },
