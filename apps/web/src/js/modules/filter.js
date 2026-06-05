@@ -110,59 +110,97 @@ export function initFilter({ resetWindow } = {}) {
 
   // ── "More" toggle + overflow-aware collapse ──────────────────────────────
   // The secondary style chips (illustrative, dotwork, colour, script) collapse
-  // behind a "More" toggle whenever they don't fit — always on narrow
-  // viewports (pure CSS), and on desktop too once the row can't hold every chip
-  // alongside the selects. "Enough space" depends on the chip labels, not a
-  // fixed breakpoint, so the desktop case is measured here in JS: when the full
-  // chip row overflows the available width we set `.needs-more` on the bar and
-  // the CSS reuses the same collapse, instead of silently clipping chips.
+  // behind a "More" toggle whenever they don't fit — always on narrow viewports
+  // (pure CSS), and on desktop too once the row can't hold every chip alongside
+  // the selects. The desktop case is measured here in JS and collapses chips
+  // ONE AT A TIME from the end (priority-nav pattern): we hide only as many as
+  // the width demands — and reserve room for the "More" button and the selects —
+  // so we never drop four chips while there's still room for two, nor push the
+  // toggle itself off the row.
   const desktopMq = window.matchMedia?.('(min-width: 640px)') ?? null
-  let fullChipsWidth = 0   // cached natural width of every chip in one row
+  // Priority chips (always shown) lead the list; the rest live in
+  // `.chips-secondary` and are the ones that collapse, dropped last-first.
+  const priorityCount = chips.filter(c => !c.closest('.chips-secondary')).length
 
   function setExpanded(expanded) {
     filterChips.classList.toggle('expanded', expanded)
-    filterBar.classList.toggle('chips-open', expanded)
     if (chipMoreBtn) chipMoreBtn.setAttribute('aria-expanded', String(expanded))
   }
 
-  // Natural single-row width of all chips (priority + secondary). Only valid
-  // while they're all rendered, so callers refresh it only when not collapsed.
-  function measureChips() {
-    const gap = parseFloat(getComputedStyle(filterChips).columnGap) || 0
-    let total = 0, n = 0
-    chips.forEach(c => { if (c.offsetWidth) { total += c.offsetWidth; n++ } })
-    return n ? total + gap * (n - 1) : 0
-  }
-
-  function syncChipOverflow() {
-    if (!desktopMq?.matches) {           // mobile (or no matchMedia): CSS owns the collapse
+  function applyChipOverflow() {
+    // Mobile (or no matchMedia): the pure-CSS collapse owns it — clear any
+    // desktop state we may have set.
+    if (!desktopMq?.matches) {
+      chips.forEach(c => c.classList.remove('is-collapsed'))
       filterBar.classList.remove('needs-more')
+      filterChips.style.minWidth = ''
       return
     }
-    const collapsed = filterBar.classList.contains('needs-more') &&
-                      !filterChips.classList.contains('expanded')
-    if (!collapsed) {                    // every chip rendered → safe to measure
-      const w = measureChips()
-      if (w) fullChipsWidth = w
+
+    // Measure true widths in a clean state: every chip + "More" on one nowrap
+    // row. Synchronous (no paint between add/remove), so there's no flicker.
+    chips.forEach(c => c.classList.remove('is-collapsed'))
+    filterBar.classList.add('measuring')
+    const gap   = parseFloat(getComputedStyle(filterChips).columnGap) || 0
+    const widths = chips.map(c => c.offsetWidth)
+    const moreW  = chipMoreBtn ? chipMoreBtn.offsetWidth : 0
+
+    // Floor = priority chips + "More". Pinning the chip row to this width makes
+    // the selects (not the chips) wrap to a second line once they can't share a
+    // row, so the toggle can never be clipped. Read `avail` AFTER it's applied.
+    const prioritySum = widths.slice(0, priorityCount).reduce((a, b) => a + b, 0)
+    const floor = prioritySum + moreW + gap * priorityCount
+    filterChips.style.minWidth = floor + 'px'
+    const avail = filterChips.clientWidth
+    filterBar.classList.remove('measuring')
+
+    const totalAll = widths.reduce((a, b) => a + b, 0) + gap * (chips.length - 1)
+
+    // Everything fits → show all, no "More", no open state.
+    if (totalAll <= avail) {
+      filterBar.classList.remove('needs-more')
+      setExpanded(false)
+      return
     }
-    const fits = fullChipsWidth <= filterChips.clientWidth
-    filterBar.classList.toggle('needs-more', !fits)
-    if (fits) setExpanded(false)         // roomy again → drop any open state
+
+    // Doesn't fit → the "More" toggle is needed.
+    filterBar.classList.add('needs-more')
+
+    // User has opened it → reveal everything (it wraps to further rows).
+    if (filterChips.classList.contains('expanded')) return
+
+    // Keep priority chips + as many secondary as fit alongside "More".
+    let keep = chips.length - priorityCount
+    while (keep > 0) {
+      const secSum = widths.slice(priorityCount, priorityCount + keep).reduce((a, b) => a + b, 0)
+      const shown  = priorityCount + keep + 1 // + the "More" button
+      if (prioritySum + secSum + moreW + gap * (shown - 1) <= avail) break
+      keep--
+    }
+    chips.forEach((c, i) => c.classList.toggle('is-collapsed', i >= priorityCount + keep))
   }
 
   if (chipMoreBtn && filterChips) {
     chipMoreBtn.addEventListener('click', () => {
       setExpanded(!filterChips.classList.contains('expanded'))
+      applyChipOverflow()
     })
 
-    syncChipOverflow()
+    applyChipOverflow()
     if (typeof ResizeObserver !== 'undefined') {
-      new ResizeObserver(syncChipOverflow).observe(filterBar)
+      // rAF-debounced so our own height changes (the bar grows when "More"
+      // opens) don't retrigger a ResizeObserver loop.
+      let scheduled = false
+      new ResizeObserver(() => {
+        if (scheduled) return
+        scheduled = true
+        requestAnimationFrame(() => { scheduled = false; applyChipOverflow() })
+      }).observe(filterBar)
     } else {
-      window.addEventListener('resize', syncChipOverflow)
+      window.addEventListener('resize', applyChipOverflow)
     }
-    desktopMq?.addEventListener?.('change', syncChipOverflow)
-    document.fonts?.ready.then(syncChipOverflow)   // labels resize once fonts load
+    desktopMq?.addEventListener?.('change', applyChipOverflow)
+    document.fonts?.ready.then(applyChipOverflow)   // labels resize once fonts load
   }
 
   // ── Chip clicks ──────────────────────────────────────────────────────────

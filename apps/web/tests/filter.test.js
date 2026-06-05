@@ -259,11 +259,26 @@ describe('initFilter', () => {
     expect(btn.getAttribute('aria-expanded')).toBe('false')
   })
 
+  const collapsedChips = () =>
+    [...document.querySelectorAll('.chip.is-collapsed')]
+
   it('collapses the secondary chips behind "More" when a desktop row is too tight', () => {
-    // 4 chips × 100px = 400px of chips into a 250px row → they don't fit.
+    // 4 chips × 100px = 400px of chips into a 250px row → nothing but the two
+    // priority chips + "More" fit, so both secondary chips collapse.
     const bar = setupDesktopChips({ chipWidth: 100, rowWidth: 250 })
     initFilter()
     expect(bar.classList.contains('needs-more')).toBe(true)
+    expect(collapsedChips().map(c => c.dataset.filter)).toEqual(['script', 'dotwork'])
+  })
+
+  it('collapses chips ONE AT A TIME, keeping as many as fit', () => {
+    // Room for the two priority chips + one secondary + "More" (300px) but not
+    // both secondary (400px): only the last chip should drop, not the whole set.
+    setupDesktopChips({ chipWidth: 100, rowWidth: 360 })
+    const bar = document.getElementById('filter-bar')
+    initFilter()
+    expect(bar.classList.contains('needs-more')).toBe(true)
+    expect(collapsedChips().map(c => c.dataset.filter)).toEqual(['dotwork'])
   })
 
   it('keeps every chip inline when a desktop row has room for them all', () => {
@@ -271,6 +286,7 @@ describe('initFilter', () => {
     const bar = setupDesktopChips({ chipWidth: 100, rowWidth: 1000 })
     initFilter()
     expect(bar.classList.contains('needs-more')).toBe(false)
+    expect(collapsedChips()).toHaveLength(0)
   })
 
   it('exposes applyFilters so load-more can re-filter newly revealed tiles', () => {

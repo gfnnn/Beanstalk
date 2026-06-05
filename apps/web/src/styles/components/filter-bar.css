@@ -164,15 +164,23 @@
 }
 .filter-summary .clear:hover { color: var(--clay); }
 
-/* ── Desktop: single-row layout ─────────────────────────────────────────── */
+/* ── Desktop: single-row layout (degrading gracefully) ──────────────────────
+   Wide:    one row — every chip on the left, the two selects on the right.
+   Tight:   the chips collapse one-at-a-time behind "More" (filter.js measures),
+            the selects staying put on the right.
+   Tighter: once even the priority chips + "More" can't sit beside the selects,
+            the selects wrap to their own row rather than anything being clipped.
+   The bar may wrap; filter.js sets a min-width on the chip row (its priority
+   chips + "More") so the selects, not the chips, are what drops. */
 @media (min-width: 640px) {
   .filter-bar {
     align-items: center;
-    flex-wrap: nowrap;
-    height: var(--filter-h);
-    padding: 0 var(--pad-x);
+    flex-wrap: wrap;
+    min-height: var(--filter-h);
+    padding: 8px var(--pad-x);
     justify-content: space-between;
-    gap: 20px;
+    column-gap: 20px;
+    row-gap: 8px;
   }
 
   .filter-right {
@@ -191,16 +199,21 @@
     width: auto;
   }
 
-  .chip {
+  /* Size the "More" toggle exactly like a chip (it only keeps its dashed
+     border + chevron, set in the base rule). */
+  .chip,
+  .chip-more {
     padding: 7px 14px;
     min-height: auto;
   }
 
-  /* Single row that shows every chip WHILE THEY FIT. When they don't,
-     filter.js measures the overflow and sets `.needs-more` on the bar, and the
-     secondary cluster collapses behind the same "More" toggle used on mobile —
-     so nothing is silently cut off when the labels outgrow the row. */
+  /* The chips keep to a single (non-wrapping) row and take the space left by the
+     selects (`flex: 1 1 0`). filter.js collapses the secondary chips ONE AT A
+     TIME behind "More" as that space tightens, and applies a min-width (priority
+     chips + "More") so that when even those can't fit beside the selects, the
+     line breaks and the SELECTS drop to their own row — never the chips. */
   .filter-chips {
+    flex: 1 1 0;
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
@@ -208,23 +221,27 @@
   }
   .filter-chips::-webkit-scrollbar { display: none; }
 
-  /* Roomy desktop (default): secondary chips inline, "More" hidden. */
+  /* Secondary chips flow as individual flex items so they can be hidden
+     one-by-one (not as one all-or-nothing block). */
   .chips-secondary,
   .filter-chips:not(.expanded) .chips-secondary { display: contents; }
-  .chip-more { display: none; }
 
-  /* Tight desktop: not enough room → collapse the secondary chips behind
-     "More" (the `.needs-more` flag is toggled by JS). */
-  .filter-bar.needs-more .filter-chips:not(.expanded) .chips-secondary { display: none; }
+  /* JS hides individual chips (from the end) when the row is too tight. */
+  .filter-chips .chip.is-collapsed { display: none; }
+
+  /* "More" — hidden until JS finds the row is tight; `order` keeps it last in
+     the row even though it sits before the secondary chips in the DOM. */
+  .chip-more { display: none; order: 1; }
   .filter-bar.needs-more .chip-more { display: inline-flex; }
 
-  /* "More" opened on a tight desktop → let the revealed chips wrap onto a
-     second row and grow the otherwise fixed-height single-row bar. */
+  /* Measuring pass: reveal every chip + "More" on one nowrap row so JS can read
+     true widths, regardless of the current collapsed/expanded state. */
+  .filter-bar.measuring .filter-chips { flex-wrap: nowrap; }
+  .filter-bar.measuring .chip.is-collapsed { display: inline-flex; }
+  .filter-bar.measuring .chip-more { display: inline-flex; }
+
+  /* "More" opened → reveal the hidden chips and let them wrap onto further
+     rows (the bar already grows to fit, since its height is auto). */
+  .filter-chips.expanded .chip.is-collapsed { display: inline-flex; }
   .filter-chips.expanded { flex-wrap: wrap; }
-  .filter-bar.chips-open {
-    height: auto;
-    align-items: flex-start;
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
 }
