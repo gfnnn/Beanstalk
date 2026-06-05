@@ -17,6 +17,7 @@ import {
 } from './src/build/homepage.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
+import { renderSecurityMeta } from './src/build/security.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -115,6 +116,24 @@ const seoHead = {
   },
 }
 
+// Inject the Content-Security-Policy + Referrer-Policy <meta> tags into every
+// page's <head>, just before </head> so they govern all body scripts/fetches.
+// BUILD/preview only (apply:'build') — the dev server's HMR client needs inline
+// scripts/eval/ws that a strict CSP would break. The per-piece pages bypass this
+// transform, so they get the same tags passed into renderPiecePage below. See
+// src/build/security.js for the directive rationale and the Pages limitations.
+const securityHeaders = {
+  name: 'beansprout-security-headers',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html) {
+      if (html.includes('http-equiv="Content-Security-Policy"')) return html
+      return html.replace('</head>', `  ${renderSecurityMeta()}\n</head>`)
+    },
+  },
+}
+
 // One shareable HTML page per portfolio piece at /portfolio/<slug>/ (the masonry
 // tiles already link there). Rendered from pieces.js by src/build/piece-page.js.
 // In dev we serve them from a middleware; at build we emit one HTML file each,
@@ -150,11 +169,15 @@ const piecePages = {
       || Object.keys(bundle).find(f => f.endsWith('.css'))
     const jsHref  = jsFile ? '/' + jsFile.fileName : '/src/js/main.js'
     const cssHref = cssKey ? '/' + cssKey : '/src/styles/main.css'
+    // These pages skip the securityHeaders plugin's transform (emitted assets
+    // bypass transformIndexHtml), so hand them the same CSP/Referrer meta here —
+    // build only, matching the plugin's apply:'build'. Dev serves them without it.
+    const securityMeta = renderSecurityMeta()
     for (const { piece, prev, next } of piecePagesData(pieces)) {
       this.emitFile({
         type: 'asset',
         fileName: `portfolio/${piece.slug}/index.html`,
-        source: renderPiecePage(piece, { prev, next, cssHref, jsHref }),
+        source: renderPiecePage(piece, { prev, next, cssHref, jsHref, securityMeta }),
       })
     }
   },
@@ -184,7 +207,7 @@ const sitemap = {
 
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, securityHeaders, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {

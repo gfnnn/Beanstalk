@@ -36,11 +36,23 @@ export function corsFor(event) {
   }
 }
 
+// Security headers on every JSON response. These endpoints only ever return JSON,
+// so the policy is maximally tight: `nosniff` stops content-type guessing,
+// `default-src 'none'` means a response can't be coaxed into loading anything if a
+// browser ever renders it, and `no-referrer` keeps the Worker URL out of referers.
+// (Clickjacking/HSTS headers belong on the HTML pages — see src/build/security.js
+// in apps/web — not on a JSON API, so they're intentionally omitted here.)
+export const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'Content-Security-Policy': "default-src 'none'",
+  'Referrer-Policy': 'no-referrer',
+}
+
 // A `reply` bound to the right CORS headers for this request.
 export function replyWith(cors) {
   return (statusCode, body) => ({
     statusCode,
-    headers: { 'Content-Type': 'application/json', ...cors },
+    headers: { 'Content-Type': 'application/json', ...SECURITY_HEADERS, ...cors },
     body: JSON.stringify(body),
   })
 }

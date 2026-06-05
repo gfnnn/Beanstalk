@@ -3,7 +3,7 @@
 // client-IP extraction must trust ONLY Cloudflare's header, never the spoofable
 // x-forwarded-for, or the per-IP rate-limit bucket can be trivially evaded.
 import { describe, it, expect } from 'vitest'
-import { corsFor, replyWith, clientIp, toEvent, ALLOWED_ORIGINS, CANONICAL_ORIGIN } from '../src/lib/http.js'
+import { corsFor, replyWith, clientIp, toEvent, ALLOWED_ORIGINS, CANONICAL_ORIGIN, SECURITY_HEADERS } from '../src/lib/http.js'
 
 describe('corsFor', () => {
   it('echoes an allowed origin back', () => {
@@ -35,6 +35,27 @@ describe('replyWith', () => {
     expect(res.headers['Content-Type']).toBe('application/json')
     expect(res.headers['Access-Control-Allow-Origin']).toBe('x')
     expect(JSON.parse(res.body)).toEqual({ error: 'nope' })
+  })
+
+  it('sets the JSON security headers on every reply', () => {
+    const res = replyWith({})(200, { ok: true })
+    expect(res.headers['X-Content-Type-Options']).toBe('nosniff')
+    expect(res.headers['Content-Security-Policy']).toBe("default-src 'none'")
+    expect(res.headers['Referrer-Policy']).toBe('no-referrer')
+  })
+
+  it('lets per-request CORS headers win over the static set', () => {
+    const res = replyWith({ 'Access-Control-Allow-Origin': 'https://beansprout.ink' })(200, {})
+    // security headers and CORS coexist; CORS is spread last so it can override
+    expect(res.headers['Access-Control-Allow-Origin']).toBe('https://beansprout.ink')
+    expect(res.headers['X-Content-Type-Options']).toBe('nosniff')
+  })
+})
+
+describe('SECURITY_HEADERS', () => {
+  it('is JSON-API-appropriate — no clickjacking/HSTS headers (those belong on the HTML)', () => {
+    expect(SECURITY_HEADERS).not.toHaveProperty('X-Frame-Options')
+    expect(SECURITY_HEADERS).not.toHaveProperty('Strict-Transport-Security')
   })
 })
 
