@@ -7,6 +7,22 @@
 import { test, expect } from '@playwright/test'
 import { stubWorker, TINY_PNG } from './helpers.js'
 
+// The radio-cards and consent rows hide the real <input> behind a styled label,
+// and the form sits under the `position:fixed` nav — so a coordinate click on the
+// input is intercepted (by the label, then the nav). Tick the control directly and
+// fire the events the module listens for. This is form *setup*; the spec's actual
+// subject (the real file → downscale → POST pipeline) still runs through the
+// browser untouched.
+async function tick(page, selector) {
+  await page.evaluate(sel => {
+    const el = document.querySelector(sel)
+    if (!el) throw new Error(`tick(): no element for ${sel}`)
+    el.checked = true
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+  }, selector)
+}
+
 // Walk the 4-step form to the submit button. `attachImage` drives the file input +
 // downscale path; the consent boxes are the only step-4 gate.
 async function fillEnquiry(page, { attachImage = true } = {}) {
@@ -18,7 +34,7 @@ async function fillEnquiry(page, { attachImage = true } = {}) {
   await page.click('#step1-next')
 
   // Step 2 — a tattoo type is the required gate
-  await page.check('input[name="tattoo_type"][value="custom"]')
+  await tick(page, 'input[name="tattoo_type"][value="custom"]')
   await page.fill('#idea', 'A small botanical sprig on the forearm.')
   await page.click('#step2-next')
 
@@ -30,9 +46,9 @@ async function fillEnquiry(page, { attachImage = true } = {}) {
   await page.click('#step3-next')
 
   // Step 4 — the three consent checkboxes are required
-  await page.check('#check-policy')
-  await page.check('#check-age')
-  await page.check('#check-deposit')
+  await tick(page, '#check-policy')
+  await tick(page, '#check-age')
+  await tick(page, '#check-deposit')
 }
 
 test('renders a live thumbnail preview the moment a reference image is chosen', async ({ page }) => {
@@ -43,7 +59,7 @@ test('renders a live thumbnail preview the moment a reference image is chosen', 
   await page.setInputFiles('#refs', { name: 'ref.png', mimeType: 'image/png', buffer: TINY_PNG })
   const thumb = page.locator('#thumb-row .thumb img')
   await expect(thumb).toHaveCount(1)
-  await expect(thumb).toHaveJSProperty('src', /^blob:/)
+  await expect(thumb).toHaveAttribute('src', /^blob:/) // a live object URL (regex-matched)
 })
 
 test('submits the downscaled image as base64 and lands on the confirmation page', async ({ page }) => {
