@@ -37,7 +37,7 @@
     </a>
   -->
   <a href="/" aria-label="Beansprout home">
-    <div class="nav-logo-placeholder">logo.svg</div>
+    <div class="nav-logo-placeholder" aria-hidden="true">logo.svg</div>
   </a>
 
   <ul class="nav-links" role="list">
@@ -72,7 +72,7 @@
 
 </nav>
 
-<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true">
+<div class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation" aria-hidden="true" inert>
   <a href="/">Home</a>
   <a href="/portfolio/">Portfolio</a>
   <a href="/flash/">Flash</a>
@@ -92,7 +92,8 @@
 
 
 <!-- ══ PAGE HEADER ══════════════════════════════════════════════════════════ -->
-<header class="page-header" id="maincontent" tabindex="-1">
+<main id="maincontent" tabindex="-1">
+<header class="page-header">
   <div class="page-header-left">
     <p class="page-eyebrow">Honest, in advance</p>
     <h1 class="page-title">Pricing, <em>no surprises.</em></h1>
@@ -361,6 +362,8 @@
 
 
 <!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+</main>
+
 <footer class="footer" role="contentinfo">
   <div class="footer-top">
     <div class="footer-brand">
@@ -373,7 +376,7 @@
       <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
     </div>
     <nav class="footer-col" aria-label="Site links">
-      <h4>Explore</h4>
+      <h2>Explore</h2>
       <ul>
         <li><a href="/portfolio/">Portfolio</a></li>
         <li><a href="/flash/">Flash</a></li>
@@ -383,7 +386,7 @@
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Visit links">
-      <h4>Visit</h4>
+      <h2>Visit</h2>
       <ul>
         <li><a href="/visit/">Find me</a></li>
         <li><a href="/aftercare/">Aftercare</a></li>
@@ -392,7 +395,7 @@
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Social links">
-      <h4>Follow</h4>
+      <h2>Follow</h2>
       <ul>
         <li><a href="https://www.instagram.com/beansprouttattoo" target="_blank" rel="noopener noreferrer">Instagram</a></li>
         <li><a href="/newsletter/">Newsletter</a></li>

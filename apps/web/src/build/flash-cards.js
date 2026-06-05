@@ -71,7 +71,7 @@ function card(p) {
           <span class="card-price">£${p.price}</span>
           <span class="card-status ${s.cls}">${s.label}</span>
         </div>
-        <h3 class="card-title">${esc(p.title)}</h3>
+        <p class="card-title">${esc(p.title)}</p>
         <p class="card-specs">${esc(p.specs)}</p>
         ${button(p)}
       </div>

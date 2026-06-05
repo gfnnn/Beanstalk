@@ -39,13 +39,13 @@ export const palettes = {
       black:      '#000000', // shadow base (used only as rgba())
       ink:        '#2C2A24', // primary text
       'ink-soft': '#5C5A52', // secondary text
-      'ink-faint':'#8E8B81', // muted text / captions
+      'ink-faint':'#6B6861', // muted text / captions (WCAG-AA on cream surfaces)
       'ink-hover':'#3D3B34', // dark-button hover (a touch lighter than ink)
       moss:       '#4A5D3F', // primary accent (botanical green)
       'moss-soft':'#8A9A75', // soft moss (borders, dots)
-      clay:       '#C45A3E', // warm accent / CTA
+      clay:       '#B05138', // warm accent / CTA (cream text on clay clears WCAG AA)
       'clay-soft':'#E08C72', // soft clay
-      amber:      '#B07D3A', // tertiary accent
+      amber:      '#946930', // tertiary accent (pending badge clears WCAG AA on cream)
       'moss-mid':  '#6B7E5A', // hero gradient mid-stop
       sand:       '#C8A882', // warm decorative ramp (hero gradients)
       dune:       '#B8A87A', //   ″   sand→moss bridge (homepage hero)
@@ -58,7 +58,7 @@ export const palettes = {
       warm:  { from: '#B8987A', to: '#D5B898', text: '#2C2A24' },
       cream: { from: '#DCC9A4', to: '#EFE3C9', text: '#3A3830' },
       blush: { from: '#D8B5A0', to: '#E8C8B0', text: '#2C2A24' },
-      clay:  { from: '#C45A3E', to: '#D8775A', text: '#FBF8EE' },
+      clay:  { from: '#B05138', to: '#D8775A', text: '#FBF8EE' },
       ink:   { from: '#2C2A24', to: '#4A4640', text: '#CCC5B0' },
       deep:  { from: '#36473F', to: '#56685A', text: '#E8E1C9' },
       stone: { from: '#9A9085', to: '#B5A898', text: '#2C2A24' },

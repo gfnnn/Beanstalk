@@ -166,7 +166,7 @@
   letter-spacing: -0.01em;
   color: var(--ink);
 }
-.step-heading em { font-style: italic; color: var(--moss-soft); }
+.step-heading em { font-style: italic; color: var(--moss); }
 .step-edit {
   font-family: var(--mono);
   font-size: 10px;

@@ -104,7 +104,7 @@
   transition: color var(--dur);
 }
 .chip.active .chip-count {
-  color: rgba(var(--bg-rgb), 0.5);
+  color: rgba(var(--bg-rgb), 0.6);
 }
 
 /* ── Right cluster ───────────────────────────────────────────────────────── */

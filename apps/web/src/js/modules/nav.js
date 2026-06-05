@@ -57,6 +57,8 @@ export function initNav() {
     hamburger.setAttribute('aria-expanded', 'true')
     drawer.classList.add('open')
     drawer.setAttribute('aria-hidden', 'false')
+    // Drawer is now visible — re-expose its links to the tab order / a11y tree.
+    drawer.removeAttribute('inert')
     document.body.style.overflow = 'hidden'
   }
 
@@ -65,6 +67,8 @@ export function initNav() {
     hamburger.setAttribute('aria-expanded', 'false')
     drawer.classList.remove('open')
     drawer.setAttribute('aria-hidden', 'true')
+    // Hidden drawer keeps focusable links out of the tab order (matches aria-hidden).
+    drawer.setAttribute('inert', '')
     document.body.style.overflow = ''
   }
 
