@@ -303,13 +303,17 @@
               <div class="field">
                 <label for="budget">Budget</label>
                 <span class="field-hint">Helps me suggest the right scale</span>
-                <!-- TODO(roxy): set real budget bands so they match the /services pricing page -->
+                <!-- Bands mirror the /services rates (minimum £120, small custom £180–£280,
+                     half day £420, full day £680). Those figures are still placeholders pending
+                     launch — if /services changes, update these labels to match. The `value`
+                     tokens are stable keys (the Worker humanises them into the email), so only
+                     the visible £ labels track the pricing page. -->
                 <select id="budget" name="budget">
                   <option value="">Choose a range…</option>
-                  <option value="min">Up to £150</option>
-                  <option value="small">£150–£300</option>
-                  <option value="half-day">Half day (~£350)</option>
-                  <option value="full-day">Full day (~£600)</option>
+                  <option value="min">Up to £180</option>
+                  <option value="small">£180–£280</option>
+                  <option value="half-day">Half day (~£420)</option>
+                  <option value="full-day">Full day (~£680)</option>
                   <option value="flexible">I'm flexible / not sure</option>
                 </select>
               </div>
