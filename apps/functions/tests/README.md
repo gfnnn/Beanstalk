@@ -18,6 +18,7 @@ Runner: [Vitest](https://vitest.dev) (`environment: node`, see `vitest.config.js
 
 | File | Tests |
 | --- | --- |
+| `tests/index.test.js` | `src/index.js` — the Worker entry/router: path dispatch to the three handlers, trailing-slash normalisation, query-string-insensitive matching, the 404 for unknown paths, that handlers receive the adapted event + `env`, and the 204/empty-body → null Response body rule. The handlers are mocked so only the router is under test. |
 | `tests/http.test.js` | `src/lib/http.js` — CORS allowlist, JSON replies, anti-spoof client-IP extraction, and the Request→event adapter. |
 | `tests/db.test.js` | `src/lib/db.js` — persistence, flash inventory (atomic reserve / release), consent ledger, and the rate limiter's window/daily-ceiling **and fail-open** behaviour. |
 | `tests/enquiry.test.js` | enquiry handler — validation, honeypot, magic-byte image sniffing (JPEG/PNG/GIF/WebP/HEIC/AVIF), filename sanitisation, email rendering/escaping, Resend errors, rate limiting. |

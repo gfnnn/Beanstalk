@@ -13,7 +13,8 @@ import { testimonials } from '../src/data/testimonials.js'
 import { renderSpecialisms, piecesForStyle } from '../src/build/specialisms.js'
 import {
   renderStatus, renderNotices,
-  renderHeroHeadline, renderHeroBody,
+  renderHeroEyebrow, renderHeroHeadline, renderHeroBody,
+  renderHeroMediaTag, renderVideoCredit,
 } from '../src/build/homepage.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
@@ -213,8 +214,49 @@ describe('renderHero copy', () => {
       .toBe('Quiet<br><em>ink &amp; line</em>')
   })
 
-  it('escapes the hero body', () => {
+  it('escapes the hero eyebrow and body', () => {
+    expect(renderHeroEyebrow({ eyebrow: 'a & b' })).toBe('a &amp; b')
     expect(renderHeroBody({ body: 'a <script>x</script> b' })).not.toContain('<script>')
+  })
+})
+
+describe('renderHeroMediaTag (click-through studio tag overlaid on the hero)', () => {
+  it('links to /visit/ with the escaped authored label', () => {
+    const html = renderHeroMediaTag({ mediaTag: 'Tiny Knives · Leeds' })
+    expect(html).toBe('<a href="/visit/" class="hero-media-tag-link">Tiny Knives · Leeds</a>')
+  })
+
+  it('escapes the label to prevent markup injection', () => {
+    expect(renderHeroMediaTag({ mediaTag: '<b>x</b>' })).toContain('&lt;b&gt;')
+  })
+})
+
+describe('renderVideoCredit (hero media credit line)', () => {
+  it('returns nothing until show is true (no video/credit yet)', () => {
+    expect(renderVideoCredit({ show: false, name: 'A' })).toBe('')
+    expect(renderVideoCredit()).toBe('')
+  })
+
+  it('renders a plain-text name when no url is set', () => {
+    const html = renderVideoCredit({ show: true, label: 'Film by', name: 'Sam Reed' })
+    expect(html).toContain('<span class="video-credit-label">Film by</span>')
+    expect(html).toContain('<span class="video-credit-name">Sam Reed</span>')
+    expect(html).not.toContain('<a')
+  })
+
+  it('links the name out (new tab, rel-safe) when a url is set, omitting the empty label span', () => {
+    const html = renderVideoCredit({ show: true, name: 'Sam Reed', url: 'https://sam.example' })
+    expect(html).toContain('href="https://sam.example"')
+    expect(html).toContain('target="_blank"')
+    expect(html).toContain('rel="noopener noreferrer"')
+    expect(html).not.toContain('video-credit-label') // no label → no label span
+  })
+
+  it('escapes the name and url', () => {
+    const html = renderVideoCredit({ show: true, name: '<b>x</b>', url: 'https://x/"onmouseover="y' })
+    expect(html).not.toContain('<b>x</b>')
+    expect(html).toContain('&lt;b&gt;')
+    expect(html).toContain('&quot;onmouseover=')
   })
 })
 
