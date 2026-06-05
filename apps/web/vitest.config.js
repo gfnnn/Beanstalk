@@ -1,9 +1,10 @@
 // Vitest config for the web workspace — kept separate from vite.config.js so the
 // test run doesn't pull in the build-only `generatedGrids` plugin (which rewrites
 // index.html markers). The default environment is Node: the build renderers/data
-// are plain modules with no DOM. The three client-module suites that DO need a DOM
-// (enquire/filter/loadmore) opt into jsdom per-file via a `// @vitest-environment
-// jsdom` pragma, so only they pay for it — the pure suites stay on Node.
+// are plain modules with no DOM. The client-module suites that DO need a DOM
+// (enquire/filter/loadmore/flash/newsletter/faq/nav) opt into jsdom per-file via a
+// `// @vitest-environment jsdom` pragma, so only they pay for it — the pure suites
+// stay on Node.
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -13,10 +14,12 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       // src/build (renderers/seo/palette) and src/data (content contracts) are
-      // pure Node modules the suites exercise directly. src/js/** is only partly
-      // exercised (the browser-only paths — image downscale, GSAP, navigation —
-      // need a real browser), so it's excluded so it doesn't skew the report as
-      // mostly-uncovered until a browser/E2E tier exists.
+      // pure Node modules the suites exercise directly. src/js/** is only PARTLY
+      // exercisable here: the synchronous, correctness-critical modules (enquire,
+      // filter, loadmore, flash, newsletter, faq, nav) are tested under jsdom, but
+      // the browser-only paths — image downscale, GSAP/smooth-scroll, the lightbox
+      // — need a real browser. So src/js/** is excluded from the headline report so
+      // those unavoidable gaps don't skew it until a browser/E2E tier exists.
       include: ['src/build/**', 'src/data/**'],
       reporter: ['text', 'html'],
     },

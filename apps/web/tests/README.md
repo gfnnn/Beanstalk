@@ -31,11 +31,24 @@ renderer/data tests.
 | `tests/html.test.js` | `src/build/html.js` — the shared `esc()` escaper and the `HAS_EXT` image-path predicate. |
 | `tests/build-pipeline.test.js` | `vite.config.js` integration — the markers are plumbed in, plugin order (palette+grids `pre`, SEO `post`), and the sitemap / per-piece `generateBundle` emitters. |
 | `tests/enquire.test.js` · `tests/filter.test.js` · `tests/loadmore.test.js` | the synchronous, correctness-critical logic of the matching `src/js/modules/` modules, driven under **jsdom** (step-gating validation, conditional-field disabling, filter/sort/window cooperation). |
+| `tests/flash.test.js` | `src/js/modules/flash.js` under **jsdom** — the drop/archive model (current drop vs. the self-hiding "Past" archive), drop-scoped count badges, filter + sort, the live-availability reconcile (claims map → status/badge/button, never downgrading claimed→pending), empty-state + footer-CTA visibility, the claim modal open/close, and the submit path incl. the **409 "claimed first"** branch. `lenis` is mocked; `fetch` is mocked. |
+| `tests/newsletter.test.js` | `src/js/modules/newsletter.js` under **jsdom** — email/consent validation (no network on failure), the `{ fields }` POST shape, and the success / "already subscribed" / inline-fallback / error branches with the submit button restored. |
+| `tests/faq.test.js` | `src/js/modules/faq.js` under **jsdom** — the single-open accordion (+ keyboard + `aria-expanded`), the exclusive category filter, the live search (resets chips to "All"), and the shared empty-state. |
+| `tests/nav.test.js` | `src/js/modules/nav.js` under **jsdom** — current-page active-link marking (incl. the More-dropdown trigger), the dropdown open/close (toggle, outside-click, Escape), the mobile drawer (open/close, close-on-link, Escape, body scroll-lock), and the `.scrolled` state. |
 
 ## Not yet covered
 
-The browser-only paths of the client modules — image downscale (FileReader,
-`createImageBitmap`, canvas), smooth-scroll/GSAP animation, navigation — lean on
-APIs jsdom doesn't implement, so they belong in a future browser/E2E tier (e.g.
-Playwright) rather than these unit tests. `src/js/**` is excluded from the coverage
-report for the same reason (see `vitest.config.js`).
+The remaining gaps are the **browser-only** modules and paths, which lean on APIs
+jsdom doesn't implement and so belong in a future browser/E2E tier (e.g.
+Playwright) rather than these unit tests:
+
+- **image downscale** in `enquire.js` (FileReader, `createImageBitmap`, canvas) —
+  the rest of `enquire.js` (step-gating, conditional fields) *is* covered;
+- **smooth-scroll / GSAP animation** — `lenis.js`, `animations.js`, and the
+  scroll-driven `gallery.js` / `aftercare.js`;
+- **the lightbox** (`lightbox.js`) — image-viewer transitions and focus timing.
+
+`src/js/**` is excluded from the headline coverage *report* (see
+`vitest.config.js`) so those browser-only modules don't skew it as mostly-uncovered
+— but the synchronous, correctness-critical modules above (`flash`, `newsletter`,
+`faq`, `nav`, `enquire`, `filter`, `loadmore`) are exercised under jsdom regardless.
