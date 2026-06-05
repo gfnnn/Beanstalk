@@ -37,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          lfs: true # resolve any Git-LFS-tracked media (apps/web/public/videos/) — see docs/MEDIA.md
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc

@@ -16,9 +16,11 @@ import {
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody,
   renderHeroMediaTag, renderVideoCredit,
 } from '../src/build/homepage.js'
+import { renderHeroMedia, renderAboutPortrait } from '../src/build/media.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
 import { homepage } from '../src/data/homepage.js'
+import { media } from '../src/data/media.js'
 
 describe('renderPortfolioTiles', () => {
   const withImage = {
@@ -257,6 +259,102 @@ describe('renderVideoCredit (hero media credit line)', () => {
     expect(html).not.toContain('<b>x</b>')
     expect(html).toContain('&lt;b&gt;')
     expect(html).toContain('&quot;onmouseover=')
+  })
+})
+
+describe('renderHeroMedia (homepage hero clip → placeholder until switched on)', () => {
+  it('falls back to the .video-placeholder when off (or slot missing)', () => {
+    expect(renderHeroMedia({ show: false })).toContain('class="video-placeholder"')
+    expect(renderHeroMedia()).toContain('class="video-placeholder"')
+    // no real media leaks in while off
+    expect(renderHeroMedia({ show: false, kind: 'video' })).not.toContain('<video')
+  })
+
+  it('renders a muted, looping, inline <video> with NO autoplay when on', () => {
+    const html = renderHeroMedia({
+      show: true, kind: 'video', poster: '/videos/hero-poster.jpg', alt: 'Hands at work',
+      sources: [
+        { src: '/videos/hero.webm', type: 'video/webm' },
+        { src: '/videos/hero.mp4',  type: 'video/mp4'  },
+      ],
+    })
+    expect(html).toContain('<video class="media-clip hero-video"')
+    expect(html).toContain('muted')
+    expect(html).toContain('loop')
+    expect(html).toContain('playsinline')
+    expect(html).toContain('data-media') // JS owns playback
+    expect(html).not.toContain('autoplay') // poster shows for no-JS / reduced-motion
+    expect(html).toContain('poster="/videos/hero-poster.jpg"')
+    expect(html).toContain('aria-label="Hands at work"')
+    expect(html).toContain('<source src="/videos/hero.webm" type="video/webm">')
+    expect(html).toContain('<source src="/videos/hero.mp4" type="video/mp4">')
+    expect(html).not.toContain('class="video-placeholder"')
+  })
+
+  it('renders a lazy GIF <img> (with the poster for reduced-motion swap) for kind:gif', () => {
+    const html = renderHeroMedia({
+      show: true, kind: 'gif', gif: '/videos/hero.gif',
+      poster: '/videos/hero-poster.jpg', alt: 'Hands at work',
+    })
+    expect(html).toContain('<img class="media-clip hero-video"')
+    expect(html).toContain('src="/videos/hero.gif"')
+    expect(html).toContain('loading="lazy"')
+    expect(html).toContain('data-media-gif')
+    expect(html).toContain('data-poster="/videos/hero-poster.jpg"')
+    expect(html).not.toContain('<video')
+  })
+
+  it('escapes the slot fields', () => {
+    const html = renderHeroMedia({
+      show: true, kind: 'video', alt: '<b>x</b>', poster: 'p"onerror="y',
+      sources: [{ src: 'a"b', type: 'video/mp4' }],
+    })
+    expect(html).not.toContain('<b>x</b>')
+    expect(html).toContain('&lt;b&gt;')
+    expect(html).toContain('&quot;onerror=')
+  })
+})
+
+describe('renderAboutPortrait (About intro clip → placeholder until switched on)', () => {
+  it('falls back to the .portrait-placeholder when off', () => {
+    expect(renderAboutPortrait({ show: false })).toContain('class="portrait-placeholder"')
+    expect(renderAboutPortrait()).toContain('class="portrait-placeholder"')
+  })
+
+  it('renders the clip with the .portrait-img frame class and overlaid caption when on', () => {
+    const html = renderAboutPortrait({
+      show: true, kind: 'video', poster: '/videos/about-portrait-poster.jpg',
+      alt: 'Roxy at work', caption: 'Tiny Knives · Winchester',
+      sources: [{ src: '/videos/about-portrait.mp4', type: 'video/mp4' }],
+    })
+    expect(html).toContain('<video class="media-clip portrait-img"')
+    expect(html).toContain('class="portrait-caption portrait-caption-over"')
+    expect(html).toContain('Tiny Knives · Winchester')
+    expect(html).not.toContain('class="portrait-placeholder"')
+  })
+
+  it('omits the caption span when no caption is set', () => {
+    const html = renderAboutPortrait({
+      show: true, kind: 'video', alt: 'x',
+      sources: [{ src: '/videos/about-portrait.mp4', type: 'video/mp4' }],
+    })
+    expect(html).not.toContain('portrait-caption')
+  })
+})
+
+describe('media data (src/data/media.js)', () => {
+  it('ships with both clips OFF so the pages render their placeholders until assets land', () => {
+    expect(media.hero.show).toBe(false)
+    expect(media.aboutPortrait.show).toBe(false)
+  })
+
+  it('points every clip at /videos/ (the public/ folder copied to the site root)', () => {
+    const paths = [
+      ...media.hero.sources.map(s => s.src), media.hero.poster, media.hero.gif,
+      ...media.aboutPortrait.sources.map(s => s.src),
+      media.aboutPortrait.poster, media.aboutPortrait.gif,
+    ]
+    paths.forEach(p => expect(p.startsWith('/videos/')).toBe(true))
   })
 })
 

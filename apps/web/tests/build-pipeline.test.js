@@ -66,6 +66,18 @@ describe('transformIndexHtml pipeline', () => {
     expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · 2026`)
   })
 
+  it('replaces the hero-media marker (placeholder while the clip is off)', () => {
+    const out = transformHtml(page('<!-- homepage:hero-media -->'))
+    expect(out).not.toContain('<!-- homepage:hero-media -->')
+    expect(out).toContain('class="video-placeholder"')
+  })
+
+  it('replaces the about:portrait marker (placeholder while the clip is off)', () => {
+    const out = transformHtml(page('<!-- about:portrait -->'))
+    expect(out).not.toContain('<!-- about:portrait -->')
+    expect(out).toContain('class="portrait-placeholder"')
+  })
+
   it('injects the palette <style> and repoints theme-color at the palette bg', () => {
     const out = transformHtml(page(''))
     expect(out).toContain('<style id="palette">')

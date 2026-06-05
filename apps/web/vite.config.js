@@ -15,6 +15,8 @@ import {
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody, renderHeroMediaTag,
   renderVideoCredit,
 } from './src/build/homepage.js'
+import { media } from './src/data/media.js'
+import { renderHeroMedia, renderAboutPortrait } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 
@@ -72,6 +74,15 @@ const generatedGrids = {
       }
       if (html.includes('<!-- homepage:video-credit -->')) {
         html = html.replace('<!-- homepage:video-credit -->', () => renderVideoCredit(homepage.videoCredit))
+      }
+      // Homepage hero clip + About portrait clip (src/data/media.js). Each falls
+      // back to its placeholder until the slot's show:true. Markers live on one
+      // page each, so the other pages pass through untouched.
+      if (html.includes('<!-- homepage:hero-media -->')) {
+        html = html.replace('<!-- homepage:hero-media -->', () => renderHeroMedia(media.hero))
+      }
+      if (html.includes('<!-- about:portrait -->')) {
+        html = html.replace('<!-- about:portrait -->', () => renderAboutPortrait(media.aboutPortrait))
       }
       // "What I do" specialism cards — previews pulled live from pieces.js.
       if (html.includes('<!-- homepage:specialisms -->')) {

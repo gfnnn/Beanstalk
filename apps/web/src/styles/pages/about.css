@@ -38,6 +38,26 @@
   color: rgba(var(--cream-rgb), 0.7);
 }
 
+/* The generated portrait clip/photo (src/build/media.js → aboutPortrait). Same
+   4:5 frame and radius as the placeholder, so switching it on doesn't reflow. */
+.portrait-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+}
+/* Caption overlaid in the placeholder's old corner when a clip is live. */
+.portrait-caption-over {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  z-index: 1;
+  text-shadow: 0 1px 6px rgba(var(--black-rgb), 0.45);
+}
+
 .intro-text {}
 
 .intro-eyebrow {
