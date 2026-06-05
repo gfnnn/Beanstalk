@@ -2,6 +2,7 @@ import { pauseScroll, resumeScroll } from './lenis.js'
 import { ENQUIRY_FN_URL, FLASH_STATUS_FN_URL } from './config.js'
 import { track } from './analytics.js'
 import { initStickyShadow } from './sticky.js'
+import { initChipOverflow } from './chip-overflow.js'
 
 export function initFlash() {
   const grid = document.getElementById('flash-grid')
@@ -50,8 +51,12 @@ export function initFlash() {
   }
   updateCounts()
 
-  // ── Filter bar sticky shadow ─────────────────────────────────────────────
+  // ── Filter bar sticky shadow + responsive chip overflow ──────────────────
+  // Same responsive collapse/select-wrap as the portfolio bar. Flash has only a
+  // few status chips so they rarely overflow, but this keeps the behaviour
+  // consistent and stops the sort select being clipped on a narrow desktop.
   initStickyShadow(filterBar)
+  initChipOverflow(filterBar)
 
   // ── Filter + sort ────────────────────────────────────────────────────────
   let activeFilter = 'all'
