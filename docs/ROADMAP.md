@@ -119,6 +119,32 @@ the strategic plan to move data into a dedicated secure store post-launch (see
 (an access `SELECT` + the prune preview) so the runbook is proven before a real
 request, and set a quarterly prune reminder.
 
+## Pre-launch hardening — security headers, Tier 1 (🛠 CODE)
+
+Add the security headers that **are** achievable on the current split deploy (static
+HTML on GitHub Pages + the JSON Worker). Parallelisable with Phases 2–4; not a hard
+blocker, but cheap and worth shipping for MVP.
+
+- [ ] **Site CSP + Referrer-Policy via a Vite head plugin.** A sixth plugin in
+      `apps/web/vite.config.js` (alongside `palette` / `injectSeoHead`) injects
+      `<meta http-equiv="Content-Security-Policy">` and
+      `<meta name="referrer" content="strict-origin-when-cross-origin">` into every
+      page's `<head>` — including the generated per-piece pages — so it stays
+      consistent and new pages inherit it. Pin `connect-src` to the `*.workers.dev`
+      Worker origins from `config.js`; allow `fonts.googleapis.com` /
+      `fonts.gstatic.com` until the fonts are self-hosted (P3), then tighten.
+- [ ] **Security headers on the Worker's JSON responses.** Add to `replyWith()`
+      (`apps/functions/src/lib/http.js`): `X-Content-Type-Options: nosniff`,
+      `Content-Security-Policy: default-src 'none'`, `Referrer-Policy: no-referrer`.
+      One-function change; good hygiene even for JSON-only endpoints.
+
+> **What Tier 1 can't cover (a real GitHub Pages limit).** A `<meta>` CSP can't set
+> `frame-ancestors`, and `X-Frame-Options` / `Strict-Transport-Security` /
+> `X-Content-Type-Options` are ignored as meta tags — so **clickjacking defense on
+> the HTML pages isn't achievable on Pages**. (HSTS you partly get for free once
+> **Enforce HTTPS** is on in Phase 6.) Closing that gap needs a layer that owns the
+> responses — see *infrastructure consolidation* in the Backlog (Tier 3).
+
 ## Phase 2 — Stand up the backend (Resend + Cloudflare) (👤 YOU)
 
 Follow `docs/ENQUIRY-SETUP.md` and `docs/NEWSLETTER-SETUP.md`. Summary:
@@ -368,6 +394,36 @@ security: [`CMS.md`](./CMS.md).
   CMS once content churns. First step is a POC to validate Tina end-to-end.
 - **Palette tie-in:** colour/swatch pickers generate from `src/data/palette.js` and
   honour the *never hard-code colour* rule, so the dashboard can't drift off-brand.
+
+## P2 — infrastructure consolidation (Cloudflare front + full security headers)
+
+**Direction (decided — post-launch):** fold the website's host onto Cloudflare so the
+whole stack lives in one place, rather than the current **GitHub Pages (site) +
+Cloudflare Worker (API)** split. The split carries standing maintenance overhead — two
+hosts, two deploy paths, two header/security models — and that friction compounds as
+the project grows; centralising removes it and **unlocks full security-header control**
+(the Tier 3 the pre-launch headers note points to).
+
+- **What it unlocks:** real response headers on the HTML — `Strict-Transport-Security`,
+  `X-Frame-Options` / CSP `frame-ancestors` (the clickjacking defense Tier 1 can't
+  give), `X-Content-Type-Options`, COOP/CORP — set declaratively, plus one origin and
+  one CORS story for site + API.
+- **Two routes:**
+  - **(a) Move the site to Cloudflare Pages** — git-backed (content + images stay in
+    the repo, build stays self-contained), with a `_headers` file for the full set.
+    _Recommended:_ keeps the git-backed model (consistent with the TinaCMS plan) and is
+    the cleanest single-host consolidation.
+  - **(b) Keep GitHub Pages, front it with the Cloudflare proxy** — orange-cloud +
+    Transform Rules / a Worker to inject headers. Less migration, but needs the apex DNS
+    on Cloudflare nameservers (currently GoDaddy) and still leaves two hosts.
+- **Supersedes a current decision:** this revisits "**the canonical site is GitHub
+  Pages**" and "two independent deploys" in `CLAUDE.md`. When undertaken, update
+  `CLAUDE.md` (deploy targets + the deploy guardrail), retire/replace
+  `.github/workflows/deploy-web.yml`, and re-point the `VITE_*_FN_URL` build wiring.
+- **Sequencing:** post-launch — don't entangle a host migration with the Phase 6 apex
+  cutover. Ship MVP on Pages with Tier 1 headers first; consolidate once the site is
+  live and stable. Pairs naturally with the CMS track (both want a git-backed,
+  Cloudflare-centred stack).
 
 ## P1 leftovers (decision-blocked)
 
