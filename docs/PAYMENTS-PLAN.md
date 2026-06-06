@@ -7,9 +7,9 @@ phase-by-phase build plan was trimmed to avoid it going stale before it's picked
 (see git history for the earlier long-form spec). Flesh it back out when the work
 actually starts.
 
-> Supersedes the old **Stripe** deposit-capture idea — the studio confirmed
-> **PayPal + Monzo**, reconciled by hand. Related: the deposit is the confirmation
-> trigger for [`SCHEDULING.md`](./SCHEDULING.md) — the two co-ship as one track.
+> The studio confirmed **PayPal + Monzo**, reconciled by hand. Related: the deposit
+> is the confirmation trigger for [`SCHEDULING.md`](./SCHEDULING.md) — the two
+> co-ship as one track.
 
 ## The decision that shapes everything: manual reconciliation
 
@@ -28,6 +28,16 @@ are just pre-filled URLs (`paypal.me/<handle>/<amount>GBP`,
 bookkeeping around them: a deposit amount, a unique **reference**, on-screen + emailed
 instructions, and an artist "mark paid" action.
 
+### Parked for later: Klarna
+
+**Klarna** stays on the table as a **future consideration** — pay-in-3 / "spread the
+cost" appeals for larger custom pieces. It is **not** part of the launch model and
+changes nothing above, because unlike the manual links it's a **real payment gateway**:
+merchant onboarding, an API/SDK to integrate, per-transaction fees, and its own
+compliance surface. So it's a separate, heavier track, not a drop-in alongside
+PayPal.Me/Monzo.me. Revisit only if customers actually ask to spread payments; until
+then it's a note, not a task.
+
 ## What this needs from today's code (the real gaps)
 
 1. **A `pending` → `claimed` transition.** `reserveFlashPiece()` only sets `pending`;
@@ -41,9 +51,9 @@ instructions, and an artist "mark paid" action.
 
 ## Actionable now (independent of the build)
 
-The enquire/FAQ/services copy still **names Stripe** and promises deposits that don't
-exist yet. Worth correcting regardless of when payments ship:
-`apps/web/enquire/index.html` (~L504), `apps/web/faq/index.html` deposit FAQs,
+The enquire/FAQ/services copy promises deposits that don't exist yet. The enquire
+consent box **no longer names a provider** (done) — keep the rest provider-neutral
+until payments ship: `apps/web/faq/index.html` deposit FAQs,
 `apps/web/services/index.html` deposit figures.
 
 ## To pin before building

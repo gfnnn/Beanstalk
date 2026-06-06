@@ -141,8 +141,8 @@ workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the 
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
 content-CMS plan; `docs/PAYMENTS-PLAN.md` is the (not-yet-built) **PayPal + Monzo** deposit /
-flash-purchase spec — manual reconciliation, no payment gateway to build, supersedes the old
-Stripe backlog item; `docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** spec
+flash-purchase spec — manual reconciliation, no payment gateway to build (Klarna parked there
+as a future consideration); `docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** spec
 that co-ships with it (request/hold + manual confirm). Read `ROADMAP.md` for current
 priorities before starting larger work.
 
