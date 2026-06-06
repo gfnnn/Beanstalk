@@ -541,6 +541,18 @@ the project grows; centralising removes it and **unlocks full security-header co
 
 ## P3 — polish
 
+- **Scrub the artist's personal email from git history** _(noted — deferred, not
+  urgent)._ The persona-decoupling pass removed the real `ARTIST_EMAIL` Gmail from
+  the **working tree** (it now lives only as a Worker secret), but it still exists
+  in **earlier commits** of this public repo. Remove it when convenient with a
+  **local** history rewrite — e.g. from a full clone,
+  `git filter-repo --replace-text replacements.txt` (where `replacements.txt` maps
+  the old address → `REDACTED`), then a coordinated **force-push** to all branches
+  and tags. This **cannot be done from a Claude Code web session** (the git proxy
+  rejects history rewrites — see `CLAUDE.md`), and it rewrites SHAs so it needs a
+  heads-up to anyone with a clone/open PR. Zero-effort alternative: treat the
+  address as exposed and **rotate the inbox**. (Forks/GitHub caches may retain old
+  commits even after a force-push.)
 - **Self-host + subset the fonts** (LCP + EU-privacy) — currently the Google
   Fonts CDN, render-blocking, with wide variable-font ranges.
 - **Real `/images/og-image.jpg`** (1200×630) — a branded **placeholder** now ships so
