@@ -5,7 +5,7 @@
 // the FAIL-SAFE / FAIL-OPEN behaviour (a DB outage must never block a real user).
 import { describe, it, expect } from 'vitest'
 import {
-  persistSubmission, persistConsent, getFlashClaims,
+  limitsFrom, persistSubmission, persistConsent, getFlashClaims,
   reserveFlashPiece, releaseFlashPiece, rateLimit,
 } from '../src/lib/db.js'
 import { makeD1, brokenD1, flashMap } from './helpers/fake-d1.js'
@@ -29,6 +29,27 @@ describe('persistSubmission', () => {
     await persistSubmission(e, { kind: 'enquiry', emailStatus: 'sent', fields: {} }, id)
     expect(d1.data.submissions.size).toBe(1)
     expect(d1.data.submissions.get(id).email_status).toBe('sent')
+  })
+
+  it('on conflict updates ONLY email_status — the durable record is never rewritten', async () => {
+    // The status flips pending → sent/failed as the send resolves, but the captured
+    // submission (ip, email, the fields blob) must stay exactly as first written —
+    // a later re-persist with drifted data must not clobber the record of truth.
+    const d1 = makeD1()
+    const e = { DB: d1.DB }
+    const id = await persistSubmission(e, {
+      kind: 'enquiry', emailStatus: 'pending', ip: '5.5.5.5',
+      fields: { email: 'first@b.co' },
+    })
+    await persistSubmission(e, {
+      kind: 'enquiry', emailStatus: 'sent', ip: '9.9.9.9',
+      fields: { email: 'tampered@b.co' },
+    }, id)
+    const rec = d1.data.submissions.get(id)
+    expect(rec.email_status).toBe('sent')      // the one field that updates
+    expect(rec.ip).toBe('5.5.5.5')             // untouched
+    expect(rec.email).toBe('first@b.co')       // untouched
+    expect(JSON.parse(rec.fields).email).toBe('first@b.co')
   })
 
   it('fails safe (returns the id / null, never throws) when the DB is down', async () => {
@@ -98,8 +119,62 @@ describe('persistConsent', () => {
   })
 })
 
+describe('limitsFrom', () => {
+  it('falls back to the built-in defaults when nothing is configured', () => {
+    expect(limitsFrom()).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+    expect(limitsFrom({})).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+  })
+
+  it('reads per-deploy overrides from env (minutes → ms for the window)', () => {
+    expect(limitsFrom({ RATE_MAX_PER_IP: '3', RATE_IP_WINDOW_MIN: '5', RATE_MAX_PER_DAY: '10' }))
+      .toEqual({ maxPerIp: 3, windowMs: 5 * 60_000, maxPerDay: 10 })
+  })
+
+  it('ignores a non-numeric / zero override and keeps the default (|| fallback)', () => {
+    expect(limitsFrom({ RATE_MAX_PER_IP: 'nope', RATE_MAX_PER_DAY: '0' }))
+      .toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+  })
+})
+
 describe('rateLimit', () => {
   const today = () => new Date().toISOString().slice(0, 10)
+
+  it('honours env-configured limits when no explicit options are passed', async () => {
+    // The handlers call rateLimit with only a storeName, so the per-IP ceiling has
+    // to come from env via limitsFrom — pin that wiring, not just the option path.
+    const d1 = makeD1()
+    const env = { DB: d1.DB, RATE_MAX_PER_IP: '2' }
+    const now = Date.now()
+    for (let i = 0; i < 2; i++) d1.data.rate.push({ bucket: 's:ip:4.4.4.4', ts: now })
+    const limiter = await rateLimit(env, '4.4.4.4', { storeName: 's' })
+    expect(limiter.ok).toBe(false) // blocked at the env ceiling of 2, not the default 5
+  })
+
+  it('commit() prunes the IP bucket of hits that have aged past the window', async () => {
+    const d1 = makeD1()
+    const now = Date.now()
+    const stale = now - 30 * 60_000 // older than the default 15-min window
+    d1.data.rate.push({ bucket: 's:ip:6.6.6.6', ts: stale })
+    const limiter = await rateLimit({ DB: d1.DB }, '6.6.6.6', { storeName: 's' })
+    expect(limiter.ok).toBe(true)
+    await limiter.commit()
+    const ipRows = d1.data.rate.filter(r => r.bucket === 's:ip:6.6.6.6')
+    expect(ipRows).toHaveLength(1)            // the stale row swept, the fresh one kept
+    expect(ipRows[0].ts).toBe(now)
+  })
+
+  it('keeps each storeName an independent bucket (enquiry vs newsletter never bleed)', async () => {
+    const d1 = makeD1()
+    const ip = '8.8.8.8'
+    // Exhaust the enquiry bucket for this IP.
+    const a = await rateLimit({ DB: d1.DB }, ip, { storeName: 'enquiry-rate', maxPerIp: 1 })
+    await a.commit()
+    const aBlocked = await rateLimit({ DB: d1.DB }, ip, { storeName: 'enquiry-rate', maxPerIp: 1 })
+    expect(aBlocked.ok).toBe(false)
+    // The newsletter bucket for the SAME IP is untouched.
+    const b = await rateLimit({ DB: d1.DB }, ip, { storeName: 'newsletter-rate', maxPerIp: 1 })
+    expect(b.ok).toBe(true)
+  })
 
   it('allows a request under the per-IP limit and records it on commit', async () => {
     const d1 = makeD1()
