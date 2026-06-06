@@ -1,32 +1,68 @@
 // ── Page preloader dismissal ──────────────────────────────────────────────────
 // The overlay (#page-loader) and its critical CSS are injected at build time by
-// src/build/loader.js — it covers every page from the first paint so the slow
-// CSS/font arrival never shows as "broken" content (the reported iPad flash). This
-// module fades it out the moment the page is genuinely ready.
+// src/build/loader.js. It exists for ONE job: the COLD first load, where the
+// render-blocking CSS + `display=swap` fonts arrive slowly (the reported iPad
+// flash). It covers from first paint, then fades once the page is genuinely ready
+// (document.fonts.ready — the font swap is the main cause of the visible reflow),
+// with a hard ceiling so a hung font/network never traps the visitor and a pure-CSS
+// failsafe in case this bundle never runs.
 //
-// "Ready" = document.fonts.ready: the font swap is the main cause of the visible
-// reflow, so we hold the cover until fonts have settled, then dismiss immediately
-// (no artificial minimum — fast/cached loads feel instant). A hard ceiling
-// guarantees we never strand a visitor behind the overlay if a font/network hangs,
-// and the CSS carries its own failsafe for the case where this bundle never runs.
+// On a WARM in-session navigation the page is already cached (fonts + CSS resolve
+// on first paint, no flash) and — where supported — a cross-document View
+// Transition (styles/components/atmosphere.css) already cross-fades the pages. So
+// the cover is pure friction there: worse, the View Transition snapshots the
+// incoming page's first paint, which IS the cover, so every navigation became a
+// fade *through* the cream loader. We therefore drop the cover instantly on warm
+// navigations — synchronously here at DOMContentLoaded, which runs before the View
+// Transition snapshots the new page, plus a `pagereveal` guard for the same — so a
+// navigation reads as a clean content→content cross-fade.
+//
+// "Warm" = this tab has already loaded a page this session (sessionStorage flag).
+// First load in the tab is cold (cover shown); everything after is warm.
 //
 // No-ops when the overlay is absent (e.g. a stripped test page), so it's safe in
 // the shared main.js init on every page.
+const SESSION_KEY = 'bs-visited'
+
 export function initPageLoader() {
   const loader = document.getElementById('page-loader')
   if (!loader) return
 
   const root    = document.documentElement
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  let dismissed = false
 
+  let warm = false
+  try {
+    warm = sessionStorage.getItem(SESSION_KEY) === '1'
+    sessionStorage.setItem(SESSION_KEY, '1')
+  } catch { /* private mode / disabled — treat as cold, the safe default */ }
+
+  let gone = false
+  const removeNow = () => {
+    if (gone) return
+    gone = true
+    root.classList.add('page-loaded')
+    loader.remove()
+  }
+
+  // Warm navigation: drop the cover with no fade of its own, before the incoming
+  // View Transition captures it, so the VT cross-fades real content. A `pagereveal`
+  // guard belts-and-braces the timing on browsers with cross-document transitions.
+  if (warm) {
+    removeNow()
+    window.addEventListener('pagereveal', () => removeNow(), { once: true })
+    return
+  }
+  window.addEventListener('pagereveal', e => { if (e.viewTransition) removeNow() }, { once: true })
+
+  // Cold load: hold the cover until the page is ready, then fade it out.
+  let dismissed = false
   function dismiss() {
-    if (dismissed) return
+    if (dismissed || gone) return
     dismissed = true
     root.classList.add('page-loaded')
 
-    // Under reduced motion the fade is disabled — remove the node straight away so
-    // it can't intercept clicks or hold focus.
+    // Reduced motion: no fade — remove straight away so it can't trap focus/clicks.
     if (reduced) { loader.remove(); return }
 
     let removed = false

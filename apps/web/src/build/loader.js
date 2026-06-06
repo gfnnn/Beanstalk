@@ -33,14 +33,16 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-sprig path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}
 #page-loader .pl-word{font-family:'JetBrains Mono',monospace;font-family:var(--mono,'JetBrains Mono',monospace);font-size:11px;letter-spacing:.3em;text-transform:lowercase;color:#5b574d;color:rgba(var(--ink-rgb),.5)}
 @media (prefers-reduced-motion:no-preference){
-#page-loader .pl-sprig path{animation:pl-draw 1.9s ease-in-out infinite}
-#page-loader .pl-sprig .pl-d2{animation-delay:.18s}
-#page-loader .pl-sprig .pl-d3{animation-delay:.34s}
-#page-loader .pl-word{animation:pl-pulse 1.9s ease-in-out infinite}
+#page-loader .pl-sprig{animation:pl-breathe 3s ease-in-out .8s infinite}
+#page-loader .pl-sprig path{animation:pl-draw .7s ease-out forwards}
+#page-loader .pl-sprig .pl-d2{animation-delay:.12s}
+#page-loader .pl-sprig .pl-d3{animation-delay:.24s}
+#page-loader .pl-word{animation:pl-pulse 3s ease-in-out infinite}
 }
 @media (prefers-reduced-motion:reduce){#page-loader{transition:none}}
-@keyframes pl-draw{0%{stroke-dashoffset:1;opacity:.25}40%{stroke-dashoffset:0;opacity:1}72%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:1;opacity:.25}}
-@keyframes pl-pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+@keyframes pl-draw{from{stroke-dashoffset:1;opacity:.2}to{stroke-dashoffset:0;opacity:1}}
+@keyframes pl-breathe{0%,100%{opacity:.82}50%{opacity:1}}
+@keyframes pl-pulse{0%,100%{opacity:.4}50%{opacity:.72}}
 @keyframes pl-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
 </style>`
 
