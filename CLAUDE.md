@@ -33,7 +33,7 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (340 web + 94
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (357 web + 116
   functions) run fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
@@ -169,7 +169,7 @@ comments document every field — **read them before editing**.
 | Data file               | Renderer (`src/build/`)        | Marker → page                                         |
 |-------------------------|--------------------------------|------------------------------------------------------|
 | `pieces.js` (portfolio) | `portfolio-tiles.js`           | `<!-- pieces:masonry -->` → `portfolio/`             |
-| `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/`                     |
+| `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/` (+ `<!-- flash:drop -->` / `<!-- flash:season -->` eyebrow) |
 | `homepage.js`           | `homepage.js`                  | `<!-- homepage:* -->` (status light, notices, hero, specialisms) |
 | `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (previews pulled live from pieces) |
 | `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
@@ -177,8 +177,14 @@ comments document every field — **read them before editing**.
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
 
 The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*
-page's nav, not just the homepage. The homepage "Kind words" section is `hidden` while
-`testimonials` is empty — add real quotes AND remove the `hidden` attribute to switch it on.
+page's nav, not just the homepage — it renders in two spots per page (the inline pill via
+`<!-- homepage:status -->` and the mobile-drawer variant via `<!-- homepage:status-drawer -->`).
+The `/flash/` page eyebrow is **fully data-driven from `flash.js`**: the drop *number*
+(`<!-- flash:drop -->`) is the highest `drop` value in the data (lower-numbered records fall
+into the auto-built "Past drops" archive), and the *season* label (`<!-- flash:season -->`)
+comes from the exported `season` string — so "Drop 12 · Summer 2026" never drifts from the
+cards. The homepage "Kind words" section is `hidden` while `testimonials` is empty — add real
+quotes AND remove the `hidden` attribute to switch it on.
 
 **Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
 testimonials) — edit the data file and let the build regenerate it. Tokens in the data
@@ -203,7 +209,11 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   mirrored from the OpenGraph tags. Only missing tags are added (per-page overrides
   win), and pages marked `noindex` (e.g. `/enquiry-received/`) are skipped. **Per-page
   content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
-  authored by hand in each page — only the derived/constant tags are injected.
+  authored by hand in each page — only the derived/constant tags are injected. The same
+  plugin also wraps `injectStagingNoindex`, which adds a **site-wide** `noindex, nofollow`
+  robots `<meta>` to every page on a **staging build** (no apex CNAME) so the pre-launch
+  GitHub Pages / Cloudflare Pages preview can't be indexed; it's a no-op on the apex build
+  and on any page that already declares its own robots tag (so it never doubles up).
 - **`sitemap` plugin** emits `robots.txt` + `/sitemap.xml` at build (and serves both in
   dev). The sitemap is built from the `ROUTES` list in `seo.js` **plus** a
   `/portfolio/<slug>/` entry per piece — keep `ROUTES` in sync when adding an indexable
