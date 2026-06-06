@@ -51,7 +51,9 @@ test.describe('smoke: SEO/static endpoints', () => {
       // (Anchor on the directive — a comment may mention the word "sitemap".)
       expect(body).toMatch(/disallow:\s*\/\s*$/im)
       expect(body).not.toMatch(/^sitemap:/im)
-      expect(sitemap.status()).toBe(404)
+      // Not served at all — assert "not 2xx" rather than a hard 404 so this
+      // doesn't depend on the preview server's missing-file status.
+      expect(sitemap.ok()).toBeFalsy()
     }
   })
 
