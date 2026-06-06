@@ -316,6 +316,25 @@ describe('enquiry handler — persistence & size limits', () => {
     expect(body.attachments).toBeUndefined() // the oversized image was skipped
     expect(body.html).toContain('skipped')
   })
+
+  it('clamps an over-long text field before storing or emailing it (cost guard)', async () => {
+    const huge = 'z'.repeat(5000) // well over the 2000-char per-field cap
+    const res = await H(post(validEnquiry({ idea: huge })))
+    expect(res.statusCode).toBe(200)
+    // Stored truncated…
+    const stored = JSON.parse(rows()[0].fields).idea
+    expect(stored.length).toBe(2000)
+    // …and the email carries the truncated value, never the full 5000 chars.
+    const body = sentBody(fetchMock)
+    expect(body.text).not.toContain('z'.repeat(2001))
+  })
+
+  it('caps a multi-select array to its item limit', async () => {
+    const many = Array.from({ length: 80 }, (_, i) => `s${i}`)
+    const res = await H(post(validEnquiry({ 'style[]': many })))
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(rows()[0].fields)['style[]'].length).toBe(50)
+  })
 })
 
 describe('enquiry handler — flash inventory', () => {

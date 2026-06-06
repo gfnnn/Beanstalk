@@ -459,6 +459,12 @@
 }
 .field-error-msg { font-size: 12px; color: var(--clay); margin-top: 4px; }
 
+/* Character counter — only rendered text appears (JS leaves it empty until the
+   last quarter of the limit), so :empty collapses it the rest of the time. */
+.char-count { display: block; font-size: 12px; color: var(--ink-faint); margin-top: 4px; text-align: right; }
+.char-count.low { color: var(--clay); }
+.char-count:empty { display: none; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
   .field-row { grid-template-columns: 1fr 1fr; }
