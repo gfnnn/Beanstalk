@@ -386,7 +386,7 @@ up after the site is live, in rough priority order.
 - **Deposit capture (PayPal + Monzo, manual).** The no-show defence the copy already
   promises. Reserve → deposit links (PayPal.Me/Monzo.me) → artist marks paid → claim
   confirmed, with a stale-pending auto-release. Manual reconciliation (no gateway/webhooks).
-  Full plan: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Supersedes the earlier "Stripe" framing — the studio confirmed PayPal + Monzo.)_
+  Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Supersedes the earlier "Stripe" framing — the studio confirmed PayPal + Monzo.)_
 
 - **Scheduling / appointment booking** _(planned — post-go-live switch-over, several
   decisions parked for Roxy)._ A calendar layer over the flash claim (and later the custom
@@ -395,8 +395,8 @@ up after the site is live, in rough priority order.
   confirm**, not instant self-serve — it reuses the flash atomic-reserve, the stale-pending
   TTL/cron, the `/studio` admin and the customer-email work the deposit plan already needs,
   so the two **co-ship as one track**. Couples with the artist-facing view below (same admin
-  surface). Build-vs-buy and ~12 product questions are open. Full plan + the questions for
-  Roxy: [`SCHEDULING.md`](./SCHEDULING.md).
+  surface). Build-vs-buy and the product questions for Roxy are open. Decisions + backlog
+  stub: [`SCHEDULING.md`](./SCHEDULING.md).
 
 - **GDPR retention/erasure — management UI.** The MVP runbook is done (Phase 1, plain
   SQL via `wrangler d1 execute`); the post-launch step is a **per-subject view,
@@ -407,8 +407,7 @@ up after the site is live, in rough priority order.
 ## P2 — content dashboard (CMS for Roxy) _(planned — decided, deferred until after go-live)_
 
 Let Roxy manage **site content** herself (distinct from the artist-facing view
-above, which manages *enquiries/claims*). Full plan, decisions, architecture and
-security: [`CMS.md`](./CMS.md).
+above, which manages *enquiries/claims*). Decisions + backlog stub: [`CMS.md`](./CMS.md).
 
 - **Scope:** portfolio (image + data, hide), flash (upload + data), homepage alert
   system + hero, testimonials, then the hand-authored pages (FAQ, services, about,
@@ -417,7 +416,7 @@ security: [`CMS.md`](./CMS.md).
   stays self-contained) with email login via Tina Cloud (free tier, 1 editor).
   **Publish = direct to live** (commits to `main` → existing Pages build). Chosen
   over Sanity (which would move content/images off git to a SaaS + CDN) and Sveltia
-  (GitHub-account friction). Hardening + CVE controls in `CMS.md` §7.
+  (GitHub-account friction). Hardening + CVE controls in `CMS.md` (security baseline).
 - **Sequencing:** a post-launch track — ship the site first (GDPR + images), add the
   CMS once content churns. First step is a POC to validate Tina end-to-end.
 - **Palette tie-in:** colour/swatch pickers generate from `src/data/palette.js` and
