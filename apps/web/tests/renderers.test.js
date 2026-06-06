@@ -540,6 +540,24 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
     expect(piecesForStyle(pieces, 'fine-line').length).toBeLessThanOrEqual(3)
     expect(piecesForStyle(pieces, 'fine-line').every(p => p.img && p.styles.includes('fine-line'))).toBe(true)
   })
+
+  it('piecesForStyle skips slugs in the exclude set', () => {
+    const all = piecesForStyle(sample, 'fine-line')
+    const exclude = new Set([all[0].slug])
+    expect(piecesForStyle(sample, 'fine-line', 3, exclude).map(p => p.slug)).not.toContain(all[0].slug)
+  })
+
+  it('never previews the same piece twice across cards (a multi-style piece is de-duplicated)', () => {
+    // `older-fl` carries both fine-line and botanical — it must appear on only one card.
+    const html = renderSpecialisms(sample, [{ style: 'fine-line' }, { style: 'botanical' }])
+    expect(html.match(/\/portfolio\/older-fl\//g)).toHaveLength(1)
+  })
+
+  it('de-duplicates against the real catalogue (no repeated thumbnail across the specialism row)', () => {
+    const html = renderSpecialisms(pieces, homepage.specialisms)
+    const srcs = [...html.matchAll(/<img src="([^"]+)"/g)].map(m => m[1])
+    expect(new Set(srcs).size).toBe(srcs.length)
+  })
 })
 
 describe('piecePagesData', () => {
