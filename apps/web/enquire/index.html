@@ -81,11 +81,17 @@
 </header>
 
 <!-- PROGRESS BAR
-     DEV NOTE: JS updates .progress-fill width, .progress-step classes,
-     and .progress-pct text as steps advance.
-     Step 1 = 25%, Step 2 = 50%, Step 3 = 75%, Step 4 = 100%
+     DEV NOTE: JS (src/js/modules/enquire.js) updates .progress-fill width,
+     the .progress-step done/current classes, and .progress-pct text as steps
+     advance. Fill = activeStep / 4 (Step 1 = 25% … Step 4 = 100%); the pct
+     label also names the active step so it stays clear on mobile, where the
+     named step pills are hidden.
 -->
 <div class="progress-wrap" id="progress-wrap">
+  <div class="progress-head">
+    <p class="progress-intro">Four short steps · about 2 minutes</p>
+    <span class="progress-pct" id="progress-pct">Step 1 of 4 — About you</span>
+  </div>
   <div class="progress-bar-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-label="Form progress">
     <div class="progress-fill" id="progress-fill"></div>
   </div>
@@ -96,7 +102,6 @@
       <span class="progress-step"><span class="step-name">Timing</span></span>
       <span class="progress-step"><span class="step-name">Consent</span></span>
     </div>
-    <span class="progress-pct" id="progress-pct">Step 1 of 4</span>
   </div>
 </div>
 
@@ -128,11 +133,13 @@
   <!-- FORM STEPS
        DEV NOTE — IMPLEMENTATION
        ──────────────────────────────────────────────────────────────────
-       In production, only the active .form-step is visible (display:none
-       on inactive ones). JS validates required fields before advancing,
-       saves progress to sessionStorage (key: "beansprout_step"), and on
-       submit POSTs JSON { fields, images[] } to the Cloudflare Worker, which
-       emails the artist via Resend (see apps/functions/src/handlers/enquiry.js).
+       The form is an accordion: only the active .form-step is expanded.
+       Completed steps collapse to a clickable summary header (.complete,
+       with an Edit affordance); steps not yet reached stay hidden
+       (.upcoming → display:none). JS validates required fields before
+       advancing, saves progress to sessionStorage (key: "beansprout_step"),
+       and on submit POSTs JSON { fields, images[] } to the Cloudflare Worker,
+       which emails the artist via Resend (see apps/functions/src/handlers/enquiry.js).
        On success it redirects to /enquiry-received/.
 
        Set the function URL via VITE_ENQUIRY_FN_URL (see .env.example) or the
@@ -155,12 +162,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 1 — Who are you?  (active by default)
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step" id="step-1" data-step="1">
+      <div class="form-step active" id="step-1" data-step="1">
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 01 · ABOUT YOU</span>
             <h2 class="step-heading">First, a little <em>about you.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -224,12 +232,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 2 — The tattoo
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step inactive" id="step-2" data-step="2" inert>
+      <div class="form-step upcoming" id="step-2" data-step="2" inert>
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 02 · THE TATTOO</span>
             <h2 class="step-heading">Now, the <em>fun part.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -348,12 +357,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 3 — References & timing
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step inactive" id="step-3" data-step="3" inert>
+      <div class="form-step upcoming" id="step-3" data-step="3" inert>
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 03 · REFERENCES &amp; TIMING</span>
             <h2 class="step-heading">References <em>&amp; timing.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -437,12 +447,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 4 — Health, consent & permissions
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step inactive" id="step-4" data-step="4" inert>
+      <div class="form-step upcoming" id="step-4" data-step="4" inert>
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 04 · HEALTH &amp; CONSENT</span>
             <h2 class="step-heading">Health, consent <em>&amp; the legal bit.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -495,17 +506,17 @@
                 <div class="checkbox-group">
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-policy" name="policy_accepted" required>
-                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-box" for="check-policy" aria-hidden="true"></label>
                     <label class="checkbox-label" for="check-policy">I've read and agree to the <a href="/services/">booking policies</a>, including the deposit and cancellation terms.</label>
                   </div>
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-age" name="age_confirmed" required>
-                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-box" for="check-age" aria-hidden="true"></label>
                     <label class="checkbox-label" for="check-age">I confirm I'm 18 or over and will bring photo ID to my appointment.</label>
                   </div>
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-deposit" name="deposit_understood" required>
-                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-box" for="check-deposit" aria-hidden="true"></label>
                     <label class="checkbox-label" for="check-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. Deposits are handled securely through Stripe.</label>
                   </div>
                 </div>
@@ -517,7 +528,7 @@
 
         <div class="step-footer">
           <button type="button" class="step-back" id="step4-back">← Back</button>
-          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Send my enquiry 🌱</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Send my enquiry</button>
         </div>
       </div>
 
