@@ -34,3 +34,7 @@
 
 /* Global overlay layer — paper grain + page transitions (loads last) */
 @import './components/atmosphere.css';
+
+/* First-paint guard against the GSAP entrance flash (FOUC). Imported late so its
+   `html:not(.motion-ready)` rules win; main.js flips the class. See the file. */
+@import './motion.css';

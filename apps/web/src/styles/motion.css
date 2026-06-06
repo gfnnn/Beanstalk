@@ -1,0 +1,63 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Motion — first-paint guard against the entrance-animation flash (FOUC)
+   ────────────────────────────────────────────────────────────────────────────
+   The entrance animations in src/js/modules/animations.js play with GSAP's
+   `.from()`: on load they snap their targets to opacity:0 (plus an offset / blur)
+   and ease them in. But src/js/main.js is a deferred ES module, so the browser
+   usually paints the page FULLY VISIBLE first and GSAP zeroes those elements a
+   frame later — the visible "flash" on load (worst on the always-above-the-fold
+   hero, and on any scroll-reveal element sitting in the first viewport).
+
+   Fix: hide those elements here from the first paint, and let the motion layer
+   reveal them. main.js adds `.motion-ready` to <html> as its first act — see the
+   top of its DOMContentLoaded handler — synchronously, immediately before the
+   GSAP `.from()` calls. The class flip and GSAP's start-state therefore land in
+   the SAME frame with no paint between, and GSAP still reads the natural
+   (opacity:1) value as its animation target. No inline <script> is used: the
+   production CSP is `script-src 'self'` (src/build/security.js), so the only JS
+   in play is the bundle itself, and the guard rides the shared main.css that
+   every page (incl. the per-piece pages) already links.
+
+   Failsafe: a pure-CSS reveal fires after 2s so a blocked or failed bundle can
+   never leave content permanently invisible — it simply appears, un-animated.
+   `.motion-ready` removes the whole rule (animation included) the instant the
+   bundle takes over, so the failsafe is inert on a normal, working load.
+
+   Reduced motion: scoped to `no-preference`. Under `reduce` the JS layer bails
+   (the early returns in animations.js) and never reveals anything, so the guard
+   MUST stay inert and the elements visible — hence the media query.
+
+   Keep this selector list in step with the on-load / in-viewport `.from()`
+   targets in src/js/modules/animations.js (hero entrance + sprout-media column,
+   the scroll-reveal text, the generic `.reveal`, and the grid tiles/cards).
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.motion-ready) :is(
+    /* Hero entrance (homepage — always above the fold) */
+    .hero-eyebrow,
+    .hero h1,
+    .hero-body,
+    .hero-actions,
+    .studio-notices,
+    .hero-media,
+    /* Scroll-reveal text + the generic reveal helper */
+    .eyebrow,
+    .section-title,
+    .body-text,
+    .serif-note,
+    .reveal,
+    /* Grid tiles / cards that enter on first scroll (top rows can be on-screen) */
+    .portfolio-grid .tile,
+    .masonry-tile,
+    .gallery--masonry .tile,
+    .specialism-card,
+    .process-step,
+    .testimonial,
+    .flash-card
+  ) {
+    opacity: 0;
+    animation: motion-fouc-failsafe 1ms linear 2s forwards;
+  }
+}
+
+@keyframes motion-fouc-failsafe { to { opacity: 1; } }
