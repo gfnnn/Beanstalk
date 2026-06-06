@@ -255,13 +255,19 @@ export function initScrollAnimations() {
     })
   }
 
-  // ── Page-hero (inner pages) — immediate timeline ───────────────────────────
-  const pageTitle = document.querySelector('.page-hero__title')
-  const pageEye   = document.querySelector('.page-hero .eyebrow')
+  // ── Page header (inner pages) — entrance timeline, mirrors the home hero ────
+  //    Inner pages lead with `.page-header` (eyebrow · title · descriptor), the
+  //    above-the-fold counterpart to the homepage hero. Give it the same on-load
+  //    entrance so navigating into a page feels continuous instead of snapping in.
+  //    (motion.css guards these so they don't flash before this runs.)
+  const pageTitle = document.querySelector('.page-title')
+  const pageEye   = document.querySelector('.page-eyebrow')
+  const pageDesc  = document.querySelector('.page-descriptor')
   if (pageTitle) {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 })
-    if (pageEye) tl.from(pageEye,   { opacity: 0, x: -16, duration: 0.65 })
+    if (pageEye)  tl.from(pageEye,  { opacity: 0, x: -16, duration: 0.65 })
     tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
+    if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
   }
 
   // ── Generic .reveal elements (about, visit, and other inner pages) ──────────
