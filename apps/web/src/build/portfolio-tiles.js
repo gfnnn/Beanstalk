@@ -28,11 +28,10 @@ export const GLYPHS = {
 // the chip label in portfolio/index.html and the matching entry here together.
 export const STYLE_LABELS = {
   'fine-line':   'Fine line',
-  botanical:     'Botanical',
   'black-grey':  'Black & grey',
-  illustrative:  'Illustrative',
-  dotwork:       'Dotwork',
   colour:        'Colour',
+  dotwork:       'Dotwork',
+  cybersigilism: 'Cybersigilism',
   script:        'Script',
 }
 export const PLACEMENT_LABELS = {

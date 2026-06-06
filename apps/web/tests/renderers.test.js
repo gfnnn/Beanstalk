@@ -25,7 +25,7 @@ import { media } from '../src/data/media.js'
 
 describe('renderPortfolioTiles', () => {
   const withImage = {
-    slug: 's1', title: 'Foxglove', subject: 'foxglove', styles: ['fine-line', 'botanical'],
+    slug: 's1', title: 'Foxglove', subject: 'foxglove', styles: ['fine-line', 'dotwork'],
     placement: 'forearm', date: '2026-03-01', tone: 't-moss', glyph: 'sprig',
     img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
@@ -67,7 +67,7 @@ describe('renderPortfolioTiles', () => {
 
   it('joins multiple styles into the data-style filter attribute', () => {
     const html = renderPortfolioTiles([withImage])
-    expect(html).toContain('data-style="fine-line botanical"')
+    expect(html).toContain('data-style="fine-line dotwork"')
   })
 
   it('escapes HTML in title/subject to prevent markup injection', () => {
@@ -420,7 +420,7 @@ describe('renderNewsletterInline', () => {
 describe('renderPiecePage', () => {
   const withImage = {
     slug: 'foxglove', title: 'Foxglove', subject: 'foxglove sprig',
-    styles: ['fine-line', 'botanical'], placement: 'forearm', date: '2026-03-01',
+    styles: ['fine-line', 'dotwork'], placement: 'forearm', date: '2026-03-01',
     tone: 't-moss', glyph: 'sprig', img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
   const exportImage = { ...withImage, slug: 'koi', title: 'Koi', img: '/images/tattoos/Koi.webp' }
@@ -465,7 +465,7 @@ describe('renderPiecePage', () => {
   it('shows style + placement tags and the enquiry / back CTAs', () => {
     const html = renderPiecePage(withImage)
     expect(html).toContain('>Fine line<')
-    expect(html).toContain('>Botanical<')
+    expect(html).toContain('>Dotwork<')
     expect(html).toContain('>Forearm<')
     expect(html).toContain('href="/enquire/"')
     expect(html).toContain('href="/portfolio/"')
@@ -514,7 +514,7 @@ describe('renderTestimonials', () => {
 describe('renderSpecialisms (homepage "What I do" cards)', () => {
   const sample = [
     { slug: 'newest-fl', title: 'Newest', subject: 'a sprig', styles: ['fine-line'],            placement: 'forearm', date: '2026-05-15', img: '/images/tattoos/Newest.webp', w: 700, h: 930 },
-    { slug: 'older-fl',  title: 'Older',  subject: 'a leaf',  styles: ['fine-line', 'botanical'], placement: 'leg',     date: '2025-01-01', img: '/images/tattoos/Older.webp',  w: 700, h: 930 },
+    { slug: 'older-fl',  title: 'Older',  subject: 'a leaf',  styles: ['fine-line', 'dotwork'], placement: 'leg',     date: '2025-01-01', img: '/images/tattoos/Older.webp',  w: 700, h: 930 },
     { slug: 'no-photo',  title: 'Pending', subject: 'a moth', styles: ['fine-line'],            placement: 'wrist',   date: '2026-06-01', img: null, w: null, h: null },
     { slug: 'bw',        title: 'Tiger',  subject: 'a tiger', styles: ['black-grey'],           placement: 'forearm', date: '2025-03-11', img: '/images/tattoos/Tiger.webp', w: 700, h: 930 },
   ]
