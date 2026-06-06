@@ -94,6 +94,8 @@ From `PAYMENTS-PLAN.md`, still true, plus the new gateway pieces:
   the long-retention rule, not the 12-month prune.
 
 ### Phase 1 — Stripe checkout for FLASH full payment (the backbone)
+> **Specced file-by-file in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md)** —
+> the executable build plan (migration, handlers, frontend, tests, sequencing).
 - **Worker:** `POST /checkout` (create a Stripe Checkout Session for a flash piece at its
   `price`; reserve the piece `pending` first) and `POST /webhooks/stripe` (verify the
   `Stripe-Signature`, and on `checkout.session.completed` promote `pending → claimed`, record
