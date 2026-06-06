@@ -12,6 +12,7 @@ import { initNewsletter } from './modules/newsletter.js'
 import { initMedia } from './modules/media.js'
 import { initAnalytics } from './modules/analytics.js'
 import { initPageLoader, pageReady } from './modules/loader.js'
+import { initPageTransitions } from './modules/transitions.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 0a. Manage the full-page preloader (#page-loader): cover the cold first load
@@ -26,6 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Nav (scroll-aware header, mobile menu)
   initNav()
+
+  // 2a. Page transitions — fade out before a same-origin navigation, so leaving
+  //     and arriving read as one "fade out → build in" beat. No-op under reduced
+  //     motion; never intercepts modified clicks or already-handled ones.
+  initPageTransitions()
 
   // Entrance / reveal — gated on pageReady so it plays AS the cover lifts (cold
   // load) or immediately (warm nav / no cover), never wasted behind the overlay.
