@@ -7,9 +7,15 @@ export function initNav() {
 
   if (!nav) return
 
-  // ── Scroll state ────────────────────────────────────────
+  // ── Scroll state (rAF-latched: at most one read/toggle per frame) ─────────
+  let scrollTick = false
   window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 60)
+    if (scrollTick) return
+    scrollTick = true
+    requestAnimationFrame(() => {
+      nav.classList.toggle('scrolled', window.scrollY > 60)
+      scrollTick = false
+    })
   }, { passive: true })
 
   // ── Active link ─────────────────────────────────────────
@@ -81,6 +87,8 @@ export function initNav() {
   })
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeDrawer()
+    // Only act when the drawer is actually open, so Escape elsewhere (closing the
+    // lightbox / flash modal) can't clobber the body overflow another component set.
+    if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer()
   })
 }

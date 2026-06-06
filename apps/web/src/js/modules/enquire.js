@@ -388,7 +388,8 @@ export function initEnquire() {
     if (!max) return
     const count = document.createElement('span')
     count.className = 'char-count'
-    count.setAttribute('aria-live', 'polite')
+    // No aria-live: this is ambient info; announcing "N characters left" on every
+    // keystroke near the limit would spam screen-reader users. maxlength is the guard.
     t.closest('.field')?.appendChild(count)
     const update = () => {
       const left = max - t.value.length
@@ -497,9 +498,7 @@ export function initEnquire() {
       b = document.createElement('div')
       b.id = 'form-error-banner'
       b.setAttribute('role', 'alert')
-      b.style.cssText = 'margin-top:16px;padding:14px 18px;background:#FBE8E4;' +
-        'border:1px solid var(--clay,#C45A3E);border-radius:var(--radius,8px);' +
-        'font-size:14px;color:#C45A3E;line-height:1.5'
+      b.className = 'form-error-banner'
       document.querySelector('#step-4 .step-footer')?.after(b)
     }
     b.textContent = msg

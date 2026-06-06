@@ -10,7 +10,7 @@
 // emitted assets bypass Vite's HTML transforms, this renders the COMPLETE
 // document — head/SEO, nav status, the shared nav/footer — itself, reusing the
 // same constants/labels as the rest of the site so nothing drifts.
-import { GLYPHS, STYLE_LABELS, PLACEMENT_LABELS, altText, dateKey } from './portfolio-tiles.js'
+import { GLYPHS, styleLabel, placeLabel, altText, dateKey } from './portfolio-tiles.js'
 import { esc, HAS_EXT } from './html.js'
 import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE } from './seo.js'
 import { renderStatus } from './homepage.js'
@@ -20,8 +20,7 @@ import { homepage } from '../data/homepage.js'
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
 
-const styleLabel = t => STYLE_LABELS[t] || t
-const placeLabel = t => PLACEMENT_LABELS[t] || t
+// styleLabel / placeLabel are imported from portfolio-tiles.js (single source of truth).
 
 // `img` may be a final web export carrying its own extension (e.g. "…/Koi.webp")
 // or a base path with no extension (the documented multi-size convention). Mirror
