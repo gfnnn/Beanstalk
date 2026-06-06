@@ -1,8 +1,0 @@
-# Beansprout — beansprout.ink
-User-agent: *
-Allow: /
-
-# Post-submit confirmation — also noindex'd on the page itself.
-Disallow: /enquiry-received/
-
-Sitemap: https://beansprout.ink/sitemap.xml

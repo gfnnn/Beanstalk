@@ -119,7 +119,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
-  public/        robots.txt, favicons, manifest, images/ (copied to dist root; no CNAME yet)
+  public/        favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml are generated, see SEO)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email app)
   src/index.js                           # Worker entry — routes /enquiry /newsletter /flash-status
@@ -204,12 +204,20 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   win), and pages marked `noindex` (e.g. `/enquiry-received/`) are skipped. **Per-page
   content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
   authored by hand in each page — only the derived/constant tags are injected.
-- **`sitemap` plugin** emits `/sitemap.xml` at build (and serves it in dev) from the
-  `ROUTES` list in `seo.js` **plus** a `/portfolio/<slug>/` entry per piece — keep `ROUTES`
-  in sync when adding an indexable page.
-- `public/robots.txt` is static (allows all, disallows `/enquiry-received/`, points
-  at the sitemap). The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`,
-  with Tiny Knives as `workLocation`) — Beansprout is the artist, not the studio.
+- **`sitemap` plugin** emits `robots.txt` + `/sitemap.xml` at build (and serves both in
+  dev). The sitemap is built from the `ROUTES` list in `seo.js` **plus** a
+  `/portfolio/<slug>/` entry per piece — keep `ROUTES` in sync when adding an indexable
+  page. **Both are staging-aware** (keyed off the same `isProductionBuild()` apex-CNAME
+  switch as the noindex): on a production/apex build `robots.txt` allows crawling,
+  disallows `/enquiry-received/` and advertises the sitemap, and `/sitemap.xml` is
+  emitted; on a **staging build** (no apex CNAME — the GitHub Pages preview or the
+  Cloudflare Pages dev environment from `develop`) `robots.txt` is a blanket
+  `Disallow: /` and **no sitemap is emitted**, so the pre-launch copy carries no
+  real-life SEO artifacts (no real-URL sitemap, no crawl invite) on top of the
+  per-page noindex. `robots.txt` is **generated** (via `renderRobots()` in `seo.js`),
+  not a static `public/` file, so this switch can take effect.
+- The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`, with Tiny Knives as
+  `workLocation`) — Beansprout is the artist, not the studio.
 
 ### Security headers
 Two layers, both centralised so new pages/responses inherit them:

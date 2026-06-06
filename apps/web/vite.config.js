@@ -4,7 +4,7 @@ import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
 import { flash, season } from './src/data/flash.js'
 import { renderFlashCards, renderFlashDrop, renderFlashSeason } from './src/build/flash-cards.js'
-import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderSitemap, ROUTES } from './src/build/seo.js'
+import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderRobots, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
 import { testimonials } from './src/data/testimonials.js'
@@ -205,15 +205,25 @@ const piecePages = {
   },
 }
 
-// Emit /sitemap.xml at build time and serve it from the dev server so it can be
-// verified locally. Includes the per-piece portfolio routes. robots.txt is a
-// static file in public/ (copied as-is).
+// Emit robots.txt and /sitemap.xml. robots.txt is generated (not a static
+// public/ file) so it can be staging-aware: a production (apex) build allows
+// crawling and advertises the sitemap, while a staging build (no apex CNAME —
+// the GitHub Pages preview or the Cloudflare Pages dev environment from
+// `develop`) blocks every crawler and emits NO sitemap, so the pre-launch copy
+// carries no real-life SEO artifacts (no real-URL sitemap, no crawl invite).
+// Both are served from the dev server too so they can be verified locally.
+// The sitemap includes the per-piece portfolio routes.
 const pieceRoutes = pieces.map(p => ({ path: `/portfolio/${p.slug}/`, priority: '0.6' }))
 const allRoutes = [...ROUTES, ...pieceRoutes]
 const sitemap = {
   name: 'beansprout-sitemap',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
+      if (req.url === '/robots.txt') {
+        res.setHeader('Content-Type', 'text/plain')
+        res.end(renderRobots())
+        return
+      }
       if (req.url === '/sitemap.xml') {
         res.setHeader('Content-Type', 'application/xml')
         res.end(renderSitemap(allRoutes))
@@ -223,7 +233,12 @@ const sitemap = {
     })
   },
   generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: renderSitemap(allRoutes) })
+    this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots() })
+    // Staging emits no sitemap — robots.txt blocks crawlers and a sitemap would
+    // only publish the real apex URLs onto the pre-launch copy.
+    if (isProductionBuild()) {
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: renderSitemap(allRoutes) })
+    }
   },
 }
 
