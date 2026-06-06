@@ -132,10 +132,26 @@ describe('transformIndexHtml pipeline', () => {
   })
 })
 
-describe('sitemap generateBundle', () => {
+// The robots.txt + sitemap emit is staging-aware (keyed off isProductionBuild()),
+// so drive generateBundle under an explicit SITE_ENV and restore it after.
+function emitWithEnv(val) {
+  const prev = process.env.SITE_ENV
+  if (val === undefined) delete process.env.SITE_ENV
+  else process.env.SITE_ENV = val
   const emitted = []
-  byName('beansprout-sitemap').generateBundle.call({ emitFile: f => emitted.push(f) })
+  try {
+    byName('beansprout-sitemap').generateBundle.call({ emitFile: f => emitted.push(f) })
+  } finally {
+    if (prev === undefined) delete process.env.SITE_ENV
+    else process.env.SITE_ENV = prev
+  }
+  return emitted
+}
+
+describe('sitemap + robots generateBundle (production / apex build)', () => {
+  const emitted = emitWithEnv('production')
   const sm = emitted.find(f => f.fileName === 'sitemap.xml')
+  const robots = emitted.find(f => f.fileName === 'robots.txt')
 
   it('emits sitemap.xml', () => {
     expect(sm).toBeTruthy()
@@ -147,6 +163,32 @@ describe('sitemap generateBundle', () => {
     for (const p of pieces) {
       expect(sm.source).toContain(`/portfolio/${p.slug}/`)
     }
+  })
+
+  it('emits a crawl-allowing robots.txt that advertises the sitemap', () => {
+    expect(robots).toBeTruthy()
+    expect(robots.source).toContain('Allow: /')
+    expect(robots.source).toContain('Sitemap: https://beansprout.ink/sitemap.xml')
+  })
+})
+
+describe('sitemap + robots generateBundle (staging build — no real-life SEO artifacts)', () => {
+  const emitted = emitWithEnv(undefined)
+  // Pre-launch repo invariant: no apex CNAME, so SITE_ENV unset → staging.
+  const isStaging = !emitted.some(f => f.fileName === 'sitemap.xml')
+
+  it('emits NO sitemap.xml on a staging build', () => {
+    if (!isStaging) return // a local apex/CNAME build legitimately would emit one
+    expect(emitted.some(f => f.fileName === 'sitemap.xml')).toBe(false)
+  })
+
+  it('emits a blanket Disallow robots.txt that never advertises the production sitemap', () => {
+    if (!isStaging) return
+    const robots = emitted.find(f => f.fileName === 'robots.txt')
+    expect(robots).toBeTruthy()
+    expect(robots.source).toContain('Disallow: /')
+    expect(robots.source).not.toContain('Sitemap:')
+    expect(robots.source).not.toContain('beansprout.ink')
   })
 })
 
