@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
-import { flash } from './src/data/flash.js'
-import { renderFlashCards, renderFlashDrop } from './src/build/flash-cards.js'
+import { flash, season } from './src/data/flash.js'
+import { renderFlashCards, renderFlashDrop, renderFlashSeason } from './src/build/flash-cards.js'
 import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
@@ -38,9 +38,14 @@ const generatedGrids = {
         html = html.replace('<!-- flash:grid -->', () => renderFlashCards(flash))
       }
       // The current drop number in the /flash/ page eyebrow — derived from the
-      // highest `drop` in flash.js so it tracks the cards (the season stays authored).
+      // highest `drop` in flash.js so it tracks the cards.
       if (html.includes('<!-- flash:drop -->')) {
         html = html.replace('<!-- flash:drop -->', () => renderFlashDrop(flash))
+      }
+      // The current drop's season label, beside the number — authored in flash.js
+      // (`season`) so the editorial text is a single source of truth, not hand-edited HTML.
+      if (html.includes('<!-- flash:season -->')) {
+        html = html.replace('<!-- flash:season -->', () => renderFlashSeason(season))
       }
       // Inline newsletter-capture band (homepage / flash / post-enquiry).
       if (html.includes('<!-- newsletter:inline -->')) {

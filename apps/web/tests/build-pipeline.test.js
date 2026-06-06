@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import config from '../vite.config.js'
 import { pieces } from '../src/data/pieces.js'
-import { flash } from '../src/data/flash.js'
+import { flash, season } from '../src/data/flash.js'
 import { themeColor } from '../src/build/palette.js'
 
 const plugins = config.plugins
@@ -65,6 +65,12 @@ describe('transformIndexHtml pipeline', () => {
     const out = transformHtml(page('Drop <!-- flash:drop --> · 2026'))
     expect(out).not.toContain('<!-- flash:drop -->')
     expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · 2026`)
+  })
+
+  it('replaces the flash:season marker with the authored season label', () => {
+    const out = transformHtml(page('Drop <!-- flash:drop --> · <!-- flash:season -->'))
+    expect(out).not.toContain('<!-- flash:season -->')
+    expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · ${season}`)
   })
 
   it('replaces the hero-media marker (placeholder while the clip is off)', () => {
