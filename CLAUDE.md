@@ -275,7 +275,15 @@ The two workspaces deploy to **different places**, each gated so only relevant c
   **path-gated** (`paths: apps/web/**`, lockfile, the workflow itself), so a functions-only
   change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`)
   is copied to the site root as-is. **No `public/CNAME`** until the apex cutover (see the
-  guardrail below).
+  guardrail below). This is the **production** web deploy — fed only by batched
+  `develop → main` release PRs (see the Git workflow above).
+- **Staging (the `develop` branch) → Cloudflare Pages.** A Git-connected **Cloudflare
+  Pages** project builds `develop` (production branch = `develop`, build `npm run build`,
+  output `apps/web/dist`) and serves it at a `*.pages.dev` staging URL — the always-on
+  preview where batched features are tested together before a release PR. It's wired the
+  **same way the Worker is** (Cloudflare-side Git integration, no GitHub-held Cloudflare
+  token — see "CI / GitHub Actions security"), so the `VITE_*_FN_URL` build vars are set in
+  the **Pages project's** env, not GitHub Actions. Setup steps in `docs/BRANCHING.md`.
 - **Worker → Cloudflare.** `apps/functions/wrangler.toml` defines the Worker (`name`, the D1
   binding, vars). Deployment is via **Cloudflare Workers Builds** — the Worker is Git-connected
   to this repo, building from the **repo root** (Root directory `/`, so `npm ci` finds the
@@ -290,14 +298,24 @@ The two workspaces deploy to **different places**, each gated so only relevant c
 This separation is the point of the monorepo split: **frontend changes deploy to Pages,
 Worker changes deploy to Cloudflare, and neither drags the other along.**
 
-## Git workflow — keep `main` clean
+## Git workflow — `develop` integrates, `main` releases
 
-`main` is the **deploy branch**: a push under `apps/web/**` triggers a GitHub Pages
-build, and the Cloudflare Worker is deployed from `apps/functions` (`wrangler deploy`).
-So `main` must only ever receive reviewed, self-contained commits — never work-in-progress.
+Two long-lived branches, so features can be **tested together** before a **batched,
+deliberate** push to production. Full runbook (branch roles, release process, the GitHub
+ruleset settings, and the Cloudflare Pages staging setup) lives in
+[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow.
 
-1. **Branch before you build.** `git switch -c feat/<thing>` off an up-to-date `main`.
-   Never commit directly on `main`.
+- **`develop` is the integration branch.** Feature PRs target it, CI runs on every PR, and
+  a push to `develop` deploys the **staging** site (Cloudflare Pages, branch-built) + a
+  Worker preview version. Features accumulate here and get exercised side-by-side.
+- **`main` is the release/production branch.** It is updated **only** by a release PR
+  `develop → main` that batches everything that has landed on `develop`. A push under
+  `apps/web/**` then triggers the GitHub Pages build and the Cloudflare Worker deploy
+  (`wrangler deploy`). So `main` only ever receives reviewed, batched releases — never a
+  single work-in-progress feature, never a direct commit.
+
+1. **Branch before you build — off `develop`.** `git switch -c feat/<thing>` off an
+   up-to-date `develop`. Never commit directly on `develop` or `main`.
 2. **Stage only what the task touches.** Use explicit paths (`git add path/…`), never
    `git add -A`. If unrelated changes are already sitting in the tree, commit or stash
    them on their own branch first so they don't get swept into your commit.
@@ -305,12 +323,17 @@ So `main` must only ever receive reviewed, self-contained commits — never work
    browser (a new page, layout, component, animation, copy block), run the site and *look
    at it* before raising the PR — don't ship a feature you've only typechecked. See
    [Visual check before a feature PR](#visual-check-before-a-feature-pr) below.
-4. **One PR per change, squash-merge, delete the branch.**
-   `gh pr create` → review the diff → `gh pr merge --squash --delete-branch`. This
-   leaves `main` with one tidy commit per feature and no stale branches.
-5. **Never rewrite published history on `main`.** No force-pushes to `main`. (Rebasing
-   your *own* feature branch and `--force-with-lease`-ing it is fine and encouraged — see
-   below.)
+4. **One PR per change → `develop`, squash-merge, delete the branch.**
+   `gh pr create --base develop` → review the diff → `gh pr merge --squash --delete-branch`.
+   This leaves `develop` with one tidy commit per feature and no stale branches.
+5. **Release in batches: open a `develop → main` PR.** When the accumulated work on
+   `develop` is verified on staging and ready to ship, open `gh pr create --base main
+   --head develop` (title it `release: <date / summary>`), review the combined diff, and
+   **merge-commit** it (not squash — preserve the per-feature history on `main`). That one
+   merge is the production deploy. See `docs/BRANCHING.md` for the release checklist.
+6. **Never rewrite published history on `develop` or `main`.** No force-pushes to either.
+   (Rebasing your *own* feature branch and `--force-with-lease`-ing it is fine and
+   encouraged — see below.)
 
 Commit messages end with `Co-Authored-By: Claude <model> <noreply@anthropic.com>`.
 
@@ -339,22 +362,23 @@ Skip this only when the change genuinely can't be seen in the browser.
 ### Working on several features at once (avoid the branch tangle)
 
 Solo work still means multiple features in flight. The failure mode is branches cut from
-`main` that then sit and rot: when one squash-merges, the others fall behind and the
+`develop` that then sit and rot: when one squash-merges, the others fall behind and the
 eventual merge fights conflicts. These rules keep parallel work cheap:
 
 1. **One feature = one worktree = one branch = one PR.** Don't switch branches in the main
    checkout (stash/checkout churn loses context). Give each in-flight feature its own
    working copy that shares the one `.git`:
    ```bash
-   git worktree add ../trees/<feature> -b feat/<feature> origin/main
+   git worktree add ../trees/<feature> -b feat/<feature> origin/develop
    #   → its own folder, own node_modules (npm install once), own dev-server port.
    git worktree remove ../trees/<feature>   # once the PR is merged
    ```
    Worktrees live under `../trees/` (sibling of the repo), never committed.
 2. **Cap in-flight branches at ~2–3.** Don't open a fourth until one merges or is parked.
-3. **Rebase onto `main` daily, and immediately after *any* PR merges.** The moment one PR
-   lands, rebase every other live branch (`git fetch && git rebase origin/main`) so it
-   never drifts. Stale branches are the whole problem; this is the fix.
+3. **Rebase onto `develop` daily, and immediately after *any* PR merges.** The moment one
+   PR lands on `develop`, rebase every other live branch (`git fetch && git rebase
+   origin/develop`) so it never drifts. Stale branches are the whole problem; this is the
+   fix.
 4. **Structural refactors run solo.** A change that *moves or renames files* (directory
    restructures, monorepo splits, mass renames) conflicts with everything. Merge it
    first, fast, with nothing else open — then branch the rest off the new layout. Never
@@ -363,7 +387,7 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
    ones don't. CI (`.github/workflows/test.yml`) runs Vitest on every PR — merge on green.
 
 **Resolving a stale branch** (the standard recovery): from its worktree,
-`git fetch && git rebase origin/main`, fix conflicts, `npm test && npm run build`, then
+`git fetch && git rebase origin/develop`, fix conflicts, `npm test && npm run build`, then
 `git push --force-with-lease`, then `gh pr merge --squash --delete-branch`.
 
 **Stop the tangle at the source — delete merged branches automatically.** This repo
@@ -382,7 +406,7 @@ of dead `claude/*`, `feat/*`, `docs/*` heads accumulate. Two defences:
   gh pr list --state merged --limit 200 --json headRefName -q '.[].headRefName' \
     | sort -u > /tmp/merged-heads
   git ls-remote --heads origin | sed 's#.*refs/heads/##' \
-    | grep -vxF main \
+    | grep -vxE 'main|develop' \
     | grep -xF -f /tmp/merged-heads \
     | xargs -r -n1 git push origin --delete   # deletes only confirmed-merged heads
   ```
