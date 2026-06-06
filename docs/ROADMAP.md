@@ -25,6 +25,12 @@ Shipped (audience-capture + early management layer):
   skip-to-content links; branded 404.
 - **Inline newsletter capture** on the homepage, flash, and post-enquiry pages.
 - **Per-piece portfolio pages** at `/portfolio/<slug>/` (per-piece SEO + sitemap).
+- **Responsive image pipeline** (#109) — `apps/web/scripts/process-media.mjs` (sharp)
+  emits AVIF/WebP/JPG tiers with a **tattoo-aware crop** (+ manual override); the 28
+  original exports were migrated to tiers and **30 new portfolio pieces** added (now
+  **58**). Style taxonomy moved to **real styles** (dropped botanical/illustrative,
+  added cybersigilism). Hero video helper (`process-video.mjs`) is in but the clips are
+  deferred (see Phase 4). Full guide: [`MEDIA.md`](./MEDIA.md).
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
   (reject double-claims with 409); the grid reflects live availability.
@@ -78,8 +84,9 @@ Two things gate the apex cutover:
    erasure path** exist as plain SQL (`docs/DATA-COMPLIANCE.md`), and the privacy
    page matches. Built in **Phase 1** — this was the one real engineering blocker,
    and it's done.
-2. **Real copy + images.** Largely done (#53; 28 portfolio pieces with real photos,
-   12 flash pieces). Remaining gaps are small and listed in **Phase 4**.
+2. **Real copy + images.** Largely done (#53, #109; **58 portfolio pieces** with real
+   photos on a responsive pipeline, 12 flash pieces). Remaining gaps are small and
+   listed in **Phase 4** (notably the hero video/GIF and og-image).
 
 With the engineering blocker cleared, the route to live is now **operational**: stand
 up the backend (Phase 2), wire the inbox (Phase 3), sign off content (Phase 4), verify
@@ -218,8 +225,13 @@ Content is mostly in, but a few items need your confirmation before launch.
 - [ ] **`og-image.jpg` (1200×630)** — referenced site-wide for social cards and the
       default piece-page OG image, **still missing** (Backlog P3). 👤 supply image →
       🛠 add to `apps/web/public/images/og-image.jpg`.
-- [ ] **Portfolio / flash spot-check** — 28 pieces + 12 flash are populated with real
-      photos; eyeball them for any remaining placeholders/tone-swatch fallbacks.
+- [ ] **Portfolio / flash spot-check** — 58 pieces + 12 flash are populated with real
+      photos; eyeball them for any remaining placeholders/tone-swatch fallbacks, and
+      flag any auto-crop that needs a manual `crop` override (see [`MEDIA.md`](./MEDIA.md)).
+- [ ] **Hero video / GIF** — the homepage + About hero slots (`src/data/media.js`) are
+      `show:false` (placeholder). Per the plan, an average-quality **GIF** lands for
+      go-live; an ffmpeg helper (`apps/web/scripts/process-video.mjs`) is ready for the
+      clips. 👤 supply the clip/GIF → 🛠 process, flip `show:true`, LFS the binaries.
 - [ ] **Brand logo & icon artwork** — the nav still shows a `logo.svg` text placeholder
       and the `/enquiry-received/` confirmation badge shows an `icon` text placeholder
       (the old 🌱 emoji was removed from both the badge and the "Send my enquiry" button).
@@ -418,6 +430,10 @@ above, which manages *enquiries/claims*). Decisions + backlog stub: [`CMS.md`](.
 - **Scope:** portfolio (image + data, hide), flash (upload + data), homepage alert
   system + hero, testimonials, then the hand-authored pages (FAQ, services, about,
   aftercare). **Out:** editable filters, flash status, Visit home/guest.
+- **Image crop / re-centre** (the artist's "image management" ask): make the per-image
+  `crop: {cx,cy,h}` override data-driven in `pieces.js` (small standalone refactor),
+  then expose it in Tina as a focal-point field + a regenerate-tiers Action. Not a
+  bespoke dashboard — details in [`CMS.md`](./CMS.md) → *Image management*.
 - **Tool decided — TinaCMS** (git-backed: content + images stay in the repo, build
   stays self-contained) with email login via Tina Cloud (free tier, 1 editor).
   **Publish = direct to live** (commits to `main` → existing Pages build). Chosen
