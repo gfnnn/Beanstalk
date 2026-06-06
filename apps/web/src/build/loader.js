@@ -27,7 +27,7 @@
 // resolve here; each still carries a hard-coded fallback so the overlay is never
 // the wrong colour even if that block is missing (e.g. a hand-rendered page).
 export const LOADER_STYLE = `<style id="page-loader-css">
-#page-loader{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#F7F1E3;background:var(--bg,#F7F1E3);opacity:1;visibility:visible;transition:opacity .45s ease,visibility .45s ease;animation:pl-failsafe 1ms linear 6s forwards}
+#page-loader{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#F7F1E3;background:var(--bg,#F7F1E3);opacity:1;visibility:visible;transition:opacity .55s cubic-bezier(.33,1,.68,1),visibility .55s linear;animation:pl-failsafe 1ms linear 6s forwards}
 html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-sprig{width:42px;height:60px;color:#4A5D3F;color:var(--moss,#4A5D3F)}
 #page-loader .pl-sprig path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}

@@ -5,10 +5,12 @@
 // module fades it out the moment the page is genuinely ready.
 //
 // "Ready" = document.fonts.ready: the font swap is the main cause of the visible
-// reflow, so we hold the cover until fonts have settled, then dismiss immediately
-// (no artificial minimum — fast/cached loads feel instant). A hard ceiling
-// guarantees we never strand a visitor behind the overlay if a font/network hangs,
-// and the CSS carries its own failsafe for the case where this bundle never runs.
+// reflow, so we hold the cover until fonts have settled, then fade it out — no
+// artificial minimum hold, just the fade itself, so a fast/cached load reveals the
+// page with a smooth cross-fade rather than a snap (see the rAF note in dismiss).
+// A hard ceiling guarantees we never strand a visitor behind the overlay if a
+// font/network hangs, and the CSS carries its own failsafe should this bundle
+// never run.
 //
 // No-ops when the overlay is absent (e.g. a stripped test page), so it's safe in
 // the shared main.js init on every page.
@@ -23,20 +25,28 @@ export function initPageLoader() {
   function dismiss() {
     if (dismissed) return
     dismissed = true
-    root.classList.add('page-loaded')
 
     // Under reduced motion the fade is disabled — remove the node straight away so
     // it can't intercept clicks or hold focus.
-    if (reduced) { loader.remove(); return }
+    if (reduced) { root.classList.add('page-loaded'); loader.remove(); return }
 
-    let removed = false
-    const remove = () => { if (!removed) { removed = true; loader.remove() } }
-    loader.addEventListener('transitionend', e => {
-      if (e.propertyName === 'opacity') remove()
-    }, { once: true })
-    // transitionend can be skipped (backgrounded tab, interrupted transition), so
-    // guarantee the node is gone shortly after the fade would have finished.
-    setTimeout(remove, 700)
+    // On a fast/cached load, fonts.ready can resolve before the overlay has painted
+    // a stable frame at full opacity — flip the class now and the browser jumps
+    // straight to opacity:0 (a "snap") instead of animating. Let it paint one frame
+    // first, then flip, so the CSS fade always engages. Two rAFs ≈ one paint (~30ms,
+    // imperceptible) and it never holds the page open.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      root.classList.add('page-loaded')
+
+      let removed = false
+      const remove = () => { if (!removed) { removed = true; loader.remove() } }
+      loader.addEventListener('transitionend', e => {
+        if (e.propertyName === 'opacity') remove()
+      }, { once: true })
+      // transitionend can be skipped (backgrounded tab, interrupted transition), so
+      // guarantee the node is gone just after the fade would have finished.
+      setTimeout(remove, 800)
+    }))
   }
 
   const fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve()
