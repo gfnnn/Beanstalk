@@ -14,7 +14,7 @@
 // keep it a bare phrase ("within 3 days", "in 2–3 working days") with no leading
 // "usually" and no trailing punctuation.
 //
-// TODO(roxy): "within 3 days" is a sensible placeholder default — confirm your
+// TODO(artist): "within 3 days" is a sensible placeholder default — confirm your
 // real reply time here before launch. Changing it here updates both pages at once.
-// ROXY-COPY · BUS-01 · pending approval — see docs/COPY-REVIEW.md
+// ARTIST-COPY · BUS-01 · pending approval — see docs/COPY-REVIEW.md
 export const replyTime = 'within 3 days'

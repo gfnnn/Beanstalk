@@ -98,8 +98,9 @@ on staging (Phase 5), then cut the apex over (Phase 6).
 
 These unblock later phases. None require code to decide.
 
-- [x] **Where Roxy reads mail** — confirmed: **`roksanaklaudia.z@gmail.com`** is
-      `ARTIST_EMAIL` (where `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
+- [x] **Where the artist reads mail** — confirmed and set as the `ARTIST_EMAIL`
+      Worker secret (the artist's Gmail, kept out of the repo; where
+      `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
 - [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
 - [ ] **Analytics vendor (optional for MVP)** — Plausible/Fathom (cookieless, no
       consent banner) vs GA4 (needs a banner). The `track()` scaffold
@@ -185,7 +186,7 @@ and `docs/NEWSLETTER-SETUP.md` for reference.
       | Key | Value |
       |---|---|
       | `RESEND_API_KEY` | the `re_…` key |
-      | `ARTIST_EMAIL` | `roksanaklaudia.z@gmail.com` (production; test = `harrisonfisher1990@gmail.com`) |
+      | `ARTIST_EMAIL` | the artist's Gmail (production, set as a secret; test = `harrisonfisher1990@gmail.com`) |
       | `FROM_EMAIL` | `roxy@beansprout.ink` (production; test = `onboarding@resend.dev`) |
       | `RESEND_AUDIENCE_ID` | the Audience ID |
       | `RATE_*` | *(optional vars — defaults are sane)* |
@@ -198,12 +199,12 @@ and `docs/NEWSLETTER-SETUP.md` for reference.
 
 ## Phase 3 — Wire the inbox (email forwarding) (👤 YOU)
 
-So `hello@` / `roxy@beansprout.ink` actually **receive**, and Roxy can reply *as*
+So `hello@` / `roxy@beansprout.ink` actually **receive**, and the artist can reply *as*
 the domain. Full detail in `docs/EMAIL-DOMAIN-SETUP.md`. This uses **MX/TXT** only
 and does **not** touch the website's A/CNAME — so it's safe to do before cutover.
 
 - [ ] **ImprovMX** (free) — add `beansprout.ink`, create `hello@` and `roxy@`
-      aliases → Roxy's Gmail.
+      aliases → the artist's Gmail.
 - [ ] **GoDaddy DNS** — add ImprovMX's MX records + SPF TXT; **remove GoDaddy's
       default `*.secureserver.net` MX** (after confirming no current mail relies on
       them). Keep nameservers on GoDaddy.
@@ -219,32 +220,32 @@ and does **not** touch the website's A/CNAME — so it's safe to do before cutov
 Content is mostly in, but a few items need your confirmation before launch.
 (Edits land via PR — give me the values and I'll wire them.)
 
-### Copy sign-off — the review loop (Roxy)
+### Copy sign-off — the review loop (the artist)
 
-**Goal:** every word that reads as Roxy speaking is *Roxy's*, not a placeholder
-drafted for her. The mechanism, end to end:
+**Goal:** every word that reads as the artist speaking is *theirs*, not a placeholder
+drafted for them. The mechanism, end to end:
 
-1. **Roxy reads the site in a browser.** Use the always-on **Cloudflare Pages
+1. **The artist reads the site in a browser.** Use the always-on **Cloudflare Pages
    staging URL** (the `*.pages.dev` built from `develop`), or a local
    `npm run preview:branch -- <branch>` (fetches a branch + serves it at
-   `localhost:5173`). She sees every page's copy **in context**, as a visitor
-   would — the designed draft copy stays live precisely so she can react to it.
-2. **She fills in her words in [`docs/COPY-FOR-ROXY.md`](./COPY-FOR-ROXY.md).**
-   That worksheet is the Roxy-facing companion to the internal tracker
+   `localhost:5173`). They see every page's copy **in context**, as a visitor
+   would — the designed draft copy stays live precisely so they can react to it.
+2. **They fill in their words in [`docs/COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md).**
+   That worksheet is the artist-facing companion to the internal tracker
    ([`COPY-REVIEW.md`](./COPY-REVIEW.md)): one plain-English entry per copy slot,
    each saying **what the copy is for**, a **simple example**, and a blank for
-   **her words** — so she's guided, not staring at an empty page. Facts I need
-   from her (prices, hours, dates) are marked 🔒.
-3. **🛠 I apply her edits to source** — the data files (`src/data/*.js`) and the
-   page HTML — then flip each block's marker `ROXY-COPY · <REF> · pending approval`
+   **their words** — so they're guided, not staring at an empty page. Facts I need
+   from them (prices, hours, dates) are marked 🔒.
+3. **🛠 I apply their edits to source** — the data files (`src/data/*.js`) and the
+   page HTML — then flip each block's marker `ARTIST-COPY · <REF> · pending approval`
    → `approved`. The gate `grep -rn "pending approval" apps/web/` reaching zero
    means the copy pass is done.
-4. **Strip the markers before cutover.** The `ROXY-COPY` comments are a staging
+4. **Strip the markers before cutover.** The `ARTIST-COPY` comments are a staging
    review aid and ship into page source; clear them as part of this phase so the
    apex (Phase 6) carries none. See the convention note in `COPY-REVIEW.md`.
 
-- [ ] **Roxy copy review** — Roxy works through `docs/COPY-FOR-ROXY.md` against
-      the staging site; 🛠 apply her words to source + flip/clear markers. This is
+- [ ] **Artist copy review** — the artist works through `docs/COPY-FOR-ARTIST.md`
+      against the staging site; 🛠 apply their words to source + flip/clear markers. This is
       the umbrella task; the specific value-only items below are called out
       separately because they also gate other things (legal, pricing parity).
 
@@ -303,7 +304,8 @@ A repeatable test of the **full email round-trip**. Run it twice:
 - **(a) Staging** — `FROM_EMAIL=onboarding@resend.dev`, `ARTIST_EMAIL=harrisonfisher1990@gmail.com`
   (Resend's test sender only delivers to the Resend-account owner).
 - **(b) Production** — after the Phase 6 email switch-over, repeat against
-  `https://beansprout.ink` with `FROM_EMAIL=roxy@beansprout.ink` / `ARTIST_EMAIL=roksanaklaudia.z@gmail.com`.
+  `https://beansprout.ink` with `FROM_EMAIL=roxy@beansprout.ink` and the production
+  `ARTIST_EMAIL` (the artist's Gmail).
 
 Both runs must pass before the launch is "done":
 
@@ -366,7 +368,7 @@ When ready to go live:
       | Secret | Test (now) | Production |
       |---|---|---|
       | `FROM_EMAIL` | `onboarding@resend.dev` | `roxy@beansprout.ink` |
-      | `ARTIST_EMAIL` | `harrisonfisher1990@gmail.com` | `roksanaklaudia.z@gmail.com` |
+      | `ARTIST_EMAIL` | `harrisonfisher1990@gmail.com` | the artist's Gmail |
       Requires **`beansprout.ink` verified in Resend** (Phase 2/3) — until then
       `roxy@beansprout.ink` sends are rejected. `RESEND_API_KEY` /
       `RESEND_AUDIENCE_ID` stay the same. Saving a secret redeploys the Worker.
@@ -414,7 +416,7 @@ Pages in Phase 5).
 
 ## Your immediate next actions (👤)
 
-1. ~~Confirm Roxy's Gmail + DNS access~~ ✅ done.
+1. ~~Confirm the artist's Gmail + DNS access~~ ✅ done.
 2. ~~Choose the erasure approach~~ ✅ done — minimal runbook built (Phase 1).
 3. ~~Start the Resend + Cloudflare accounts (Phase 2)~~ ✅ done — Resend (key/domain/
    Audience) + Cloudflare Worker + D1 are live. The production email flip is held for
@@ -468,13 +470,13 @@ up after the site is live, in rough priority order.
   Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Manual PayPal + Monzo, confirmed by the studio; Klarna parked there as a future consideration.)_
 
 - **Scheduling / appointment booking** _(planned — post-go-live switch-over, several
-  decisions parked for Roxy)._ A calendar layer over the flash claim (and later the custom
+  decisions parked for the artist)._ A calendar layer over the flash claim (and later the custom
   enquiry) so a booking moves toward a **confirmed date** instead of an open email thread.
   Because deposits are reconciled by hand (above), the model is **request/hold + manual
   confirm**, not instant self-serve — it reuses the flash atomic-reserve, the stale-pending
   TTL/cron, the `/studio` admin and the customer-email work the deposit plan already needs,
   so the two **co-ship as one track**. Couples with the artist-facing view below (same admin
-  surface). Build-vs-buy and the product questions for Roxy are open. Decisions + backlog
+  surface). Build-vs-buy and the product questions for the artist are open. Decisions + backlog
   stub: [`SCHEDULING.md`](./SCHEDULING.md).
 
 - **GDPR retention/erasure — management UI.** The MVP runbook is done (Phase 1, plain
@@ -483,9 +485,9 @@ up after the site is live, in rough priority order.
   automatically + an audit log of who erased what). The erasure UI belongs with the
   artist-facing view above.
 
-## P2 — content dashboard (CMS for Roxy) _(planned — decided, deferred until after go-live)_
+## P2 — content dashboard (CMS for the artist) _(planned — decided, deferred until after go-live)_
 
-Let Roxy manage **site content** herself (distinct from the artist-facing view
+Let the artist manage **site content** themselves (distinct from the artist-facing view
 above, which manages *enquiries/claims*). Decisions + backlog stub: [`CMS.md`](./CMS.md).
 
 - **Scope:** portfolio (image + data, hide), flash (upload + data), homepage alert

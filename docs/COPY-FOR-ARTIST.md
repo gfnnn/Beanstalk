@@ -1,8 +1,8 @@
 # Your words, please — the site copy worksheet
 
-Hi Roxy 👋 This is the one job only you can do: making sure every sentence on the
-site that sounds like *you* is actually in *your* words, not a stand-in I wrote to
-fill the space.
+Hi 👋 This worksheet is for **the artist** behind Beansprout. Making sure every
+sentence on the site that sounds like *you* is actually in *your* words, not a
+stand-in written to fill the space, is the one job only you can do.
 
 You don't need to touch any code. Here's the whole process:
 
@@ -73,8 +73,8 @@ status, a flash drop). Each is one line and can link somewhere.
 **Example:**
 - Eyebrow: "Winchester · fine line & botanical"
 - Headline: "Custom tattoos, made for you."
-- Intro: "I'm Roxy. I do fine line, botanical and illustrative tattoos at Tiny
-  Knives in Winchester, one client at a time."
+- Intro: "I'm [your name]. I do fine line, botanical and illustrative tattoos at
+  Tiny Knives in Winchester, one client at a time."
 **Your words:**
 > Eyebrow:
 > Headline:
@@ -133,7 +133,7 @@ This page is *all you* — the most important one to get in your voice.
 
 ### ABOUT-01 — Page intro
 **What it's for:** eyebrow + title + one short paragraph saying who you are.
-**Example:** "Hi, I'm Roxy — I do fine line, botanical and illustrative tattoos at
+**Example:** "Hi, I'm [your name] — I do fine line, botanical and illustrative tattoos at
 Tiny Knives in Winchester, one client at a time."
 **Your words:**
 >
@@ -480,4 +480,4 @@ photos, liability).
 ---
 
 *That's everything. Send this back however's easiest — typed here, scribbled,
-voice note, whatever works — and I'll get it all into the site. Thank you, Roxy!*
+voice note, whatever works — and I'll get it all into the site. Thank you!*

@@ -1,33 +1,33 @@
 # Copy review — pre-launch sign-off
 
-**Purpose.** Every word on the public site that reads as **Roxy speaking to a
-visitor** must be confirmed as *her* words before go-live — not placeholder copy
-written for her. This document is the working list for that pass: go through it,
-edit the copy in place (or in the source), and tick each row off once Roxy has
+**Purpose.** Every word on the public site that reads as **the artist speaking to a
+visitor** must be confirmed as *their* words before go-live — not placeholder copy
+written for them. This document is the working list for that pass: go through it,
+edit the copy in place (or in the source), and tick each row off once the artist has
 approved the wording.
 
-> The aim is simple: **every sentence that sounds like Roxy should actually be
-> Roxy's.** Factual labels (nav, form field names, status chips, the address)
-> don't need her sign-off and are listed separately so you can see they were
+> The aim is simple: **every sentence that sounds like the artist should actually
+> be theirs.** Factual labels (nav, form field names, status chips, the address)
+> don't need their sign-off and are listed separately so you can see they were
 > considered, not missed.
 
-> **This file is the internal tracker.** The **Roxy-facing** companion is
-> [`COPY-FOR-ROXY.md`](./COPY-FOR-ROXY.md) — the same slots, but written as a
-> plain "what it's for + a simple example + your words" worksheet she fills in
+> **This file is the internal tracker.** The **artist-facing** companion is
+> [`COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md) — the same slots, but written as a
+> plain "what it's for + a simple example + your words" worksheet the artist fills in
 > against the staging site. The review loop is baked into the go-live plan
 > (`ROADMAP.md` → Phase 4 → *Copy sign-off — the review loop*). Refs match across
 > all three (e.g. `HOME-03`).
 
 ## How this maps to the source
 
-Each Roxy-voice block in the codebase now carries an inline marker so nothing
+Each artist-voice block in the codebase now carries an inline marker so nothing
 ships unapproved:
 
 ```html
-<!-- ROXY-COPY · HOME-03 · pending approval — see docs/COPY-REVIEW.md -->
+<!-- ARTIST-COPY · HOME-03 · pending approval — see docs/COPY-REVIEW.md -->
 ```
 
-- **Grep the gate:** `grep -rn "ROXY-COPY" apps/web/` lists every block still
+- **Grep the gate:** `grep -rn "ARTIST-COPY" apps/web/` lists every block still
   flagged. The ref (e.g. `HOME-03`) ties the marker to a row in this document.
 - As wording is approved, change `pending approval` → `approved` on that marker
   (and tick the row here). When `grep -rn "pending approval" apps/web/` returns
@@ -45,15 +45,15 @@ ships unapproved:
 
 | Tag | Meaning |
 |-----|---------|
-| 🟡 **Voice** | Reads as Roxy. Needs her to confirm/rewrite in her own words. |
-| 🟠 **Placeholder** | A sensible default written *for* her (price, date, reply time, stats). Must be replaced with real figures, then approved. Already carries a `TODO(roxy)` / `COPY:` note in source. |
-| 🔵 **Legal** | Roxy-voice *and* legally operative. Needs her words **and** a professional/legal review before launch. |
-| 🟣 **Testimonial** | A client's words, not Roxy's. Must be a real, approved quote — never fabricated. |
+| 🟡 **Voice** | Reads as the artist. Needs them to confirm/rewrite in their own words. |
+| 🟠 **Placeholder** | A sensible default written *for* the artist (price, date, reply time, stats). Must be replaced with real figures, then approved. Already carries a `TODO(artist)` / `COPY:` note in source. |
+| 🔵 **Legal** | artist-voice *and* legally operative. Needs the artist's words **and** a professional/legal review before launch. |
+| 🟣 **Testimonial** | A client's words, not the artist's. Must be a real, approved quote — never fabricated. |
 | ⚪ **Factual** | Label/UI/contact fact. No sign-off needed (listed for completeness). |
 
 ## At-a-glance: the hard blockers
 
-These carry placeholder values that are **wrong until Roxy sets them** — they're
+These carry placeholder values that are **wrong until the artist sets them** — they're
 the highest-priority rows:
 
 - 🟠 Reply time — `within 3 days` (`src/data/business.js:19`)
@@ -64,9 +64,9 @@ the highest-priority rows:
 - 🟠 Booking lead time `3–4 weeks` (`enquire/index.html:415`)
 - 🔵 Legal effective dates + ICO / tattoo-registration numbers (`privacy`, `terms`)
 
-## Voice-consistency flags (for Roxy to settle)
+## Voice-consistency flags (for the artist to settle)
 
-A few blocks slip between **"I"** (Roxy, used everywhere else) and **"we"/"us"**:
+A few blocks slip between **"I"** (the artist, used everywhere else) and **"we"/"us"**:
 
 - `enquiry-received/index.html:84` — *"We read through your idea…"* (the rest of
   the site is "I read it" — see `enquire/index.html:125`).
@@ -101,7 +101,7 @@ Decide on one voice (almost certainly first-person "I") and we'll align them.
 |-----|------|----------|--------------|
 | HOME-01 | 🟠 Voice | `homepage.js:67` `status.label` | "Books open" (nav status pill, every page) |
 | HOME-02 | 🟡 Voice | `homepage.js:72–73` `notices[].html` | "Books are open for summer. Request a slot" · "New flash dropping soon. Preview the sheet" |
-| HOME-03 | 🟡 Voice | `homepage.js:78–82` `hero` | eyebrow "Winchester · Fine line & botanical"; H1 "Quietly considered / *custom tattoo.*"; body "I'm Roxy, the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed."; media tag "Tiny Knives · Winchester" |
+| HOME-03 | 🟡 Voice | `homepage.js:78–82` `hero` | eyebrow "Winchester · Fine line & botanical"; H1 "Quietly considered / *custom tattoo.*"; body (the first-person artist intro — "…the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed."); media tag "Tiny Knives · Winchester" |
 | HOME-04 | 🟡 Voice | `homepage.js:86–91` `specialisms` | fine-line "*precise*" + body; black-grey "*soft*" + body; colour "*vivid*" + body; dotwork(fill) "*textured*" + body |
 | HOME-05 | 🟡 Voice | `index.html:332–333` | eyebrow "Recent work" + H2 "Fresh from the *chair.*" |
 | HOME-06 | 🟡 Voice | `index.html:444–449` | eyebrow "What I do" + H2 "Three things I *love.*" + note "I keep my range tight on purpose. These are the styles I draw best and enjoy most." |
@@ -115,11 +115,11 @@ Decide on one voice (almost certainly first-person "I") and we'll align them.
 
 # About — `about/index.html`
 
-The most voice-heavy page on the site. Every paragraph here is Roxy.
+The most voice-heavy page on the site. Every paragraph here is the artist's voice.
 
 | Ref | Type | Location | Current text |
 |-----|------|----------|--------------|
-| ABOUT-01 | 🟡 Voice | `:81–84` page header | eyebrow "The artist · Winchester" + H1 "Hi, I'm *Roxy.*" + descriptor "I'm the hands and the name behind Beansprout…" |
+| ABOUT-01 | 🟡 Voice | `:81–84` page header | eyebrow "The artist · Winchester" + H1 "Hi, I'm *[name].*" (the artist's first-name intro) + descriptor "I'm the hands and the name behind Beansprout…" |
 | ABOUT-02 | 🟡 Voice | `:102–108` intro | eyebrow "Nice to meet you" + H2 "Tattoos that feel *like yours.*" + 3 bio paragraphs ("I've always been the person friends came to…" / "My work leans fine line and botanical…" / "Mostly, I want the chair to feel calm…") |
 | ABOUT-03 | 🟡 Voice | `:118–146` approach | eyebrow "How I work" + H2 "What I take on, and what I *don't.*" + "Where I'm happiest" (6 items) + "Not really my thing" (6 items, incl. "A new partner's name (trust me on this one)") |
 | ABOUT-04 | 🟠 Placeholder | `:153–169` credentials | "6 yrs / Tattooing", "900+ / Pieces healed", "1 / Client a day", "100% / Custom designs" — **confirm real figures** |
@@ -147,7 +147,7 @@ The most voice-heavy page on the site. Every paragraph here is Roxy.
 |-----|------|----------|--------------|
 | FAQ-01 | 🟡 Voice | `:79–82` header | eyebrow "FAQ" + H1 "Good *questions.*" + descriptor "The things I get asked most…" |
 | FAQ-02 | ⚪ Factual | `:103–126` category labels | All questions / Before you book / On the day / Aftercare & healing / Pricing & deposits / Policies (+ counts) |
-| FAQ-03 | 🟡 Voice | `:146–329` — **all 15 Q&As** | Questions + answers, e.g. "How far in advance do I need to book?", "Will it hurt?…", "I'm pregnant / breastfeeding / on medication…", "Do you offer touch-ups?" — every answer is Roxy's voice |
+| FAQ-03 | 🟡 Voice | `:146–329` — **all 15 Q&As** | Questions + answers, e.g. "How far in advance do I need to book?", "Will it hurt?…", "I'm pregnant / breastfeeding / on medication…", "Do you offer touch-ups?" — every answer is the artist's voice |
 | FAQ-04 | 🟡 Voice | `:333–335` empty state | "No matches" + "Nothing here answers it. Try another word, or just ask me directly." |
 | FAQ-05 | 🟡 Voice | `:345–346` CTA | H2 "Still *wondering?*" + "If your question isn't here, send it over…" |
 
@@ -155,7 +155,7 @@ The most voice-heavy page on the site. Every paragraph here is Roxy.
 
 # Aftercare — `aftercare/index.html`
 
-Health-critical instructions **and** Roxy-voice — worth a careful read.
+Health-critical instructions **and** artist-voice — worth a careful read.
 
 | Ref | Type | Location | Current text |
 |-----|------|----------|--------------|
@@ -179,8 +179,8 @@ Health-critical instructions **and** Roxy-voice — worth a careful read.
 | ENQ-03 | 🟡 Voice | `:115–129` aside | "My promise" + "Every enquiry comes straight to me. Never an agency, never a bot…" + "What happens next" 5-step timeline (incl. reply-time marker → BUS-01) |
 | ENQ-04 | 🟡 Voice | `:170, 203, 211` step 1 | "First, a little *about you.*" + hint "I only tattoo over-18s. This just confirms it." + "How did you find me?" |
 | ENQ-05 | 🟡 Voice | `:240, 260–274` step 2 | "Now, the *fun part.*" + radio hints ("Designed for you from scratch" / "One of my ready-to-go pieces" / "Help me figure it out") + "Tell me your idea" + hint + placeholder "I've been wanting a small botanical piece, maybe foxgloves and ferns…" |
-| ENQ-06 | 🟡 Voice + 🟠 | `:365, 376, 399, 415` step 3 | "References *& timing.*" + image hint + cover-up hint + 🟠 booking-lead hint "I'm usually booking about 3–4 weeks ahead…" (`TODO(roxy)`) |
-| ENQ-07 | 🔵 Legal + 🟡 | `:455, 465–521` step 4 | "Health, consent *& the legal bit.*" + allergies/notes hints ("This stays private between us.") + photo-permission copy ("I love showing healed work, but only with your blessing…") + 3 consent checkboxes (`TODO(roxy)` confirm deposit/cancellation wording) |
+| ENQ-06 | 🟡 Voice + 🟠 | `:365, 376, 399, 415` step 3 | "References *& timing.*" + image hint + cover-up hint + 🟠 booking-lead hint "I'm usually booking about 3–4 weeks ahead…" (`TODO(artist)`) |
+| ENQ-07 | 🔵 Legal + 🟡 | `:455, 465–521` step 4 | "Health, consent *& the legal bit.*" + allergies/notes hints ("This stays private between us.") + photo-permission copy ("I love showing healed work, but only with your blessing…") + 3 consent checkboxes (`TODO(artist)` confirm deposit/cancellation wording) |
 | ENQ-08 | 🟡 Voice | `:229, 354, 444, 532` | step buttons "Continue →" / "Send my enquiry" |
 | ENQ-09 | ⚪ Factual | various | input placeholders "Jane" / "Smith" / "you@email.com" — but the *idea*/notes placeholders (ENQ-05, and `:477`) are 🟡 Voice |
 
@@ -193,8 +193,8 @@ Health-critical instructions **and** Roxy-voice — worth a careful read.
 | VISIT-01 | 🟡 Voice | `:79–81` header | eyebrow "The studio" + H1 "Find me at *Tiny Knives.*" + descriptor "I tattoo from Tiny Knives, a studio in Winchester…" |
 | VISIT-02 | 🟡 Voice | `:90–91` | H2 "Where to *find me.*" + "All my work happens at Tiny Knives in Winchester." |
 | VISIT-03 | ⚪ Factual | `:93–103` | address (41 Southgate Street, SO23 9EH) + studio tags "Women-owned studio" / "LGBTQ+ friendly" (genuine Tiny Knives attributes — confirm still accurate) |
-| VISIT-04 | 🟠 Placeholder | `:109–146` contact rows | 🟠 Hours "Tue–Sat · 11am–6pm" (`TODO(roxy)`) · 🟠 "A short walk from Winchester station / Paid parking nearby" (`TODO(roxy)`) · Email/Instagram ⚪ · 🟡 "Bookings are by enquiry only…" |
-| VISIT-05 | 🟠 Placeholder + 🟡 | `:180–189` access | "What to expect on the day" — 6 access/prep points (`TODO(roxy)`: "tweak these so they match how you actually run a session"), incl. "The studio is up a flight of stairs and isn't step-free." |
+| VISIT-04 | 🟠 Placeholder | `:109–146` contact rows | 🟠 Hours "Tue–Sat · 11am–6pm" (`TODO(artist)`) · 🟠 "A short walk from Winchester station / Paid parking nearby" (`TODO(artist)`) · Email/Instagram ⚪ · 🟡 "Bookings are by enquiry only…" |
+| VISIT-05 | 🟠 Placeholder + 🟡 | `:180–189` access | "What to expect on the day" — 6 access/prep points (`TODO(artist)`: "tweak these so they match how you actually run a session"), incl. "The studio is up a flight of stairs and isn't step-free." |
 
 ---
 
@@ -207,7 +207,7 @@ Health-critical instructions **and** Roxy-voice — worth a careful read.
 | FLASH-03 | 🟡 Voice | `:150–151` empty state | "Nothing here right now" + "Every piece in this drop has found a home…" |
 | FLASH-04 | 🟡 Voice | `:160` CTA | "Nothing quite right? *Custom is what I do most*. Tell me your idea and we'll draw something just for you." |
 | FLASH-05 | 🟡 Voice | `:213, 245–255` claim modal | "Reserve this *piece.*" + "Where would it go?" + "When suits you?" ("I'll follow up with exact dates.") + placeholders + "Send my claim →" |
-| FLASH-D1 | 🟠 Placeholder | `flash.js:41` | `season = 'Summer 2026'` (`TODO(roxy)`) |
+| FLASH-D1 | 🟠 Placeholder | `flash.js:41` | `season = 'Summer 2026'` (`TODO(artist)`) |
 | FLASH-D2 | 🟠 Placeholder | `flash.js:47–58` | 12 flash names + specs + prices ("Wildflower sprig", "Luna moth"…) — placeholder set until a real drop |
 
 ---
@@ -220,8 +220,8 @@ Health-critical instructions **and** Roxy-voice — worth a careful read.
 | PORT-02 | ⚪ Factual | `:138–201` filter bar | style chips + placement select + sort + "Clear" |
 | PORT-03 | 🟡 Voice | `:245–246` empty state | "No work found" + "No pieces match those filters…" |
 | PORT-04 | ⚪ Factual | `:259–273` | "Showing X of Y pieces" + "Load more work →" |
-| PORT-D1 | 🟡 Voice | `pieces.js:56–115` | 56 piece **titles** (Roxy's naming — "Good dog", "God's timing", "Storyteller", "The Lovers"…). Confirm she's happy with each. |
-| PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | feeds alt text ("a koi carp", "a barn owl and chrysanthemums"); SEO/a11y, but her descriptions — skim for accuracy |
+| PORT-D1 | 🟡 Voice | `pieces.js:56–115` | 56 piece **titles** (the artist's naming — "Good dog", "God's timing", "Storyteller", "The Lovers"…). Confirm the artist is happy with each. |
+| PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | feeds alt text ("a koi carp", "a barn owl and chrysanthemums"); SEO/a11y, but the artist's descriptions — skim for accuracy |
 
 > Per-piece pages (`/portfolio/<slug>/`) render a note from the subject + a CTA —
 > see PIECE-01.
@@ -265,7 +265,7 @@ Health-critical instructions **and** Roxy-voice — worth a careful read.
 
 # Privacy — `privacy/index.html`  🔵 needs legal review
 
-Roxy-voice ("I collect…") **and** legally operative. Confirm the wording is hers
+artist-voice ("I collect…") **and** legally operative. Confirm the wording is the artist's
 *and* have a professional check it against UK GDPR before launch.
 
 | Ref | Type | Location | Notes |

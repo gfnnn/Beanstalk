@@ -17,8 +17,8 @@
 // empty, the homepage "Kind words" section is hidden (the `hidden` attribute on its
 // <section> in index.html). Add quotes below AND remove that `hidden` to switch it
 // back on.
-// ROXY-COPY · DATA-TEST · pending approval (real client quotes only, never fabricate) — see docs/COPY-REVIEW.md
+// ARTIST-COPY · DATA-TEST · pending approval (real client quotes only, never fabricate) — see docs/COPY-REVIEW.md
 export const testimonials = [
   // Example shape (delete this comment, keep the format):
-  // { quote: 'Roxy made my first tattoo so easy…', name: 'M. Hartley', piece: 'Fine line botanical' },
+  // { quote: 'My first tattoo was so easy, and it healed beautifully…', name: 'M. Hartley', piece: 'Fine line botanical' },
 ]
