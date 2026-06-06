@@ -22,6 +22,7 @@ import { renderHeroMedia } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 import { renderSecurityMeta } from './src/build/security.js'
+import { injectPageLoader } from './src/build/loader.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -161,6 +162,21 @@ const securityHeaders = {
   },
 }
 
+// Inject the full-page preloader — the critical <style> into <head> and the
+// overlay markup right after <body> — into every page, in dev AND build, so the
+// slow CSS/font arrival never shows as a flash of unstyled content (the reported
+// iPad case). Runs late (order:'post') and is idempotent: the per-piece pages
+// render their own copy (they bypass this transform), so the guards in
+// injectPageLoader stop a double-inject when the dev middleware re-runs the
+// transform over them. See src/build/loader.js + src/js/modules/loader.js.
+const pageLoader = {
+  name: 'beansprout-page-loader',
+  transformIndexHtml: {
+    order: 'post',
+    handler: html => injectPageLoader(html),
+  },
+}
+
 // One shareable HTML page per portfolio piece at /portfolio/<slug>/ (the masonry
 // tiles already link there). Rendered from pieces.js by src/build/piece-page.js.
 // In dev we serve them from a middleware; at build we emit one HTML file each,
@@ -252,7 +268,7 @@ const sitemap = {
 
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, securityHeaders, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {

@@ -3,6 +3,7 @@ import { ENQUIRY_FN_URL, FLASH_STATUS_FN_URL } from './config.js'
 import { track } from './analytics.js'
 import { initStickyShadow } from './sticky.js'
 import { initChipOverflow } from './chip-overflow.js'
+import { setButtonLoading, clearButtonLoading } from './spinner.js'
 
 export function initFlash() {
   const grid = document.getElementById('flash-grid')
@@ -248,8 +249,7 @@ export function initFlash() {
       e.preventDefault()
       clearModalError()
 
-      const label = submitBtn ? submitBtn.textContent : ''
-      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…' }
+      setButtonLoading(submitBtn, 'Sending…')
 
       const fields = {}
       new FormData(form).forEach((v, k) => { fields[k] = v })
@@ -267,7 +267,7 @@ export function initFlash() {
         if (res.status === 409) {
           markCard('claimed')
           showModalError(json.error || 'That piece was just claimed by someone else.')
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+          clearButtonLoading(submitBtn)
           return
         }
         if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
@@ -276,11 +276,11 @@ export function initFlash() {
         markCard('pending')
         closeModal()
         form.reset()
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+        clearButtonLoading(submitBtn)
       } catch (err) {
         console.error('Flash claim error:', err)
         showModalError(err.message || 'Couldn’t send. Please try again, or email hello@beansprout.ink.')
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+        clearButtonLoading(submitBtn)
       }
     })
   }
