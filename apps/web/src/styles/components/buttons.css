@@ -93,3 +93,31 @@
   transition: transform var(--dur) var(--ease);
 }
 .btn-ghost-light:hover .arrow { transform: translateX(4px); }
+
+/* ── Loading spinner ─────────────────────────────────────────────────────────
+   Shared "busy" indicator the JS swaps into a button while an async action runs
+   (portfolio load-more, the enquiry / flash / newsletter submits — see
+   src/js/modules/spinner.js). It rides the button's `currentColor`, so it reads on
+   the clay primary (cream text) and the ink outline buttons alike, and sits to the
+   left of the label via the button's existing inline-flex `gap`.
+   ─────────────────────────────────────────────────────────────────────────── */
+.btn-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+  /* nudge onto the text baseline so it lines up with the label */
+  vertical-align: -0.125em;
+}
+.btn[aria-busy="true"] { cursor: progress; }
+
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* Reduced motion: don't spin. A static broken ring still reads as "busy" without
+   any rotation, and the global motion reset would freeze the animation anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner { animation: none; }
+}

@@ -81,11 +81,17 @@
 </header>
 
 <!-- PROGRESS BAR
-     DEV NOTE: JS updates .progress-fill width, .progress-step classes,
-     and .progress-pct text as steps advance.
-     Step 1 = 25%, Step 2 = 50%, Step 3 = 75%, Step 4 = 100%
+     DEV NOTE: JS (src/js/modules/enquire.js) updates .progress-fill width,
+     the .progress-step done/current classes, and .progress-pct text as steps
+     advance. Fill = activeStep / 4 (Step 1 = 25% … Step 4 = 100%); the pct
+     label also names the active step so it stays clear on mobile, where the
+     named step pills are hidden.
 -->
 <div class="progress-wrap" id="progress-wrap">
+  <div class="progress-head">
+    <p class="progress-intro">Four short steps · about 2 minutes</p>
+    <span class="progress-pct" id="progress-pct">Step 1 of 4 — About you</span>
+  </div>
   <div class="progress-bar-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-label="Form progress">
     <div class="progress-fill" id="progress-fill"></div>
   </div>
@@ -96,7 +102,6 @@
       <span class="progress-step"><span class="step-name">Timing</span></span>
       <span class="progress-step"><span class="step-name">Consent</span></span>
     </div>
-    <span class="progress-pct" id="progress-pct">Step 1 of 4</span>
   </div>
 </div>
 
@@ -115,8 +120,9 @@
       <p class="aside-card-label">What happens next</p>
       <ol class="timeline-list">
         <li class="timeline-item">You send this enquiry over.</li>
-        <!-- TODO(roxy): "within 3 days" is a placeholder default — confirm your real reply time before launch -->
-        <li class="timeline-item">I read it and reply by email, usually within 3 days.</li>
+        <!-- Reply time generated from src/data/business.js (`replyTime`) so it stays in
+             step with /enquiry-received/ — don't hand-edit the phrase here. -->
+        <li class="timeline-item">I read it and reply by email, usually <!-- reply-time -->.</li>
         <li class="timeline-item">We talk through your idea and settle on the design, date and price.</li>
         <li class="timeline-item">You pay a deposit to hold your slot.</li>
         <li class="timeline-item">You come in, we make it, and you leave with an aftercare plan.</li>
@@ -128,11 +134,13 @@
   <!-- FORM STEPS
        DEV NOTE — IMPLEMENTATION
        ──────────────────────────────────────────────────────────────────
-       In production, only the active .form-step is visible (display:none
-       on inactive ones). JS validates required fields before advancing,
-       saves progress to sessionStorage (key: "beansprout_step"), and on
-       submit POSTs JSON { fields, images[] } to the Cloudflare Worker, which
-       emails the artist via Resend (see apps/functions/src/handlers/enquiry.js).
+       The form is an accordion: only the active .form-step is expanded.
+       Completed steps collapse to a clickable summary header (.complete,
+       with an Edit affordance); steps not yet reached stay hidden
+       (.upcoming → display:none). JS validates required fields before
+       advancing, saves progress to sessionStorage (key: "beansprout_step"),
+       and on submit POSTs JSON { fields, images[] } to the Cloudflare Worker,
+       which emails the artist via Resend (see apps/functions/src/handlers/enquiry.js).
        On success it redirects to /enquiry-received/.
 
        Set the function URL via VITE_ENQUIRY_FN_URL (see .env.example) or the
@@ -155,12 +163,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 1 — Who are you?  (active by default)
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step" id="step-1" data-step="1">
+      <div class="form-step active" id="step-1" data-step="1">
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 01 · ABOUT YOU</span>
             <h2 class="step-heading">First, a little <em>about you.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -170,13 +179,13 @@
               <div class="field">
                 <label for="first-name">First name</label>
                 <input type="text" id="first-name" name="first_name"
-                       autocomplete="given-name" placeholder="Jane"
+                       autocomplete="given-name" placeholder="Jane" maxlength="50"
                        required aria-required="true">
               </div>
               <div class="field">
                 <label for="last-name">Last name</label>
                 <input type="text" id="last-name" name="last_name"
-                       autocomplete="family-name" placeholder="Smith"
+                       autocomplete="family-name" placeholder="Smith" maxlength="50"
                        required aria-required="true">
               </div>
             </div>
@@ -186,7 +195,7 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email"
                        autocomplete="email" inputmode="email"
-                       placeholder="you@email.com"
+                       placeholder="you@email.com" maxlength="254"
                        required aria-required="true">
               </div>
               <div class="field">
@@ -224,12 +233,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 2 — The tattoo
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step inactive" id="step-2" data-step="2" inert>
+      <div class="form-step upcoming" id="step-2" data-step="2" inert>
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 02 · THE TATTOO</span>
             <h2 class="step-heading">Now, the <em>fun part.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -262,7 +272,7 @@
               <div class="field">
                 <label for="idea">Tell me your idea</label>
                 <span class="field-hint">Subject, mood, and any meaning behind it, as much or as little as you've got.</span>
-                <textarea id="idea" name="idea" rows="4"
+                <textarea id="idea" name="idea" rows="4" maxlength="1200"
                           placeholder="I've been wanting a small botanical piece, maybe foxgloves and ferns down my forearm…"></textarea>
               </div>
             </div>
@@ -293,12 +303,12 @@
               <div class="field">
                 <label for="placement">Placement</label>
                 <span class="field-hint">Where on the body?</span>
-                <input type="text" id="placement" name="placement" placeholder="Inner forearm, ankle…">
+                <input type="text" id="placement" name="placement" placeholder="Inner forearm, ankle…" maxlength="80">
               </div>
               <div class="field">
                 <label for="size">Rough size</label>
                 <span class="field-hint">A best guess is fine</span>
-                <input type="text" id="size" name="size" placeholder="~10cm / palm-sized">
+                <input type="text" id="size" name="size" placeholder="~10cm / palm-sized" maxlength="40">
               </div>
               <div class="field">
                 <label for="budget">Budget</label>
@@ -348,12 +358,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 3 — References & timing
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step inactive" id="step-3" data-step="3" inert>
+      <div class="form-step upcoming" id="step-3" data-step="3" inert>
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 03 · REFERENCES &amp; TIMING</span>
             <h2 class="step-heading">References <em>&amp; timing.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -375,7 +386,7 @@
                          multiple aria-label="Upload reference images">
                   <div class="upload-icon">↑</div>
                   <p class="upload-title">Drag images here, or tap to upload</p>
-                  <p class="upload-hint">jpg, png or heic · up to 7 images · big phone photos are fine</p>
+                  <p class="upload-hint">jpg, png or heic · up to 8 images · big phone photos are fine</p>
                 </label>
                 <div class="thumb-row" id="thumb-row"></div>
               </div>
@@ -437,12 +448,13 @@
       <!-- ══════════════════════════════════════════════════════════
            STEP 4 — Health, consent & permissions
            ══════════════════════════════════════════════════════════ -->
-      <div class="form-step inactive" id="step-4" data-step="4" inert>
+      <div class="form-step upcoming" id="step-4" data-step="4" inert>
         <div class="step-header">
           <div class="step-header-left">
             <span class="step-tag">STEP 04 · HEALTH &amp; CONSENT</span>
             <h2 class="step-heading">Health, consent <em>&amp; the legal bit.</em></h2>
           </div>
+          <button type="button" class="step-edit" aria-label="Edit this step">Edit</button>
         </div>
 
         <div class="step-body">
@@ -452,7 +464,7 @@
               <div class="field">
                 <label for="allergies">Any allergies or medical conditions I should know about?</label>
                 <span class="field-hint">Allergies, skin conditions, medication, pregnancy, a history of fainting, anything relevant. This stays private between us.</span>
-                <textarea id="allergies" name="allergies" rows="3"
+                <textarea id="allergies" name="allergies" rows="3" maxlength="600"
                           placeholder="None / e.g. sensitive skin, plaster allergy"></textarea>
               </div>
             </div>
@@ -461,7 +473,7 @@
               <div class="field">
                 <label for="notes">Anything else you'd like me to know?</label>
                 <span class="field-hint">Questions, access needs, nerves, a date you're working towards, anything at all.</span>
-                <textarea id="notes" name="additional_notes" rows="3"
+                <textarea id="notes" name="additional_notes" rows="3" maxlength="600"
                           placeholder="It's a birthday present to myself, no rush, just excited!"></textarea>
               </div>
             </div>
@@ -495,18 +507,18 @@
                 <div class="checkbox-group">
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-policy" name="policy_accepted" required>
-                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-box" for="check-policy" aria-hidden="true"></label>
                     <label class="checkbox-label" for="check-policy">I've read and agree to the <a href="/services/">booking policies</a>, including the deposit and cancellation terms.</label>
                   </div>
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-age" name="age_confirmed" required>
-                    <div class="checkbox-box" aria-hidden="true"></div>
+                    <label class="checkbox-box" for="check-age" aria-hidden="true"></label>
                     <label class="checkbox-label" for="check-age">I confirm I'm 18 or over and will bring photo ID to my appointment.</label>
                   </div>
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-deposit" name="deposit_understood" required>
-                    <div class="checkbox-box" aria-hidden="true"></div>
-                    <label class="checkbox-label" for="check-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. Deposits are handled securely through Stripe.</label>
+                    <label class="checkbox-box" for="check-deposit" aria-hidden="true"></label>
+                    <label class="checkbox-label" for="check-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. Deposits are handled securely.</label>
                   </div>
                 </div>
               </div>
@@ -517,7 +529,7 @@
 
         <div class="step-footer">
           <button type="button" class="step-back" id="step4-back">← Back</button>
-          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Send my enquiry 🌱</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Send my enquiry</button>
         </div>
       </div>
 

@@ -11,15 +11,15 @@ import { initFlash } from './modules/flash.js'
 import { initNewsletter } from './modules/newsletter.js'
 import { initMedia } from './modules/media.js'
 import { initAnalytics } from './modules/analytics.js'
+import { initPageLoader, pageReady } from './modules/loader.js'
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 0. Reveal the elements the FOUC guard (styles/motion.css) holds hidden until
-  //    the motion layer is live. Done FIRST and synchronously so this class flip
-  //    and the GSAP .from() start-states set below land in the same frame — the
-  //    browser never paints the in-between, so there's no flash. Under reduced
-  //    motion the guard is inert (its media query) and GSAP bails, so the elements
-  //    are already visible and this is a harmless no-op.
-  document.documentElement.classList.add('motion-ready')
+  // 0a. Manage the full-page preloader (#page-loader): cover the cold first load
+  //     until fonts settle, then fade; drop it instantly on warm in-session
+  //     navigations so the View Transition cross-fades real content. Resolves
+  //     `pageReady` when the page should be revealed. No-ops without the overlay.
+  //     See modules/loader.js + the build-time injection in src/build/loader.js.
+  initPageLoader()
 
   // 1. Smooth scroll — must be first so GSAP ticker is driven by Lenis
   initLenis()
@@ -27,11 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Nav (scroll-aware header, mobile menu)
   initNav()
 
-  // 3. Hero entrance (home page only — no-ops if .hero isn't present)
-  initHeroAnimation()
-
-  // 4. All scroll-triggered reveals
-  initScrollAnimations()
+  // Entrance / reveal — gated on pageReady so it plays AS the cover lifts (cold
+  // load) or immediately (warm nav / no cover), never wasted behind the overlay.
+  // The class flip and the GSAP .from() start-states still land in one synchronous
+  // tick (this callback) so the FOUC guard hands off with no painted in-between.
+  pageReady.then(() => {
+    // Reveal the elements the FOUC guard (styles/motion.css) holds hidden.
+    document.documentElement.classList.add('motion-ready')
+    // Hero entrance (home only) + all scroll-triggered reveals & on-load cascades.
+    initHeroAnimation()
+    initScrollAnimations()
+  })
 
   // 5. Portfolio page — load-more, filter/sort, and lightbox cooperate:
   //    load-more owns the visible window; the filter re-applies after a reveal

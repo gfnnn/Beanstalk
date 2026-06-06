@@ -22,6 +22,13 @@ const IMG = {
   heic: b64([0, 0, 0, 0, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63]), // 'ftyp''heic'
   avif: b64([0, 0, 0, 0, 0x66, 0x74, 0x79, 0x70, 0x61, 0x76, 0x69, 0x66]), // 'ftyp''avif'
 }
+// An ISO base-media image carrying an arbitrary 4-char brand at offset 8–12.
+const isoBrand = (brand) => {
+  const buf = Buffer.alloc(16)
+  buf.set([0x66, 0x74, 0x79, 0x70], 4)        // 'ftyp' box
+  buf.write(brand, 8, 'ascii')
+  return buf.toString('base64')
+}
 const validEnquiry = (over = {}) => ({
   kind: 'enquiry',
   fields: {
@@ -175,6 +182,90 @@ describe('enquiry handler — image sniffing & filenames', () => {
     expect(res.statusCode).toBe(400)
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  // The phone-camera ISO formats ship under several brand strings; the sniffer
+  // accepts the whole family, not just the canonical 'heic'/'avif' literal.
+  it.each([
+    ['heix', 'image/heic'],
+    ['heim', 'image/heic'],
+    ['heis', 'image/heic'],
+    ['mif1', 'image/heic'],
+    ['msf1', 'image/heic'],
+    ['avis', 'image/avif'],
+  ])('accepts the ISO brand variant %s as %s', async (brand, type) => {
+    await H({
+      ...post(validEnquiry()),
+      body: JSON.stringify({ ...validEnquiry(), images: [{ name: 'phone.img', type: 'application/octet-stream', data: isoBrand(brand) }] }),
+    })
+    const att = sentBody(fetchMock).attachments
+    expect(att).toHaveLength(1)
+    expect(att[0].content_type).toBe(type)
+  })
+
+  it('drops a file whose bytes decode to fewer than the sniff window needs', async () => {
+    // Four bytes can't carry a magic-byte signature — treated as "not an image".
+    const tooShort = Buffer.from([0xFF, 0xD8, 0xFF, 0xE0]).toString('base64')
+    await H({
+      ...post(validEnquiry()),
+      body: JSON.stringify({ ...validEnquiry(), images: [{ name: 'tiny.jpg', type: 'image/jpeg', data: tooShort }] }),
+    })
+    const body = sentBody(fetchMock)
+    expect(body.attachments).toBeUndefined()
+    expect(body.html).toContain('skipped')
+  })
+
+  it('falls back to "reference" when the filename is all stripped characters', async () => {
+    await H({
+      ...post(validEnquiry()),
+      body: JSON.stringify({ ...validEnquiry(), images: [{ name: '!!!@@@.png', type: 'image/png', data: IMG.jpeg }] }),
+    })
+    // Name collapses to nothing usable → 'reference', extension from the SNIFF (jpg).
+    expect(sentBody(fetchMock).attachments[0].filename).toBe('reference.jpg')
+  })
+})
+
+describe('enquiry handler — email rendering details', () => {
+  const notImage = Buffer.from('plain text, definitely not an image at all').toString('base64')
+
+  it('humanises coded values and maps preferred-day codes in the email', async () => {
+    await H(post(validEnquiry({ referral_source: 'word_of_mouth', 'days[]': ['mon', 'sat'] })))
+    const html = sentBody(fetchMock).html
+    expect(html).toContain('Word of mouth')   // underscores → spaced, sentence-cased
+    expect(html).toContain('Monday')           // day code expanded
+    expect(html).toContain('Saturday')
+  })
+
+  it('renders the attachment note with correct singular/plural grammar', async () => {
+    const img = { name: 'r.jpg', type: 'image/jpeg', data: IMG.jpeg }
+    await H({ ...post(validEnquiry()), body: JSON.stringify({ ...validEnquiry(), images: [img] }) })
+    expect(sentBody(fetchMock).html).toContain('1 reference image attached')
+
+    fetchMock.mockClear()
+    await H({ ...post(validEnquiry()), body: JSON.stringify({ ...validEnquiry(), images: [img, { ...img }] }) })
+    expect(sentBody(fetchMock).html).toContain('2 reference images attached')
+  })
+
+  it('renders the skipped-file note with correct singular/plural grammar', async () => {
+    const bad = { name: 'x.txt', type: 'image/png', data: notImage }
+    await H({ ...post(validEnquiry()), body: JSON.stringify({ ...validEnquiry(), images: [bad] }) })
+    expect(sentBody(fetchMock).html).toContain('1 attached file was skipped')
+
+    fetchMock.mockClear()
+    await H({ ...post(validEnquiry()), body: JSON.stringify({ ...validEnquiry(), images: [bad, { ...bad }] }) })
+    expect(sentBody(fetchMock).html).toContain('2 attached files were skipped')
+  })
+
+  it('builds the flash-claim subject from the piece and claimant names', async () => {
+    await H(post({ kind: 'flash', fields: { name: 'Ada Lovelace', email: 'ada@example.com', piece: 'Luna Moth' } }))
+    expect(sentBody(fetchMock).subject).toBe('Flash claim — Luna Moth — Ada Lovelace')
+  })
+
+  it('un-escapes HTML entities in the plain-text part while the HTML stays escaped', async () => {
+    await H(post(validEnquiry({ idea: 'Tom & Jerry <3 "ink"' })))
+    const sent = sentBody(fetchMock)
+    expect(sent.html).toContain('Tom &amp; Jerry &lt;3 &quot;ink&quot;') // escaped in HTML
+    expect(sent.text).toContain('Tom & Jerry <3 "ink"')                  // readable in text
+  })
 })
 
 describe('enquiry handler — persistence & size limits', () => {
@@ -224,6 +315,25 @@ describe('enquiry handler — persistence & size limits', () => {
     const body = sentBody(fetchMock)
     expect(body.attachments).toBeUndefined() // the oversized image was skipped
     expect(body.html).toContain('skipped')
+  })
+
+  it('clamps an over-long text field before storing or emailing it (cost guard)', async () => {
+    const huge = 'z'.repeat(5000) // well over the 2000-char per-field cap
+    const res = await H(post(validEnquiry({ idea: huge })))
+    expect(res.statusCode).toBe(200)
+    // Stored truncated…
+    const stored = JSON.parse(rows()[0].fields).idea
+    expect(stored.length).toBe(2000)
+    // …and the email carries the truncated value, never the full 5000 chars.
+    const body = sentBody(fetchMock)
+    expect(body.text).not.toContain('z'.repeat(2001))
+  })
+
+  it('caps a multi-select array to its item limit', async () => {
+    const many = Array.from({ length: 80 }, (_, i) => `s${i}`)
+    const res = await H(post(validEnquiry({ 'style[]': many })))
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(rows()[0].fields)['style[]'].length).toBe(50)
   })
 })
 

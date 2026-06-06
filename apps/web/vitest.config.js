@@ -14,15 +14,26 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       // src/build (renderers/seo/palette) and src/data (content contracts) are
-      // pure Node modules the suites exercise directly. src/js/** is only PARTLY
-      // exercisable here: the synchronous, correctness-critical modules (enquire,
-      // filter, loadmore, flash, newsletter, faq, nav, aftercare, chip-overflow,
-      // and the IntersectionObserver helpers sticky/media) are tested under jsdom,
-      // but the irreducibly browser-only paths — image downscale, GSAP/smooth-
-      // scroll (animations/lenis), the lightbox — need a real browser and live in
-      // the Playwright E2E tier. So src/js/** is excluded from the headline report
-      // so those unavoidable gaps don't skew it.
-      include: ['src/build/**', 'src/data/**'],
+      // pure Node modules the suites exercise directly. The synchronous,
+      // correctness-critical client modules (enquire, filter, loadmore, flash,
+      // newsletter, faq, nav, aftercare, chip-overflow, analytics, and the
+      // IntersectionObserver helpers sticky/media) are tested under jsdom, so
+      // src/js/** is IN the report too — its number should reflect what those
+      // suites actually cover.
+      include: ['src/build/**', 'src/data/**', 'src/js/**'],
+      // The genuinely browser-only code is excluded so it doesn't masquerade as
+      // "untested logic": the orchestrator (main.js, wired together only in a real
+      // page), the GSAP timelines / Lenis smooth-scroll (animations/lenis), and the
+      // lightbox can't run under jsdom and are covered by the Playwright E2E tier
+      // instead (see apps/web/e2e/ + .github/workflows/e2e.yml). Excluding them
+      // keeps the headline honest: it measures code the unit tier CAN reach. The
+      // browser-only paths still have a gate — it's just the E2E job, not this one.
+      exclude: [
+        'src/js/main.js',
+        'src/js/modules/animations.js',
+        'src/js/modules/lenis.js',
+        'src/js/modules/lightbox.js',
+      ],
       reporter: ['text', 'html'],
     },
   },

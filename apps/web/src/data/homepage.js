@@ -41,7 +41,7 @@
 //   (the newest pieces with a photo carrying that style — see
 //   src/build/specialisms.js). You only choose the style + the copy here:
 //     style  a portfolio style TOKEN — must match the chips / STYLE_LABELS:
-//            fine-line · botanical · black-grey · illustrative · dotwork · colour · script
+//            fine-line · black-grey · colour · dotwork · cybersigilism · script
 //            The card title + "Browse … work" link + previews all derive from it.
 //     em     the italic adjective after the style name in the <h3>          (COPY)
 //     body   2–3 sentences describing the style — what it is, who it suits  (COPY)
@@ -84,11 +84,11 @@ export const homepage = {
 
   specialisms: [
     { style: 'fine-line',  em: 'precise', body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile, drawn to age as well as it looks on day one.' },
-    { style: 'botanical',  em: 'living',  body: 'Flowers, ferns and foliage with the small botanical details that make a piece feel grown rather than stamped on. My favourite thing to draw.' },
     { style: 'black-grey', em: 'soft',    body: 'Smooth black and grey with gentle, smoky shading: animals, portraits and illustrative work with depth, contrast and a soft edge.' },
+    { style: 'colour',     em: 'vivid',   body: 'Saturated colour with clean, considered blends over the same careful linework. For a piece that wants to sing rather than whisper, without losing its softness.' },
     // Tablet-only balance tile (fill) — squares the 2-column grid; hidden on
     // phone and desktop. Not counted in the "0X / 0Y" numbering.
-    { style: 'illustrative', fill: true, em: 'characterful', body: 'Story-led pieces with movement and personality: creatures, folklore and bold little compositions, with linework and shading working together to bring them to life.' },
+    { style: 'dotwork', fill: true, em: 'textured', body: 'Soft gradients and depth built dot by dot: a slower, hand-worked technique that gives botanical and ornamental pieces a gently stippled texture.' },
   ],
 
   videoCredit: {

@@ -33,7 +33,7 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (334 web + 93
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (436 web + 118
   functions) run fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
@@ -41,7 +41,23 @@ command instead of rediscovering the environment each time:
   through `apps/web/scripts/run-e2e.mjs`, which **skips cleanly (exit 0) when no Chromium
   is installed**. Real browser coverage comes from CI (`.github/workflows/e2e.yml`, which
   installs the browser) and from local runs. Don't treat a skipped E2E run as broken, and
-  don't burn time trying to install the browser in a web session.
+  don't burn time trying to install the browser in a web session. **The same missing
+  browser means a web session can't do the pre-PR *visual* check either** (no display, no
+  Chromium → no screenshot, no driving a page) — that's expected at that stage, not a
+  skipped step; rely on `npm test`/`npm run build` + verifying the served markup, and leave
+  the eyes-on verification to the PR's E2E job and a local/human review. See
+  [Visual check before a feature PR](#visual-check-before-a-feature-pr).
+  - **Where the E2E tier actually runs — so you don't "test" a feature against a no-op.**
+    A skipped sandbox run **validates nothing**: it neither passed nor exercised your code.
+    So when a change touches a **browser-only path the E2E tier owns** — the enquiry-form
+    image preview/downscale + multi-step flow, the portfolio lightbox, the mobile nav
+    drawer, the flash claim modal — the sandbox `test:e2e` skip does **not** cover it.
+    That coverage runs in exactly two places: **(1) the PR's E2E workflow**, which fires
+    automatically on every `pull_request` touching `apps/web/**` (any base branch — see
+    `.github/workflows/e2e.yml`), and **(2) locally**, once you've installed Chromium
+    (`cd apps/web && npx playwright install chromium`, then `npm run test:e2e`). From a web
+    session the move is: rely on `npm test` for the unit signal, then **push the branch and
+    let the PR's E2E job be the gate** — don't read the local skip as a green E2E.
 - **The web git proxy only lets a session push its own branch.** It **rejects remote
   branch deletion** (`git push origin --delete …` → HTTP 403) and other cross-ref
   surgery, and the GitHub MCP server exposes no delete-ref tool. So **branch cleanup,
@@ -88,7 +104,10 @@ browser binary (`npx playwright install chromium`, done automatically in CI). `t
 runs through `apps/web/scripts/run-e2e.mjs`, which **skips with exit 0 when that binary
 isn't installed** (e.g. a web sandbox that can't reach `cdn.playwright.dev`) so the tier is
 a clean no-op where it can't run rather than a false failure — it still executes normally
-once the browser is present (CI, local). There is **no
+once the browser is present. So the tier **effectively runs in exactly two places**: the
+**E2E GitHub workflow** (auto-triggered on every `pull_request` touching `apps/web/**`, and
+on push to `main`) and a **local run with Chromium installed** — a skipped sandbox run is a
+no-op, not a pass, so don't treat it as having covered a browser-only change. There is **no
 linter or formatter** — don't invent `npm run lint`. To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
@@ -101,11 +120,11 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   index.html (home) + 404.html + page folders:
     portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
     newsletter/ enquiry-received/ privacy/ terms/
-  src/data/      pieces, flash, homepage, testimonials, palette  (content = single sources of truth)
+  src/data/      pieces, flash, homepage, testimonials, media, palette  (content = single sources of truth)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
-  src/styles/    main.css → @imports reset/typography/layout + components/ + pages/
-  public/        robots.txt, favicons, manifest, images/ (copied to dist root; no CNAME yet)
+  src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
+  public/        favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml are generated, see SEO)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email app)
   src/index.js                           # Worker entry — routes /enquiry /newsletter /flash-status
@@ -113,7 +132,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  MOTION.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -122,8 +141,8 @@ workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the 
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
 content-CMS plan; `docs/PAYMENTS-PLAN.md` is the (not-yet-built) **PayPal + Monzo** deposit /
-flash-purchase spec — manual reconciliation, no payment gateway to build, supersedes the old
-Stripe backlog item; `docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** spec
+flash-purchase spec — manual reconciliation, no payment gateway to build (Klarna parked there
+as a future consideration); `docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** spec
 that co-ships with it (request/hold + manual confirm). Read `ROADMAP.md` for current
 priorities before starting larger work.
 
@@ -136,13 +155,14 @@ entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's i
 or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The six Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+The seven Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
 work: `palette` (inject colour custom properties), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
-`<meta>` — see SEO/security below), `piecePages` (per-piece portfolio pages), and
-`sitemap`. Most run in **both dev and build** so what you see on `npm run dev` is what
-ships — **except `securityHeaders`, which is `apply: 'build'`** (a strict CSP would break
-the dev server's HMR client), so it lands at build/preview only.
+`<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see below),
+`piecePages` (per-piece portfolio pages), and `sitemap`. Most run in **both dev and build**
+so what you see on `npm run dev` is what ships — **except `securityHeaders`, which is
+`apply: 'build'`** (a strict CSP would break the dev server's HMR client), so it lands at
+build/preview only.
 
 ### Data → build-time HTML pipeline (the non-obvious part)
 Lots of page content is **generated at build time from data files**, not hand-written
@@ -155,16 +175,23 @@ comments document every field — **read them before editing**.
 | Data file               | Renderer (`src/build/`)        | Marker → page                                         |
 |-------------------------|--------------------------------|------------------------------------------------------|
 | `pieces.js` (portfolio) | `portfolio-tiles.js`           | `<!-- pieces:masonry -->` → `portfolio/`             |
-| `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/`                     |
+| `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/` (+ `<!-- flash:drop -->` / `<!-- flash:season -->` eyebrow) |
 | `homepage.js`           | `homepage.js`                  | `<!-- homepage:* -->` (status light, notices, hero, specialisms) |
 | `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (previews pulled live from pieces) |
 | `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
 | `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
+| `business.js`           | `business.js`                  | `<!-- reply-time -->` → enquire + enquiry-received (shared so the promised turnaround can't drift) |
 
 The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*
-page's nav, not just the homepage. The homepage "Kind words" section is `hidden` while
-`testimonials` is empty — add real quotes AND remove the `hidden` attribute to switch it on.
+page's nav, not just the homepage — it renders in two spots per page (the inline pill via
+`<!-- homepage:status -->` and the mobile-drawer variant via `<!-- homepage:status-drawer -->`).
+The `/flash/` page eyebrow is **fully data-driven from `flash.js`**: the drop *number*
+(`<!-- flash:drop -->`) is the highest `drop` value in the data (lower-numbered records fall
+into the auto-built "Past drops" archive), and the *season* label (`<!-- flash:season -->`)
+comes from the exported `season` string — so "Drop 12 · Summer 2026" never drifts from the
+cards. The homepage "Kind words" section is `hidden` while `testimonials` is empty — add real
+quotes AND remove the `hidden` attribute to switch it on.
 
 **Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
 testimonials) — edit the data file and let the build regenerate it. Tokens in the data
@@ -189,13 +216,25 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   mirrored from the OpenGraph tags. Only missing tags are added (per-page overrides
   win), and pages marked `noindex` (e.g. `/enquiry-received/`) are skipped. **Per-page
   content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
-  authored by hand in each page — only the derived/constant tags are injected.
-- **`sitemap` plugin** emits `/sitemap.xml` at build (and serves it in dev) from the
-  `ROUTES` list in `seo.js` **plus** a `/portfolio/<slug>/` entry per piece — keep `ROUTES`
-  in sync when adding an indexable page.
-- `public/robots.txt` is static (allows all, disallows `/enquiry-received/`, points
-  at the sitemap). The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`,
-  with Tiny Knives as `workLocation`) — Beansprout is the artist, not the studio.
+  authored by hand in each page — only the derived/constant tags are injected. The same
+  plugin also wraps `injectStagingNoindex`, which adds a **site-wide** `noindex, nofollow`
+  robots `<meta>` to every page on a **staging build** (no apex CNAME) so the pre-launch
+  GitHub Pages / Cloudflare Pages preview can't be indexed; it's a no-op on the apex build
+  and on any page that already declares its own robots tag (so it never doubles up).
+- **`sitemap` plugin** emits `robots.txt` + `/sitemap.xml` at build (and serves both in
+  dev). The sitemap is built from the `ROUTES` list in `seo.js` **plus** a
+  `/portfolio/<slug>/` entry per piece — keep `ROUTES` in sync when adding an indexable
+  page. **Both are staging-aware** (keyed off the same `isProductionBuild()` apex-CNAME
+  switch as the noindex): on a production/apex build `robots.txt` allows crawling,
+  disallows `/enquiry-received/` and advertises the sitemap, and `/sitemap.xml` is
+  emitted; on a **staging build** (no apex CNAME — the GitHub Pages preview or the
+  Cloudflare Pages dev environment from `develop`) `robots.txt` is a blanket
+  `Disallow: /` and **no sitemap is emitted**, so the pre-launch copy carries no
+  real-life SEO artifacts (no real-URL sitemap, no crawl invite) on top of the
+  per-page noindex. `robots.txt` is **generated** (via `renderRobots()` in `seo.js`),
+  not a static `public/` file, so this switch can take effect.
+- The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`, with Tiny Knives as
+  `workLocation`) — Beansprout is the artist, not the studio.
 
 ### Security headers
 Two layers, both centralised so new pages/responses inherit them:
@@ -217,18 +256,56 @@ Two layers, both centralised so new pages/responses inherit them:
   those belong on the HTML, not a JSON API.
 
 ### Front-end JS — single orchestrated init
-`src/js/main.js` is the only entry point. On `DOMContentLoaded` it calls each module's
-`initX()` in a deliberate order (Lenis smooth-scroll first so it drives the GSAP ticker,
-then nav, hero/scroll animations, portfolio load-more + filter + lightbox, gallery,
-aftercare, faq, enquire, flash, newsletter, analytics). **Every module no-ops when its
-target element is absent**, so the one bundle runs safely on every page. Modules under
-`src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`, `filter`, `lightbox`,
-`gallery`, `sticky` (shared sticky-shadow helper for pinned bars), `aftercare`, `faq`,
-`enquire`, `flash`, `newsletter`, `analytics` (vendor-agnostic `track()` scaffold that
-no-ops until a provider is wired in — no cookie banner owed yet), and `config` (function
-URLs). Portfolio load-more, filter/sort and lightbox cooperate via callbacks wired in
-`main.js` (load-more owns the visible window; filter re-applies after a reveal/sort). New
-page behaviour = a new `modules/<name>.js` exporting `initX()`, added to `main.js`.
+`src/js/main.js` is the only entry point. On `DOMContentLoaded` it manages the full-page
+preloader first (`initPageLoader()`, which resolves a `pageReady` promise — see below),
+inits Lenis smooth-scroll (so it drives the GSAP ticker) and nav, then **gates the visual
+entrance on `pageReady`**: the `motion-ready` class flip (the FOUC guard) + the hero/scroll
+animations run when the page is ready to be shown, so the entrance plays *as the cover lifts*
+rather than behind it. Everything else (portfolio load-more + filter + lightbox, aftercare,
+faq, enquire, flash, newsletter, hero media, analytics — and finally the mobile sticky CTA)
+inits immediately. **The full motion / page-transition system is mapped in
+[`docs/MOTION.md`](docs/MOTION.md) — read it before changing load/entrance/transition behaviour.**
+**Every module no-ops when its target element is absent**, so the one bundle runs safely
+on every page. Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
+`filter`, `lightbox`, `sticky` (shared sticky-shadow helper for pinned bars — used by
+filter, flash and the enquire progress bar), `chip-overflow` (shared responsive "More"
+collapse for tight filter rows — used by filter and flash), `aftercare`, `faq`, `enquire`,
+`flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
+on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that no-ops until
+a provider is wired in — no cookie banner owed yet), `loader` (dismisses the full-page
+preloader — see below), `spinner` (shared button busy-state: swaps a button's label for an
+animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by
+load-more and the enquiry/flash/newsletter submits), and `config` (function URLs). Portfolio
+load-more, filter/sort and lightbox cooperate via callbacks wired in `main.js` (load-more
+owns the visible window; filter re-applies after a reveal/sort). New page behaviour = a new
+`modules/<name>.js` exporting `initX()`, added to `main.js`.
+
+**FOUC guard for entrance animations.** `styles/motion.css` holds animated elements hidden
+until JS is live; `main.js` adds `motion-ready` to `<html>` **on `pageReady`** (as the loader
+lifts on a cold load, or immediately on a warm nav), in the same synchronous tick GSAP sets
+its `.from()` start-states, so the in-between is never painted (no flash of unstyled/
+unanimated content). A pure-CSS failsafe (2s) reveals the guarded elements if the bundle never
+runs. Under `prefers-reduced-motion` the guard's media query is inert and GSAP bails, so
+elements are simply visible — the class flip is a harmless no-op. `styles/a11y.css` carries
+the focus-visible / reduced-motion / screen-reader rules.
+
+**Full-page preloader (the slow-load cover).** Separate from, and complementary to, the
+motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
+**inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
+Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
+overlay (a sprig mark on the cream bg, shown complete with a gentle opacity breathe — *not* a
+stroke-dashoffset draw, which janked on quick loads) right after `<body>`, on **every** page
+incl. the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
+against a double-inject). It hides the page from the first paint so the render-blocking
+CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
+(`initPageLoader()`, called first in `main.js`) dismisses it on `document.fonts.ready` for a
+**cold** first load (JS ceiling 3s **and** a pure-CSS failsafe 6s so a hung resource can never
+trap the page), but drops it **instantly on warm in-session navigations** (`sessionStorage`)
+so the page-transition cross-fade shows real content, not the cover. It resolves the
+`pageReady` promise that gates the entrance (above). Reduced-motion: removed instantly, no
+animation. **Page transitions** (cross-document View Transitions) and the **animated
+hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/atmosphere.css`
+— full map in [`docs/MOTION.md`](docs/MOTION.md).
 
 ### Forms → Cloudflare Worker → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
@@ -358,6 +435,33 @@ for any user-visible feature, verify it in the browser and attach the proof:
    session). Don't block on a timer — carry on with other work while it stays up.
 
 Skip this only when the change genuinely can't be seen in the browser.
+
+**From a Claude Code web session, steps 2–4 (drive the browser + screenshot) can't run —
+and that's expected, not a skipped step.** The remote sandbox has no display and can't
+install a browser binary: Playwright's Chromium downloads from `cdn.playwright.dev`, which
+the sandbox network allowlist blocks (`403 Host not in allowlist`), and there's no headed
+Chrome either. So a web session **cannot** take a screenshot or visually drive a page,
+**at this stage of the workflow**, no matter the change — don't burn time trying to install
+the browser, and don't treat the missing screenshot as a gap or a failure. This is a
+recurring, structural limit of the environment, not a problem with the change. What a web
+session *can* do, and should do instead, is: run `npm test` (the trustworthy signal here),
+run `npm run build`, and verify the rendered/served markup directly (e.g. `curl` the dev
+server or grep `apps/web/dist/**` after a build) to prove the change is wired in. Then state
+plainly in the PR that the browser/visual check wasn't possible from the web sandbox, and
+hand the actual *visual* verification to the two places that can do it: the **PR's E2E
+workflow** (auto-runs on every `pull_request` under `apps/web/**`) and a **human/local
+review** — `npm run preview:branch -- <branch>` fetches the branch and serves it locally for
+an eyes-on look. A developer on their own machine still follows steps 1–5 in full.
+
+**Browser-only interactions also need the E2E gate, not just a screenshot.** If the
+feature touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav
+drawer, flash modal), remember the unit suite under jsdom can't exercise it and a web
+sandbox's `npm run test:e2e` only **skips** (no-op, not a pass). Real verification is the
+PR's **E2E workflow** — which auto-runs on every `pull_request` under `apps/web/**` — or a
+**local** `npm run test:e2e` with Chromium installed (`npx playwright install chromium`).
+From a web session, push and let the PR's E2E job be the gate; see the web-session note up
+top. When you add browser-only behaviour, add/extend a spec under `apps/web/e2e/` so that
+gate actually covers it.
 
 ### Working on several features at once (avoid the branch tangle)
 

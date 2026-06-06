@@ -64,6 +64,9 @@ const change = el => el.dispatchEvent(new window.Event('change', { bubbles: true
 beforeEach(() => {
   try { sessionStorage.clear() } catch (_) {}
   document.body.innerHTML = ''
+  // jsdom doesn't implement scrollIntoView (universal in real browsers); stub it
+  // so the submit path's "jump to first error" doesn't reject.
+  window.Element.prototype.scrollIntoView = () => {}
 })
 
 describe('initEnquire', () => {
@@ -114,6 +117,188 @@ describe('initEnquire', () => {
 
       b.checked = false; change(b)
       expect(c.disabled).toBe(false) // back under the cap → re-enabled
+    })
+  })
+
+  describe('accordion (collapse / reveal / edit)', () => {
+    it('collapses a finished step and reveals only the next one', () => {
+      setup()
+      initEnquire()
+      document.querySelector('[name="name"]').value = 'Robin'
+      click($('step1-next'))
+
+      expect($('step-1').classList.contains('complete')).toBe(true)   // collapsed up
+      expect($('step-2').classList.contains('active')).toBe(true)     // now open
+      expect($('step-3').classList.contains('upcoming')).toBe(true)   // still hidden
+      expect($('step-4').classList.contains('upcoming')).toBe(true)
+      expect($('step-3').hasAttribute('inert')).toBe(true)            // out of the a11y tree
+    })
+
+    it('re-opens a completed step when its header is clicked, keeping later steps reachable', () => {
+      setup()
+      // Give step-1 a real header so the edit click can be wired.
+      const header = document.createElement('div')
+      header.className = 'step-header'
+      $('step-1').prepend(header)
+      $('step-1').dataset.step = '1'
+
+      initEnquire()
+      document.querySelector('[name="name"]').value = 'Robin'
+      click($('step1-next')) // → step 2, step 1 collapsed
+
+      header.dispatchEvent(new window.Event('click', { bubbles: true }))
+      expect($('step-1').classList.contains('active')).toBe(true)
+      // step 2 was reached, so it stays available (collapsed), not hidden away
+      expect($('step-2').classList.contains('upcoming')).toBe(false)
+      expect($('step-2').classList.contains('complete')).toBe(true)
+    })
+  })
+
+  describe('field validation (regex / plausibility)', () => {
+    function richSetup() {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div>
+          <div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1">
+            <div class="field"><input id="first-name" name="first_name" required></div>
+            <div class="field"><input id="email" type="email" name="email" required></div>
+            <div class="field"><input id="dob" type="date" name="dob" required></div>
+            <button type="button" id="step1-next">next</button>
+          </fieldset>
+          <fieldset id="step-2"><button type="button" id="step2-next">next</button></fieldset>
+          <fieldset id="step-3"><button type="button" id="step3-next">next</button></fieldset>
+          <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">Send</button></fieldset>
+        </form>`
+    }
+    const adultDob = () => {
+      const d = new Date(); d.setFullYear(d.getFullYear() - 25)
+      return d.toISOString().slice(0, 10)
+    }
+    const childDob = () => {
+      const d = new Date(); d.setFullYear(d.getFullYear() - 10)
+      return d.toISOString().slice(0, 10)
+    }
+    const fillValid = () => {
+      $('first-name').value = 'Robin'
+      $('email').value = 'robin@example.com'
+      $('dob').value = adultDob()
+    }
+
+    it('rejects a malformed email and a junk name, then passes once corrected', () => {
+      richSetup(); initEnquire()
+      fillValid()
+      $('email').value = 'not-an-email'
+      $('first-name').value = 'R0b1n123'
+      click($('step1-next'))
+      expect($('email').closest('.field').classList.contains('error')).toBe(true)
+      expect($('first-name').closest('.field').classList.contains('error')).toBe(true)
+      expect($('progress-pct').textContent).toBe('') // never advanced
+
+      fillValid()
+      click($('step1-next'))
+      expect($('progress-pct').textContent).toBe('Step 2 of 4')
+    })
+
+    it('rejects a date of birth under 18', () => {
+      richSetup(); initEnquire()
+      fillValid()
+      $('dob').value = childDob()
+      click($('step1-next'))
+      expect($('dob').closest('.field').classList.contains('error')).toBe(true)
+      expect($('dob').closest('.field').querySelector('.field-error-msg').textContent)
+        .toMatch(/over-18s/)
+    })
+
+    it('keeps a multi-checkbox field in error until every required box is ticked', () => {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div><div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1"><button type="button" id="step1-next">n</button></fieldset>
+          <fieldset id="step-2"><button type="button" id="step2-next">n</button></fieldset>
+          <fieldset id="step-3"><button type="button" id="step3-next">n</button></fieldset>
+          <fieldset id="step-4" data-step="4">
+            <div class="field">
+              <div class="checkbox-row"><input type="checkbox" id="c1" required></div>
+              <div class="checkbox-row"><input type="checkbox" id="c2" required></div>
+            </div>
+            <div class="step-footer"></div>
+            <button type="submit" id="submit-btn">Send</button>
+          </fieldset>
+        </form>`
+      initEnquire()
+      const field = $('c1').closest('.field')
+      // Submitting flags the field (both unticked)
+      $('enquiry-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+      expect(field.classList.contains('error')).toBe(true)
+      // Ticking only the first must NOT clear the field — the second is still required
+      $('c1').checked = true
+      $('c1').dispatchEvent(new window.Event('change', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(true)
+      // Ticking the second clears it
+      $('c2').checked = true
+      $('c2').dispatchEvent(new window.Event('change', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+    })
+
+    it('clears a field error live once the value is corrected', () => {
+      richSetup(); initEnquire()
+      click($('step1-next')) // flags the empty required fields
+      const field = $('email').closest('.field')
+      expect(field.classList.contains('error')).toBe(true)
+      $('email').value = 'robin@example.com'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+    })
+
+    it('reward early / punish late: typing lifts the error at once, blur re-judges', () => {
+      richSetup(); initEnquire()
+      fillValid()
+      $('email').value = 'not-an-email'
+      click($('step1-next')) // flags the bad email
+      const field = $('email').closest('.field')
+      expect(field.classList.contains('error')).toBe(true)
+
+      // Mid-correction, still not a valid email — but the red lifts immediately so
+      // a slow typer isn't scolded while they work.
+      $('email').value = 'robin@exa'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+
+      // Leaving the field re-checks it — still invalid, so it flags again.
+      $('email').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(true)
+
+      // Finish the correction; blur now leaves it clean.
+      $('email').value = 'robin@example.com'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      $('email').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+    })
+
+    it('never validates a field live until it has first been flagged', () => {
+      richSetup(); initEnquire()
+      const field = $('email').closest('.field')
+      // Type a bad value before ever submitting — no nagging, no error.
+      $('email').value = 'nope'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      $('email').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+    })
+
+    it('distinguishes an over-long name from a stray-character one', () => {
+      richSetup(); initEnquire()
+      fillValid()
+      $('first-name').value = 'a'.repeat(60)
+      click($('step1-next'))
+      expect($('first-name').closest('.field').querySelector('.field-error-msg').textContent)
+        .toMatch(/shorten/i)
+
+      $('first-name').value = 'Ann@'
+      $('first-name').dispatchEvent(new window.Event('input', { bubbles: true }))
+      $('first-name').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect($('first-name').closest('.field').querySelector('.field-error-msg').textContent)
+        .toMatch(/letters|hyphens|apostrophes/i)
     })
   })
 

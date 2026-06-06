@@ -24,11 +24,14 @@ body::after {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
 }
 
-/* ── Page transitions (§3-G) — cross-document, multi-page ────────────────────
-   Opt the whole site in. Navigations soft cross-fade, with a small upward settle
-   on the incoming page — an MPA that feels like one continuous space. Browsers
-   without cross-document View Transitions simply hard-cut (progressive
-   enhancement); no JS, no bundle. */
+/* ── Page transitions (§3-G) — cross-document cross-fade ────────────────────
+   Same-origin navigations soft cross-fade old→new with OVERLAPPING snapshots, so
+   the page never empties to a blank in between (a JS fade-out can't overlap across
+   an MPA navigation — it has to empty the old page first, which reads as a flash).
+   Small upward settle on the incoming page. Browsers without cross-document View
+   Transitions hard-cut (progressive enhancement). The loader is suppressed on warm
+   in-session navs (modules/loader.js) so this cross-fades real content, not the
+   cover. */
 @view-transition { navigation: auto; }
 
 ::view-transition-old(root) { animation: vt-out 320ms var(--ease-soft) both; }
@@ -43,3 +46,44 @@ body::after {
   ::view-transition-old(root),
   ::view-transition-new(root) { animation: none; }
 }
+
+/* ── Animated rules (hairline dividers) ──────────────────────────────────────
+   Every hairline rule grows in from the left as the page builds: the eyebrow's
+   leading dash, the page-header divider, the per-page border-replacement hairlines
+   (filter bar, FAQ items, contact rows …) and the reusable `.divider` element.
+   They ALL read one inherited switch — `--rule-scale` — toggled by `.motion-ready`,
+   so the motion lives in one place. Adding a new animated divider needs no JS and
+   no new rule: draw a hairline that reads `scaleX(var(--rule-scale))` (use the
+   `.divider` element, or a 1px pseudo added to the registry below) and it joins in.
+   Transform-only → compositor; a 3s failsafe reveals them if the motion layer never
+   runs; the header pair is staggered. On leave they cross-fade out with the page. */
+@property --rule-scale { syntax: '<number>'; inherits: true; initial-value: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.motion-ready) { --rule-scale: 0; animation: rule-failsafe 1ms linear 3s forwards; }
+
+  /* Registry of animated rules. */
+  .divider,
+  .hero-eyebrow::before,
+  .page-eyebrow::before,
+  .page-header::after,
+  .filter-bar::after,
+  .faq-item::before,
+  .faq-item:last-child::after,
+  .faq-cta::before,
+  .contact-row::before,
+  .contact-row:last-child::after {
+    transform: scaleX(var(--rule-scale, 1));
+    transform-origin: left center;
+    transition: transform .55s cubic-bezier(.2, .7, .2, 1) .2s;
+  }
+  .hero-eyebrow::before,
+  .page-eyebrow::before { transition-delay: .26s; }   /* eyebrow dash leads … */
+  .page-header::after   { transition-delay: .36s; }   /* … then the wide divider */
+}
+@keyframes rule-failsafe { to { --rule-scale: 1; } }
+
+/* The reusable divider element — drop `<div class="divider"></div>` (or
+   `<hr class="divider">`) wherever a hairline belongs and it inherits the
+   grow above. */
+.divider { height: 1px; border: 0; background: var(--line); }

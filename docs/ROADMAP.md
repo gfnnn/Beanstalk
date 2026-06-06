@@ -7,7 +7,8 @@ function/secret setup in [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md),
 [`NEWSLETTER-SETUP.md`](./NEWSLETTER-SETUP.md) and
 [`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the content-CMS plan in
-[`CMS.md`](./CMS.md).
+[`CMS.md`](./CMS.md); image/video media in [`MEDIA.md`](./MEDIA.md); the deposits
+plan in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
 
 The work was derived from a platform evaluation (senior-dev / artist / marketer /
 customer lenses) plus a review of the setup docs, the privacy page, and the function
@@ -25,6 +26,12 @@ Shipped (audience-capture + early management layer):
   skip-to-content links; branded 404.
 - **Inline newsletter capture** on the homepage, flash, and post-enquiry pages.
 - **Per-piece portfolio pages** at `/portfolio/<slug>/` (per-piece SEO + sitemap).
+- **Responsive image pipeline** (#109) — `apps/web/scripts/process-media.mjs` (sharp)
+  emits AVIF/WebP/JPG tiers with a **tattoo-aware crop** (+ manual override); the original
+  exports were migrated to tiers and 30 new pieces added (now **58 portfolio pieces**).
+  The style taxonomy is real execution styles (`fine-line · black-grey · colour · dotwork
+  · script · cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though
+  the clips themselves are deferred (Phase 4). Full guide: [`MEDIA.md`](./MEDIA.md).
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
   (reject double-claims with 409); the grid reflects live availability.
@@ -78,8 +85,10 @@ Two things gate the apex cutover:
    erasure path** exist as plain SQL (`docs/DATA-COMPLIANCE.md`), and the privacy
    page matches. Built in **Phase 1** — this was the one real engineering blocker,
    and it's done.
-2. **Real copy + images.** Largely done (#53; 28 portfolio pieces with real photos,
-   12 flash pieces). Remaining gaps are small and listed in **Phase 4**.
+2. **Real copy + images.** Largely done (#53, #109; **58 portfolio pieces** with real
+   photos on a responsive pipeline). The **12 flash pieces are still placeholder art**
+   (line-art glyphs, no flash photos yet); the hero video/GIF and a real og-image are the
+   other open items — all listed in **Phase 4**.
 
 With the engineering blocker cleared, the route to live is now **operational**: stand
 up the backend (Phase 2), wire the inbox (Phase 3), sign off content (Phase 4), verify
@@ -97,9 +106,10 @@ These unblock later phases. None require code to decide.
       (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
       launch-legal without it. *Recommend deferring to post-launch unless you want
       launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
-- [ ] **Deposit capture (Stripe)** — the enquire copy mentions deposits, but Stripe
-      is **not** wired (Backlog P2). Decide: launch without it (manual deposit
-      requests) or build it first. *Recommend launch without; add post-launch.*
+- [ ] **Deposit capture (PayPal + Monzo, manual)** — the enquire copy mentions
+      deposits, but deposit capture is **not** wired (Backlog P2). Decide: launch
+      without it (manual deposit requests) or build it first. *Recommend launch
+      without; add post-launch.*
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
@@ -130,7 +140,7 @@ The security headers that **are** achievable on the current split deploy (static
 GitHub Pages + the JSON Worker). Built and shipped — both layers below are in code with
 tests; verified against a production build (`npm run build`) and preview.
 
-- [x] **Site CSP + Referrer-Policy via a Vite head plugin.** A sixth plugin
+- [x] **Site CSP + Referrer-Policy via a Vite head plugin.** A dedicated plugin
       (`securityHeaders`) in `apps/web/vite.config.js` injects
       `<meta http-equiv="Content-Security-Policy">` and
       `<meta name="referrer" content="strict-origin-when-cross-origin">` into every
@@ -214,11 +224,25 @@ Content is mostly in, but a few items need your confirmation before launch.
 - [ ] **Terms & privacy effective date + legal review** — `terms/index.html` has a
       placeholder effective date and a note to have wording reviewed against current
       consumer law; deposit figures must match `/services/`. 👤 review → 🛠 apply.
-- [ ] **`og-image.jpg` (1200×630)** — referenced site-wide for social cards and the
-      default piece-page OG image, **still missing** (Backlog P3). 👤 supply image →
-      🛠 add to `apps/web/public/images/og-image.jpg`.
-- [ ] **Portfolio / flash spot-check** — 28 pieces + 12 flash are populated with real
-      photos; eyeball them for any remaining placeholders/tone-swatch fallbacks.
+- [ ] **`og-image.jpg` (1200×630)** — used site-wide for social cards, the default
+      piece-page OG image, **and the homepage JSON-LD `image`**. A **branded placeholder**
+      is now committed so link previews and the `Person` schema don't point at a 404;
+      **replace with a real 1200×630 photo before launch.** 👤 supply →
+      🛠 swap `apps/web/public/images/og-image.jpg`.
+- [ ] **Portfolio / flash spot-check** — **58 portfolio pieces** carry real photos;
+      eyeball them, flagging any auto-crop that needs a manual `crop` override (see
+      [`MEDIA.md`](./MEDIA.md)). The **12 flash pieces are still placeholder art**
+      (`img: null` → line-art glyphs; titles/specs/prices are placeholders too) — add real
+      flash photos + copy to `src/data/flash.js` and files to
+      `apps/web/public/images/flash/` before launch.
+- [ ] **Hero video / GIF** — the homepage + About hero slots (`src/data/media.js`) are
+      `show:false` (placeholder). An ffmpeg helper (`apps/web/scripts/process-video.mjs`)
+      is ready. 👤 supply the clip/GIF → 🛠 process, flip `show:true`, LFS the binaries.
+- [ ] **Brand logo & icon artwork** — the nav still shows a `logo.svg` text placeholder
+      and the `/enquiry-received/` confirmation badge shows an `icon` text placeholder
+      (the old 🌱 emoji was removed from both the badge and the "Send my enquiry" button).
+      👤 supply the final logo/icon files → 🛠 wire them into the nav (`.nav-logo-placeholder`)
+      and the confirmation mark (`.confirm-mark`).
 - [ ] *(Optional)* **Testimonials** — the "Kind words" homepage block is `hidden`
       while empty. Add real quotes to `src/data/testimonials.js` and remove `hidden`
       to switch it on. Fine to launch without.
@@ -297,6 +321,10 @@ below.
 
 When ready to go live:
 
+- [ ] **A day ahead: lower the apex DNS TTL** (👤, GoDaddy) on the records you'll change —
+      drop the apex `A` / `www` `CNAME` TTL to **300s (5 min)** so both the cutover *and* a
+      rollback propagate in minutes, not hours. Raise it back (e.g. 1 hour) a day after the
+      cutover is confirmed healthy.
 - [ ] **Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) and let Pages deploy.
 - [ ] **Point DNS at GitHub Pages** (👤, GoDaddy): apex `A` records to GitHub's Pages
       IPs + `www` `CNAME` to `<user>.github.io` (or per your Pages custom-domain
@@ -318,6 +346,26 @@ When ready to go live:
 - [ ] **Smoke-test the live apex** — repeat the Phase 5 form tests against
       `https://beansprout.ink`.
 - [ ] **Decommission/redirect v1** as appropriate once v2 is confirmed healthy. 👤
+      Keep the v1 repo/deploy *intact but idle* (not deleted) for a week or two — it's the
+      rollback target below.
+
+### Rollback plan (if the cutover goes wrong)
+
+The cutover is "irreversible-ish" only because DNS takes time to propagate — every step is
+reversible, and with the TTL pre-lowered (first Phase-6 step) a revert is minutes, not
+hours. Roll back the moment the live apex is broken (won't load, forms 500, mail bounces)
+rather than debugging on the live domain:
+
+1. **DNS — point the apex back at v1.** Restore the previous apex `A` / `www` `CNAME` to
+   the **v1** target. This is the step that actually moves traffic back; do it first.
+2. **Email — flip the Worker secrets back to test** (`FROM_EMAIL` / `ARTIST_EMAIL`) only if
+   production sending is what's broken; otherwise leave them (the Worker is shared and v1
+   doesn't use it).
+3. **Pages — remove `apps/web/public/CNAME`** (revert the commit) so Pages stops claiming
+   the apex and serves only on `*.github.io`, restoring the staging posture.
+4. **Data is safe** — D1 is untouched by a DNS rollback; enquiries captured in the brief
+   live window are still persisted (Time Travel covers operator error — see
+   [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md)). Diagnose on staging, then re-attempt.
 
 ## Critical path (the shortest route to live)
 
@@ -386,7 +434,7 @@ up after the site is live, in rough priority order.
 - **Deposit capture (PayPal + Monzo, manual).** The no-show defence the copy already
   promises. Reserve → deposit links (PayPal.Me/Monzo.me) → artist marks paid → claim
   confirmed, with a stale-pending auto-release. Manual reconciliation (no gateway/webhooks).
-  Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Supersedes the earlier "Stripe" framing — the studio confirmed PayPal + Monzo.)_
+  Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Manual PayPal + Monzo, confirmed by the studio; Klarna parked there as a future consideration.)_
 
 - **Scheduling / appointment booking** _(planned — post-go-live switch-over, several
   decisions parked for Roxy)._ A calendar layer over the flash claim (and later the custom
@@ -462,8 +510,8 @@ the project grows; centralising removes it and **unlocks full security-header co
 
 - **Self-host + subset the fonts** (LCP + EU-privacy) — currently the Google
   Fonts CDN, render-blocking, with wide variable-font ranges.
-- **Add `/images/og-image.jpg`** (1200×630) — referenced site-wide for social
-  cards (and the default piece-page OG image), still missing (also Phase 4).
+- **Real `/images/og-image.jpg`** (1200×630) — a branded **placeholder** now ships so
+  social cards / the JSON-LD `image` don't 404; swap in a real photo before launch (Phase 4).
 - **Firm up `src/build/seo.js`** — the `<head>` injection is regex-on-HTML and
   attribute-order-sensitive; pin it with tests or move to a parser.
 - **Palette visual QA (follow-up to the colour centralisation).** The migration is
@@ -474,7 +522,5 @@ the project grows; centralising removes it and **unlocks full security-header co
   flash/about/hero surfaces. Before relying on a palette swap, eyeball the
   image-less portfolio/flash/about placeholders and the homepage hero, and try
   `active: 'dusk'` to confirm a full recolour reads well.
-- **Dev-tooling audit advisories.** `npm audit` flags moderate/critical issues in
-  **Vite/Vitest only** — the dev server and test UI, which never ship to the static
-  site — so they don't affect production. Clear them with a Vite 8 / Vitest 4 bump
-  when convenient (a breaking major).
+- ~~**Dev-tooling audit advisories.**~~ ✅ **Done** — the Vite 8 / Vitest 4 bump shipped
+  (#99, #100); `npm audit` is now clean (**0 vulnerabilities**, production + dev).

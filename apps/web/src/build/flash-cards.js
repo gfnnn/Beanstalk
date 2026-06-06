@@ -95,3 +95,12 @@ export function renderFlashDrop(items = []) {
   if (!items.length) return ''
   return String(Math.max(...items.map(i => +i.drop || 0)))
 }
+
+// The CURRENT drop's season label for the page eyebrow — authored in src/data/flash.js
+// (`season`) so the editorial text is a single source of truth, not hand-written into
+// flash/index.html. Escaped like every other rendered string. Falsy/blank → '' (the
+// eyebrow then reads as just "Drop N"); the marker's surrounding " · " is authored, so
+// an empty season would leave a trailing separator — keep a non-empty season per drop.
+export function renderFlashSeason(season = '') {
+  return esc(String(season ?? '').trim())
+}

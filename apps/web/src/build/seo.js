@@ -1,8 +1,10 @@
 // Core SEO helpers — site-wide structure that should stay identical across every
-// page, kept in one place so it never drifts. Two consumers, both wired up in
+// page, kept in one place so it never drifts. Consumers are all wired up in
 // vite.config.js (dev + build):
 //
 //   injectSeoHead(html) — per-page <head> completion (canonical + social tags)
+//   injectStagingNoindex(html) — site-wide noindex on a pre-launch staging build
+//   renderRobots()      — robots.txt (blanket Disallow on staging)
 //   renderSitemap()     — the XML sitemap, built from ROUTES below
 //
 // Per-page CONTENT (title, description, og:title/description/url) is still
@@ -16,8 +18,9 @@ import { dirname, resolve } from 'node:path'
 export const SITE_URL = 'https://beansprout.ink'
 export const SITE_NAME = 'Beansprout'
 export const SITE_LOCALE = 'en_GB'
-// Shared social share image (1200×630). The asset itself is still pending — see
-// the "IMAGE NEEDED" note in index.html's <head>.
+// Shared social share image (1200×630). Currently a generated brand placeholder
+// (apps/web/public/images/og-image.jpg) — swap for a real photo before final launch;
+// see the note in index.html's <head>.
 export const OG_IMAGE = `${SITE_URL}/images/og-image.jpg`
 
 // ── Staging vs apex: keep the pre-launch staging site out of search ──────────
@@ -116,6 +119,44 @@ export function injectSeoHead(html) {
 
   if (!add.length) return html
   return html.replace('</head>', `  ${add.join('\n  ')}\n</head>`)
+}
+
+/**
+ * Render robots.txt.
+ *
+ * Production (apex) build: allow crawling, keep the post-submit confirmation out,
+ * and point crawlers at the sitemap.
+ *
+ * Staging build (no apex CNAME — e.g. the GitHub Pages preview or the Cloudflare
+ * Pages dev environment built from `develop`): a blanket `Disallow: /` so the
+ * pre-launch copy can't be crawled, and — crucially — it never advertises the
+ * real production sitemap. Pairs with the site-wide noindex (injectStagingNoindex)
+ * and the staging build skipping sitemap.xml entirely, so the dev copy carries no
+ * real-life SEO artifacts. Self-disarming: adding the apex CNAME flips this to the
+ * production variant, same switch as everything else here.
+ */
+export function renderRobots({ production = isProductionBuild() } = {}) {
+  if (!production) {
+    return [
+      '# Staging / preview build — keep the pre-launch copy out of search.',
+      '# No apex CNAME (or SITE_ENV != production), so block every crawler and',
+      '# do not advertise the production sitemap.',
+      'User-agent: *',
+      'Disallow: /',
+      '',
+    ].join('\n')
+  }
+  return [
+    '# Beansprout — beansprout.ink',
+    'User-agent: *',
+    'Allow: /',
+    '',
+    "# Post-submit confirmation — also noindex'd on the page itself.",
+    'Disallow: /enquiry-received/',
+    '',
+    `Sitemap: ${SITE_URL}/sitemap.xml`,
+    '',
+  ].join('\n')
 }
 
 /** Render the XML sitemap from ROUTES. lastmod is the build date. */

@@ -1,6 +1,7 @@
 import { ENQUIRY_FN_URL as FUNCTION_URL } from './config.js'
 import { track } from './analytics.js'
 import { initStickyShadow } from './sticky.js'
+import { setButtonLoading, clearButtonLoading } from './spinner.js'
 
 export function initEnquire() {
   const steps = [1, 2, 3, 4].map(n => document.getElementById('step-' + n))
@@ -8,68 +9,281 @@ export function initEnquire() {
 
   const fill      = document.getElementById('progress-fill')
   const pct       = document.getElementById('progress-pct')
+  const track2    = document.querySelector('.progress-bar-track')
   const progSteps = document.querySelectorAll('.progress-step')
-  let   current   = 1
+  const stepNames = [...progSteps].map(s => s.querySelector('.step-name')?.textContent.trim() || '')
   const TOTAL     = 4
+  let   active    = 1   // the step that's currently open
+  let   reached   = 1   // the furthest step the user has unlocked
 
   // ── Progress bar sticky shadow ─────────────────────────────────────────────
   initStickyShadow(document.getElementById('progress-wrap'))
 
-  // ── Step management ────────────────────────────────────────────────────────
-  function setStep(n) {
-    current = n
+  // ── Date helpers (shared by the date validators + native picker bounds) ────
+  const pad = n => String(n).padStart(2, '0')
+  function todayISO() {
+    const d = new Date()
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  }
+  // Parse a strict YYYY-MM-DD, rejecting impossible dates (e.g. 2024-02-31).
+  function parseDate(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v)
+    if (!m) return null
+    const [y, mo, d] = [+m[1], +m[2], +m[3]]
+    const dt = new Date(y, mo - 1, d)
+    return (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d) ? dt : null
+  }
+  function midnight(d) { const c = new Date(d); c.setHours(0, 0, 0, 0); return c }
+
+  // ── Field validators (keyed by element id) ────────────────────────────────
+  // Each returns '' when valid, or a human message when not. Plausibility, not
+  // just shape: a real-looking name, a deliverable-looking email, a date of birth
+  // that makes the enquirer 18–120, and appointment dates that sit in the future
+  // and in the right order.
+  const NAME_RE  = /^[\p{L}][\p{L}\p{M} .'’\-]{0,48}$/u
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+  // Name: tell the user *which* problem it is — over-length reads very differently
+  // from a stray character, and the message names exactly what's allowed (it isn't
+  // "letters only" — hyphens, apostrophes, spaces and dots are all fine).
+  function validateName(v) {
+    if (v.length > 49) return 'A touch long — could you shorten it?'
+    return NAME_RE.test(v) ? '' : 'Letters, spaces, hyphens and apostrophes only.'
+  }
+  function validateEmail(v) {
+    return EMAIL_RE.test(v) ? '' : 'That doesn’t look quite right — try you@email.com.'
+  }
+  function validateDob(v) {
+    const d = parseDate(v)
+    if (!d) return 'That date doesn’t look right.'
+    const today = midnight(new Date())
+    if (d > today) return 'That date’s in the future — check the year?'
+    let age = today.getFullYear() - d.getFullYear()
+    const m = today.getMonth() - d.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--
+    if (age < 18)  return 'Sorry — I only tattoo over-18s.'
+    if (age > 120) return 'Could you double-check your date of birth?'
+    return ''
+  }
+  // Appointment windows: optional, but if given must be a real, future-ish date.
+  function validateBookingDate(v) {
+    const d = parseDate(v)
+    if (!d) return 'That date doesn’t look right.'
+    const today = midnight(new Date())
+    if (d < today) return 'Let’s pick a date that’s still to come.'
+    const max = midnight(new Date()); max.setFullYear(max.getFullYear() + 2)
+    if (d > max) return 'That’s a fair way off — pick something within two years.'
+    return ''
+  }
+  function validateDateTo(v) {
+    const base = validateBookingDate(v)
+    if (base) return base
+    const from = parseDate(document.getElementById('date-from')?.value || '')
+    const to   = parseDate(v)
+    if (from && to && to < from) return 'This should be on or after your earliest date.'
+    return ''
+  }
+
+  const validators = {
+    'first-name': validateName,
+    'last-name':  validateName,
+    'email':      validateEmail,
+    'dob':        validateDob,
+    'date-from':  validateBookingDate,
+    'date-to':    validateDateTo,
+  }
+
+  // Bound the native date pickers so the obvious mistakes can't be picked at all.
+  const today = todayISO()
+  const dobEl = document.getElementById('dob')
+  if (dobEl) dobEl.max = today
+  ;['date-from', 'date-to'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.min = today
+  })
+
+  // ── Per-field error display ───────────────────────────────────────────────
+  function fieldErrorFor(el) {
+    if (el.disabled) return ''
+    const required = el.hasAttribute('required')
+    if (el.type === 'radio') {
+      const scope = el.closest('.form-step') || document
+      return required && !scope.querySelector(`[name="${el.name}"]:checked`)
+        ? 'Pick one to carry on.' : ''
+    }
+    if (el.type === 'checkbox') {
+      return required && !el.checked ? 'Tick this to continue.' : ''
+    }
+    const val = (el.value || '').trim()
+    if (!val) return required ? 'Just need this one filled in.' : ''
+    const fn = validators[el.id]
+    return fn ? fn(val, el) : ''
+  }
+
+  function applyFieldError(field, el, msg) {
+    if (!field) return
+    field.classList.toggle('error', !!msg)
+    let m = field.querySelector('.field-error-msg')
+    if (msg) {
+      // Once a field has been flagged it switches to live correction from here on
+      // (see the input/blur wiring below) — but never before, so we don't nag.
+      field.dataset.live = '1'
+      if (!m) {
+        m = document.createElement('p')
+        m.className = 'field-error-msg'
+        m.setAttribute('role', 'alert')
+        field.appendChild(m)
+      }
+      m.textContent = msg
+      el?.setAttribute('aria-invalid', 'true')
+    } else {
+      m?.remove()
+      el?.removeAttribute('aria-invalid')
+    }
+  }
+
+  // Drop a field's error the instant the user starts fixing it — benefit of the
+  // doubt while they type (slow typers, mid-correction), re-judged on blur. We
+  // deliberately DON'T re-validate here, so the red can't flicker back mid-word.
+  function softClearError(field) {
+    field.classList.remove('error')
+    field.querySelector('.field-error-msg')?.remove()
+    field.querySelectorAll('[aria-invalid]').forEach(c => c.removeAttribute('aria-invalid'))
+  }
+
+  // Take the user straight to the first problem on a failed step — scroll it into
+  // view AND move focus there, so keyboard and screen-reader users aren't stranded.
+  function focusFirstError(step) {
+    if (!step) return
+    const f = step.querySelector('.field.error')
+    if (!f) return
+    f.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    f.querySelector('input:not([type="hidden"]), select, textarea')?.focus({ preventScroll: true })
+  }
+
+  // ── Step management (accordion) ───────────────────────────────────────────
+  // Only the active step is expanded. Completed steps collapse to a clickable
+  // summary header (with an Edit affordance); steps the user hasn't reached yet
+  // stay hidden until they're unlocked.
+  function render() {
     steps.forEach((s, i) => {
       if (!s) return
-      const sNum = i + 1
-      const upcoming = sNum > current
-      s.classList.toggle('inactive', upcoming)
-      s.classList.toggle('complete', sNum < current)
-      // Future steps aren't reachable yet — keep them out of the tab order and the
-      // a11y tree (mirrors the visual dimming; pointer-events:none already blocks mouse).
-      s.toggleAttribute('inert', upcoming)
+      const n = i + 1
+      const isActive   = n === active
+      const isComplete = !isActive && n <= reached
+      const isUpcoming = n > reached
+      s.classList.toggle('active', isActive)
+      s.classList.toggle('complete', isComplete)
+      s.classList.toggle('upcoming', isUpcoming)
+      // Hidden upcoming steps are kept out of the tab order and the a11y tree.
+      s.toggleAttribute('inert', isUpcoming)
     })
-    if (fill) fill.style.width = (current / TOTAL * 100) + '%'
-    if (pct)  pct.textContent = 'Step ' + current + ' of ' + TOTAL
-    progSteps.forEach((ps, i) => {
-      ps.classList.toggle('done',    i + 1 < current)
-      ps.classList.toggle('current', i + 1 === current)
-    })
-    if (window.innerWidth < 900) {
-      const activeStep = document.getElementById('step-' + current)
-      if (activeStep) {
-        setTimeout(() => activeStep.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-      }
+    if (fill) fill.style.width = (active / TOTAL * 100) + '%'
+    if (track2) track2.setAttribute('aria-valuenow', String(active))
+    if (pct) {
+      const name = stepNames[active - 1]
+      pct.textContent = `Step ${active} of ${TOTAL}${name ? ' — ' + name : ''}`
     }
-    try { sessionStorage.setItem('beansprout_step', current) } catch (_) {}
+    progSteps.forEach((ps, i) => {
+      ps.classList.toggle('done',    i + 1 < active)
+      ps.classList.toggle('current', i + 1 === active)
+    })
+    try { sessionStorage.setItem('beansprout_step', active) } catch (_) {}
+  }
+
+  function setStep(n) {
+    active  = n
+    reached = Math.max(reached, n)
+    render()
+    const target = document.getElementById('step-' + active)
+    if (target && window.innerWidth < 900) {
+      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    }
   }
 
   // ── Validation ────────────────────────────────────────────────────────────
+  // A .field can hold several controls (e.g. the three consent checkboxes, or a
+  // radio-card group), so error state is computed per *field*, not per control —
+  // otherwise ticking one box would clear the whole field while others are still
+  // empty. controlsIn() collects the required + format-validated controls in a
+  // field; the field shows the first outstanding message.
+  function controlsIn(field) {
+    const set = new Set(field.querySelectorAll('[required]'))
+    field.querySelectorAll('[id]').forEach(el => { if (validators[el.id]) set.add(el) })
+    return [...set]
+  }
+  function refreshField(field) {
+    const controls = controlsIn(field)
+    let bad = null
+    for (const el of controls) { if (fieldErrorFor(el)) { bad = el; break } }
+    applyFieldError(field, bad || controls[0], bad ? fieldErrorFor(bad) : '')
+    return !bad
+  }
   function validateStep(n) {
     const step = document.getElementById('step-' + n)
     if (!step) return true
-    const required = step.querySelectorAll('[required]')
-    let ok = true
-    required.forEach(el => {
-      const field = el.closest('.field')
-      const invalid =
-        el.type === 'radio'    ? !step.querySelector(`[name="${el.name}"]:checked`)
-        : el.type === 'checkbox' ? !el.checked
-        : !el.value.trim()
-      if (field) field.classList.toggle('error', invalid)
-      if (invalid) ok = false
+    const fields = new Set()
+    step.querySelectorAll('[required]').forEach(el => {
+      const f = el.closest('.field'); if (f) fields.add(f)
     })
+    step.querySelectorAll('[id]').forEach(el => {
+      if (validators[el.id]) { const f = el.closest('.field'); if (f) fields.add(f) }
+    })
+    let ok = true
+    fields.forEach(f => { if (!refreshField(f)) ok = false })
     return ok
   }
 
-  // ── Next / back wiring ─────────────────────────────────────────────────────
+  // Live correction, but gentle — and never before the user has hit Continue.
+  // A field only goes "live" once it's first been flagged (data-live, set in
+  // applyFieldError). After that:
+  //   • Text fields → typing clears the error immediately (reward early) and it's
+  //     re-checked only when they leave the field (punish late), so a slow typer
+  //     or someone obviously correcting a mistake is never scolded mid-word.
+  //   • Discrete controls (radio / checkbox / select / date) settle in a single
+  //     action, so they re-validate on change — that's what keeps a part-ticked
+  //     consent group correctly red until the last box is ticked.
+  const isTextual = el =>
+    el.tagName === 'TEXTAREA' ||
+    (el.tagName === 'INPUT' && /^(text|email|search|tel|url|number|)$/.test(el.type))
+
+  document.querySelectorAll('#enquiry-form input, #enquiry-form select, #enquiry-form textarea')
+    .forEach(el => {
+      const fieldOf = () => el.closest('.field')
+      if (isTextual(el)) {
+        el.addEventListener('input', () => {
+          const f = fieldOf()
+          if (f?.dataset.live && f.classList.contains('error')) softClearError(f)
+        })
+        el.addEventListener('blur', () => {
+          const f = fieldOf()
+          if (f?.dataset.live) refreshField(f)
+        })
+      } else {
+        el.addEventListener('change', () => {
+          const f = fieldOf()
+          if (f?.dataset.live) refreshField(f)
+        })
+      }
+    })
+
+  // ── Next / back / edit wiring ─────────────────────────────────────────────
   ;[['step1-next', 1], ['step2-next', 2], ['step3-next', 3]].forEach(([id, n]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (validateStep(n)) setStep(n + 1)
+      else focusFirstError(document.getElementById('step-' + n))
     })
   })
 
   ;['step2-back', 'step3-back', 'step4-back'].forEach((id, i) => {
     document.getElementById(id)?.addEventListener('click', () => setStep(i + 1))
+  })
+
+  // A completed step's header (and its Edit button) re-opens it for changes.
+  steps.forEach(step => {
+    step?.querySelector('.step-header')?.addEventListener('click', () => {
+      if (step.classList.contains('complete')) setStep(+step.dataset.step)
+    })
   })
 
   // ── Pill multi-select cap — honour data-max on a .pill-group ──────────────
@@ -163,6 +377,29 @@ export function initEnquire() {
     cb.addEventListener('change', () =>
       cb.closest('.pill')?.classList.toggle('checked', cb.checked)
     )
+  })
+
+  // ── Character counters — quiet until you near the limit ───────────────────
+  // The textareas carry a maxlength (a cost / email-size guard, mirrored by the
+  // Worker). Surface a gentle "N characters left" only in the last quarter, so it
+  // informs without hovering a number over every empty box.
+  document.querySelectorAll('#enquiry-form textarea[maxlength]').forEach(t => {
+    const max = parseInt(t.getAttribute('maxlength'), 10)
+    if (!max) return
+    const count = document.createElement('span')
+    count.className = 'char-count'
+    // No aria-live: this is ambient info; announcing "N characters left" on every
+    // keystroke near the limit would spam screen-reader users. maxlength is the guard.
+    t.closest('.field')?.appendChild(count)
+    const update = () => {
+      const left = max - t.value.length
+      count.textContent = t.value.length >= max * 0.75
+        ? `${left} character${left === 1 ? '' : 's'} left`
+        : ''
+      count.classList.toggle('low', left <= 40)
+    }
+    t.addEventListener('input', update)
+    update()
   })
 
   // ── Restore from sessionStorage ───────────────────────────────────────────
@@ -261,9 +498,7 @@ export function initEnquire() {
       b = document.createElement('div')
       b.id = 'form-error-banner'
       b.setAttribute('role', 'alert')
-      b.style.cssText = 'margin-top:16px;padding:14px 18px;background:#FBE8E4;' +
-        'border:1px solid var(--clay,#C45A3E);border-radius:var(--radius,8px);' +
-        'font-size:14px;color:#C45A3E;line-height:1.5'
+      b.className = 'form-error-banner'
       document.querySelector('#step-4 .step-footer')?.after(b)
     }
     b.textContent = msg
@@ -281,15 +516,13 @@ export function initEnquire() {
     for (let n = 1; n <= TOTAL; n++) if (!validateStep(n) && firstBad === null) firstBad = n
     if (firstBad !== null) {
       setStep(firstBad)
-      document.querySelector(`#step-${firstBad} .field.error`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      focusFirstError(document.getElementById('step-' + firstBad))
       return
     }
 
-    const btn   = document.getElementById('submit-btn')
-    const label = btn?.textContent
+    const btn = document.getElementById('submit-btn')
     clearFormError()
-    if (btn) { btn.disabled = true; btn.textContent = 'Sending… 🌱' }
+    setButtonLoading(btn, 'Sending…')
 
     try {
       const fields = collectFields(form)
@@ -308,7 +541,7 @@ export function initEnquire() {
     } catch (err) {
       console.error('Enquiry error:', err)
       showFormError(err.message || 'Something went wrong. Please try again, or email hello@beansprout.ink directly.')
-      if (btn) { btn.disabled = false; btn.textContent = label || 'Send enquiry · 🌱' }
+      clearButtonLoading(btn)
     }
   })
 }

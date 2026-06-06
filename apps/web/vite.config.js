@@ -2,10 +2,12 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
-import { flash } from './src/data/flash.js'
-import { renderFlashCards, renderFlashDrop } from './src/build/flash-cards.js'
-import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderSitemap, ROUTES } from './src/build/seo.js'
+import { flash, season } from './src/data/flash.js'
+import { renderFlashCards, renderFlashDrop, renderFlashSeason } from './src/build/flash-cards.js'
+import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderRobots, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
+import { replyTime } from './src/data/business.js'
+import { renderReplyTime } from './src/build/business.js'
 import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
 import { testimonials } from './src/data/testimonials.js'
 import { renderTestimonials } from './src/build/testimonials.js'
@@ -20,6 +22,7 @@ import { renderHeroMedia } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 import { renderSecurityMeta } from './src/build/security.js'
+import { injectPageLoader } from './src/build/loader.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -38,9 +41,20 @@ const generatedGrids = {
         html = html.replace('<!-- flash:grid -->', () => renderFlashCards(flash))
       }
       // The current drop number in the /flash/ page eyebrow — derived from the
-      // highest `drop` in flash.js so it tracks the cards (the season stays authored).
+      // highest `drop` in flash.js so it tracks the cards.
       if (html.includes('<!-- flash:drop -->')) {
         html = html.replace('<!-- flash:drop -->', () => renderFlashDrop(flash))
+      }
+      // The current drop's season label, beside the number — authored in flash.js
+      // (`season`) so the editorial text is a single source of truth, not hand-edited HTML.
+      if (html.includes('<!-- flash:season -->')) {
+        html = html.replace('<!-- flash:season -->', () => renderFlashSeason(season))
+      }
+      // The enquiry reply-time promise — authored once in src/data/business.js
+      // (`replyTime`) and shown mid-sentence on /enquire/ and /enquiry-received/,
+      // so the two pages can't drift on the turnaround they advertise.
+      if (html.includes('<!-- reply-time -->')) {
+        html = html.replace('<!-- reply-time -->', () => renderReplyTime(replyTime))
       }
       // Inline newsletter-capture band (homepage / flash / post-enquiry).
       if (html.includes('<!-- newsletter:inline -->')) {
@@ -148,6 +162,21 @@ const securityHeaders = {
   },
 }
 
+// Inject the full-page preloader — the critical <style> into <head> and the
+// overlay markup right after <body> — into every page, in dev AND build, so the
+// slow CSS/font arrival never shows as a flash of unstyled content (the reported
+// iPad case). Runs late (order:'post') and is idempotent: the per-piece pages
+// render their own copy (they bypass this transform), so the guards in
+// injectPageLoader stop a double-inject when the dev middleware re-runs the
+// transform over them. See src/build/loader.js + src/js/modules/loader.js.
+const pageLoader = {
+  name: 'beansprout-page-loader',
+  transformIndexHtml: {
+    order: 'post',
+    handler: html => injectPageLoader(html),
+  },
+}
+
 // One shareable HTML page per portfolio piece at /portfolio/<slug>/ (the masonry
 // tiles already link there). Rendered from pieces.js by src/build/piece-page.js.
 // In dev we serve them from a middleware; at build we emit one HTML file each,
@@ -200,15 +229,25 @@ const piecePages = {
   },
 }
 
-// Emit /sitemap.xml at build time and serve it from the dev server so it can be
-// verified locally. Includes the per-piece portfolio routes. robots.txt is a
-// static file in public/ (copied as-is).
+// Emit robots.txt and /sitemap.xml. robots.txt is generated (not a static
+// public/ file) so it can be staging-aware: a production (apex) build allows
+// crawling and advertises the sitemap, while a staging build (no apex CNAME —
+// the GitHub Pages preview or the Cloudflare Pages dev environment from
+// `develop`) blocks every crawler and emits NO sitemap, so the pre-launch copy
+// carries no real-life SEO artifacts (no real-URL sitemap, no crawl invite).
+// Both are served from the dev server too so they can be verified locally.
+// The sitemap includes the per-piece portfolio routes.
 const pieceRoutes = pieces.map(p => ({ path: `/portfolio/${p.slug}/`, priority: '0.6' }))
 const allRoutes = [...ROUTES, ...pieceRoutes]
 const sitemap = {
   name: 'beansprout-sitemap',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
+      if (req.url === '/robots.txt') {
+        res.setHeader('Content-Type', 'text/plain')
+        res.end(renderRobots())
+        return
+      }
       if (req.url === '/sitemap.xml') {
         res.setHeader('Content-Type', 'application/xml')
         res.end(renderSitemap(allRoutes))
@@ -218,13 +257,18 @@ const sitemap = {
     })
   },
   generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: renderSitemap(allRoutes) })
+    this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots() })
+    // Staging emits no sitemap — robots.txt blocks crawlers and a sitemap would
+    // only publish the real apex URLs onto the pre-launch copy.
+    if (isProductionBuild()) {
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: renderSitemap(allRoutes) })
+    }
   },
 }
 
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, securityHeaders, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {

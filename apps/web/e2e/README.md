@@ -19,6 +19,24 @@ npm run test:e2e:ui                    # Playwright's interactive UI mode
 npm run test:e2e:report                # open the last HTML report
 ```
 
+### Where this tier actually runs (don't mistake a skip for a pass)
+
+`npm run test:e2e` routes through [`../scripts/run-e2e.mjs`](../scripts/run-e2e.mjs): if no
+Chromium binary is installed it prints a note and **exits 0 (skips)** rather than failing.
+That skip **validates nothing** — it neither ran nor passed your specs. So the tier is only
+real coverage in **two** places:
+
+1. **CI — the `E2E` GitHub workflow** (`.github/workflows/e2e.yml`). It installs Chromium and
+   runs the full suite **automatically on every `pull_request` that touches `apps/web/**`**
+   (any base branch), on push to `main`, and on manual dispatch. This is the gate for a PR.
+2. **Locally — with the browser installed** (see setup below), where `npm run test:e2e`
+   executes normally.
+
+A **web sandbox** (e.g. Claude Code on the web) is neither: its network allowlist blocks the
+Playwright CDN, so the binary can't be fetched and the run skips. When you change a
+browser-only path here, don't read that skip as green — push the branch and let the PR's E2E
+job cover it, or run it on a local machine.
+
 ### First-time setup — install the browser
 
 Playwright drives a managed Chromium that is **not** installed by `npm install`.
@@ -37,7 +55,7 @@ cd apps/web && npx playwright install chromium     # add --with-deps on Linux/CI
 
 | File | Covers |
 | --- | --- |
-| `smoke.spec.js` | Every page (the `seo.js` routes + the noindex confirmation page) serves 2xx, mounts the shared JS bundle (`#main-nav`), has a `<title>` + `<h1>`, and throws **no** uncaught error / console error on load. Plus `robots.txt`, the sitemap, and the home canonical/JSON-LD. The net for a broken build, a page missing from the Vite input map, or a renderer that blew up. |
+| `smoke.spec.js` | Every page (the `seo.js` routes + the noindex confirmation page) serves 2xx, mounts the shared JS bundle (`#main-nav`), has a `<title>` + `<h1>`, and throws **no** uncaught error / console error on load. Plus the staging-aware `robots.txt`/sitemap (staging: blanket `Disallow:` + no sitemap; apex: crawlable + served sitemap) and the home canonical/JSON-LD. The net for a broken build, a page missing from the Vite input map, or a renderer that blew up. |
 | `lightbox.spec.js` | `src/js/modules/lightbox.js` — opens on a tile click (intercepting the tile link), populates title/counter, pages prev/next with the ends disabled, and closes on ✕ / Escape, restoring body scroll. |
 | `enquire.spec.js` | The enquiry form's **browser-only image pipeline** — the live thumbnail preview (`URL.createObjectURL`) and the submit-time downscale (`createImageBitmap` → canvas → `toBlob` → base64), asserted on the exact JSON the browser POSTs. Plus the error-banner path. |
 | `nav.spec.js` | The mobile drawer (open/close, scroll-lock, close-on-link, Escape) at a real mobile viewport, and the desktop "More" dropdown. |

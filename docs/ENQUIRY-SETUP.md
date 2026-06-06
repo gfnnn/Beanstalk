@@ -33,7 +33,7 @@ does not pause the project when a monthly credit runs out.
 | `apps/functions/wrangler.toml` | Worker name, D1 binding, vars |
 | `apps/web/src/js/modules/config.js` | The Worker URLs the forms POST to (set via `VITE_*_FN_URL`) |
 
-There are **3 secrets to set** (all on free accounts) and **1 URL to paste back**. That's it.
+There are **4 secrets to set** (all on free accounts) and **1 URL to paste back**. That's it.
 
 ---
 

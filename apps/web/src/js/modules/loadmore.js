@@ -1,4 +1,7 @@
+import { setButtonLoading, clearButtonLoading } from './spinner.js'
+
 const PAGE_SIZE = 16
+const now = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now())
 
 export function initLoadMore() {
   const loadMoreBtn     = document.getElementById('load-more-btn')
@@ -31,30 +34,69 @@ export function initLoadMore() {
   function updateUI() {
     if (showingCount) showingCount.textContent = shownCount
     if (totalCount)   totalCount.textContent   = total
-    if (progressFill) progressFill.style.width = `${(shownCount / total) * 100}%`
+    if (progressFill) progressFill.style.width = `${total ? (shownCount / total) * 100 : 0}%`
     if (loadMoreSection) {
       loadMoreSection.style.display = shownCount >= total ? 'none' : ''
     }
   }
 
   loadMoreBtn.addEventListener('click', () => {
+    if (loadMoreBtn.disabled) return
     const tiles = getTiles()
     const next  = Math.min(shownCount + PAGE_SIZE, total)
+    const batch = tiles.slice(shownCount, next)
 
-    tiles.slice(shownCount, next).forEach(tile => {
+    // The tiles are already in the DOM — clicking only un-hides them, so the real
+    // "nothing is happening" gap is their lazy-loaded images fetching. Hold the
+    // button in its loading state until those images settle so the wait reads as
+    // progress, not a frozen page.
+    setButtonLoading(loadMoreBtn, 'Loading…')
+
+    batch.forEach(tile => {
       tile.dataset.shown = 'true'
       tile.style.display = ''
       tile.style.opacity = '0'
       requestAnimationFrame(() => {
         tile.style.transition = 'opacity 400ms ease'
         tile.style.opacity    = '1'
+        // Drop the inline transition/opacity once the fade-in is done so tiles
+        // don't carry leftover inline styles for the rest of the page's life.
+        tile.addEventListener('transitionend', () => {
+          tile.style.transition = ''
+          tile.style.opacity    = ''
+        }, { once: true })
       })
     })
 
     shownCount = next
     updateUI()
     onReveal?.()   // let the filter hide any newly-revealed non-matching tiles
+
+    settleBatch(batch)
   })
+
+  // Restore the button once the revealed batch's images have loaded. A small floor
+  // keeps the spinner from just flashing on a fast/cached reveal; a ceiling stops a
+  // slow (or off-screen, still-lazy) image from pinning it open indefinitely.
+  function settleBatch(batch) {
+    const started = now()
+    const pending = batch
+      .flatMap(tile => [...tile.querySelectorAll('img')])
+      .filter(img => !img.complete)
+
+    const loaded = pending.length
+      ? Promise.all(pending.map(img => new Promise(res => {
+          img.addEventListener('load',  res, { once: true })
+          img.addEventListener('error', res, { once: true })
+        })))
+      : Promise.resolve()
+    const ceiling = new Promise(res => setTimeout(res, 1600))
+
+    Promise.race([loaded, ceiling]).then(() => {
+      const floor = Math.max(0, 300 - (now() - started))
+      setTimeout(() => clearButtonLoading(loadMoreBtn), floor)
+    })
+  }
 
   // Reset the window to the first page — used after a sort reorders the tiles.
   function reset() {

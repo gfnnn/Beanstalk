@@ -1,0 +1,7 @@
+# Hero video binaries (apps/web/public/videos/) ship from the repo to GitHub Pages
+# and can be a few MB each — track them with Git LFS so the git history stays lean.
+# The deploy workflow checks out LFS objects (lfs: true in deploy-web.yml).
+# Posters are small JPGs and the responsive stills (avif/webp/jpg, ~tens of KB)
+# stay as normal git objects — only the videos go through LFS.
+apps/web/public/videos/*.mp4  filter=lfs diff=lfs merge=lfs -text
+apps/web/public/videos/*.webm filter=lfs diff=lfs merge=lfs -text

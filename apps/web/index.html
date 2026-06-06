@@ -17,9 +17,9 @@
   <meta property="og:image"        content="https://beansprout.ink/images/og-image.jpg">
   <meta property="og:image:width"  content="1200">
   <meta property="og:image:height" content="630">
-  <!-- IMAGE NEEDED: /images/og-image.jpg 1200×630 JPEG/WebP
-       Brief: close crop of finished tattoo on skin — warm directional light, no text overlay.
-       Also export 600×315 fallback. -->
+  <!-- /images/og-image.jpg is currently a generated brand placeholder (cream + sprig + wordmark).
+       Before final launch, swap for a photo: close crop of a finished tattoo on skin —
+       warm directional light, no text overlay — at 1200×630. -->
   <meta name="twitter:card"        content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -344,8 +344,12 @@
          so the grid is uniform — keep this selection + captions in step with
          the data file when the newest pieces change. -->
     <a href="/portfolio/" class="tile gradient-sage">
-      <img src="/images/tattoos/Adansonii.webp" width="700" height="930" loading="lazy" decoding="async"
-           alt="Fine line tattoo of a monstera adansonii vine on a forearm">
+      <picture>
+        <source type="image/avif" srcset="/images/tattoos/monstera-adansonii-400.avif 400w, /images/tattoos/monstera-adansonii-800.avif 800w, /images/tattoos/monstera-adansonii-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/monstera-adansonii-400.webp 400w, /images/tattoos/monstera-adansonii-800.webp 800w, /images/tattoos/monstera-adansonii-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/monstera-adansonii-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of a monstera adansonii vine on a forearm">
+      </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Monstera adansonii</p>
         <p class="tile-meta-sub">Fine line · Forearm</p>
@@ -353,8 +357,12 @@
     </a>
 
     <a href="/portfolio/" class="tile gradient-moss">
-      <img src="/images/tattoos/Dragonfly.webp" width="700" height="930" loading="lazy" decoding="async"
-           alt="Fine line tattoo of a dragonfly and daisies on a forearm">
+      <picture>
+        <source type="image/avif" srcset="/images/tattoos/dragonfly-daisies-400.avif 400w, /images/tattoos/dragonfly-daisies-800.avif 800w, /images/tattoos/dragonfly-daisies-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/dragonfly-daisies-400.webp 400w, /images/tattoos/dragonfly-daisies-800.webp 800w, /images/tattoos/dragonfly-daisies-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/dragonfly-daisies-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of a dragonfly and daisies on a forearm">
+      </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Dragonfly &amp; daisies</p>
         <p class="tile-meta-sub">Fine line · Forearm</p>
@@ -362,8 +370,12 @@
     </a>
 
     <a href="/portfolio/" class="tile gradient-warm">
-      <img src="/images/tattoos/MouseRabbit.webp" width="700" height="930" loading="lazy" decoding="async"
-           alt="Fine line tattoo of a mouse and hare with floral inlay on a leg">
+      <picture>
+        <source type="image/avif" srcset="/images/tattoos/mouse-and-hare-400.avif 400w, /images/tattoos/mouse-and-hare-800.avif 800w, /images/tattoos/mouse-and-hare-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/mouse-and-hare-400.webp 400w, /images/tattoos/mouse-and-hare-800.webp 800w, /images/tattoos/mouse-and-hare-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/mouse-and-hare-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of a mouse and hare with floral inlay on a leg">
+      </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Mouse &amp; hare</p>
         <p class="tile-meta-sub">Fine line · Leg</p>
@@ -371,8 +383,12 @@
     </a>
 
     <a href="/portfolio/" class="tile gradient-cream">
-      <img src="/images/tattoos/WhaleSharks.webp" width="700" height="930" loading="lazy" decoding="async"
-           alt="Fine line tattoo of two whale sharks on a leg">
+      <picture>
+        <source type="image/avif" srcset="/images/tattoos/whale-sharks-400.avif 400w, /images/tattoos/whale-sharks-800.avif 800w, /images/tattoos/whale-sharks-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/whale-sharks-400.webp 400w, /images/tattoos/whale-sharks-800.webp 800w, /images/tattoos/whale-sharks-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/whale-sharks-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of two whale sharks on a leg">
+      </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Whale sharks</p>
         <p class="tile-meta-sub">Fine line · Leg</p>
@@ -380,8 +396,12 @@
     </a>
 
     <a href="/portfolio/" class="tile gradient-clay">
-      <img src="/images/tattoos/Lily.webp" width="700" height="930" loading="lazy" decoding="async"
-           alt="Fine line tattoo of a pair of lilies on a leg">
+      <picture>
+        <source type="image/avif" srcset="/images/tattoos/lilies-400.avif 400w, /images/tattoos/lilies-800.avif 800w, /images/tattoos/lilies-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/lilies-400.webp 400w, /images/tattoos/lilies-800.webp 800w, /images/tattoos/lilies-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/lilies-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of a pair of lilies on a leg">
+      </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Lilies</p>
         <p class="tile-meta-sub">Fine line · Leg</p>
@@ -389,8 +409,12 @@
     </a>
 
     <a href="/portfolio/" class="tile gradient-ink">
-      <img src="/images/tattoos/Sundrop.webp" width="700" height="930" loading="lazy" decoding="async"
-           alt="Fine line tattoo of a single lily stem on a leg">
+      <picture>
+        <source type="image/avif" srcset="/images/tattoos/lily-stem-400.avif 400w, /images/tattoos/lily-stem-800.avif 800w, /images/tattoos/lily-stem-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/lily-stem-400.webp 400w, /images/tattoos/lily-stem-800.webp 800w, /images/tattoos/lily-stem-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/lily-stem-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of a single lily stem on a leg">
+      </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Lily</p>
         <p class="tile-meta-sub">Fine line · Leg</p>

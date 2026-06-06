@@ -29,7 +29,7 @@ export function initHeroAnimation() {
     delay: 0.15,
   })
 
-  if (eyebrow) tl.from(eyebrow, { opacity: 0, x: -20, duration: 0.7 })
+  if (eyebrow) tl.from(eyebrow, { opacity: 0, duration: 0.7 })
 
   tl.from(heading, {
     opacity: 0, y: 30, filter: 'blur(8px)', duration: 0.9, ease: 'power4.out',
@@ -252,9 +252,25 @@ export function initScrollAnimations() {
   const pageDesc  = document.querySelector('.page-descriptor')
   if (pageTitle) {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 })
-    if (pageEye)  tl.from(pageEye,  { opacity: 0, x: -16, duration: 0.65 })
+    if (pageEye)  tl.from(pageEye,  { opacity: 0, duration: 0.65 })
     tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
     if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
+  }
+
+  // ── Filter bar (portfolio / flash) — chips + controls cascade in between the
+  //    header and the grid, so the top of the page settles top-down instead of the
+  //    bar popping in. Animate the children (not the sticky .filter-bar itself, so
+  //    position:sticky is left untouched); above the fold → a brief on-load stagger
+  //    sequenced after the header start. motion.css guards these against a flash.
+  const filterBar = document.querySelector('.filter-bar')
+  if (filterBar) {
+    const controls = filterBar.querySelectorAll('.chip, .chip-more, .filter-select')
+    if (controls.length) {
+      gsap.from(controls, {
+        opacity: 0, y: 8, duration: 0.5, ease: 'power2.out',
+        stagger: { each: 0.035, from: 'start' }, delay: 0.3,
+      })
+    }
   }
 
   // ── Generic .reveal elements (about, visit, and other inner pages) ──────────
@@ -289,8 +305,7 @@ export function initScrollAnimations() {
     resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 150)
   }, { passive: true })
 
-  window.addEventListener('orientationchange', () => {
-    // Extra delay for iOS to finish viewport recalculation
-    setTimeout(() => ScrollTrigger.refresh(), 350)
-  }, { passive: true })
+  // Orientation changes are handled in lenis.js (which also re-measures Lenis and
+  // then refreshes ScrollTrigger after the same delay) — so we don't double-refresh
+  // here. The resize handler above still covers plain window resizes.
 }

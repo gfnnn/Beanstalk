@@ -5,7 +5,8 @@
 // rather than exact byte-for-byte HTML, so cosmetic tweaks don't break the suite.
 import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
-import { renderFlashCards, renderFlashDrop } from '../src/build/flash-cards.js'
+import { renderFlashCards, renderFlashDrop, renderFlashSeason } from '../src/build/flash-cards.js'
+import { renderReplyTime } from '../src/build/business.js'
 import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
 import { renderTestimonials } from '../src/build/testimonials.js'
@@ -24,7 +25,7 @@ import { media } from '../src/data/media.js'
 
 describe('renderPortfolioTiles', () => {
   const withImage = {
-    slug: 's1', title: 'Foxglove', subject: 'foxglove', styles: ['fine-line', 'botanical'],
+    slug: 's1', title: 'Foxglove', subject: 'foxglove', styles: ['fine-line', 'dotwork'],
     placement: 'forearm', date: '2026-03-01', tone: 't-moss', glyph: 'sprig',
     img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
@@ -66,7 +67,7 @@ describe('renderPortfolioTiles', () => {
 
   it('joins multiple styles into the data-style filter attribute', () => {
     const html = renderPortfolioTiles([withImage])
-    expect(html).toContain('data-style="fine-line botanical"')
+    expect(html).toContain('data-style="fine-line dotwork"')
   })
 
   it('escapes HTML in title/subject to prevent markup injection', () => {
@@ -152,6 +153,42 @@ describe('renderFlashDrop (current-drop number for the page eyebrow)', () => {
   it('returns an empty string for empty data (no NaN/-Infinity in the markup)', () => {
     expect(renderFlashDrop([])).toBe('')
     expect(renderFlashDrop()).toBe('')
+  })
+})
+
+describe('renderFlashSeason (current-drop season label for the page eyebrow)', () => {
+  it('returns the authored season text, trimmed', () => {
+    expect(renderFlashSeason('Summer 2026')).toBe('Summer 2026')
+    expect(renderFlashSeason('  Winter 2027  ')).toBe('Winter 2027')
+  })
+
+  it('escapes HTML so the data can never inject markup', () => {
+    expect(renderFlashSeason('Spring & <b>2026</b>')).toBe('Spring &amp; &lt;b&gt;2026&lt;/b&gt;')
+  })
+
+  it('returns an empty string for blank/missing input', () => {
+    expect(renderFlashSeason('')).toBe('')
+    expect(renderFlashSeason('   ')).toBe('')
+    expect(renderFlashSeason()).toBe('')
+    expect(renderFlashSeason(null)).toBe('')
+  })
+})
+
+describe('renderReplyTime (enquiry reply-time phrase, shared by enquire + received)', () => {
+  it('returns the authored reply-time phrase, trimmed', () => {
+    expect(renderReplyTime('within 3 days')).toBe('within 3 days')
+    expect(renderReplyTime('  in 2–3 working days  ')).toBe('in 2–3 working days')
+  })
+
+  it('escapes HTML so the data can never inject markup', () => {
+    expect(renderReplyTime('within <b>3</b> & 4 days')).toBe('within &lt;b&gt;3&lt;/b&gt; &amp; 4 days')
+  })
+
+  it('returns an empty string for blank/missing input', () => {
+    expect(renderReplyTime('')).toBe('')
+    expect(renderReplyTime('   ')).toBe('')
+    expect(renderReplyTime()).toBe('')
+    expect(renderReplyTime(null)).toBe('')
   })
 })
 
@@ -383,7 +420,7 @@ describe('renderNewsletterInline', () => {
 describe('renderPiecePage', () => {
   const withImage = {
     slug: 'foxglove', title: 'Foxglove', subject: 'foxglove sprig',
-    styles: ['fine-line', 'botanical'], placement: 'forearm', date: '2026-03-01',
+    styles: ['fine-line', 'dotwork'], placement: 'forearm', date: '2026-03-01',
     tone: 't-moss', glyph: 'sprig', img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
   const exportImage = { ...withImage, slug: 'koi', title: 'Koi', img: '/images/tattoos/Koi.webp' }
@@ -428,7 +465,7 @@ describe('renderPiecePage', () => {
   it('shows style + placement tags and the enquiry / back CTAs', () => {
     const html = renderPiecePage(withImage)
     expect(html).toContain('>Fine line<')
-    expect(html).toContain('>Botanical<')
+    expect(html).toContain('>Dotwork<')
     expect(html).toContain('>Forearm<')
     expect(html).toContain('href="/enquire/"')
     expect(html).toContain('href="/portfolio/"')
@@ -477,7 +514,7 @@ describe('renderTestimonials', () => {
 describe('renderSpecialisms (homepage "What I do" cards)', () => {
   const sample = [
     { slug: 'newest-fl', title: 'Newest', subject: 'a sprig', styles: ['fine-line'],            placement: 'forearm', date: '2026-05-15', img: '/images/tattoos/Newest.webp', w: 700, h: 930 },
-    { slug: 'older-fl',  title: 'Older',  subject: 'a leaf',  styles: ['fine-line', 'botanical'], placement: 'leg',     date: '2025-01-01', img: '/images/tattoos/Older.webp',  w: 700, h: 930 },
+    { slug: 'older-fl',  title: 'Older',  subject: 'a leaf',  styles: ['fine-line', 'dotwork'], placement: 'leg',     date: '2025-01-01', img: '/images/tattoos/Older.webp',  w: 700, h: 930 },
     { slug: 'no-photo',  title: 'Pending', subject: 'a moth', styles: ['fine-line'],            placement: 'wrist',   date: '2026-06-01', img: null, w: null, h: null },
     { slug: 'bw',        title: 'Tiger',  subject: 'a tiger', styles: ['black-grey'],           placement: 'forearm', date: '2025-03-11', img: '/images/tattoos/Tiger.webp', w: 700, h: 930 },
   ]
@@ -539,6 +576,24 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
   it('piecesForStyle caps the selection (default three previews per card)', () => {
     expect(piecesForStyle(pieces, 'fine-line').length).toBeLessThanOrEqual(3)
     expect(piecesForStyle(pieces, 'fine-line').every(p => p.img && p.styles.includes('fine-line'))).toBe(true)
+  })
+
+  it('piecesForStyle skips slugs in the exclude set', () => {
+    const all = piecesForStyle(sample, 'fine-line')
+    const exclude = new Set([all[0].slug])
+    expect(piecesForStyle(sample, 'fine-line', 3, exclude).map(p => p.slug)).not.toContain(all[0].slug)
+  })
+
+  it('never previews the same piece twice across cards (a multi-style piece is de-duplicated)', () => {
+    // `older-fl` carries both fine-line and dotwork — it must appear on only one card.
+    const html = renderSpecialisms(sample, [{ style: 'fine-line' }, { style: 'dotwork' }])
+    expect(html.match(/\/portfolio\/older-fl\//g)).toHaveLength(1)
+  })
+
+  it('de-duplicates against the real catalogue (no repeated thumbnail across the specialism row)', () => {
+    const html = renderSpecialisms(pieces, homepage.specialisms)
+    const srcs = [...html.matchAll(/<img src="([^"]+)"/g)].map(m => m[1])
+    expect(new Set(srcs).size).toBe(srcs.length)
   })
 })
 

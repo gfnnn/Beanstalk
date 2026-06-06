@@ -8,7 +8,18 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+/* The bottom divider as a 1px ::after (not border-bottom) so the motion layer can
+   grow it in from the left and retract it on leave — see atmosphere.css. */
+.page-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
 }
 
 .page-header-left {

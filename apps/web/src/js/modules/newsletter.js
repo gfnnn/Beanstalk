@@ -1,5 +1,6 @@
 import { NEWSLETTER_FN_URL } from './config.js'
 import { track } from './analytics.js'
+import { setButtonLoading, clearButtonLoading } from './spinner.js'
 
 // Newsletter signup — POSTs { fields } to the Cloudflare Worker, which adds the
 // subscriber to a Resend Audience. Drives EVERY `form[data-newsletter]` on the
@@ -58,8 +59,7 @@ function wireForm(form) {
       return
     }
 
-    const label = submitBtn ? submitBtn.textContent : ''
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Subscribing…' }
+    setButtonLoading(submitBtn, 'Subscribing…')
 
     try {
       const res  = await fetch(NEWSLETTER_FN_URL, {
@@ -92,7 +92,7 @@ function wireForm(form) {
       console.error('Newsletter signup error:', err)
       showError(err.message || 'Couldn’t subscribe just now. Please try again, or email hello@beansprout.ink.')
     } finally {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = label }
+      clearButtonLoading(submitBtn)
     }
   })
 }

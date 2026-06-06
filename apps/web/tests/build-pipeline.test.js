@@ -7,7 +7,8 @@
 import { describe, it, expect } from 'vitest'
 import config from '../vite.config.js'
 import { pieces } from '../src/data/pieces.js'
-import { flash } from '../src/data/flash.js'
+import { flash, season } from '../src/data/flash.js'
+import { replyTime } from '../src/data/business.js'
 import { themeColor } from '../src/build/palette.js'
 
 const plugins = config.plugins
@@ -39,6 +40,7 @@ describe('vite.config plugins are all registered', () => {
     'beansprout-generated-grids',
     'beansprout-seo-head',
     'beansprout-security-headers',
+    'beansprout-page-loader',
     'beansprout-piece-pages',
     'beansprout-sitemap',
   ])('%s is in the plugin list', name => {
@@ -65,6 +67,18 @@ describe('transformIndexHtml pipeline', () => {
     const out = transformHtml(page('Drop <!-- flash:drop --> · 2026'))
     expect(out).not.toContain('<!-- flash:drop -->')
     expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · 2026`)
+  })
+
+  it('replaces the flash:season marker with the authored season label', () => {
+    const out = transformHtml(page('Drop <!-- flash:drop --> · <!-- flash:season -->'))
+    expect(out).not.toContain('<!-- flash:season -->')
+    expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · ${season}`)
+  })
+
+  it('replaces the reply-time marker with the authored reply-time phrase', () => {
+    const out = transformHtml(page('reply by email, usually <!-- reply-time -->.'))
+    expect(out).not.toContain('<!-- reply-time -->')
+    expect(out).toContain(`reply by email, usually ${replyTime}.`)
   })
 
   it('replaces the hero-media marker (placeholder while the clip is off)', () => {
@@ -124,12 +138,40 @@ describe('transformIndexHtml pipeline', () => {
     const again = transformHtml(out)
     expect(again.match(/<style id="palette">/g)).toHaveLength(1)
   })
+
+  it('injects the page preloader (critical <style> + overlay) into every page', () => {
+    const out = transformHtml(page('<main></main>'))
+    expect(out).toContain('<style id="page-loader-css">')
+    expect(out).toContain('id="page-loader"')
+  })
+
+  it('does not double-inject the preloader on a second pass', () => {
+    const out = transformHtml(page(''))
+    const again = transformHtml(out)
+    expect(again.match(/id="page-loader-css"/g)).toHaveLength(1)
+  })
 })
 
-describe('sitemap generateBundle', () => {
+// The robots.txt + sitemap emit is staging-aware (keyed off isProductionBuild()),
+// so drive generateBundle under an explicit SITE_ENV and restore it after.
+function emitWithEnv(val) {
+  const prev = process.env.SITE_ENV
+  if (val === undefined) delete process.env.SITE_ENV
+  else process.env.SITE_ENV = val
   const emitted = []
-  byName('beansprout-sitemap').generateBundle.call({ emitFile: f => emitted.push(f) })
+  try {
+    byName('beansprout-sitemap').generateBundle.call({ emitFile: f => emitted.push(f) })
+  } finally {
+    if (prev === undefined) delete process.env.SITE_ENV
+    else process.env.SITE_ENV = prev
+  }
+  return emitted
+}
+
+describe('sitemap + robots generateBundle (production / apex build)', () => {
+  const emitted = emitWithEnv('production')
   const sm = emitted.find(f => f.fileName === 'sitemap.xml')
+  const robots = emitted.find(f => f.fileName === 'robots.txt')
 
   it('emits sitemap.xml', () => {
     expect(sm).toBeTruthy()
@@ -141,6 +183,32 @@ describe('sitemap generateBundle', () => {
     for (const p of pieces) {
       expect(sm.source).toContain(`/portfolio/${p.slug}/`)
     }
+  })
+
+  it('emits a crawl-allowing robots.txt that advertises the sitemap', () => {
+    expect(robots).toBeTruthy()
+    expect(robots.source).toContain('Allow: /')
+    expect(robots.source).toContain('Sitemap: https://beansprout.ink/sitemap.xml')
+  })
+})
+
+describe('sitemap + robots generateBundle (staging build — no real-life SEO artifacts)', () => {
+  const emitted = emitWithEnv(undefined)
+  // Pre-launch repo invariant: no apex CNAME, so SITE_ENV unset → staging.
+  const isStaging = !emitted.some(f => f.fileName === 'sitemap.xml')
+
+  it('emits NO sitemap.xml on a staging build', () => {
+    if (!isStaging) return // a local apex/CNAME build legitimately would emit one
+    expect(emitted.some(f => f.fileName === 'sitemap.xml')).toBe(false)
+  })
+
+  it('emits a blanket Disallow robots.txt that never advertises the production sitemap', () => {
+    if (!isStaging) return
+    const robots = emitted.find(f => f.fileName === 'robots.txt')
+    expect(robots).toBeTruthy()
+    expect(robots.source).toContain('Disallow: /')
+    expect(robots.source).not.toContain('Sitemap:')
+    expect(robots.source).not.toContain('beansprout.ink')
   })
 })
 
@@ -174,5 +242,11 @@ describe('piece-pages generateBundle', () => {
     const sample = htmlFiles[0].source
     expect(sample).toContain('http-equiv="Content-Security-Policy"')
     expect(sample).toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
+  })
+
+  it('carries the page preloader (it bypasses the transform plugin)', () => {
+    const sample = htmlFiles[0].source
+    expect(sample).toContain('<style id="page-loader-css">')
+    expect(sample).toContain('id="page-loader"')
   })
 })

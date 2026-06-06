@@ -8,13 +8,24 @@
   top: var(--nav-h);
   z-index: 100;
   background: var(--bg);
-  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 10px;
   padding: 12px var(--pad-x);
   transition: box-shadow var(--dur) var(--ease);
+}
+/* Bottom divider as an animatable hairline (was border-bottom) — grows/retracts
+   with the page; transform comes from the rule registry in atmosphere.css. The
+   sticky bar is itself the containing block, so it pins with the bar. */
+.filter-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
 }
 .filter-bar.stuck {
   box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06);

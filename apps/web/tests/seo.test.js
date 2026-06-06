@@ -9,6 +9,7 @@ import {
   injectStagingNoindex,
   isProductionBuild,
   ROBOTS_NOINDEX,
+  renderRobots,
   renderSitemap,
   ROUTES,
   SITE_URL,
@@ -121,6 +122,33 @@ describe('injectStagingNoindex (keep the pre-launch staging site out of search)'
 
   it('leaves injectSeoHead itself pure — the SEO injector never adds a robots tag', () => {
     expect(injectSeoHead(ogPage())).not.toContain('robots')
+  })
+})
+
+describe('renderRobots (no real-life SEO artifacts on the staging copy)', () => {
+  it('production build: allows crawling, blocks the confirmation page, advertises the sitemap', () => {
+    const txt = renderRobots({ production: true })
+    expect(txt).toContain('User-agent: *')
+    expect(txt).toContain('Allow: /')
+    expect(txt).toContain('Disallow: /enquiry-received/')
+    expect(txt).toContain(`Sitemap: ${SITE_URL}/sitemap.xml`)
+  })
+
+  it('staging build: blocks every crawler and never advertises the production sitemap', () => {
+    const txt = renderRobots({ production: false })
+    expect(txt).toContain('User-agent: *')
+    expect(txt).toContain('Disallow: /')
+    // no blanket Allow, and crucially no real-URL sitemap reference
+    expect(txt).not.toContain('Allow: /')
+    expect(txt).not.toContain('Sitemap:')
+    expect(txt).not.toContain(SITE_URL)
+  })
+
+  it('defaults to the active build mode (isProductionBuild)', () => {
+    // Pre-launch repo invariant: no apex CNAME → staging → blanket disallow.
+    if (isProductionBuild()) return
+    expect(renderRobots()).toContain('Disallow: /')
+    expect(renderRobots()).not.toContain('Sitemap:')
   })
 })
 

@@ -96,4 +96,28 @@ describe('initLoadMore', () => {
     expect(shownTiles()).toHaveLength(PAGE_SIZE)
     expect(document.getElementById('showing-count').textContent).toBe('16')
   })
+
+  it('puts the button into a spinner/aria-busy loading state on click, then restores it', async () => {
+    vi.useFakeTimers()
+    setup(20)
+    initLoadMore()
+    const btn = document.getElementById('load-more-btn')
+    btn.innerHTML = 'Load more work →'
+
+    click(btn)
+
+    // Immediately busy: disabled, announced, and showing the shared spinner.
+    expect(btn.disabled).toBe(true)
+    expect(btn.getAttribute('aria-busy')).toBe('true')
+    expect(btn.querySelector('.btn-spinner')).not.toBeNull()
+    expect(btn.textContent).toContain('Loading')
+
+    // The revealed batch here has no images, so it settles on the minimum floor.
+    await vi.runAllTimersAsync()
+
+    expect(btn.disabled).toBe(false)
+    expect(btn.hasAttribute('aria-busy')).toBe(false)
+    expect(btn.innerHTML).toBe('Load more work →') // restored verbatim
+    vi.useRealTimers()
+  })
 })

@@ -27,10 +27,15 @@ const thumbSrc = p => (HAS_EXT.test(p.img) ? p.img : `${p.img}-400.jpg`)
 // The newest pieces with a real photo that carry `style`, up to `n`. Newest-first
 // by date with a stable tiebreak on source order (same as the portfolio grid), so
 // the homepage previews track the catalogue's most recent work in that style.
-export function piecesForStyle(pieces, style, n = PREVIEWS) {
+// `exclude` is an optional Set of slugs to skip — pieces already previewed on an
+// earlier card — so the same photo never shows twice across the specialism row (a
+// piece can carry several styles, e.g. fine-line + botanical, so its thumbnail
+// would otherwise duplicate between cards).
+export function piecesForStyle(pieces, style, n = PREVIEWS, exclude) {
   return (pieces || [])
     .map((p, i) => ({ p, i }))
-    .filter(({ p }) => p.img && Array.isArray(p.styles) && p.styles.includes(style))
+    .filter(({ p }) => p.img && Array.isArray(p.styles) && p.styles.includes(style)
+      && !(exclude && exclude.has(p.slug)))
     .sort((a, b) => dateKey(b.p) - dateKey(a.p) || a.i - b.i)
     .slice(0, n)
     .map(o => o.p)
@@ -53,13 +58,18 @@ function preview(p) {
 // fill card. Fill cards are the tablet-only balance tile: they carry the --fill
 // modifier (CSS shows them only at tablet widths), sit outside the "0X / 0Y"
 // numbering and read "Also" instead.
-function card(spec, pieces, i, total) {
+// `used` is a shared Set of slugs already previewed on earlier cards; the selected
+// pieces for this card are added to it so the next card skips them. Pass an empty
+// Set (the default) for a standalone card with no cross-card de-duplication.
+function card(spec, pieces, i, total, used = new Set()) {
   const fill  = i < 0
   const style = spec.style
   const num   = String(i + 1).padStart(2, '0')
   const denom = String(total).padStart(2, '0')
   const label = styleLabel(style)
-  const previews = piecesForStyle(pieces, style).map(preview).join('\n          ')
+  const selected = piecesForStyle(pieces, style, PREVIEWS, used)
+  selected.forEach(p => used.add(p.slug))
+  const previews = selected.map(preview).join('\n          ')
   const em = spec.em ? ` <em>${esc(spec.em)}</em>` : ''
   const cls     = fill ? 'specialism-card specialism-card--fill' : 'specialism-card'
   const dataNum = fill ? String(total + 1).padStart(2, '0') : num
@@ -85,8 +95,11 @@ function card(spec, pieces, i, total) {
 export function renderSpecialisms(pieces, specialisms = []) {
   const list  = specialisms || []
   const total = list.filter(s => !s.fill).length
+  // Shared across cards in render order: a piece previewed on one card is skipped
+  // by every later card, so the same photo never appears twice in the row.
+  const used  = new Set()
   let n = 0
-  return list.map(spec => card(spec, pieces, spec.fill ? -1 : n++, total)).join('\n')
+  return list.map(spec => card(spec, pieces, spec.fill ? -1 : n++, total, used)).join('\n')
 }
 
 // Re-exported so the data-contract test can derive the valid style set from the

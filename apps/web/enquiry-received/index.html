@@ -66,14 +66,17 @@
 <!-- CONFIRMATION -->
 <main class="confirm" role="main" id="maincontent" tabindex="-1">
   <div class="confirm-inner">
-    <div class="confirm-mark" aria-hidden="true">🌱</div>
+    <!-- PLACEHOLDER: brand icon pending — see ROADMAP go-live checklist.
+         Matches the nav's logo placeholder language until real artwork lands. -->
+    <div class="confirm-mark" aria-hidden="true">icon</div>
     <!-- COPY: confirmation eyebrow -->
     <p class="page-eyebrow">Enquiry received</p>
     <!-- COPY: confirmation heading -->
     <h1 class="confirm-title">Thank you, your enquiry's <em>on its way.</em></h1>
     <!-- COPY: confirmation body -->
-    <!-- TODO(roxy): "within 3 days" is a placeholder default — keep it in step with the reply time on /enquire -->
-    <p class="confirm-text">It's landed in my inbox. You'll get a reply to the email address you gave me, usually within 3 days. No need to send anything again.</p>
+    <!-- Reply time generated from src/data/business.js (`replyTime`) so it stays in
+         step with /enquire/ — don't hand-edit the phrase here. -->
+    <p class="confirm-text">It's landed in my inbox. You'll get a reply to the email address you gave me, usually <!-- reply-time -->. No need to send anything again.</p>
 
     <div class="confirm-timeline">
       <!-- COPY: "what happens next" steps -->
@@ -138,9 +141,14 @@
 }
 .confirm-inner{max-width:560px;text-align:center}
 .confirm-mark{
-  font-size:44px;line-height:1;margin-bottom:24px;
-  width:84px;height:84px;display:flex;align-items:center;justify-content:center;
-  margin-inline:auto;border-radius:50%;background:var(--moss-bg);border:1px solid var(--line);
+  width:84px;height:84px;margin:0 auto 24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border-radius:50%;background:var(--cream);border:1.5px dashed var(--line);
+  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.confirm-mark::before{
+  content:'⬚';font-family:sans-serif;font-size:22px;line-height:1;color:var(--line);
 }
 .confirm .page-eyebrow{justify-content:center}
 .confirm-title{
