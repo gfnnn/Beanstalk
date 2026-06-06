@@ -284,4 +284,19 @@ describe('enquiry handler — rate limiting', () => {
       expect((await H(post(validEnquiry()))).statusCode).toBe(502) // never 429
     }
   })
+
+  it('gates BEFORE the flash reservation and persistence — a throttled claim writes nothing', async () => {
+    for (let i = 0; i < 5; i++) {
+      expect((await H(post(validEnquiry()))).statusCode).toBe(200) // exhaust the IP window
+    }
+    const blocked = await H(post({
+      kind: 'flash',
+      fields: { name: 'Bo', email: 'bo@example.com', piece: 'Moth', piece_id: 'flash-99' },
+    }))
+    expect(blocked.statusCode).toBe(429)
+    // The expensive path never ran: no piece reserved, no submission row written.
+    expect(flashMap(d1.data)['flash-99']).toBeUndefined()
+    expect(d1.data.submissions.size).toBe(5) // only the 5 that got through
+    expect(fetchMock).toHaveBeenCalledTimes(5)
+  })
 })

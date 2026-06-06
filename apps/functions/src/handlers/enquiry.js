@@ -115,6 +115,17 @@ export async function handler(event, env = {}) {
     return reply(400, { error: 'Please confirm the required consent boxes.' })
   }
 
+  // ── Rate limit — gate BEFORE any expensive work ─────────────────────────────
+  // Checked here (not after the attachment loop) so a throttled IP can't make the
+  // Worker base64-decode and magic-byte-sniff up to MAX_IMAGES files, nor write a
+  // flash reservation, before being turned away. The check is two cheap reads;
+  // `commit()` (the write that actually spends a slot) still fires only on a
+  // successful send below, so genuine throttling accounting is unchanged.
+  const limiter = await rateLimit(env, clientIp(event), { storeName: 'enquiry-rate' })
+  if (!limiter.ok) {
+    return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
+  }
+
   // ── Attachments (enquiries only) ────────────────────────────────────────────
   // Never trust the client's claimed type: sniff each file's magic bytes and keep
   // only real images, renamed to match what the bytes actually are. Unrecognised
@@ -125,7 +136,11 @@ export async function handler(event, env = {}) {
   const attachments = []
   for (const img of images) {
     if (!img || typeof img.data !== 'string' || !img.data) { skipped++; continue }
-    const bytes = Math.floor(img.data.length * 3 / 4) // base64 → byte estimate
+    // Decoded-size estimate from the base64 length (4 chars → 3 bytes). It ignores
+    // padding/whitespace so it slightly OVER-estimates the true size — the safe
+    // direction for a cap (it can only reject sooner, never wave an oversized file
+    // through). Good enough as a guard; the exact bytes aren't needed here.
+    const bytes = Math.floor(img.data.length * 3 / 4)
     if (bytes > MAX_IMAGE_BYTES) { skipped++; continue } // one huge file → drop it
     const sig = sniffImage(img.data)
     if (!sig) { skipped++; continue }   // not a recognised image → drop it
@@ -134,12 +149,6 @@ export async function handler(event, env = {}) {
   }
   if (total > MAX_TOTAL_BYTES) {
     return reply(413, { error: 'Your images are too large. Please remove some and try again.' })
-  }
-
-  // ── Rate limit — only valid, about-to-send requests count ───────────────────
-  const limiter = await rateLimit(env, clientIp(event), { storeName: 'enquiry-rate' })
-  if (!limiter.ok) {
-    return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
   }
 
   // ── Flash inventory — reserve the piece so it can't be double-claimed ───────
