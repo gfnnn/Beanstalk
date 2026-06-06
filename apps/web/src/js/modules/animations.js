@@ -148,6 +148,32 @@ function revealFrom(selector, fromVars, triggerVars = {}) {
   })
 }
 
+// ── Helper: reveal a group of items (cards / tiles) as a staggered cascade ────
+// The homepage feel. Two non-obvious choices make it read "graceful" everywhere:
+//
+//   1. Per-item stagger (`each`), not a fixed total (`amount`). A fixed total
+//      divided across a big grid (the portfolio has 16+ tiles) leaves only ~15ms
+//      between tiles — they fade in together as one "flash". A constant per-item
+//      gap keeps the cascade visible no matter how many items there are; the
+//      on-screen ones cascade, the rest finish off-screen unseen.
+//   2. Above-the-fold groups (the portfolio / flash grids sit right under the
+//      header) play a deliberate on-LOAD cascade sequenced just after the header,
+//      instead of a ScrollTrigger that fires instantly and competes with it.
+//      Below the fold they reveal on scroll as you reach them.
+function revealGroup(items, { trigger, y = 22, duration = 0.7, ease = 'power2.out', each = 0.055, blur = 0 } = {}) {
+  const list = gsap.utils.toArray(items)
+  if (!list.length) return
+  const root = trigger || list[0].parentElement
+  const vars = { opacity: 0, y, duration, ease, stagger: { each, from: 'start' } }
+  if (blur) vars.filter = `blur(${blur}px)`
+  const aboveFold = root.getBoundingClientRect().top < window.innerHeight * 0.85
+  if (aboveFold) {
+    gsap.from(list, { ...vars, delay: 0.5 })   // continue the header's entrance
+  } else {
+    gsap.from(list, { ...vars, scrollTrigger: { trigger: root, start: 'top 85%', once: true } })
+  }
+}
+
 // ── Scroll-triggered animations ───────────────────────────────────────────────
 export function initScrollAnimations() {
   if (reduced) return
@@ -190,78 +216,45 @@ export function initScrollAnimations() {
     })
   })
 
-  // ── Portfolio tiles — stagger per grid ────────────────────────────────────
-  document.querySelectorAll('.portfolio-grid').forEach(grid => {
-    const tiles = grid.querySelectorAll('.tile')
-    if (!tiles.length) return
-    gsap.from(tiles, {
-      scrollTrigger: { trigger: grid, start: 'top 85%', once: true },
-      opacity: 0, y: 24, duration: 0.75, ease: 'power2.out',
-      stagger: { amount: 0.5, from: 'start' },
-    })
-  })
+  // ── Card / tile groups — staggered cascade (see revealGroup) ───────────────
+  //    Homepage teaser grid + specialisms / process / testimonials (all below the
+  //    fold → reveal on scroll), and the portfolio masonry + flash grids (above
+  //    the fold → a deliberate on-load cascade after the header, no more "flash").
+  document.querySelectorAll('.portfolio-grid').forEach(grid =>
+    revealGroup(grid.querySelectorAll('.tile'), { trigger: grid, y: 24 }))
 
-  // ── Masonry tiles — the portfolio grid (.masonry/.masonry-tile) plus any
-  //    legacy .gallery--masonry inner pages. The portfolio markup uses
-  //    .masonry-tile; load-more hides all but the first window via inline
-  //    display:none, so this entrance only ever reveals the visible page. ──────
-  document.querySelectorAll('.masonry, .gallery--masonry').forEach(grid => {
-    const tiles = grid.querySelectorAll('.masonry-tile, .tile')
-    if (!tiles.length) return
-    gsap.from(tiles, {
-      scrollTrigger: { trigger: grid, start: 'top 85%', once: true },
-      opacity: 0, y: 20, duration: 0.7, ease: 'power2.out',
-      stagger: { amount: 0.5, from: 'start' },
-    })
-  })
+  document.querySelectorAll('.masonry, .gallery--masonry').forEach(grid =>
+    revealGroup(grid.querySelectorAll('.masonry-tile, .tile'), { trigger: grid, y: 20 }))
 
-  // ── Specialism cards ──────────────────────────────────────────────────────
   const specGrid = document.querySelector('.specialism-grid')
-  if (specGrid) {
-    gsap.from(specGrid.querySelectorAll('.specialism-card'), {
-      scrollTrigger: { trigger: specGrid, start: 'top 85%', once: true },
-      opacity: 0, y: 28, duration: 0.8, ease: 'power3.out',
-      stagger: { amount: 0.4 },
-    })
-  }
+  if (specGrid) revealGroup(specGrid.querySelectorAll('.specialism-card'),
+    { trigger: specGrid, y: 28, duration: 0.8, ease: 'power3.out', each: 0.1 })
 
-  // ── Process steps ─────────────────────────────────────────────────────────
   const procGrid = document.querySelector('.process-grid')
-  if (procGrid) {
-    gsap.from(procGrid.querySelectorAll('.process-step'), {
-      scrollTrigger: { trigger: procGrid, start: 'top 85%', once: true },
-      opacity: 0, y: 24, duration: 0.75, ease: 'power2.out',
-      stagger: { amount: 0.45 },
-    })
-  }
+  if (procGrid) revealGroup(procGrid.querySelectorAll('.process-step'),
+    { trigger: procGrid, y: 24, each: 0.09 })
 
-  // ── Testimonials ──────────────────────────────────────────────────────────
   const testGrid = document.querySelector('.testimonials-grid')
-  if (testGrid) {
-    gsap.from(testGrid.querySelectorAll('.testimonial'), {
-      scrollTrigger: { trigger: testGrid, start: 'top 85%', once: true },
-      opacity: 0, y: 20, duration: 0.7, ease: 'power2.out',
-      stagger: { amount: 0.3 },
-    })
-  }
+  if (testGrid) revealGroup(testGrid.querySelectorAll('.testimonial'),
+    { trigger: testGrid, y: 20, each: 0.09 })
 
-  // ── Flash grid ────────────────────────────────────────────────────────────
   const flashGrid = document.querySelector('.flash-grid')
-  if (flashGrid) {
-    gsap.from(flashGrid.querySelectorAll('.flash-card'), {
-      scrollTrigger: { trigger: flashGrid, start: 'top 88%', once: true },
-      opacity: 0, y: 18, duration: 0.65, ease: 'power2.out',
-      stagger: { amount: 0.35 },
-    })
-  }
+  if (flashGrid) revealGroup(flashGrid.querySelectorAll('.flash-card'),
+    { trigger: flashGrid, y: 18 })
 
-  // ── Page-hero (inner pages) — immediate timeline ───────────────────────────
-  const pageTitle = document.querySelector('.page-hero__title')
-  const pageEye   = document.querySelector('.page-hero .eyebrow')
+  // ── Page header (inner pages) — entrance timeline, mirrors the home hero ────
+  //    Inner pages lead with `.page-header` (eyebrow · title · descriptor), the
+  //    above-the-fold counterpart to the homepage hero. Give it the same on-load
+  //    entrance so navigating into a page feels continuous instead of snapping in.
+  //    (motion.css guards these so they don't flash before this runs.)
+  const pageTitle = document.querySelector('.page-title')
+  const pageEye   = document.querySelector('.page-eyebrow')
+  const pageDesc  = document.querySelector('.page-descriptor')
   if (pageTitle) {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 })
-    if (pageEye) tl.from(pageEye,   { opacity: 0, x: -16, duration: 0.65 })
+    if (pageEye)  tl.from(pageEye,  { opacity: 0, x: -16, duration: 0.65 })
     tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
+    if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
   }
 
   // ── Generic .reveal elements (about, visit, and other inner pages) ──────────

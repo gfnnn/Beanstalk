@@ -29,7 +29,8 @@
 
    Keep this selector list in step with the on-load / in-viewport `.from()`
    targets in src/js/modules/animations.js (hero entrance + sprout-media column,
-   the scroll-reveal text, the generic `.reveal`, and the grid tiles/cards).
+   the inner-page `.page-header` entrance, the scroll-reveal text, the generic
+   `.reveal`, and the grid tiles/cards).
    ════════════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: no-preference) {
   html:not(.motion-ready) :is(
@@ -40,6 +41,10 @@
     .hero-actions,
     .studio-notices,
     .hero-media,
+    /* Page header entrance (inner pages — the above-the-fold title block) */
+    .page-eyebrow,
+    .page-title,
+    .page-descriptor,
     /* Scroll-reveal text + the generic reveal helper */
     .eyebrow,
     .section-title,
