@@ -57,6 +57,12 @@ export function makeD1() {
       data.rate.push({ bucket, ts })
       return { meta: { changes: 1 } }
     }
+    if (s.startsWith('DELETE FROM rate_events WHERE bucket LIKE')) {
+      const [pattern, ts] = args
+      const re = new RegExp('^' + pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*') + '$')
+      data.rate = data.rate.filter(r => !(re.test(r.bucket) && r.ts < ts))
+      return { meta: { changes: 1 } }
+    }
     if (s.startsWith('DELETE FROM rate_events')) {
       const [bucket, ts] = args
       data.rate = data.rate.filter(r => !(r.bucket === bucket && r.ts < ts))
