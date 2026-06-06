@@ -20,7 +20,8 @@ export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 export const ALLOWED_ORIGINS = new Set([
   'https://beansprout.ink',
   'https://www.beansprout.ink',
-  'https://gfnnn.github.io',  // GitHub Pages staging origin
+  'https://gfnnn.github.io',          // GitHub Pages staging origin
+  'https://beanstalk-e61.pages.dev',  // Cloudflare Pages staging (develop branch)
   'http://localhost:5173',    // vite dev
   'http://localhost:8888',    // local proxy, if used
 ])
