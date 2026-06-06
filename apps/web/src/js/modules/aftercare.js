@@ -1,4 +1,5 @@
 import { lenis } from './lenis.js'
+import { initStickyShadow } from './sticky.js'
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -45,7 +46,9 @@ export function initAftercare() {
     switchWrap.classList.add('shown')
     stage.classList.add('shown')
     revealed = true
-    updateStuck()
+    // Pin-shadow via the shared IntersectionObserver helper (no per-scroll reflow);
+    // started here, once the switcher is actually shown.
+    initStickyShadow(switchWrap)
   }
 
   function scrollToStage() {
@@ -80,13 +83,6 @@ export function initAftercare() {
       next.click()
     })
   })
-
-  // ── Sticky shadow once the switcher pins under the nav ───────────────────
-  function updateStuck() {
-    if (!switchWrap || switchWrap.hidden) return
-    switchWrap.classList.toggle('stuck', switchWrap.getBoundingClientRect().top <= navH() + 1)
-  }
-  window.addEventListener('scroll', updateStuck, { passive: true })
 
   // ── Deep link — /aftercare/#second-skin or #cling-film opens that route ──
   const hash = (location.hash || '').replace('#', '')

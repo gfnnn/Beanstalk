@@ -12,6 +12,19 @@
 }
 .progress-wrap.stuck { box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06); }
 
+/* Submit-time error banner (created by modules/enquire.js). Palette-driven — no
+   hard-coded colour, per the design-system rule (replaces an inline style block). */
+.form-error-banner {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: rgba(var(--clay-rgb), 0.1);
+  border: 1px solid var(--clay);
+  border-radius: var(--radius, 8px);
+  font-size: 14px;
+  color: var(--clay);
+  line-height: 1.5;
+}
+
 .progress-head {
   display: flex;
   align-items: baseline;

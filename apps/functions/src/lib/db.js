@@ -178,10 +178,16 @@ export async function rateLimit(env, ip, { storeName = 'rate', maxPerIp, windowM
       ok: true,
       commit: async () => {
         try {
+          // Drop stale per-day counter rows (older than ~2 days) so the table is
+          // genuinely self-pruning — not just the per-IP window. Never touches the
+          // current/previous day, so the daily-ceiling COUNT (keyed on today's
+          // bucket) is unaffected.
+          const dayKeep = now - 2 * 24 * 60 * 60 * 1000
           await env.DB.batch([
             env.DB.prepare('INSERT INTO rate_events (bucket, ts) VALUES (?1, ?2)').bind(ipBucket, now),
             env.DB.prepare('INSERT INTO rate_events (bucket, ts) VALUES (?1, ?2)').bind(dayBucket, now),
             env.DB.prepare('DELETE FROM rate_events WHERE bucket = ?1 AND ts < ?2').bind(ipBucket, cutoff),
+            env.DB.prepare('DELETE FROM rate_events WHERE bucket LIKE ?1 AND ts < ?2').bind(`${storeName}:day:%`, dayKeep),
           ])
         } catch (_) { /* best-effort */ }
       },

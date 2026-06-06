@@ -124,14 +124,18 @@ describe('initNav', () => {
   })
 
   describe('scroll state', () => {
-    it('adds .scrolled past 60px and removes it back at the top', () => {
+    it('adds .scrolled past 60px and removes it back at the top', async () => {
       setup(); initNav()
       const nav = $('main-nav')
+      // The handler is rAF-latched (one toggle per frame), so flush a frame before asserting.
+      const frame = () => new Promise(r => requestAnimationFrame(r))
       window.scrollY = 120
       window.dispatchEvent(new window.Event('scroll'))
+      await frame()
       expect(nav.classList.contains('scrolled')).toBe(true)
       window.scrollY = 0
       window.dispatchEvent(new window.Event('scroll'))
+      await frame()
       expect(nav.classList.contains('scrolled')).toBe(false)
     })
   })

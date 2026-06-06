@@ -305,8 +305,7 @@ export function initScrollAnimations() {
     resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 150)
   }, { passive: true })
 
-  window.addEventListener('orientationchange', () => {
-    // Extra delay for iOS to finish viewport recalculation
-    setTimeout(() => ScrollTrigger.refresh(), 350)
-  }, { passive: true })
+  // Orientation changes are handled in lenis.js (which also re-measures Lenis and
+  // then refreshes ScrollTrigger after the same delay) — so we don't double-refresh
+  // here. The resize handler above still covers plain window resizes.
 }

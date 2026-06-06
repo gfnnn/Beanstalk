@@ -34,7 +34,7 @@ export function initLoadMore() {
   function updateUI() {
     if (showingCount) showingCount.textContent = shownCount
     if (totalCount)   totalCount.textContent   = total
-    if (progressFill) progressFill.style.width = `${(shownCount / total) * 100}%`
+    if (progressFill) progressFill.style.width = `${total ? (shownCount / total) * 100 : 0}%`
     if (loadMoreSection) {
       loadMoreSection.style.display = shownCount >= total ? 'none' : ''
     }
@@ -59,6 +59,12 @@ export function initLoadMore() {
       requestAnimationFrame(() => {
         tile.style.transition = 'opacity 400ms ease'
         tile.style.opacity    = '1'
+        // Drop the inline transition/opacity once the fade-in is done so tiles
+        // don't carry leftover inline styles for the rest of the page's life.
+        tile.addEventListener('transitionend', () => {
+          tile.style.transition = ''
+          tile.style.opacity    = ''
+        }, { once: true })
       })
     })
 

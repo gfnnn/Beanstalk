@@ -57,6 +57,16 @@
 @media (min-width: 700px) {
   .newsletter-band-row { flex-direction: row; align-items: flex-end; }
   .newsletter-band-row .signup-submit { width: auto; white-space: nowrap; }
+
+  /* The input inherits the body line-height (1.5 via `input { font: inherit }`)
+     while `.btn` sets line-height:1, so the input renders a few px taller than
+     the button. With the row bottom-aligned that left the shorter button sitting
+     low against the field. Pin both to one height so they line up exactly. */
+  .newsletter-band-row .signup-input,
+  .newsletter-band-row .signup-submit {
+    height: 52px;
+    line-height: 1;
+  }
 }
 
 /* ── Desktop two-column ──────────────────────────────────────────────────── */

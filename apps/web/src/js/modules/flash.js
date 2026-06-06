@@ -190,14 +190,17 @@ export function initFlash() {
     pauseScroll()
 
     setTimeout(() => firstField?.focus(), 100)
-    trapFocus(overlay)
   }
 
   function closeModal() {
     overlay.classList.remove('open')
-    overlay.addEventListener('transitionend', () => {
-      overlay.hidden = true
-    }, { once: true })
+    // Hide on the fade-out, with a timeout fallback for the reduced-motion /
+    // no-transition case where `transitionend` never fires (which would otherwise
+    // leave the overlay in the a11y tree). Belt-and-braces, like the page loader.
+    let hidden = false
+    const hide = () => { if (hidden) return; hidden = true; overlay.hidden = true }
+    overlay.addEventListener('transitionend', hide, { once: true })
+    setTimeout(hide, 400)
     document.body.style.overflow = ''
     resumeScroll()
     lastFocused?.focus()
@@ -285,24 +288,21 @@ export function initFlash() {
     })
   }
 
-  // ── Focus trap helper ─────────────────────────────────────────────────────
-  function trapFocus(container) {
-    const focusable = container.querySelectorAll(
+  // ── Focus trap — one listener, active only while the modal is open ─────────
+  // Attached once (not per-open) so reopening can't stack duplicate handlers.
+  // Recomputes the focusable bounds each Tab so it tracks the modal's live contents.
+  overlay.addEventListener('keydown', e => {
+    if (overlay.hidden || e.key !== 'Tab') return
+    const focusable = overlay.querySelectorAll(
       'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
     )
+    if (!focusable.length) return
     const first = focusable[0]
     const last  = focusable[focusable.length - 1]
-
-    const handler = e => {
-      if (container.hidden) { container.removeEventListener('keydown', handler); return }
-      if (e.key !== 'Tab') return
-      if (e.shiftKey) {
-        if (document.activeElement === first) { e.preventDefault(); last.focus() }
-      } else {
-        if (document.activeElement === last)  { e.preventDefault(); first.focus() }
-      }
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus() }
+    } else {
+      if (document.activeElement === last)  { e.preventDefault(); first.focus() }
     }
-
-    container.addEventListener('keydown', handler)
-  }
+  })
 }

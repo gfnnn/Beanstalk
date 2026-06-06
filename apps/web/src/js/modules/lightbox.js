@@ -15,11 +15,12 @@ export function initLightbox() {
   let lbIndex = 0
   let lbTiles = []
 
-  // Visible tiles = not hidden by filter OR load-more
+  // Visible tiles = not hidden by filter OR load-more. `offsetParent === null` for a
+  // display:none element, so this is robust to *how* a tile was hidden — unlike a
+  // brittle [style*="display: none"] attribute-substring match.
   function getVisibleTiles() {
-    return Array.from(document.querySelectorAll(
-      '.masonry-tile:not([style*="display: none"])'
-    ))
+    return Array.from(document.querySelectorAll('.masonry-tile'))
+      .filter(t => t.offsetParent !== null)
   }
 
   function openLightbox(index) {

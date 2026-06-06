@@ -163,6 +163,19 @@ describe('rateLimit', () => {
     expect(ipRows[0].ts).toBe(now)
   })
 
+  it('commit() prunes stale per-day counter rows (older than ~2 days)', async () => {
+    const d1 = makeD1()
+    const now = Date.now()
+    const oldDay = now - 5 * 24 * 60 * 60 * 1000 // a previous day's counter, 5 days old
+    d1.data.rate.push({ bucket: 's:day:2000-01-01', ts: oldDay })
+    const limiter = await rateLimit({ DB: d1.DB }, '7.7.7.7', { storeName: 's' })
+    expect(limiter.ok).toBe(true)
+    await limiter.commit()
+    // the ancient day-counter row is swept; today's freshly-written one stays
+    expect(d1.data.rate.some(r => r.bucket === 's:day:2000-01-01')).toBe(false)
+    expect(d1.data.rate.some(r => r.bucket === `s:day:${today()}`)).toBe(true)
+  })
+
   it('keeps each storeName an independent bucket (enquiry vs newsletter never bleed)', async () => {
     const d1 = makeD1()
     const ip = '8.8.8.8'

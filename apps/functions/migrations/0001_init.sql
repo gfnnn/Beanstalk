@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS flash_claims (
 
 -- Rate-limit events — one row per successful action, bucketed per-IP and per-day.
 -- The per-IP sliding window and the global daily ceiling are both COUNT()s over
--- this table; old rows are pruned opportunistically on commit.
+-- this table; old per-IP rows AND stale per-day counters are both pruned
+-- opportunistically on commit (see rateLimit() in src/lib/db.js).
 CREATE TABLE IF NOT EXISTS rate_events (
   id     INTEGER PRIMARY KEY,                 -- rowid alias; avoids ts collisions
   bucket TEXT NOT NULL,                       -- '<store>:ip:<ip>' | '<store>:day:<YYYY-MM-DD>'
