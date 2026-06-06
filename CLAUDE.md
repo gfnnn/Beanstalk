@@ -115,10 +115,10 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   index.html (home) + 404.html + page folders:
     portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
     newsletter/ enquiry-received/ privacy/ terms/
-  src/data/      pieces, flash, homepage, testimonials, palette  (content = single sources of truth)
+  src/data/      pieces, flash, homepage, testimonials, media, palette  (content = single sources of truth)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
-  src/styles/    main.css → @imports reset/typography/layout + components/ + pages/
+  src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
   public/        robots.txt, favicons, manifest, images/ (copied to dist root; no CNAME yet)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email app)
@@ -127,7 +127,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -231,18 +231,29 @@ Two layers, both centralised so new pages/responses inherit them:
   those belong on the HTML, not a JSON API.
 
 ### Front-end JS — single orchestrated init
-`src/js/main.js` is the only entry point. On `DOMContentLoaded` it calls each module's
+`src/js/main.js` is the only entry point. On `DOMContentLoaded` it **first** flips the
+`motion-ready` class on `<html>` (the FOUC guard — see below), then calls each module's
 `initX()` in a deliberate order (Lenis smooth-scroll first so it drives the GSAP ticker,
-then nav, hero/scroll animations, portfolio load-more + filter + lightbox, gallery,
-aftercare, faq, enquire, flash, newsletter, analytics). **Every module no-ops when its
-target element is absent**, so the one bundle runs safely on every page. Modules under
-`src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`, `filter`, `lightbox`,
-`gallery`, `sticky` (shared sticky-shadow helper for pinned bars), `aftercare`, `faq`,
-`enquire`, `flash`, `newsletter`, `analytics` (vendor-agnostic `track()` scaffold that
-no-ops until a provider is wired in — no cookie banner owed yet), and `config` (function
-URLs). Portfolio load-more, filter/sort and lightbox cooperate via callbacks wired in
-`main.js` (load-more owns the visible window; filter re-applies after a reveal/sort). New
-page behaviour = a new `modules/<name>.js` exporting `initX()`, added to `main.js`.
+then nav, hero/scroll animations, portfolio load-more + filter + lightbox, aftercare, faq,
+enquire, flash, newsletter, hero media, analytics — and finally the mobile sticky CTA).
+**Every module no-ops when its target element is absent**, so the one bundle runs safely
+on every page. Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
+`filter`, `lightbox`, `sticky` (shared sticky-shadow helper for pinned bars — used by
+filter, flash and the enquire progress bar), `chip-overflow` (shared responsive "More"
+collapse for tight filter rows — used by filter and flash), `aftercare`, `faq`, `enquire`,
+`flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
+on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that no-ops until
+a provider is wired in — no cookie banner owed yet), and `config` (function URLs). Portfolio
+load-more, filter/sort and lightbox cooperate via callbacks wired in `main.js` (load-more
+owns the visible window; filter re-applies after a reveal/sort). New page behaviour = a new
+`modules/<name>.js` exporting `initX()`, added to `main.js`.
+
+**FOUC guard for entrance animations.** `styles/motion.css` holds animated elements hidden
+until JS is live; `main.js` adds `motion-ready` to `<html>` **synchronously and first**, in
+the same frame GSAP sets its `.from()` start-states, so the in-between is never painted (no
+flash of unstyled/unanimated content). Under `prefers-reduced-motion` the guard's media
+query is inert and GSAP bails, so elements are simply visible — the class flip is a harmless
+no-op. `styles/a11y.css` carries the focus-visible / reduced-motion / screen-reader rules.
 
 ### Forms → Cloudflare Worker → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
