@@ -16,4 +16,5 @@
 //
 // TODO(roxy): "within 3 days" is a sensible placeholder default — confirm your
 // real reply time here before launch. Changing it here updates both pages at once.
+// ROXY-COPY · BUS-01 · pending approval — see docs/COPY-REVIEW.md
 export const replyTime = 'within 3 days'

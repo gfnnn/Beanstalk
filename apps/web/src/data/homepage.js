@@ -62,18 +62,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const homepage = {
+  // ROXY-COPY · HOME-01 · pending approval — see docs/COPY-REVIEW.md
   status: {
     show:  true,
     label: 'Books open',
     tone:  'moss',
   },
 
+  // ROXY-COPY · HOME-02 · pending approval — see docs/COPY-REVIEW.md
   notices: [
     { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open for summer. <a href="/enquire/">Request a slot</a>' },
     { show: true,  tone: 'clay',  label: 'Flash day',  html: 'New flash dropping soon. <a href="/flash/">Preview the sheet</a>' },
     { show: false, tone: 'faint', label: 'Guest spot', html: 'Guest artist [Name], [Dates].' },
   ],
 
+  // ROXY-COPY · HOME-03 · pending approval — see docs/COPY-REVIEW.md
   hero: {
     eyebrow:  'Winchester · Fine line & botanical',
     headLead: 'Quietly considered',
@@ -82,6 +85,7 @@ export const homepage = {
     mediaTag: 'Tiny Knives · Winchester',
   },
 
+  // ROXY-COPY · HOME-04 · pending approval — see docs/COPY-REVIEW.md
   specialisms: [
     { style: 'fine-line',  em: 'precise', body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile, drawn to age as well as it looks on day one.' },
     { style: 'black-grey', em: 'soft',    body: 'Smooth black and grey with gentle, smoky shading: animals, portraits and illustrative work with depth, contrast and a soft edge.' },
@@ -91,6 +95,7 @@ export const homepage = {
     { style: 'dotwork', fill: true, em: 'textured', body: 'Soft gradients and depth built dot by dot: a slower, hand-worked technique that gives botanical and ornamental pieces a gently stippled texture.' },
   ],
 
+  // ROXY-COPY · HOME-10 · pending approval — see docs/COPY-REVIEW.md
   videoCredit: {
     show:  false,
     label: 'Film by',

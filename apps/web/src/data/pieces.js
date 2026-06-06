@@ -53,6 +53,7 @@
 
 const IMG = '/images/tattoos'
 
+// ROXY-COPY · PORT-D1/PORT-D2 · pending approval (piece titles + subjects/alt text) — see docs/COPY-REVIEW.md
 export const pieces = [
   { slug: 'peace',               title: 'Peace',                subject: 'a peace sign',                         styles: ['black-grey'],                  placement: 'forearm', date: '2026-05-30', tone: 't-ink',   glyph: 'branch',   img: `${IMG}/peace`,               w: 800, h: 1067 },
   { slug: 'scissors',            title: 'Shears',               subject: 'a pair of scissors',                   styles: ['fine-line'],                   placement: 'forearm', date: '2026-05-30', tone: 't-stone', glyph: 'branch',   img: `${IMG}/scissors`,            w: 800, h: 1067 },

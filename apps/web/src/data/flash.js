@@ -38,11 +38,13 @@
 // the cards automatically (highest `drop` below); the season is editorial, so it
 // lives here as the single source of truth rather than hand-written in flash/index.html.
 // Update it when a new drop lands. Empty string → the eyebrow shows just "Drop N".
+// ROXY-COPY · FLASH-D1 · pending approval — see docs/COPY-REVIEW.md
 export const season = 'Summer 2026'
 
 // NOTE: titles, specs and prices below are placeholders matched to each card's
 // line-art glyph so the grid reads sensibly until real flash photos are added.
 // Swap in the real piece names, sizes and prices (and `img`) per drop.
+// ROXY-COPY · FLASH-D2 · pending approval (titles/specs/prices) — see docs/COPY-REVIEW.md
 export const flash = [
   { id: 'flash-01', title: 'Wildflower sprig', specs: '3 inches · Forearm, calf · Fine line',          price: 180, size: 3, drop: 12, status: 'available', tone: 'ci-sage',  glyph: 'sprig',  img: null, w: null, h: null },
   { id: 'flash-02', title: 'Poppy bud',        specs: '2 inches · Wrist, ankle · Fine line',           price: 160, size: 2, drop: 12, status: 'available', tone: 'ci-cream', glyph: 'bud',    img: null, w: null, h: null },

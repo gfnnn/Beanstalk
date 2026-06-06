@@ -36,6 +36,7 @@
 // hasn't asked to reduce motion, and pauses it off-screen to save battery.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ROXY-COPY · DATA-MEDIA · pending approval (clip alt text) — see docs/COPY-REVIEW.md
 export const media = {
   // Homepage hero — the process clip in the right-hand media column.
   // Shoot brief lives in index.html above the marker (16:9, < 4 MB, seamless loop).
