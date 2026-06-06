@@ -355,7 +355,7 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
 
   it('overlays an optional caption (used by the About hero), omitted when unset', () => {
     const base = {
-      show: true, kind: 'video', alt: 'Roxy at work',
+      show: true, kind: 'video', alt: 'Artist at work',
       sources: [{ src: '/videos/about-hero.mp4', type: 'video/mp4' }],
     }
     const withCap = renderHeroMedia({ ...base, caption: 'Tiny Knives · Winchester' }, { variant: 'about' })

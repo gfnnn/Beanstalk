@@ -1,6 +1,6 @@
 # Content management (CMS) — backlog stub
 
-Letting **Roxy manage site content herself** (portfolio, flash, homepage alerts, copy)
+Letting **the artist manage site content themselves** (portfolio, flash, homepage alerts, copy)
 without touching code. **Post-launch backlog — not built, not blocking the apex
 cutover.** This is a deliberately short stub: the locked decisions and the security
 baseline below are the durable part; the detailed content model, phased delivery, and
@@ -19,7 +19,7 @@ history for the earlier long-form spec). First step when picked up is a POC.
 - **Publish = direct to live** — Tina commits to `main` → the existing Pages build
   redeploys. A deliberate, scoped exception to the `main` review gate (content-only,
   single trusted editor; git revert is the safety net).
-- **Editor = Roxy only**, named/constrained fields (not freeform) so an edit can't break
+- **Editor = the artist only**, named/constrained fields (not freeform) so an edit can't break
   layout. Colour/swatch options bind to `src/data/palette.js` so the dashboard can't
   drift off-brand.
 
@@ -36,7 +36,7 @@ always the fallback. The personal-data plane (enquiries in D1) never touches Tin
 **In** (data-driven, nearly free to expose): portfolio (`pieces.js`), flash (`flash.js`),
 homepage alerts + hero (`homepage.js`), testimonials. **Needs a prereq refactor**
 (hand-authored HTML → data file + renderer, the `homepage.js` pattern): FAQ, Services,
-About, Aftercare. **Out:** editable filters (Roxy only assigns existing tokens), flash
+About, Aftercare. **Out:** editable filters (the artist only assigns existing tokens), flash
 status (stays on the live claim flow), Visit home/guest mode, the enquiries/claims admin.
 
 ## Image management (crop / re-centre)

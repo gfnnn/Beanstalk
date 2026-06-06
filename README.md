@@ -1,9 +1,10 @@
 # Beansprout — beansprout.ink
 
 This is the home of the **Beansprout** tattoo website — the booking shop-window for
-Roxy's fine-line, botanical and custom tattoo work at Tiny Knives in Winchester. It's
-two pieces working together: the **website people see**, and a small **behind-the-scenes
-helper** that takes enquiries and turns them into an email in Roxy's inbox.
+the artist's fine-line, botanical and custom tattoo work at Tiny Knives in Winchester.
+It's two pieces working together: the **website people see**, and a small
+**behind-the-scenes helper** that takes enquiries and turns them into an email in the
+artist's inbox.
 
 > **Heads-up:** the site isn't pointed at `beansprout.ink` yet — that address still shows
 > the old (v1) site. This v2 lives on a preview link until the planned switch-over. The
@@ -11,7 +12,7 @@ helper** that takes enquiries and turns them into an email in Roxy's inbox.
 
 ---
 
-## For Roxy — what this is, in plain English
+## For the artist — what this is, in plain English
 
 Think of this project as **your website plus a tiny robot receptionist.**
 
