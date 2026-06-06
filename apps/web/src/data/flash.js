@@ -33,6 +33,13 @@
 //   w, h        Intrinsic px dimensions (square crop). Required when img is set.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// SEASON — the human label for the CURRENT drop, shown in the /flash/ page eyebrow
+// next to the auto-derived drop number ("Drop 12 · Summer 2026"). The number tracks
+// the cards automatically (highest `drop` below); the season is editorial, so it
+// lives here as the single source of truth rather than hand-written in flash/index.html.
+// Update it when a new drop lands. Empty string → the eyebrow shows just "Drop N".
+export const season = 'Summer 2026'
+
 // NOTE: titles, specs and prices below are placeholders matched to each card's
 // line-art glyph so the grid reads sensibly until real flash photos are added.
 // Swap in the real piece names, sizes and prices (and `img`) per drop.

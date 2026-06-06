@@ -5,7 +5,7 @@
 // rather than exact byte-for-byte HTML, so cosmetic tweaks don't break the suite.
 import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
-import { renderFlashCards, renderFlashDrop } from '../src/build/flash-cards.js'
+import { renderFlashCards, renderFlashDrop, renderFlashSeason } from '../src/build/flash-cards.js'
 import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
 import { renderTestimonials } from '../src/build/testimonials.js'
@@ -152,6 +152,24 @@ describe('renderFlashDrop (current-drop number for the page eyebrow)', () => {
   it('returns an empty string for empty data (no NaN/-Infinity in the markup)', () => {
     expect(renderFlashDrop([])).toBe('')
     expect(renderFlashDrop()).toBe('')
+  })
+})
+
+describe('renderFlashSeason (current-drop season label for the page eyebrow)', () => {
+  it('returns the authored season text, trimmed', () => {
+    expect(renderFlashSeason('Summer 2026')).toBe('Summer 2026')
+    expect(renderFlashSeason('  Winter 2027  ')).toBe('Winter 2027')
+  })
+
+  it('escapes HTML so the data can never inject markup', () => {
+    expect(renderFlashSeason('Spring & <b>2026</b>')).toBe('Spring &amp; &lt;b&gt;2026&lt;/b&gt;')
+  })
+
+  it('returns an empty string for blank/missing input', () => {
+    expect(renderFlashSeason('')).toBe('')
+    expect(renderFlashSeason('   ')).toBe('')
+    expect(renderFlashSeason()).toBe('')
+    expect(renderFlashSeason(null)).toBe('')
   })
 })
 
