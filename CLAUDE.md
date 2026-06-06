@@ -33,7 +33,7 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (334 web + 93
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (340 web + 94
   functions) run fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
@@ -42,6 +42,17 @@ command instead of rediscovering the environment each time:
   is installed**. Real browser coverage comes from CI (`.github/workflows/e2e.yml`, which
   installs the browser) and from local runs. Don't treat a skipped E2E run as broken, and
   don't burn time trying to install the browser in a web session.
+  - **Where the E2E tier actually runs — so you don't "test" a feature against a no-op.**
+    A skipped sandbox run **validates nothing**: it neither passed nor exercised your code.
+    So when a change touches a **browser-only path the E2E tier owns** — the enquiry-form
+    image preview/downscale + multi-step flow, the portfolio lightbox, the mobile nav
+    drawer, the flash claim modal — the sandbox `test:e2e` skip does **not** cover it.
+    That coverage runs in exactly two places: **(1) the PR's E2E workflow**, which fires
+    automatically on every `pull_request` touching `apps/web/**` (any base branch — see
+    `.github/workflows/e2e.yml`), and **(2) locally**, once you've installed Chromium
+    (`cd apps/web && npx playwright install chromium`, then `npm run test:e2e`). From a web
+    session the move is: rely on `npm test` for the unit signal, then **push the branch and
+    let the PR's E2E job be the gate** — don't read the local skip as a green E2E.
 - **The web git proxy only lets a session push its own branch.** It **rejects remote
   branch deletion** (`git push origin --delete …` → HTTP 403) and other cross-ref
   surgery, and the GitHub MCP server exposes no delete-ref tool. So **branch cleanup,
@@ -88,7 +99,10 @@ browser binary (`npx playwright install chromium`, done automatically in CI). `t
 runs through `apps/web/scripts/run-e2e.mjs`, which **skips with exit 0 when that binary
 isn't installed** (e.g. a web sandbox that can't reach `cdn.playwright.dev`) so the tier is
 a clean no-op where it can't run rather than a false failure — it still executes normally
-once the browser is present (CI, local). There is **no
+once the browser is present. So the tier **effectively runs in exactly two places**: the
+**E2E GitHub workflow** (auto-triggered on every `pull_request` touching `apps/web/**`, and
+on push to `main`) and a **local run with Chromium installed** — a skipped sandbox run is a
+no-op, not a pass, so don't treat it as having covered a browser-only change. There is **no
 linter or formatter** — don't invent `npm run lint`. To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
@@ -358,6 +372,16 @@ for any user-visible feature, verify it in the browser and attach the proof:
    session). Don't block on a timer — carry on with other work while it stays up.
 
 Skip this only when the change genuinely can't be seen in the browser.
+
+**Browser-only interactions also need the E2E gate, not just a screenshot.** If the
+feature touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav
+drawer, flash modal), remember the unit suite under jsdom can't exercise it and a web
+sandbox's `npm run test:e2e` only **skips** (no-op, not a pass). Real verification is the
+PR's **E2E workflow** — which auto-runs on every `pull_request` under `apps/web/**` — or a
+**local** `npm run test:e2e` with Chromium installed (`npx playwright install chromium`).
+From a web session, push and let the PR's E2E job be the gate; see the web-session note up
+top. When you add browser-only behaviour, add/extend a spec under `apps/web/e2e/` so that
+gate actually covers it.
 
 ### Working on several features at once (avoid the branch tangle)
 
