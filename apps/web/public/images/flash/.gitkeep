@@ -1,0 +1,3 @@
+# Flash-design photos land here (square 1:1). Process masters with:
+#   node apps/web/scripts/process-media.mjs --lane flash --out apps/web/public/images/flash --src <master> --name <id>
+# then set `img: '/images/flash/<id>'` + w/h on the matching record in src/data/flash.js.
