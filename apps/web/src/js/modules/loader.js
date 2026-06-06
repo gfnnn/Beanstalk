@@ -5,12 +5,13 @@
 // module fades it out the moment the page is genuinely ready.
 //
 // "Ready" = document.fonts.ready: the font swap is the main cause of the visible
-// reflow, so we hold the cover until fonts have settled, then fade it out — no
-// artificial minimum hold, just the fade itself, so a fast/cached load reveals the
-// page with a smooth cross-fade rather than a snap (see the rAF note in dismiss).
-// A hard ceiling guarantees we never strand a visitor behind the overlay if a
-// font/network hangs, and the CSS carries its own failsafe should this bundle
-// never run.
+// reflow, so we hold the cover until fonts have settled, then fade it out. A
+// fast/cached load reveals the page with a smooth cross-fade rather than a snap
+// (see the rAF note in fadeOut); a load that the overlay genuinely had to cover
+// first plays one quick complete cycle of the sprig (.pl-finishing) so the
+// animation reads as finished. A hard ceiling guarantees we never strand a visitor
+// behind the overlay if a font/network hangs, and the CSS carries its own failsafe
+// should this bundle never run.
 //
 // No-ops when the overlay is absent (e.g. a stripped test page), so it's safe in
 // the shared main.js init on every page.
@@ -22,19 +23,17 @@ export function initPageLoader() {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   let dismissed = false
 
-  function dismiss() {
-    if (dismissed) return
-    dismissed = true
+  // If the overlay was only up for a blink (warm cache / already-ready), it wasn't
+  // really needed — fade straight out, no stall. If it genuinely covered a load,
+  // let the sprig play one quick complete ink-in (.pl-finishing) before the fade,
+  // so the animation reads as finished instead of being caught mid-draw.
+  const INSTANT_MS     = 300
+  const QUICK_CYCLE_MS = 600 // ≈ the .pl-finishing outro draw in the critical CSS
 
-    // Under reduced motion the fade is disabled — remove the node straight away so
-    // it can't intercept clicks or hold focus.
-    if (reduced) { root.classList.add('page-loaded'); loader.remove(); return }
-
-    // On a fast/cached load, fonts.ready can resolve before the overlay has painted
-    // a stable frame at full opacity — flip the class now and the browser jumps
-    // straight to opacity:0 (a "snap") instead of animating. Let it paint one frame
-    // first, then flip, so the CSS fade always engages. Two rAFs ≈ one paint (~30ms,
-    // imperceptible) and it never holds the page open.
+  // Fade the cover out. The double rAF lets the overlay paint a stable frame at full
+  // opacity first, so the cross-fade animates from a committed state instead of
+  // snapping straight to hidden on a fast load (~30ms, imperceptible — no hold).
+  function fadeOut() {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       root.classList.add('page-loaded')
 
@@ -47,6 +46,26 @@ export function initPageLoader() {
       // guarantee the node is gone just after the fade would have finished.
       setTimeout(remove, 800)
     }))
+  }
+
+  function dismiss() {
+    if (dismissed) return
+    dismissed = true
+
+    // Under reduced motion the fade is disabled — remove the node straight away so
+    // it can't intercept clicks or hold focus.
+    if (reduced) { root.classList.add('page-loaded'); loader.remove(); return }
+
+    // performance.now() at this point ≈ how long the overlay has been up since
+    // navigation start — our proxy for "did this actually cover a load?".
+    const shownFor = (typeof performance !== 'undefined' && performance.now)
+      ? performance.now() : INSTANT_MS + 1
+
+    if (shownFor < INSTANT_MS) { fadeOut(); return } // effectively instant — just fade
+
+    // Real load: play one quick complete cycle, then fade.
+    loader.classList.add('pl-finishing')
+    setTimeout(fadeOut, QUICK_CYCLE_MS)
   }
 
   const fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve()

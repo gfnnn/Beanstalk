@@ -75,12 +75,31 @@ describe('initPageLoader (runtime dismissal)', () => {
     expect(document.getElementById('page-loader')).toBeNull()
   })
 
-  it('marks page-loaded then removes the overlay after the fade (full motion)', async () => {
+  it('on a near-instant load, fades straight out without the quick-cycle outro', async () => {
     setReducedMotion(false)
     vi.useFakeTimers()
+    vi.spyOn(performance, 'now').mockReturnValue(50) // < INSTANT_MS → effectively instant
     mountOverlay()
     initPageLoader()
-    // let the fonts.ready microtask settle, then run the removal-failsafe timer
+    await vi.runAllTimersAsync()
+    expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+    expect(document.getElementById('page-loader')).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('when it actually covered a load, plays the quick cycle (.pl-finishing) then fades', async () => {
+    setReducedMotion(false)
+    vi.useFakeTimers()
+    vi.spyOn(performance, 'now').mockReturnValue(1200) // > INSTANT_MS → real load
+    mountOverlay()
+    initPageLoader()
+
+    // The fonts.ready microtask runs first; the outro class lands before the fade.
+    await vi.advanceTimersByTimeAsync(0)
+    expect(document.getElementById('page-loader').classList.contains('pl-finishing')).toBe(true)
+    expect(document.documentElement.classList.contains('page-loaded')).toBe(false)
+
+    // Then the quick cycle elapses and the cover fades out + is removed.
     await vi.runAllTimersAsync()
     expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     expect(document.getElementById('page-loader')).toBeNull()

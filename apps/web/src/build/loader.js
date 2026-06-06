@@ -33,13 +33,31 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-sprig path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}
 #page-loader .pl-word{font-family:'JetBrains Mono',monospace;font-family:var(--mono,'JetBrains Mono',monospace);font-size:11px;letter-spacing:.3em;text-transform:lowercase;color:#5b574d;color:rgba(var(--ink-rgb),.5)}
 @media (prefers-reduced-motion:no-preference){
-#page-loader .pl-sprig path{animation:pl-draw 1.9s ease-in-out infinite}
-#page-loader .pl-sprig .pl-d2{animation-delay:.18s}
-#page-loader .pl-sprig .pl-d3{animation-delay:.34s}
-#page-loader .pl-word{animation:pl-pulse 1.9s ease-in-out infinite}
+/* Idle loop — one self-contained cycle that always restarts from empty. The whole
+   sprig shares an opacity envelope (pl-fade) while each path inks in over its own
+   window of the SAME phase (no animation-delay, so every cycle resets together):
+   stem -> leaves -> hold -> the group fades out, and the dashoffsets snap back to
+   empty while opacity is 0, so the next cycle begins cleanly from the start. */
+#page-loader .pl-sprig{animation:pl-fade 1.7s ease-in-out infinite}
+#page-loader .pl-d1{animation:pl-draw1 1.7s ease-in-out infinite}
+#page-loader .pl-d2{animation:pl-draw2 1.7s ease-in-out infinite}
+#page-loader .pl-d3{animation:pl-draw3 1.7s ease-in-out infinite}
+#page-loader .pl-word{animation:pl-pulse 1.7s ease-in-out infinite}
+/* Outro — when the overlay actually covered a load, JS adds .pl-finishing so the
+   sprig plays one quick complete ink-in (held visible) before the page cross-fades
+   in, instead of the fade catching the loop mid-draw. */
+#page-loader.pl-finishing .pl-sprig{animation:none;opacity:1}
+#page-loader.pl-finishing .pl-d1{animation:pl-quick .45s ease-out forwards}
+#page-loader.pl-finishing .pl-d2{animation:pl-quick .45s ease-out .07s forwards}
+#page-loader.pl-finishing .pl-d3{animation:pl-quick .45s ease-out .14s forwards}
+#page-loader.pl-finishing .pl-word{animation:none;opacity:.7}
 }
 @media (prefers-reduced-motion:reduce){#page-loader{transition:none}}
-@keyframes pl-draw{0%{stroke-dashoffset:1;opacity:.25}40%{stroke-dashoffset:0;opacity:1}72%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:1;opacity:.25}}
+@keyframes pl-fade{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
+@keyframes pl-draw1{0%{stroke-dashoffset:1}34%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+@keyframes pl-draw2{0%,16%{stroke-dashoffset:1}50%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+@keyframes pl-draw3{0%,30%{stroke-dashoffset:1}66%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+@keyframes pl-quick{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 @keyframes pl-pulse{0%,100%{opacity:.4}50%{opacity:.8}}
 @keyframes pl-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
 </style>`
