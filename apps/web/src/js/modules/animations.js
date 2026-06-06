@@ -257,6 +257,22 @@ export function initScrollAnimations() {
     if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
   }
 
+  // ── Filter bar (portfolio / flash) — chips + controls cascade in between the
+  //    header and the grid, so the top of the page settles top-down instead of the
+  //    bar popping in. Animate the children (not the sticky .filter-bar itself, so
+  //    position:sticky is left untouched); above the fold → a brief on-load stagger
+  //    sequenced after the header start. motion.css guards these against a flash.
+  const filterBar = document.querySelector('.filter-bar')
+  if (filterBar) {
+    const controls = filterBar.querySelectorAll('.chip, .chip-more, .filter-select')
+    if (controls.length) {
+      gsap.from(controls, {
+        opacity: 0, y: 8, duration: 0.5, ease: 'power2.out',
+        stagger: { each: 0.035, from: 'start' }, delay: 0.3,
+      })
+    }
+  }
+
   // ── Generic .reveal elements (about, visit, and other inner pages) ──────────
   document.querySelectorAll('.reveal').forEach(el => {
     const delay = el.classList.contains('reveal-d3') ? 0.3
