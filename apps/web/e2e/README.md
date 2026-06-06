@@ -55,7 +55,7 @@ cd apps/web && npx playwright install chromium     # add --with-deps on Linux/CI
 
 | File | Covers |
 | --- | --- |
-| `smoke.spec.js` | Every page (the `seo.js` routes + the noindex confirmation page) serves 2xx, mounts the shared JS bundle (`#main-nav`), has a `<title>` + `<h1>`, and throws **no** uncaught error / console error on load. Plus `robots.txt`, the sitemap, and the home canonical/JSON-LD. The net for a broken build, a page missing from the Vite input map, or a renderer that blew up. |
+| `smoke.spec.js` | Every page (the `seo.js` routes + the noindex confirmation page) serves 2xx, mounts the shared JS bundle (`#main-nav`), has a `<title>` + `<h1>`, and throws **no** uncaught error / console error on load. Plus the staging-aware `robots.txt`/sitemap (staging: blanket `Disallow:` + no sitemap; apex: crawlable + served sitemap) and the home canonical/JSON-LD. The net for a broken build, a page missing from the Vite input map, or a renderer that blew up. |
 | `lightbox.spec.js` | `src/js/modules/lightbox.js` — opens on a tile click (intercepting the tile link), populates title/counter, pages prev/next with the ends disabled, and closes on ✕ / Escape, restoring body scroll. |
 | `enquire.spec.js` | The enquiry form's **browser-only image pipeline** — the live thumbnail preview (`URL.createObjectURL`) and the submit-time downscale (`createImageBitmap` → canvas → `toBlob` → base64), asserted on the exact JSON the browser POSTs. Plus the error-banner path. |
 | `nav.spec.js` | The mobile drawer (open/close, scroll-lock, close-on-link, Escape) at a real mobile viewport, and the desktop "More" dropdown. |

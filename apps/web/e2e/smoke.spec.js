@@ -29,14 +29,30 @@ test.describe('smoke: every page loads cleanly', () => {
 })
 
 test.describe('smoke: SEO/static endpoints', () => {
-  test('serves robots.txt and the sitemap', async ({ page }) => {
+  test('serves a staging-aware robots.txt and matching sitemap', async ({ page }) => {
     const robots = await page.request.get('/robots.txt')
     expect(robots.ok()).toBeTruthy()
-    expect(await robots.text()).toMatch(/sitemap/i)
-
+    const body = await robots.text()
     const sitemap = await page.request.get('/sitemap.xml')
-    expect(sitemap.ok()).toBeTruthy()
-    expect(await sitemap.text()).toContain('<urlset')
+
+    // robots.txt + sitemap are keyed off isProductionBuild() (apex CNAME /
+    // SITE_ENV). The E2E tier builds staging by default, but stay mode-agnostic
+    // so this holds on a local/apex build too. A line starting "Allow:" only
+    // appears on the production variant ("Disallow:" doesn't match the anchor).
+    const isProd = /^allow:/im.test(body)
+    if (isProd) {
+      // Apex build: crawlable, advertises + serves the sitemap.
+      expect(body).toMatch(/^sitemap:/im)
+      expect(sitemap.ok()).toBeTruthy()
+      expect(await sitemap.text()).toContain('<urlset')
+    } else {
+      // Staging build: blanket Disallow, no Sitemap directive and no sitemap
+      // emitted, so the pre-launch copy carries no real-life SEO artifacts.
+      // (Anchor on the directive — a comment may mention the word "sitemap".)
+      expect(body).toMatch(/disallow:\s*\/\s*$/im)
+      expect(body).not.toMatch(/^sitemap:/im)
+      expect(sitemap.status()).toBe(404)
+    }
   })
 
   test('home carries the canonical link + JSON-LD the build injects', async ({ page }) => {
