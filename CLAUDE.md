@@ -175,6 +175,7 @@ comments document every field — **read them before editing**.
 | `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
 | `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
+| `business.js`           | `business.js`                  | `<!-- reply-time -->` → enquire + enquiry-received (shared so the promised turnaround can't drift) |
 
 The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*
 page's nav, not just the homepage — it renders in two spots per page (the inline pill via
