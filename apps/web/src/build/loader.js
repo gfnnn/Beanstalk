@@ -31,7 +31,6 @@ export const LOADER_STYLE = `<style id="page-loader-css">
 html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-sprig{width:42px;height:60px;color:#4A5D3F;color:var(--moss,#4A5D3F)}
 #page-loader .pl-sprig path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}
-#page-loader .pl-word{font-family:'JetBrains Mono',monospace;font-family:var(--mono,'JetBrains Mono',monospace);font-size:11px;letter-spacing:.3em;text-transform:lowercase;color:#5b574d;color:rgba(var(--ink-rgb),.5)}
 @media (prefers-reduced-motion:no-preference){
 /* Idle loop — one self-contained cycle that always restarts from empty. The whole
    sprig shares an opacity envelope (pl-fade) while each path inks in over its own
@@ -42,7 +41,6 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-d1{animation:pl-draw1 1.7s ease-in-out infinite}
 #page-loader .pl-d2{animation:pl-draw2 1.7s ease-in-out infinite}
 #page-loader .pl-d3{animation:pl-draw3 1.7s ease-in-out infinite}
-#page-loader .pl-word{animation:pl-pulse 1.7s ease-in-out infinite}
 /* Outro — when the overlay actually covered a load, JS adds .pl-finishing so the
    sprig plays one quick complete ink-in (held visible) before the page cross-fades
    in, instead of the fade catching the loop mid-draw. */
@@ -50,7 +48,6 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader.pl-finishing .pl-d1{animation:pl-quick .45s ease-out forwards}
 #page-loader.pl-finishing .pl-d2{animation:pl-quick .45s ease-out .07s forwards}
 #page-loader.pl-finishing .pl-d3{animation:pl-quick .45s ease-out .14s forwards}
-#page-loader.pl-finishing .pl-word{animation:none;opacity:.7}
 }
 @media (prefers-reduced-motion:reduce){#page-loader{transition:none}}
 @keyframes pl-fade{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
@@ -58,7 +55,6 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes pl-draw2{0%,16%{stroke-dashoffset:1}50%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
 @keyframes pl-draw3{0%,30%{stroke-dashoffset:1}66%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
 @keyframes pl-quick{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
-@keyframes pl-pulse{0%,100%{opacity:.4}50%{opacity:.8}}
 @keyframes pl-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
 </style>`
 
@@ -71,7 +67,6 @@ export const LOADER_MARKUP = `<div id="page-loader" role="status" aria-label="Lo
     <path class="pl-d2" pathLength="1" d="M21 36 C11 35 5 27 6 17 C16 18 21 25 21 36 Z"/>
     <path class="pl-d3" pathLength="1" d="M21 28 C31 27 37 20 36 11 C26 12 21 18 21 28 Z"/>
   </svg>
-  <span class="pl-word" aria-hidden="true">beansprout</span>
 </div>`
 
 /**
