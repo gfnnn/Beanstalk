@@ -51,12 +51,13 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 // the reported "two leaves, no stem" flash (a delayed path with only `forwards`
 // fill shows its default DRAWN state during the delay while the un-delayed stem is
 // still hidden). Shown-complete + breathe reads right at any load speed and glimpse
-// length. (pathLength on the paths is now inert.)
+// length — and the two leaves now spring symmetrically from the stem's tip, so the
+// stem no longer pokes above them.
 export const LOADER_MARKUP = `<div id="page-loader" role="status" aria-label="Loading">
   <svg class="pl-sprig" viewBox="0 0 42 60" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <path class="pl-d1" pathLength="1" d="M21 58 C21 46 21 34 21 19"/>
-    <path class="pl-d2" pathLength="1" d="M21 36 C11 35 5 27 6 17 C16 18 21 25 21 36 Z"/>
-    <path class="pl-d3" pathLength="1" d="M21 28 C31 27 37 20 36 11 C26 12 21 18 21 28 Z"/>
+    <path d="M21 55 C21 45 21 35 21 26"/>
+    <path d="M21 26 C14 27 6 21 7 11 C13 15 18 20 21 26 Z"/>
+    <path d="M21 26 C28 27 36 21 35 11 C29 15 24 20 21 26 Z"/>
   </svg>
   <span class="pl-word" aria-hidden="true">beansprout</span>
 </div>`
