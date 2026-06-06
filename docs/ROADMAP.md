@@ -214,9 +214,11 @@ Content is mostly in, but a few items need your confirmation before launch.
 - [ ] **Terms & privacy effective date + legal review** — `terms/index.html` has a
       placeholder effective date and a note to have wording reviewed against current
       consumer law; deposit figures must match `/services/`. 👤 review → 🛠 apply.
-- [ ] **`og-image.jpg` (1200×630)** — referenced site-wide for social cards and the
-      default piece-page OG image, **still missing** (Backlog P3). 👤 supply image →
-      🛠 add to `apps/web/public/images/og-image.jpg`.
+- [ ] **`og-image.jpg` (1200×630)** — referenced site-wide for social cards, the
+      default piece-page OG image, **and the homepage JSON-LD `image`** (so its absence
+      also weakens the structured-data/rich-result), **still missing** (Backlog P3).
+      Until it exists, link previews and the `Person` schema point at a 404. 👤 supply
+      image → 🛠 add to `apps/web/public/images/og-image.jpg`.
 - [ ] **Portfolio / flash spot-check** — 28 pieces + 12 flash are populated with real
       photos; eyeball them for any remaining placeholders/tone-swatch fallbacks.
 - [ ] *(Optional)* **Testimonials** — the "Kind words" homepage block is `hidden`
@@ -297,6 +299,10 @@ below.
 
 When ready to go live:
 
+- [ ] **A day ahead: lower the apex DNS TTL** (👤, GoDaddy) on the records you'll
+      change — drop the apex `A` / `www` `CNAME` TTL to **300s (5 min)**. This makes
+      both the cutover *and* a rollback propagate in minutes instead of hours. Raise it
+      back to a normal value (e.g. 1 hour) a day after the cutover is confirmed healthy.
 - [ ] **Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) and let Pages deploy.
 - [ ] **Point DNS at GitHub Pages** (👤, GoDaddy): apex `A` records to GitHub's Pages
       IPs + `www` `CNAME` to `<user>.github.io` (or per your Pages custom-domain
@@ -318,6 +324,27 @@ When ready to go live:
 - [ ] **Smoke-test the live apex** — repeat the Phase 5 form tests against
       `https://beansprout.ink`.
 - [ ] **Decommission/redirect v1** as appropriate once v2 is confirmed healthy. 👤
+      Keep the v1 repo/deploy *intact but idle* (not deleted) until v2 has run clean for
+      a week or two — it's the rollback target below.
+
+### Rollback plan (if the cutover goes wrong)
+
+The cutover is "irreversible-ish" only because DNS takes time to propagate — every
+step is reversible, and with the TTL pre-lowered (first step above) a revert is minutes,
+not hours. Roll back the moment the live apex is broken (site won't load, forms 500,
+mail bounces) rather than debugging on the live domain:
+
+1. **DNS — point the apex back at v1.** Restore the previous apex `A` records / `www`
+   `CNAME` to the **v1** target. This is the one that actually moves traffic back; do it
+   first. (Keeping v1 idle-but-intact, above, is what makes this possible.)
+2. **Email — flip the Worker secrets back to test** (`FROM_EMAIL` /`ARTIST_EMAIL`) only
+   if production sending is the thing that's broken; otherwise leave them — the Worker is
+   shared and v1 doesn't use it.
+3. **Pages — remove `apps/web/public/CNAME`** (revert the commit) so Pages stops claiming
+   the apex and serves only on `*.github.io` again, restoring the staging posture.
+4. **Data is safe** — D1 is unaffected by a DNS rollback; any enquiries captured during
+   the brief live window are still persisted (Time Travel covers operator error — see
+   `DATA-COMPLIANCE.md`). Diagnose on staging, then re-attempt the cutover.
 
 ## Critical path (the shortest route to live)
 
