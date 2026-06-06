@@ -51,9 +51,11 @@ test.describe('smoke: SEO/static endpoints', () => {
       // (Anchor on the directive — a comment may mention the word "sitemap".)
       expect(body).toMatch(/disallow:\s*\/\s*$/im)
       expect(body).not.toMatch(/^sitemap:/im)
-      // Not served at all — assert "not 2xx" rather than a hard 404 so this
-      // doesn't depend on the preview server's missing-file status.
-      expect(sitemap.ok()).toBeFalsy()
+      // No real sitemap is emitted on staging. Don't assert on the status: the
+      // preview server (Vite, appType 'spa') answers the missing /sitemap.xml
+      // with the SPA/404 fallback HTML at 200, and a real host would 404 — both
+      // fine. The invariant is just that an actual <urlset> sitemap isn't served.
+      expect(await sitemap.text()).not.toContain('<urlset')
     }
   })
 
