@@ -29,7 +29,7 @@ export function initHeroAnimation() {
     delay: 0.15,
   })
 
-  if (eyebrow) tl.from(eyebrow, { opacity: 0, x: -20, duration: 0.7 })
+  if (eyebrow) tl.from(eyebrow, { opacity: 0, duration: 0.7 })
 
   tl.from(heading, {
     opacity: 0, y: 30, filter: 'blur(8px)', duration: 0.9, ease: 'power4.out',
@@ -252,7 +252,7 @@ export function initScrollAnimations() {
   const pageDesc  = document.querySelector('.page-descriptor')
   if (pageTitle) {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 })
-    if (pageEye)  tl.from(pageEye,  { opacity: 0, x: -16, duration: 0.65 })
+    if (pageEye)  tl.from(pageEye,  { opacity: 0, duration: 0.65 })
     tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
     if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
   }
