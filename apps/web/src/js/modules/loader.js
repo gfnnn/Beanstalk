@@ -20,13 +20,25 @@
 // "Warm" = this tab has already loaded a page this session (sessionStorage flag).
 // First load in the tab is cold (cover shown); everything after is warm.
 //
+// Entrance coordination: the cover hides the page until it lifts, so the GSAP
+// entrance must not play *behind* it (wasted) on a slow cold load. `pageReady`
+// resolves the moment the page should be revealed — immediately on a warm nav or
+// a page with no cover, and as the cold cover *begins* to fade — and main.js
+// gates `motion-ready` + the on-load entrance on it, so content rises in exactly
+// as the cover lifts. It always resolves (even with no overlay) so the reveal can
+// never be stranded; the motion.css failsafe is the backstop if this never runs.
+//
 // No-ops when the overlay is absent (e.g. a stripped test page), so it's safe in
 // the shared main.js init on every page.
 const SESSION_KEY = 'bs-visited'
 
+let signalReady
+/** Resolves when the page should be revealed (cover lifting / warm nav / no cover). */
+export const pageReady = new Promise(resolve => { signalReady = resolve })
+
 export function initPageLoader() {
   const loader = document.getElementById('page-loader')
-  if (!loader) return
+  if (!loader) { signalReady(); return }
 
   const root    = document.documentElement
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -43,6 +55,7 @@ export function initPageLoader() {
     gone = true
     root.classList.add('page-loaded')
     loader.remove()
+    signalReady()   // warm nav: reveal immediately (composes with the View Transition)
   }
 
   // Warm navigation: drop the cover with no fade of its own, before the incoming
@@ -60,7 +73,8 @@ export function initPageLoader() {
   function dismiss() {
     if (dismissed || gone) return
     dismissed = true
-    root.classList.add('page-loaded')
+    root.classList.add('page-loaded')   // cover starts its fade here…
+    signalReady()                        // …and the entrance starts with it
 
     // Reduced motion: no fade — remove straight away so it can't trap focus/clicks.
     if (reduced) { loader.remove(); return }
