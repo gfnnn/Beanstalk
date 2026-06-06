@@ -10,7 +10,7 @@
 // CSS/font arrival.
 //
 // Fix: cover every page from the very first paint with a cream overlay carrying a
-// small self-inking sprig, then fade it out once the page is genuinely ready
+// small sprig mark, then fade it out once the page is genuinely ready
 // (src/js/modules/loader.js dismisses it on document.fonts.ready). The styling is
 // INLINE-CRITICAL in <head> on purpose — it must apply before main.css loads — and
 // is CSP-safe because style-src allows 'unsafe-inline' (src/build/security.js).
@@ -30,25 +30,28 @@ export const LOADER_STYLE = `<style id="page-loader-css">
 #page-loader{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#F7F1E3;background:var(--bg,#F7F1E3);opacity:1;visibility:visible;transition:opacity .45s ease,visibility .45s ease;animation:pl-failsafe 1ms linear 6s forwards}
 html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-sprig{width:42px;height:60px;color:#4A5D3F;color:var(--moss,#4A5D3F)}
-#page-loader .pl-sprig path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0}
+#page-loader .pl-sprig path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #page-loader .pl-word{font-family:'JetBrains Mono',monospace;font-family:var(--mono,'JetBrains Mono',monospace);font-size:11px;letter-spacing:.3em;text-transform:lowercase;color:#5b574d;color:rgba(var(--ink-rgb),.5)}
 @media (prefers-reduced-motion:no-preference){
-#page-loader .pl-sprig{animation:pl-breathe 3s ease-in-out .8s infinite}
-#page-loader .pl-sprig path{animation:pl-draw .7s ease-out forwards}
-#page-loader .pl-sprig .pl-d2{animation-delay:.12s}
-#page-loader .pl-sprig .pl-d3{animation-delay:.24s}
-#page-loader .pl-word{animation:pl-pulse 3s ease-in-out infinite}
+#page-loader .pl-sprig{animation:pl-breathe 3.2s ease-in-out infinite}
+#page-loader .pl-word{animation:pl-pulse 3.2s ease-in-out infinite}
 }
 @media (prefers-reduced-motion:reduce){#page-loader{transition:none}}
-@keyframes pl-draw{from{stroke-dashoffset:1;opacity:.2}to{stroke-dashoffset:0;opacity:1}}
-@keyframes pl-breathe{0%,100%{opacity:.82}50%{opacity:1}}
+@keyframes pl-breathe{0%,100%{opacity:1}50%{opacity:.82}}
 @keyframes pl-pulse{0%,100%{opacity:.4}50%{opacity:.72}}
 @keyframes pl-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
 </style>`
 
 // The overlay itself. role="status" + aria-label announces "Loading" once; the
-// sprig is a self-inking botanical that echoes the hero sprout motif. Each path
-// carries pathLength="1" so stroke-dashoffset 1→0 draws it regardless of length.
+// sprig is a small botanical that echoes the hero sprout motif. It's shown fully
+// formed at full opacity from the first painted frame, with only a gentle
+// COMPOSITOR-only opacity breathe. A self-inking stroke-dashoffset draw was tried
+// but is a MAIN-THREAD property that janks under load-time main-thread contention,
+// and a staggered per-path draw renders mid-draw inconsistently on a quick cover —
+// the reported "two leaves, no stem" flash (a delayed path with only `forwards`
+// fill shows its default DRAWN state during the delay while the un-delayed stem is
+// still hidden). Shown-complete + breathe reads right at any load speed and glimpse
+// length. (pathLength on the paths is now inert.)
 export const LOADER_MARKUP = `<div id="page-loader" role="status" aria-label="Loading">
   <svg class="pl-sprig" viewBox="0 0 42 60" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <path class="pl-d1" pathLength="1" d="M21 58 C21 46 21 34 21 19"/>
