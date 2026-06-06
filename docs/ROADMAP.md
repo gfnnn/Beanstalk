@@ -219,6 +219,37 @@ and does **not** touch the website's A/CNAME — so it's safe to do before cutov
 Content is mostly in, but a few items need your confirmation before launch.
 (Edits land via PR — give me the values and I'll wire them.)
 
+### Copy sign-off — the review loop (Roxy)
+
+**Goal:** every word that reads as Roxy speaking is *Roxy's*, not a placeholder
+drafted for her. The mechanism, end to end:
+
+1. **Roxy reads the site in a browser.** Use the always-on **Cloudflare Pages
+   staging URL** (the `*.pages.dev` built from `develop`), or a local
+   `npm run preview:branch -- <branch>` (fetches a branch + serves it at
+   `localhost:5173`). She sees every page's copy **in context**, as a visitor
+   would — the designed draft copy stays live precisely so she can react to it.
+2. **She fills in her words in [`docs/COPY-FOR-ROXY.md`](./COPY-FOR-ROXY.md).**
+   That worksheet is the Roxy-facing companion to the internal tracker
+   ([`COPY-REVIEW.md`](./COPY-REVIEW.md)): one plain-English entry per copy slot,
+   each saying **what the copy is for**, a **simple example**, and a blank for
+   **her words** — so she's guided, not staring at an empty page. Facts I need
+   from her (prices, hours, dates) are marked 🔒.
+3. **🛠 I apply her edits to source** — the data files (`src/data/*.js`) and the
+   page HTML — then flip each block's marker `ROXY-COPY · <REF> · pending approval`
+   → `approved`. The gate `grep -rn "pending approval" apps/web/` reaching zero
+   means the copy pass is done.
+4. **Strip the markers before cutover.** The `ROXY-COPY` comments are a staging
+   review aid and ship into page source; clear them as part of this phase so the
+   apex (Phase 6) carries none. See the convention note in `COPY-REVIEW.md`.
+
+- [ ] **Roxy copy review** — Roxy works through `docs/COPY-FOR-ROXY.md` against
+      the staging site; 🛠 apply her words to source + flip/clear markers. This is
+      the umbrella task; the specific value-only items below are called out
+      separately because they also gate other things (legal, pricing parity).
+
+### Specific items (also tracked above)
+
 - [ ] **Services prices** — `apps/web/services/index.html` flags prices as
       *placeholders from the design brief*. Confirm real prices/tiers. 🛠 apply.
 - [ ] **Terms & privacy effective date + legal review** — `terms/index.html` has a

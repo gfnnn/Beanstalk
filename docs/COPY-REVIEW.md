@@ -11,6 +11,13 @@ approved the wording.
 > don't need her sign-off and are listed separately so you can see they were
 > considered, not missed.
 
+> **This file is the internal tracker.** The **Roxy-facing** companion is
+> [`COPY-FOR-ROXY.md`](./COPY-FOR-ROXY.md) — the same slots, but written as a
+> plain "what it's for + a simple example + your words" worksheet she fills in
+> against the staging site. The review loop is baked into the go-live plan
+> (`ROADMAP.md` → Phase 4 → *Copy sign-off — the review loop*). Refs match across
+> all three (e.g. `HOME-03`).
+
 ## How this maps to the source
 
 Each Roxy-voice block in the codebase now carries an inline marker so nothing
