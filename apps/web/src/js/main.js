@@ -13,6 +13,14 @@ import { initMedia } from './modules/media.js'
 import { initAnalytics } from './modules/analytics.js'
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 0. Reveal the elements the FOUC guard (styles/motion.css) holds hidden until
+  //    the motion layer is live. Done FIRST and synchronously so this class flip
+  //    and the GSAP .from() start-states set below land in the same frame — the
+  //    browser never paints the in-between, so there's no flash. Under reduced
+  //    motion the guard is inert (its media query) and GSAP bails, so the elements
+  //    are already visible and this is a harmless no-op.
+  document.documentElement.classList.add('motion-ready')
+
   // 1. Smooth scroll — must be first so GSAP ticker is driven by Lenis
   initLenis()
 
