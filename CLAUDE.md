@@ -41,7 +41,12 @@ command instead of rediscovering the environment each time:
   through `apps/web/scripts/run-e2e.mjs`, which **skips cleanly (exit 0) when no Chromium
   is installed**. Real browser coverage comes from CI (`.github/workflows/e2e.yml`, which
   installs the browser) and from local runs. Don't treat a skipped E2E run as broken, and
-  don't burn time trying to install the browser in a web session.
+  don't burn time trying to install the browser in a web session. **The same missing
+  browser means a web session can't do the pre-PR *visual* check either** (no display, no
+  Chromium → no screenshot, no driving a page) — that's expected at that stage, not a
+  skipped step; rely on `npm test`/`npm run build` + verifying the served markup, and leave
+  the eyes-on verification to the PR's E2E job and a local/human review. See
+  [Visual check before a feature PR](#visual-check-before-a-feature-pr).
   - **Where the E2E tier actually runs — so you don't "test" a feature against a no-op.**
     A skipped sandbox run **validates nothing**: it neither passed nor exercised your code.
     So when a change touches a **browser-only path the E2E tier owns** — the enquiry-form
@@ -419,6 +424,23 @@ for any user-visible feature, verify it in the browser and attach the proof:
    session). Don't block on a timer — carry on with other work while it stays up.
 
 Skip this only when the change genuinely can't be seen in the browser.
+
+**From a Claude Code web session, steps 2–4 (drive the browser + screenshot) can't run —
+and that's expected, not a skipped step.** The remote sandbox has no display and can't
+install a browser binary: Playwright's Chromium downloads from `cdn.playwright.dev`, which
+the sandbox network allowlist blocks (`403 Host not in allowlist`), and there's no headed
+Chrome either. So a web session **cannot** take a screenshot or visually drive a page,
+**at this stage of the workflow**, no matter the change — don't burn time trying to install
+the browser, and don't treat the missing screenshot as a gap or a failure. This is a
+recurring, structural limit of the environment, not a problem with the change. What a web
+session *can* do, and should do instead, is: run `npm test` (the trustworthy signal here),
+run `npm run build`, and verify the rendered/served markup directly (e.g. `curl` the dev
+server or grep `apps/web/dist/**` after a build) to prove the change is wired in. Then state
+plainly in the PR that the browser/visual check wasn't possible from the web sandbox, and
+hand the actual *visual* verification to the two places that can do it: the **PR's E2E
+workflow** (auto-runs on every `pull_request` under `apps/web/**`) and a **human/local
+review** — `npm run preview:branch -- <branch>` fetches the branch and serves it locally for
+an eyes-on look. A developer on their own machine still follows steps 1–5 in full.
 
 **Browser-only interactions also need the E2E gate, not just a screenshot.** If the
 feature touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav
