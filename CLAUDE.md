@@ -132,7 +132,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  MOTION.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -256,11 +256,15 @@ Two layers, both centralised so new pages/responses inherit them:
   those belong on the HTML, not a JSON API.
 
 ### Front-end JS — single orchestrated init
-`src/js/main.js` is the only entry point. On `DOMContentLoaded` it **first** flips the
-`motion-ready` class on `<html>` (the FOUC guard — see below), then calls each module's
-`initX()` in a deliberate order (Lenis smooth-scroll first so it drives the GSAP ticker,
-then nav, hero/scroll animations, portfolio load-more + filter + lightbox, aftercare, faq,
-enquire, flash, newsletter, hero media, analytics — and finally the mobile sticky CTA).
+`src/js/main.js` is the only entry point. On `DOMContentLoaded` it manages the full-page
+preloader first (`initPageLoader()`, which resolves a `pageReady` promise — see below),
+inits Lenis smooth-scroll (so it drives the GSAP ticker) and nav, then **gates the visual
+entrance on `pageReady`**: the `motion-ready` class flip (the FOUC guard) + the hero/scroll
+animations run when the page is ready to be shown, so the entrance plays *as the cover lifts*
+rather than behind it. Everything else (portfolio load-more + filter + lightbox, aftercare,
+faq, enquire, flash, newsletter, hero media, analytics — and finally the mobile sticky CTA)
+inits immediately. **The full motion / page-transition system is mapped in
+[`docs/MOTION.md`](docs/MOTION.md) — read it before changing load/entrance/transition behaviour.**
 **Every module no-ops when its target element is absent**, so the one bundle runs safely
 on every page. Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
 `filter`, `lightbox`, `sticky` (shared sticky-shadow helper for pinned bars — used by
@@ -277,24 +281,31 @@ owns the visible window; filter re-applies after a reveal/sort). New page behavi
 `modules/<name>.js` exporting `initX()`, added to `main.js`.
 
 **FOUC guard for entrance animations.** `styles/motion.css` holds animated elements hidden
-until JS is live; `main.js` adds `motion-ready` to `<html>` **synchronously and first**, in
-the same frame GSAP sets its `.from()` start-states, so the in-between is never painted (no
-flash of unstyled/unanimated content). Under `prefers-reduced-motion` the guard's media
-query is inert and GSAP bails, so elements are simply visible — the class flip is a harmless
-no-op. `styles/a11y.css` carries the focus-visible / reduced-motion / screen-reader rules.
+until JS is live; `main.js` adds `motion-ready` to `<html>` **on `pageReady`** (as the loader
+lifts on a cold load, or immediately on a warm nav), in the same synchronous tick GSAP sets
+its `.from()` start-states, so the in-between is never painted (no flash of unstyled/
+unanimated content). A pure-CSS failsafe (2s) reveals the guarded elements if the bundle never
+runs. Under `prefers-reduced-motion` the guard's media query is inert and GSAP bails, so
+elements are simply visible — the class flip is a harmless no-op. `styles/a11y.css` carries
+the focus-visible / reduced-motion / screen-reader rules.
 
 **Full-page preloader (the slow-load cover).** Separate from, and complementary to, the
 motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
 **inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
 Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
-overlay (a self-inking sprig on the cream bg) right after `<body>`, on **every** page incl.
-the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
+overlay (a sprig mark on the cream bg, shown complete with a gentle opacity breathe — *not* a
+stroke-dashoffset draw, which janked on quick loads) right after `<body>`, on **every** page
+incl. the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
 against a double-inject). It hides the page from the first paint so the render-blocking
 CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
-(`initPageLoader()`, called first in `main.js`) fades it out on `document.fonts.ready` — the
-font swap is the real cause of the reflow — with a JS ceiling (3s) **and** a pure-CSS
-failsafe animation (6s) so a hung resource or a blocked bundle can never trap the page.
-Reduced-motion: no spin/fade, the overlay is removed instantly.
+(`initPageLoader()`, called first in `main.js`) dismisses it on `document.fonts.ready` for a
+**cold** first load (JS ceiling 3s **and** a pure-CSS failsafe 6s so a hung resource can never
+trap the page), but drops it **instantly on warm in-session navigations** (`sessionStorage`)
+so the page-transition cross-fade shows real content, not the cover. It resolves the
+`pageReady` promise that gates the entrance (above). Reduced-motion: removed instantly, no
+animation. **Page transitions** (cross-document View Transitions) and the **animated
+hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/atmosphere.css`
+— full map in [`docs/MOTION.md`](docs/MOTION.md).
 
 ### Forms → Cloudflare Worker → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
