@@ -9,7 +9,8 @@ actually starts.
 
 > The studio confirmed **PayPal + Monzo**, reconciled by hand. Related: the deposit
 > is the confirmation trigger for [`SCHEDULING.md`](./SCHEDULING.md) — the two
-> co-ship as one track.
+> co-ship as one track. The **fee maths** behind this decision (and the Stripe/Klarna
+> alternatives) lives in [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md).
 
 ## The decision that shapes everything: manual reconciliation
 
