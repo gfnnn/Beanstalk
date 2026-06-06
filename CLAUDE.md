@@ -33,7 +33,7 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (357 web + 116
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (436 web + 118
   functions) run fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
