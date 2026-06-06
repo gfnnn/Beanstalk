@@ -181,12 +181,13 @@ and `docs/NEWSLETTER-SETUP.md` for reference.
 - [x] **Cloudflare account + Worker** — `wrangler d1 create` / `migrations apply` /
       `deploy` done; the Worker is live. *(ENQUIRY-SETUP Part B)*
 - [x] **Set Worker secrets** (`wrangler secret put <NAME>`) — set. `FROM_EMAIL` /
-      `ARTIST_EMAIL` currently hold the **test** values (`onboarding@resend.dev` /
-      `harrisonfisher1990@gmail.com`); they flip to production at Phase 6.
+      `ARTIST_EMAIL` currently hold the **test** values (`onboarding@resend.dev` and
+      the developer's own inbox, used for staging email tests); they flip to
+      production at Phase 6.
       | Key | Value |
       |---|---|
       | `RESEND_API_KEY` | the `re_…` key |
-      | `ARTIST_EMAIL` | the artist's Gmail (production, set as a secret; test = `harrisonfisher1990@gmail.com`) |
+      | `ARTIST_EMAIL` | the artist's Gmail (production, set as a secret; test = the developer's own inbox) |
       | `FROM_EMAIL` | `roxy@beansprout.ink` (production; test = `onboarding@resend.dev`) |
       | `RESEND_AUDIENCE_ID` | the Audience ID |
       | `RATE_*` | *(optional vars — defaults are sane)* |
@@ -301,7 +302,7 @@ Do this on the Pages project URL **before** any apex change. The fastest loop is
 ### End-to-end email test (go-live acceptance)
 
 A repeatable test of the **full email round-trip**. Run it twice:
-- **(a) Staging** — `FROM_EMAIL=onboarding@resend.dev`, `ARTIST_EMAIL=harrisonfisher1990@gmail.com`
+- **(a) Staging** — `FROM_EMAIL=onboarding@resend.dev`, with `ARTIST_EMAIL` set to the developer's own inbox
   (Resend's test sender only delivers to the Resend-account owner).
 - **(b) Production** — after the Phase 6 email switch-over, repeat against
   `https://beansprout.ink` with `FROM_EMAIL=roxy@beansprout.ink` and the production
@@ -368,7 +369,7 @@ When ready to go live:
       | Secret | Test (now) | Production |
       |---|---|---|
       | `FROM_EMAIL` | `onboarding@resend.dev` | `roxy@beansprout.ink` |
-      | `ARTIST_EMAIL` | `harrisonfisher1990@gmail.com` | the artist's Gmail |
+      | `ARTIST_EMAIL` | the developer's test inbox | the artist's Gmail |
       Requires **`beansprout.ink` verified in Resend** (Phase 2/3) — until then
       `roxy@beansprout.ink` sends are rejected. `RESEND_API_KEY` /
       `RESEND_AUDIENCE_ID` stay the same. Saving a secret redeploys the Worker.
