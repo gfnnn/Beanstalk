@@ -39,6 +39,35 @@ homepage alerts + hero (`homepage.js`), testimonials. **Needs a prereq refactor*
 About, Aftercare. **Out:** editable filters (Roxy only assigns existing tokens), flash
 status (stays on the live claim flow), Visit home/guest mode, the enquiries/claims admin.
 
+## Image management (crop / re-centre)
+
+A real need for a non-technical editor: upload a photo and **re-frame it** (centre,
+crop, zoom) without code — not just edit metadata. This is the only image-specific
+work beyond exposing the data fields, and it's lighter than a bespoke crop app:
+
+- **Today:** `apps/web/scripts/process-media.mjs` auto-crops to the tattoo, with an
+  optional manual `crop: { cx, cy, h }` override per image (see [`MEDIA.md`](./MEDIA.md)).
+  Those override values currently live in the processing driver, not the repo.
+- **The prereq refactor (small, do first):** lift `crop` into `pieces.js` as optional
+  per-piece fields. Re-centring then becomes a *data* edit — hand-editable **and**
+  Tina-exposable — and the auto-crop stays the on-upload default.
+- **In Tina:** expose `crop` either as plain `cx`/`cy`/`h` number fields or as a small
+  **custom field component** (Tina supports custom React field UIs) — a drag-the-dot
+  focal picker over the image. That custom picker *is* the "crop dashboard"; it's a
+  contained component, not a separate app.
+- **The one piece of glue — regeneration.** Because the responsive tiers are committed
+  binaries (git-backed model), changing `crop` must **re-run the processor**. Options:
+  a GitHub Action that regenerates a slug's tiers when its `crop`/`img` changes on
+  commit, or a Tina post-save hook. This is the only non-trivial build item; the rest
+  is field config.
+- **Why not a hosted hotspot UI (e.g. Sanity's built-in crop):** rejected with Sanity
+  itself — it moves images to a SaaS/CDN and makes the build depend on it. We keep the
+  git-backed model; the focal picker is a small custom Tina field instead.
+
+Net: **no big bespoke dashboard** — pick up the data-driven `crop` refactor as a tiny
+standalone PR whenever, then the focal picker + regenerate Action ride along with the
+Tina build.
+
 ## Security baseline (required when built)
 
 Early-2026 CVEs were all in Tina's **CLI dev server / self-hosted backend**, not the

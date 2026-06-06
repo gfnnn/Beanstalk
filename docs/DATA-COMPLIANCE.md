@@ -78,8 +78,10 @@ wrangler d1 execute beansprout --remote \
 completed tattoo. Before deleting, eyeball the preview and **keep any record for a
 tattoo that went ahead** (those have the insurer/LA retention). At studio volume
 this manual check is trivial; automating it (a `booked` flag + a scheduled Worker)
-is a post-launch follow-up. The `rate_events` table is transient and self-pruning;
-no retention action needed.
+is a post-launch follow-up. The `rate_events` table is largely self-pruning: the
+per-IP sliding-window rows are deleted on each commit, and the per-day counter rows
+(one per successful send) are tiny and aged out opportunistically too — so no manual
+retention action is needed.
 
 ## Go-live checklist (compliance slice)
 
@@ -90,6 +92,36 @@ no retention action needed.
 - [ ] 👤 Run one **dry-run** (a `SELECT` access query + the prune preview) against
       the live DB so you know the runbook works before a real request arrives.
 - [ ] 👤 Set a quarterly prune reminder.
+- [x] Recovery path for a mistaken erasure/prune documented — D1 Time Travel
+      (see *Backup & recovery* below); no setup, ~30-day window on the free tier.
+
+## Backup & recovery (the erasure/prune safety net)
+
+The runbook above hands an operator destructive `DELETE`s by hand, so a typo in a
+`WHERE email = …` clause (or an over-broad prune) could drop the wrong rows. The
+safety net is **Cloudflare D1 Time Travel** — point-in-time restore, on by default,
+**no setup**, retaining ~30 days of history on the free tier. It is also the answer
+to "where are the backups?" for the personal/special-category data now that D1 is the
+system of record.
+
+Before running an erasure or prune against production, note the current restore point
+(a bookmark) so you can roll back if it goes wrong:
+
+```bash
+# Snapshot a restore point right before a destructive op (copy the bookmark it prints):
+wrangler d1 time-travel info beansprout --remote
+# …run the DELETE… then, if it took the wrong rows, restore to that point in time:
+wrangler d1 time-travel restore beansprout --remote --bookmark <bookmark>
+#   (or --timestamp <ISO-8601 from just before the op>)
+```
+
+⚠️ A Time Travel **restore rewinds the whole database**, so it un-does any other
+writes (new enquiries, flash claims) since that point too — use it immediately after a
+mistaken op, not days later. For a single mis-deleted row it's usually quicker to
+re-enter it from Roxy's Gmail copy of the enquiry. Time Travel does **not** survive the
+database being deleted/recreated, and it is **not** a GDPR loophole: a genuine erasure
+must not be silently restored — only use restore to recover from an *operator error*,
+and re-run the erasure afterwards if the subject's data comes back with it.
 
 ## Strategic direction (post-launch)
 
