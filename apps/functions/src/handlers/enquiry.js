@@ -26,6 +26,8 @@ const MAX_IMAGES      = 8
 const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // 5 MB of decoded image data
 const MAX_BODY_BYTES  = 6 * 1024 * 1024 // reject oversized bodies before parsing
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // per-image ceiling (decoded estimate)
+const MAX_FIELD_LEN   = 2000            // per-field text cap (cost / email-size guard)
+const MAX_ARRAY_ITEMS = 50              // cap multi-select arrays (style[], days[]…)
 
 // Per-form definition: required fields, consent boxes, whether images apply,
 // the email's section layout, header title, and subject line.
@@ -101,6 +103,12 @@ export async function handler(event, env = {}) {
   const form   = FORMS[kind]
   const fields = payload.fields && typeof payload.fields === 'object' ? payload.fields : {}
   const images = form.images && Array.isArray(payload.images) ? payload.images : []
+
+  // Clamp over-long fields BEFORE they're stored or emailed. The form's own
+  // maxlength keeps real users well under this; the cap is defence-in-depth so a
+  // direct API caller can't bloat a D1 row or the Resend payload. Truncate (don't
+  // reject) — a genuine over-runner still gets through, just trimmed.
+  clampFields(fields)
 
   // Honeypot — a bot filled the hidden field. Pretend success, send nothing.
   if (String(fields._gotcha || '').trim()) return reply(200, { ok: true })
@@ -219,6 +227,20 @@ export async function handler(event, env = {}) {
     await persistSubmission(env, { ...record, emailStatus: 'failed' }, submissionId)
     if (reservedHere) await releaseFlashPiece(env, pieceId)
     return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
+  }
+}
+
+// Truncate every string value (and array item) to MAX_FIELD_LEN in place, and
+// cap array fields to MAX_ARRAY_ITEMS. Non-string scalars are left untouched.
+function clampFields(fields) {
+  for (const k of Object.keys(fields)) {
+    const v = fields[k]
+    if (typeof v === 'string') {
+      if (v.length > MAX_FIELD_LEN) fields[k] = v.slice(0, MAX_FIELD_LEN)
+    } else if (Array.isArray(v)) {
+      fields[k] = v.slice(0, MAX_ARRAY_ITEMS).map(x =>
+        typeof x === 'string' && x.length > MAX_FIELD_LEN ? x.slice(0, MAX_FIELD_LEN) : x)
+    }
   }
 }
 

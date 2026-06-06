@@ -179,13 +179,13 @@
               <div class="field">
                 <label for="first-name">First name</label>
                 <input type="text" id="first-name" name="first_name"
-                       autocomplete="given-name" placeholder="Jane"
+                       autocomplete="given-name" placeholder="Jane" maxlength="50"
                        required aria-required="true">
               </div>
               <div class="field">
                 <label for="last-name">Last name</label>
                 <input type="text" id="last-name" name="last_name"
-                       autocomplete="family-name" placeholder="Smith"
+                       autocomplete="family-name" placeholder="Smith" maxlength="50"
                        required aria-required="true">
               </div>
             </div>
@@ -195,7 +195,7 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email"
                        autocomplete="email" inputmode="email"
-                       placeholder="you@email.com"
+                       placeholder="you@email.com" maxlength="254"
                        required aria-required="true">
               </div>
               <div class="field">
@@ -272,7 +272,7 @@
               <div class="field">
                 <label for="idea">Tell me your idea</label>
                 <span class="field-hint">Subject, mood, and any meaning behind it, as much or as little as you've got.</span>
-                <textarea id="idea" name="idea" rows="4"
+                <textarea id="idea" name="idea" rows="4" maxlength="1200"
                           placeholder="I've been wanting a small botanical piece, maybe foxgloves and ferns down my forearm…"></textarea>
               </div>
             </div>
@@ -303,12 +303,12 @@
               <div class="field">
                 <label for="placement">Placement</label>
                 <span class="field-hint">Where on the body?</span>
-                <input type="text" id="placement" name="placement" placeholder="Inner forearm, ankle…">
+                <input type="text" id="placement" name="placement" placeholder="Inner forearm, ankle…" maxlength="80">
               </div>
               <div class="field">
                 <label for="size">Rough size</label>
                 <span class="field-hint">A best guess is fine</span>
-                <input type="text" id="size" name="size" placeholder="~10cm / palm-sized">
+                <input type="text" id="size" name="size" placeholder="~10cm / palm-sized" maxlength="40">
               </div>
               <div class="field">
                 <label for="budget">Budget</label>
@@ -386,7 +386,7 @@
                          multiple aria-label="Upload reference images">
                   <div class="upload-icon">↑</div>
                   <p class="upload-title">Drag images here, or tap to upload</p>
-                  <p class="upload-hint">jpg, png or heic · up to 7 images · big phone photos are fine</p>
+                  <p class="upload-hint">jpg, png or heic · up to 8 images · big phone photos are fine</p>
                 </label>
                 <div class="thumb-row" id="thumb-row"></div>
               </div>
@@ -464,7 +464,7 @@
               <div class="field">
                 <label for="allergies">Any allergies or medical conditions I should know about?</label>
                 <span class="field-hint">Allergies, skin conditions, medication, pregnancy, a history of fainting, anything relevant. This stays private between us.</span>
-                <textarea id="allergies" name="allergies" rows="3"
+                <textarea id="allergies" name="allergies" rows="3" maxlength="600"
                           placeholder="None / e.g. sensitive skin, plaster allergy"></textarea>
               </div>
             </div>
@@ -473,7 +473,7 @@
               <div class="field">
                 <label for="notes">Anything else you'd like me to know?</label>
                 <span class="field-hint">Questions, access needs, nerves, a date you're working towards, anything at all.</span>
-                <textarea id="notes" name="additional_notes" rows="3"
+                <textarea id="notes" name="additional_notes" rows="3" maxlength="600"
                           placeholder="It's a birthday present to myself, no rush, just excited!"></textarea>
               </div>
             </div>
@@ -518,7 +518,7 @@
                   <div class="checkbox-row">
                     <input type="checkbox" id="check-deposit" name="deposit_understood" required>
                     <label class="checkbox-box" for="check-deposit" aria-hidden="true"></label>
-                    <label class="checkbox-label" for="check-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. Deposits are handled securely through Stripe.</label>
+                    <label class="checkbox-label" for="check-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. Deposits are handled securely.</label>
                   </div>
                 </div>
               </div>

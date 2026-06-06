@@ -43,32 +43,36 @@ export function initEnquire() {
   const NAME_RE  = /^[\p{L}][\p{L}\p{M} .'’\-]{0,48}$/u
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
+  // Name: tell the user *which* problem it is — over-length reads very differently
+  // from a stray character, and the message names exactly what's allowed (it isn't
+  // "letters only" — hyphens, apostrophes, spaces and dots are all fine).
   function validateName(v) {
-    return NAME_RE.test(v) ? '' : 'Please use letters only (no numbers or symbols).'
+    if (v.length > 49) return 'A touch long — could you shorten it?'
+    return NAME_RE.test(v) ? '' : 'Letters, spaces, hyphens and apostrophes only.'
   }
   function validateEmail(v) {
-    return EMAIL_RE.test(v) ? '' : 'Please enter a valid email, like you@email.com.'
+    return EMAIL_RE.test(v) ? '' : 'That doesn’t look quite right — try you@email.com.'
   }
   function validateDob(v) {
     const d = parseDate(v)
-    if (!d) return 'Please enter a valid date.'
+    if (!d) return 'That date doesn’t look right.'
     const today = midnight(new Date())
-    if (d > today) return 'That date is in the future.'
+    if (d > today) return 'That date’s in the future — check the year?'
     let age = today.getFullYear() - d.getFullYear()
     const m = today.getMonth() - d.getMonth()
     if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--
     if (age < 18)  return 'Sorry — I only tattoo over-18s.'
-    if (age > 120) return 'Please double-check your date of birth.'
+    if (age > 120) return 'Could you double-check your date of birth?'
     return ''
   }
   // Appointment windows: optional, but if given must be a real, future-ish date.
   function validateBookingDate(v) {
     const d = parseDate(v)
-    if (!d) return 'Please enter a valid date.'
+    if (!d) return 'That date doesn’t look right.'
     const today = midnight(new Date())
-    if (d < today) return 'Please choose a date in the future.'
+    if (d < today) return 'Let’s pick a date that’s still to come.'
     const max = midnight(new Date()); max.setFullYear(max.getFullYear() + 2)
-    if (d > max) return 'That date is a little too far ahead.'
+    if (d > max) return 'That’s a fair way off — pick something within two years.'
     return ''
   }
   function validateDateTo(v) {
@@ -76,7 +80,7 @@ export function initEnquire() {
     if (base) return base
     const from = parseDate(document.getElementById('date-from')?.value || '')
     const to   = parseDate(v)
-    if (from && to && to < from) return 'This should be on or after the earliest date.'
+    if (from && to && to < from) return 'This should be on or after your earliest date.'
     return ''
   }
 
@@ -105,13 +109,13 @@ export function initEnquire() {
     if (el.type === 'radio') {
       const scope = el.closest('.form-step') || document
       return required && !scope.querySelector(`[name="${el.name}"]:checked`)
-        ? 'Please choose an option.' : ''
+        ? 'Pick one to carry on.' : ''
     }
     if (el.type === 'checkbox') {
-      return required && !el.checked ? 'Please tick this to continue.' : ''
+      return required && !el.checked ? 'Tick this to continue.' : ''
     }
     const val = (el.value || '').trim()
-    if (!val) return required ? 'This can’t be left empty.' : ''
+    if (!val) return required ? 'Just need this one filled in.' : ''
     const fn = validators[el.id]
     return fn ? fn(val, el) : ''
   }
@@ -121,6 +125,9 @@ export function initEnquire() {
     field.classList.toggle('error', !!msg)
     let m = field.querySelector('.field-error-msg')
     if (msg) {
+      // Once a field has been flagged it switches to live correction from here on
+      // (see the input/blur wiring below) — but never before, so we don't nag.
+      field.dataset.live = '1'
       if (!m) {
         m = document.createElement('p')
         m.className = 'field-error-msg'
@@ -133,6 +140,25 @@ export function initEnquire() {
       m?.remove()
       el?.removeAttribute('aria-invalid')
     }
+  }
+
+  // Drop a field's error the instant the user starts fixing it — benefit of the
+  // doubt while they type (slow typers, mid-correction), re-judged on blur. We
+  // deliberately DON'T re-validate here, so the red can't flicker back mid-word.
+  function softClearError(field) {
+    field.classList.remove('error')
+    field.querySelector('.field-error-msg')?.remove()
+    field.querySelectorAll('[aria-invalid]').forEach(c => c.removeAttribute('aria-invalid'))
+  }
+
+  // Take the user straight to the first problem on a failed step — scroll it into
+  // view AND move focus there, so keyboard and screen-reader users aren't stranded.
+  function focusFirstError(step) {
+    if (!step) return
+    const f = step.querySelector('.field.error')
+    if (!f) return
+    f.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    f.querySelector('input:not([type="hidden"]), select, textarea')?.focus({ preventScroll: true })
   }
 
   // ── Step management (accordion) ───────────────────────────────────────────
@@ -208,21 +234,44 @@ export function initEnquire() {
     return ok
   }
 
-  // Clear a field's error live, once it's been flagged — never nag before submit.
+  // Live correction, but gentle — and never before the user has hit Continue.
+  // A field only goes "live" once it's first been flagged (data-live, set in
+  // applyFieldError). After that:
+  //   • Text fields → typing clears the error immediately (reward early) and it's
+  //     re-checked only when they leave the field (punish late), so a slow typer
+  //     or someone obviously correcting a mistake is never scolded mid-word.
+  //   • Discrete controls (radio / checkbox / select / date) settle in a single
+  //     action, so they re-validate on change — that's what keeps a part-ticked
+  //     consent group correctly red until the last box is ticked.
+  const isTextual = el =>
+    el.tagName === 'TEXTAREA' ||
+    (el.tagName === 'INPUT' && /^(text|email|search|tel|url|number|)$/.test(el.type))
+
   document.querySelectorAll('#enquiry-form input, #enquiry-form select, #enquiry-form textarea')
     .forEach(el => {
-      const refresh = () => {
-        const field = el.closest('.field')
-        if (field?.classList.contains('error')) refreshField(field)
+      const fieldOf = () => el.closest('.field')
+      if (isTextual(el)) {
+        el.addEventListener('input', () => {
+          const f = fieldOf()
+          if (f?.dataset.live && f.classList.contains('error')) softClearError(f)
+        })
+        el.addEventListener('blur', () => {
+          const f = fieldOf()
+          if (f?.dataset.live) refreshField(f)
+        })
+      } else {
+        el.addEventListener('change', () => {
+          const f = fieldOf()
+          if (f?.dataset.live) refreshField(f)
+        })
       }
-      el.addEventListener('input', refresh)
-      el.addEventListener('change', refresh)
     })
 
   // ── Next / back / edit wiring ─────────────────────────────────────────────
   ;[['step1-next', 1], ['step2-next', 2], ['step3-next', 3]].forEach(([id, n]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (validateStep(n)) setStep(n + 1)
+      else focusFirstError(document.getElementById('step-' + n))
     })
   })
 
@@ -328,6 +377,28 @@ export function initEnquire() {
     cb.addEventListener('change', () =>
       cb.closest('.pill')?.classList.toggle('checked', cb.checked)
     )
+  })
+
+  // ── Character counters — quiet until you near the limit ───────────────────
+  // The textareas carry a maxlength (a cost / email-size guard, mirrored by the
+  // Worker). Surface a gentle "N characters left" only in the last quarter, so it
+  // informs without hovering a number over every empty box.
+  document.querySelectorAll('#enquiry-form textarea[maxlength]').forEach(t => {
+    const max = parseInt(t.getAttribute('maxlength'), 10)
+    if (!max) return
+    const count = document.createElement('span')
+    count.className = 'char-count'
+    count.setAttribute('aria-live', 'polite')
+    t.closest('.field')?.appendChild(count)
+    const update = () => {
+      const left = max - t.value.length
+      count.textContent = t.value.length >= max * 0.75
+        ? `${left} character${left === 1 ? '' : 's'} left`
+        : ''
+      count.classList.toggle('low', left <= 40)
+    }
+    t.addEventListener('input', update)
+    update()
   })
 
   // ── Restore from sessionStorage ───────────────────────────────────────────
@@ -446,8 +517,7 @@ export function initEnquire() {
     for (let n = 1; n <= TOTAL; n++) if (!validateStep(n) && firstBad === null) firstBad = n
     if (firstBad !== null) {
       setStep(firstBad)
-      document.querySelector(`#step-${firstBad} .field.error`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      focusFirstError(document.getElementById('step-' + firstBad))
       return
     }
 

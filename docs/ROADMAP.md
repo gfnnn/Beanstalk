@@ -97,9 +97,10 @@ These unblock later phases. None require code to decide.
       (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
       launch-legal without it. *Recommend deferring to post-launch unless you want
       launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
-- [ ] **Deposit capture (Stripe)** — the enquire copy mentions deposits, but Stripe
-      is **not** wired (Backlog P2). Decide: launch without it (manual deposit
-      requests) or build it first. *Recommend launch without; add post-launch.*
+- [ ] **Deposit capture (PayPal + Monzo, manual)** — the enquire copy mentions
+      deposits, but deposit capture is **not** wired (Backlog P2). Decide: launch
+      without it (manual deposit requests) or build it first. *Recommend launch
+      without; add post-launch.*
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
@@ -391,7 +392,7 @@ up after the site is live, in rough priority order.
 - **Deposit capture (PayPal + Monzo, manual).** The no-show defence the copy already
   promises. Reserve → deposit links (PayPal.Me/Monzo.me) → artist marks paid → claim
   confirmed, with a stale-pending auto-release. Manual reconciliation (no gateway/webhooks).
-  Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Supersedes the earlier "Stripe" framing — the studio confirmed PayPal + Monzo.)_
+  Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Manual PayPal + Monzo, confirmed by the studio; Klarna parked there as a future consideration.)_
 
 - **Scheduling / appointment booking** _(planned — post-go-live switch-over, several
   decisions parked for Roxy)._ A calendar layer over the flash claim (and later the custom

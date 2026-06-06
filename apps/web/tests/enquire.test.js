@@ -250,6 +250,56 @@ describe('initEnquire', () => {
       $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
       expect(field.classList.contains('error')).toBe(false)
     })
+
+    it('reward early / punish late: typing lifts the error at once, blur re-judges', () => {
+      richSetup(); initEnquire()
+      fillValid()
+      $('email').value = 'not-an-email'
+      click($('step1-next')) // flags the bad email
+      const field = $('email').closest('.field')
+      expect(field.classList.contains('error')).toBe(true)
+
+      // Mid-correction, still not a valid email — but the red lifts immediately so
+      // a slow typer isn't scolded while they work.
+      $('email').value = 'robin@exa'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+
+      // Leaving the field re-checks it — still invalid, so it flags again.
+      $('email').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(true)
+
+      // Finish the correction; blur now leaves it clean.
+      $('email').value = 'robin@example.com'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      $('email').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+    })
+
+    it('never validates a field live until it has first been flagged', () => {
+      richSetup(); initEnquire()
+      const field = $('email').closest('.field')
+      // Type a bad value before ever submitting — no nagging, no error.
+      $('email').value = 'nope'
+      $('email').dispatchEvent(new window.Event('input', { bubbles: true }))
+      $('email').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect(field.classList.contains('error')).toBe(false)
+    })
+
+    it('distinguishes an over-long name from a stray-character one', () => {
+      richSetup(); initEnquire()
+      fillValid()
+      $('first-name').value = 'a'.repeat(60)
+      click($('step1-next'))
+      expect($('first-name').closest('.field').querySelector('.field-error-msg').textContent)
+        .toMatch(/shorten/i)
+
+      $('first-name').value = 'Ann@'
+      $('first-name').dispatchEvent(new window.Event('input', { bubbles: true }))
+      $('first-name').dispatchEvent(new window.Event('blur', { bubbles: true }))
+      expect($('first-name').closest('.field').querySelector('.field-error-msg').textContent)
+        .toMatch(/letters|hyphens|apostrophes/i)
+    })
   })
 
   describe('conditional field groups', () => {
