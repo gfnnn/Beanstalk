@@ -219,6 +219,11 @@ Content is mostly in, but a few items need your confirmation before launch.
       🛠 add to `apps/web/public/images/og-image.jpg`.
 - [ ] **Portfolio / flash spot-check** — 28 pieces + 12 flash are populated with real
       photos; eyeball them for any remaining placeholders/tone-swatch fallbacks.
+- [ ] **Brand logo & icon artwork** — the nav still shows a `logo.svg` text placeholder
+      and the `/enquiry-received/` confirmation badge shows an `icon` text placeholder
+      (the old 🌱 emoji was removed from both the badge and the "Send my enquiry" button).
+      👤 supply the final logo/icon files → 🛠 wire them into the nav (`.nav-logo-placeholder`)
+      and the confirmation mark (`.confirm-mark`).
 - [ ] *(Optional)* **Testimonials** — the "Kind words" homepage block is `hidden`
       while empty. Add real quotes to `src/data/testimonials.js` and remove `hidden`
       to switch it on. Fine to launch without.
