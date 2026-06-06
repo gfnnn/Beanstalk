@@ -85,11 +85,30 @@
   grid-template-columns: 1fr;
   gap: 4px;
   padding: 16px 0;
-  border-top: 1px solid var(--line);
+  position: relative;
   font-size: 15px;
   line-height: 1.5;
 }
-.contact-row:last-child { border-bottom: 1px solid var(--line); }
+/* Row separators as animatable hairlines (were border-top/-bottom) — grow in /
+   retract with the page; transform from the registry in atmosphere.css. */
+.contact-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
+.contact-row:last-child::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
 
 .contact-row-label {
   font-family: var(--mono);

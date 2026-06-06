@@ -89,8 +89,27 @@
 /* ── Accordion ───────────────────────────────────────────────────────────── */
 .faq-list { display: flex; flex-direction: column; }
 
-.faq-item { border-top: 1px solid var(--line); }
-.faq-item:last-child { border-bottom: 1px solid var(--line); }
+/* Item separators as animatable hairlines (were border-top/-bottom) — they grow
+   in / retract with the page; transform from the registry in atmosphere.css. */
+.faq-item { position: relative; }
+.faq-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
+.faq-item:last-child::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
 
 .faq-item-trigger {
   width: 100%;
@@ -169,6 +188,15 @@
   align-items: center;
   gap: 12px;
 }
+.faq-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
 .faq-category-label::before {
   content: '';
   width: 24px;
@@ -180,7 +208,7 @@
 /* ── FAQ CTA ─────────────────────────────────────────────────────────────── */
 .faq-cta {
   background: var(--bg-alt);
-  border-top: 1px solid var(--line);
+  position: relative;   /* top divider is an animatable ::before (was border-top) */
   padding: clamp(48px, 6vw, 80px) var(--pad-x);
   display: grid;
   grid-template-columns: 1fr;

@@ -35,31 +35,52 @@ body::after {
   html.is-leaving main { opacity: 0; transition: opacity .3s ease .16s; }
 }
 
-/* ── Header rules — the eyebrow's leading dash and the page-header divider grow
-   in from the left as the page builds, and retract to the left as it leaves;
-   staggered when both are present (inner pages). Transform-only, so it stays on
-   the compositor. The collapsed-before-reveal rule carries a 3s failsafe so the
-   rules can never be stranded invisible if the motion layer never runs. */
+/* ── Animated rules (hairline dividers) ──────────────────────────────────────
+   Every hairline rule on the site grows in from the left as the page builds and
+   retracts to the left as it leaves: the eyebrow's leading dash, the page-header
+   divider, the per-page border-replacement hairlines (filter bar, FAQ items,
+   contact rows …) and the reusable `.divider` element. They ALL read one inherited
+   switch — `--rule-scale` — toggled here by page state, so the motion lives in a
+   single place. Adding a new animated divider needs no JS and no new state rule:
+   draw a hairline that reads `scaleX(var(--rule-scale))` (use the `.divider`
+   element, or a 1px pseudo added to the registry list below) and it joins in.
+   Transform-only → compositor; a 3s failsafe reveals them if the motion layer
+   never runs; the header pair is staggered (eyebrow → divider). */
+@property --rule-scale { syntax: '<number>'; inherits: true; initial-value: 1; }
+
 @media (prefers-reduced-motion: no-preference) {
+  html:not(.motion-ready) { --rule-scale: 0; animation: rule-failsafe 1ms linear 3s forwards; }
+  html.is-leaving         { --rule-scale: 0; }
+
+  /* Registry of animated rules. */
+  .divider,
   .hero-eyebrow::before,
   .page-eyebrow::before,
-  .page-header::after {
+  .page-header::after,
+  .filter-bar::after,
+  .faq-item::before,
+  .faq-item:last-child::after,
+  .faq-cta::before,
+  .contact-row::before,
+  .contact-row:last-child::after {
+    transform: scaleX(var(--rule-scale, 1));
     transform-origin: left center;
-    transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+    transition: transform .55s cubic-bezier(.2, .7, .2, 1) .2s;
   }
   .hero-eyebrow::before,
-  .page-eyebrow::before { transition-delay: .34s; }   /* eyebrow dash first … */
-  .page-header::after   { transition-delay: .46s; }   /* … then the wide divider */
+  .page-eyebrow::before { transition-delay: .26s; }   /* eyebrow dash leads … */
+  .page-header::after   { transition-delay: .36s; }   /* … then the wide divider */
 
-  html:not(.motion-ready) .hero-eyebrow::before,
-  html:not(.motion-ready) .page-eyebrow::before,
-  html:not(.motion-ready) .page-header::after {
-    transform: scaleX(0);
-    animation: hdr-line-failsafe 1ms linear 3s forwards;
+  /* Prompt, undelayed retract for the rules visible during the exit. */
+  html.is-leaving :is(.hero-eyebrow::before, .page-eyebrow::before,
+                      .page-header::after, .filter-bar::after) {
+    transition-duration: .3s;
+    transition-delay: 0s;
   }
-
-  html.is-leaving .hero-eyebrow::before,
-  html.is-leaving .page-eyebrow::before { transform: scaleX(0); transition-duration: .3s; transition-delay: 0s; }
-  html.is-leaving .page-header::after   { transform: scaleX(0); transition-duration: .3s; transition-delay: .06s; }
 }
-@keyframes hdr-line-failsafe { to { transform: scaleX(1); } }
+@keyframes rule-failsafe { to { --rule-scale: 1; } }
+
+/* The reusable divider element — drop `<div class="divider"></div>` (or
+   `<hr class="divider">`) wherever a hairline belongs and it inherits the
+   grow/retract above. */
+.divider { height: 1px; border: 0; background: var(--line); }
