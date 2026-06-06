@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest'
 import config from '../vite.config.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash, season } from '../src/data/flash.js'
+import { replyTime } from '../src/data/business.js'
 import { themeColor } from '../src/build/palette.js'
 
 const plugins = config.plugins
@@ -71,6 +72,12 @@ describe('transformIndexHtml pipeline', () => {
     const out = transformHtml(page('Drop <!-- flash:drop --> · <!-- flash:season -->'))
     expect(out).not.toContain('<!-- flash:season -->')
     expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · ${season}`)
+  })
+
+  it('replaces the reply-time marker with the authored reply-time phrase', () => {
+    const out = transformHtml(page('reply by email, usually <!-- reply-time -->.'))
+    expect(out).not.toContain('<!-- reply-time -->')
+    expect(out).toContain(`reply by email, usually ${replyTime}.`)
   })
 
   it('replaces the hero-media marker (placeholder while the clip is off)', () => {

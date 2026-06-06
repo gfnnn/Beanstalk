@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderPortfolioTiles } from '../src/build/portfolio-tiles.js'
 import { renderFlashCards, renderFlashDrop, renderFlashSeason } from '../src/build/flash-cards.js'
+import { renderReplyTime } from '../src/build/business.js'
 import { renderNewsletterInline } from '../src/build/newsletter-inline.js'
 import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
 import { renderTestimonials } from '../src/build/testimonials.js'
@@ -170,6 +171,24 @@ describe('renderFlashSeason (current-drop season label for the page eyebrow)', (
     expect(renderFlashSeason('   ')).toBe('')
     expect(renderFlashSeason()).toBe('')
     expect(renderFlashSeason(null)).toBe('')
+  })
+})
+
+describe('renderReplyTime (enquiry reply-time phrase, shared by enquire + received)', () => {
+  it('returns the authored reply-time phrase, trimmed', () => {
+    expect(renderReplyTime('within 3 days')).toBe('within 3 days')
+    expect(renderReplyTime('  in 2–3 working days  ')).toBe('in 2–3 working days')
+  })
+
+  it('escapes HTML so the data can never inject markup', () => {
+    expect(renderReplyTime('within <b>3</b> & 4 days')).toBe('within &lt;b&gt;3&lt;/b&gt; &amp; 4 days')
+  })
+
+  it('returns an empty string for blank/missing input', () => {
+    expect(renderReplyTime('')).toBe('')
+    expect(renderReplyTime('   ')).toBe('')
+    expect(renderReplyTime()).toBe('')
+    expect(renderReplyTime(null)).toBe('')
   })
 })
 

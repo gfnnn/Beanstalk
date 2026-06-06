@@ -6,6 +6,8 @@ import { flash, season } from './src/data/flash.js'
 import { renderFlashCards, renderFlashDrop, renderFlashSeason } from './src/build/flash-cards.js'
 import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderRobots, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
+import { replyTime } from './src/data/business.js'
+import { renderReplyTime } from './src/build/business.js'
 import { renderPiecePage, piecePagesData } from './src/build/piece-page.js'
 import { testimonials } from './src/data/testimonials.js'
 import { renderTestimonials } from './src/build/testimonials.js'
@@ -46,6 +48,12 @@ const generatedGrids = {
       // (`season`) so the editorial text is a single source of truth, not hand-edited HTML.
       if (html.includes('<!-- flash:season -->')) {
         html = html.replace('<!-- flash:season -->', () => renderFlashSeason(season))
+      }
+      // The enquiry reply-time promise — authored once in src/data/business.js
+      // (`replyTime`) and shown mid-sentence on /enquire/ and /enquiry-received/,
+      // so the two pages can't drift on the turnaround they advertise.
+      if (html.includes('<!-- reply-time -->')) {
+        html = html.replace('<!-- reply-time -->', () => renderReplyTime(replyTime))
       }
       // Inline newsletter-capture band (homepage / flash / post-enquiry).
       if (html.includes('<!-- newsletter:inline -->')) {

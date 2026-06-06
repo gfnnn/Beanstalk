@@ -74,8 +74,9 @@
     <!-- COPY: confirmation heading -->
     <h1 class="confirm-title">Thank you, your enquiry's <em>on its way.</em></h1>
     <!-- COPY: confirmation body -->
-    <!-- TODO(roxy): "within 3 days" is a placeholder default — keep it in step with the reply time on /enquire -->
-    <p class="confirm-text">It's landed in my inbox. You'll get a reply to the email address you gave me, usually within 3 days. No need to send anything again.</p>
+    <!-- Reply time generated from src/data/business.js (`replyTime`) so it stays in
+         step with /enquire/ — don't hand-edit the phrase here. -->
+    <p class="confirm-text">It's landed in my inbox. You'll get a reply to the email address you gave me, usually <!-- reply-time -->. No need to send anything again.</p>
 
     <div class="confirm-timeline">
       <!-- COPY: "what happens next" steps -->
