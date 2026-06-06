@@ -45,6 +45,16 @@ Shipped (audience-capture + early management layer):
   `nosniff` / `default-src 'none'` / `no-referrer` on every Worker JSON response
   (`SECURITY_HEADERS` in `src/lib/http.js`). The clickjacking/HSTS gap that a `<meta>`
   CSP can't close on Pages is tracked under infrastructure consolidation (Tier 3).
+- **Loading UX (graceful slow-load handling)** — a **full-page preloader**
+  (`src/build/loader.js` + the `pageLoader` Vite plugin + `src/js/modules/loader.js`)
+  covers every page from the first paint with an animated sprig, so the render-blocking
+  CSS / `display=swap` font arrival never flashes as "broken" unstyled content; it
+  cross-fades out on `document.fonts.ready` (smooth never-snap fade; one quick complete
+  sprig cycle when it genuinely covered a load; 3s JS + 6s CSS failsafes). Plus a shared
+  **button busy-state** (`src/js/modules/spinner.js` + `.btn-spinner`) that gives the
+  portfolio *Load more* and the enquiry / flash / newsletter submits an animated
+  spinner while their async work runs. All reduced-motion-aware. See the front-end JS
+  section of `CLAUDE.md`.
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy

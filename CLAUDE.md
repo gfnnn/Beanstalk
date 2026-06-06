@@ -33,7 +33,7 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (357 web + 116
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (374 web + 116
   functions) run fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
@@ -287,14 +287,28 @@ no-op. `styles/a11y.css` carries the focus-visible / reduced-motion / screen-rea
 motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
 **inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
 Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
-overlay (a self-inking sprig on the cream bg) right after `<body>`, on **every** page incl.
-the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
-against a double-inject). It hides the page from the first paint so the render-blocking
-CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
-(`initPageLoader()`, called first in `main.js`) fades it out on `document.fonts.ready` — the
-font swap is the real cause of the reflow — with a JS ceiling (3s) **and** a pure-CSS
-failsafe animation (6s) so a hung resource or a blocked bundle can never trap the page.
-Reduced-motion: no spin/fade, the overlay is removed instantly.
+overlay (a self-inking botanical sprig on the cream bg) right after `<body>`, on **every**
+page incl. the per-piece pages (which carry their own copy from `piece-page.js`; the plugin
+guards against a double-inject). It hides the page from the first paint so the
+render-blocking CSS/`display=swap` font arrival never shows as "broken" unstyled content.
+The idle sprig animation is **one self-contained loop that restarts from empty each cycle**:
+an opacity envelope (`pl-fade`) over the whole sprig plus per-path draw windows sharing one
+phase (no `animation-delay`), so the dashoffsets reset while invisible — never a half-drawn
+seam at the loop boundary.
+
+`modules/loader.js` (`initPageLoader()`, called first in `main.js`) dismisses it once the
+page is ready — `document.fonts.ready`, since the font swap is the real cause of the reflow:
+- **Smooth fade, never a snap.** The fade-out waits a frame (a double `rAF`, ~30ms,
+  imperceptible) so the overlay paints a committed `opacity:1` state before the
+  `page-loaded` class flips it to `0` — otherwise a fast/cached load jumps straight to
+  hidden instead of cross-fading.
+- **Instant vs. real load.** It checks `performance.now()` at ready as a proxy for how long
+  the cover was actually up: a blink (warm cache, `< 300ms`) just fades — **no artificial
+  hold** — while a genuine load adds `.pl-finishing` so the sprig plays **one quick complete
+  ink-in** before the page cross-fades in, instead of the fade catching the loop mid-draw.
+- **Failsafes.** A JS ceiling (3s) **and** a pure-CSS failsafe animation (6s) so a hung
+  resource or a blocked bundle can never trap the page behind the cover.
+- **Reduced motion:** no spin/fade/quick-cycle — the overlay is removed instantly.
 
 ### Forms → Cloudflare Worker → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
