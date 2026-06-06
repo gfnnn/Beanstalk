@@ -1,5 +1,12 @@
 # Deposits & flash purchase — backlog stub (PayPal + Monzo)
 
+> **⚠ Direction has evolved — read [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) first.**
+> This doc captured the original *manual-links, no-gateway* decision. The studio has since
+> asked for the **safest integration with the highest functionality and control**, plus
+> **Klarna** — which means an **integrated checkout (Stripe engine → Monzo Business payout,
+> + PayPal)**, not hand-reconciled links. `PAYMENTS-ROADMAP.md` is the live plan; the
+> manual-reconciliation notes below remain accurate only as the zero-build fallback.
+
 Taking **deposits** (custom enquiries) and **flash deposits** online via **PayPal +
 Monzo**. **Post-launch backlog — not built, not blocking the apex cutover.** This is a
 deliberately short stub: the decisions below are the durable part; the detailed
