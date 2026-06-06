@@ -1,6 +1,7 @@
 import { ENQUIRY_FN_URL as FUNCTION_URL } from './config.js'
 import { track } from './analytics.js'
 import { initStickyShadow } from './sticky.js'
+import { setButtonLoading, clearButtonLoading } from './spinner.js'
 
 export function initEnquire() {
   const steps = [1, 2, 3, 4].map(n => document.getElementById('step-' + n))
@@ -450,10 +451,9 @@ export function initEnquire() {
       return
     }
 
-    const btn   = document.getElementById('submit-btn')
-    const label = btn?.textContent
+    const btn = document.getElementById('submit-btn')
     clearFormError()
-    if (btn) { btn.disabled = true; btn.textContent = 'Sending…' }
+    setButtonLoading(btn, 'Sending…')
 
     try {
       const fields = collectFields(form)
@@ -472,7 +472,7 @@ export function initEnquire() {
     } catch (err) {
       console.error('Enquiry error:', err)
       showFormError(err.message || 'Something went wrong. Please try again, or email hello@beansprout.ink directly.')
-      if (btn) { btn.disabled = false; btn.textContent = label || 'Send my enquiry' }
+      clearButtonLoading(btn)
     }
   })
 }

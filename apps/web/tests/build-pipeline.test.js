@@ -40,6 +40,7 @@ describe('vite.config plugins are all registered', () => {
     'beansprout-generated-grids',
     'beansprout-seo-head',
     'beansprout-security-headers',
+    'beansprout-page-loader',
     'beansprout-piece-pages',
     'beansprout-sitemap',
   ])('%s is in the plugin list', name => {
@@ -137,6 +138,18 @@ describe('transformIndexHtml pipeline', () => {
     const again = transformHtml(out)
     expect(again.match(/<style id="palette">/g)).toHaveLength(1)
   })
+
+  it('injects the page preloader (critical <style> + overlay) into every page', () => {
+    const out = transformHtml(page('<main></main>'))
+    expect(out).toContain('<style id="page-loader-css">')
+    expect(out).toContain('id="page-loader"')
+  })
+
+  it('does not double-inject the preloader on a second pass', () => {
+    const out = transformHtml(page(''))
+    const again = transformHtml(out)
+    expect(again.match(/id="page-loader-css"/g)).toHaveLength(1)
+  })
 })
 
 // The robots.txt + sitemap emit is staging-aware (keyed off isProductionBuild()),
@@ -229,5 +242,11 @@ describe('piece-pages generateBundle', () => {
     const sample = htmlFiles[0].source
     expect(sample).toContain('http-equiv="Content-Security-Policy"')
     expect(sample).toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
+  })
+
+  it('carries the page preloader (it bypasses the transform plugin)', () => {
+    const sample = htmlFiles[0].source
+    expect(sample).toContain('<style id="page-loader-css">')
+    expect(sample).toContain('id="page-loader"')
   })
 })

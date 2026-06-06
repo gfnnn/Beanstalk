@@ -11,8 +11,15 @@ import { initFlash } from './modules/flash.js'
 import { initNewsletter } from './modules/newsletter.js'
 import { initMedia } from './modules/media.js'
 import { initAnalytics } from './modules/analytics.js'
+import { initPageLoader } from './modules/loader.js'
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 0a. Dismiss the full-page preloader (#page-loader) once fonts have settled, so
+  //     the slow CSS/font arrival never shows as a "broken" flash — it stays behind
+  //     the cover, then fades in. No-ops on a page without the overlay. See
+  //     modules/loader.js + the build-time injection in src/build/loader.js.
+  initPageLoader()
+
   // 0. Reveal the elements the FOUC guard (styles/motion.css) holds hidden until
   //    the motion layer is live. Done FIRST and synchronously so this class flip
   //    and the GSAP .from() start-states set below land in the same frame — the

@@ -15,6 +15,7 @@ import { esc, HAS_EXT } from './html.js'
 import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE } from './seo.js'
 import { renderStatus } from './homepage.js'
 import { renderPaletteStyle, themeColor } from './palette.js'
+import { LOADER_STYLE, LOADER_MARKUP } from './loader.js'
 import { homepage } from '../data/homepage.js'
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
@@ -108,9 +109,11 @@ ${renderPaletteStyle()}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="${FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="${cssHref}">
+${LOADER_STYLE}
 <script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>
 </head>
 <body>
+${LOADER_MARKUP}
 <a class="skip-link" href="#maincontent">Skip to main content</a>
 
 <!-- NAV — Portfolio active -->

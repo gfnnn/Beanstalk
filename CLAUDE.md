@@ -41,7 +41,12 @@ command instead of rediscovering the environment each time:
   through `apps/web/scripts/run-e2e.mjs`, which **skips cleanly (exit 0) when no Chromium
   is installed**. Real browser coverage comes from CI (`.github/workflows/e2e.yml`, which
   installs the browser) and from local runs. Don't treat a skipped E2E run as broken, and
-  don't burn time trying to install the browser in a web session.
+  don't burn time trying to install the browser in a web session. **The same missing
+  browser means a web session can't do the pre-PR *visual* check either** (no display, no
+  Chromium → no screenshot, no driving a page) — that's expected at that stage, not a
+  skipped step; rely on `npm test`/`npm run build` + verifying the served markup, and leave
+  the eyes-on verification to the PR's E2E job and a local/human review. See
+  [Visual check before a feature PR](#visual-check-before-a-feature-pr).
   - **Where the E2E tier actually runs — so you don't "test" a feature against a no-op.**
     A skipped sandbox run **validates nothing**: it neither passed nor exercised your code.
     So when a change touches a **browser-only path the E2E tier owns** — the enquiry-form
@@ -150,13 +155,14 @@ entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's i
 or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The six Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+The seven Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
 work: `palette` (inject colour custom properties), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
-`<meta>` — see SEO/security below), `piecePages` (per-piece portfolio pages), and
-`sitemap`. Most run in **both dev and build** so what you see on `npm run dev` is what
-ships — **except `securityHeaders`, which is `apply: 'build'`** (a strict CSP would break
-the dev server's HMR client), so it lands at build/preview only.
+`<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see below),
+`piecePages` (per-piece portfolio pages), and `sitemap`. Most run in **both dev and build**
+so what you see on `npm run dev` is what ships — **except `securityHeaders`, which is
+`apply: 'build'`** (a strict CSP would break the dev server's HMR client), so it lands at
+build/preview only.
 
 ### Data → build-time HTML pipeline (the non-obvious part)
 Lots of page content is **generated at build time from data files**, not hand-written
@@ -262,7 +268,10 @@ filter, flash and the enquire progress bar), `chip-overflow` (shared responsive 
 collapse for tight filter rows — used by filter and flash), `aftercare`, `faq`, `enquire`,
 `flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
 on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that no-ops until
-a provider is wired in — no cookie banner owed yet), and `config` (function URLs). Portfolio
+a provider is wired in — no cookie banner owed yet), `loader` (dismisses the full-page
+preloader — see below), `spinner` (shared button busy-state: swaps a button's label for an
+animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by
+load-more and the enquiry/flash/newsletter submits), and `config` (function URLs). Portfolio
 load-more, filter/sort and lightbox cooperate via callbacks wired in `main.js` (load-more
 owns the visible window; filter re-applies after a reveal/sort). New page behaviour = a new
 `modules/<name>.js` exporting `initX()`, added to `main.js`.
@@ -273,6 +282,19 @@ the same frame GSAP sets its `.from()` start-states, so the in-between is never 
 flash of unstyled/unanimated content). Under `prefers-reduced-motion` the guard's media
 query is inert and GSAP bails, so elements are simply visible — the class flip is a harmless
 no-op. `styles/a11y.css` carries the focus-visible / reduced-motion / screen-reader rules.
+
+**Full-page preloader (the slow-load cover).** Separate from, and complementary to, the
+motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
+**inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
+Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
+overlay (a self-inking sprig on the cream bg) right after `<body>`, on **every** page incl.
+the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
+against a double-inject). It hides the page from the first paint so the render-blocking
+CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
+(`initPageLoader()`, called first in `main.js`) fades it out on `document.fonts.ready` — the
+font swap is the real cause of the reflow — with a JS ceiling (3s) **and** a pure-CSS
+failsafe animation (6s) so a hung resource or a blocked bundle can never trap the page.
+Reduced-motion: no spin/fade, the overlay is removed instantly.
 
 ### Forms → Cloudflare Worker → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
@@ -402,6 +424,23 @@ for any user-visible feature, verify it in the browser and attach the proof:
    session). Don't block on a timer — carry on with other work while it stays up.
 
 Skip this only when the change genuinely can't be seen in the browser.
+
+**From a Claude Code web session, steps 2–4 (drive the browser + screenshot) can't run —
+and that's expected, not a skipped step.** The remote sandbox has no display and can't
+install a browser binary: Playwright's Chromium downloads from `cdn.playwright.dev`, which
+the sandbox network allowlist blocks (`403 Host not in allowlist`), and there's no headed
+Chrome either. So a web session **cannot** take a screenshot or visually drive a page,
+**at this stage of the workflow**, no matter the change — don't burn time trying to install
+the browser, and don't treat the missing screenshot as a gap or a failure. This is a
+recurring, structural limit of the environment, not a problem with the change. What a web
+session *can* do, and should do instead, is: run `npm test` (the trustworthy signal here),
+run `npm run build`, and verify the rendered/served markup directly (e.g. `curl` the dev
+server or grep `apps/web/dist/**` after a build) to prove the change is wired in. Then state
+plainly in the PR that the browser/visual check wasn't possible from the web sandbox, and
+hand the actual *visual* verification to the two places that can do it: the **PR's E2E
+workflow** (auto-runs on every `pull_request` under `apps/web/**`) and a **human/local
+review** — `npm run preview:branch -- <branch>` fetches the branch and serves it locally for
+an eyes-on look. A developer on their own machine still follows steps 1–5 in full.
 
 **Browser-only interactions also need the E2E gate, not just a screenshot.** If the
 feature touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav

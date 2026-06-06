@@ -23,6 +23,11 @@ test.describe('smoke: every page loads cleanly', () => {
       await expect(page).toHaveTitle(/.+/)             // non-empty <title>
       await expect(page.locator('h1').first()).toBeVisible()
 
+      // The full-page preloader covers every page from the first paint; the bundle
+      // must dismiss it once fonts settle (initPageLoader) so it never traps the
+      // page. It's removed from the DOM after the fade.
+      await expect(page.locator('#page-loader')).toHaveCount(0)
+
       errors.assertClean()
     })
   }
