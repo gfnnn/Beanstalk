@@ -1,13 +1,13 @@
 # Email on the `beansprout.ink` domain
 
 How to make `hello@beansprout.ink` and `roxy@beansprout.ink` work as **real email
-addresses** — receiving into a Gmail account, and letting Roxy reply *as* the
+addresses** — receiving into a Gmail account, and letting the artist reply *as* the
 domain. This is separate from the app's outbound mail (Resend), which is covered
 in `ENQUIRY-SETUP.md`.
 
 > **Two different jobs, don't confuse them.**
 > - **Sending** as `@beansprout.ink` — done by **Resend** (the Cloudflare Worker,
->   and Roxy's manual replies). Resend is a sending API; it gives you no inbox.
+>   and the artist's manual replies). Resend is a sending API; it gives you no inbox.
 > - **Receiving** at `@beansprout.ink` — done by **forwarding** the addresses to a
 >   Gmail account. This is the piece this doc adds.
 >
@@ -27,9 +27,9 @@ relies on (check what's there first).
 
 | Address | Role | Where it goes |
 |---|---|---|
-| `hello@beansprout.ink` | Primary **public** contact (every footer, privacy page, 404, …) | Forwards → Roxy's Gmail |
-| `roxy@beansprout.ink` | The app's **sending** identity (`FROM_EMAIL`), and the "from" on Roxy's manual replies | Forwards → Roxy's Gmail (so out-of-app replies reach her too) |
-| Roxy's Gmail | Where she actually **reads and works** | — |
+| `hello@beansprout.ink` | Primary **public** contact (every footer, privacy page, 404, …) | Forwards → the artist's Gmail |
+| `roxy@beansprout.ink` | The app's **sending** identity (`FROM_EMAIL`), and the "from" on the artist's manual replies | Forwards → the artist's Gmail (so out-of-app replies reach them too) |
+| The artist's Gmail | Where they actually **read and work** | — |
 
 ## Step 1 — Forward the addresses to Gmail (GoDaddy DNS)
 
@@ -43,7 +43,7 @@ alternative). GoDaddy's own forwarding is now largely paywalled behind Microsoft
 365 — skip it.
 
 1. **ImprovMX** ([improvmx.com](https://improvmx.com)) → add `beansprout.ink` →
-   create aliases `hello@` and `roxy@`, both → Roxy's Gmail. ImprovMX shows you the
+   create aliases `hello@` and `roxy@`, both → the artist's Gmail. ImprovMX shows you the
    exact records to add (use *its* values; the well-known ones are below).
 2. **GoDaddy** → *Domain Portfolio* → `beansprout.ink` → **DNS → Manage Zones /
    Manage DNS**. Add:
@@ -89,11 +89,11 @@ the only config touchpoints, no code change:
 
 | Key | Value | Why |
 |---|---|---|
-| `ARTIST_EMAIL` | Roxy's **Gmail** address | Where enquiries land. Use the raw Gmail (no extra forwarding hop = most reliable delivery). Once Step 1 is confirmed, `hello@beansprout.ink` works too. |
+| `ARTIST_EMAIL` | The artist's **Gmail** address | Where enquiries land. Use the raw Gmail (no extra forwarding hop = most reliable delivery). Once Step 1 is confirmed, `hello@beansprout.ink` works too. |
 | `FROM_EMAIL` | `roxy@beansprout.ink` | The app's verified sending identity. Kept different from `ARTIST_EMAIL` so the notification isn't from==to. |
 
 The enquiry function already sets `reply_to` to the **customer's** address, so when
-Roxy hits Reply in Gmail it goes straight to the customer — and Step 2 makes that
+the artist hits Reply in Gmail it goes straight to the customer — and Step 2 makes that
 reply go out as `roxy@beansprout.ink`. No app change needed.
 
 ## DNS sanity checks (avoid the common foot-guns)

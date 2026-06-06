@@ -44,14 +44,14 @@ reminders/reschedule — **but** it's a SaaS dependency that moves booking data 
 (same reason Sanity lost in `CMS.md`), needs CSP `frame-src` widening, and most assume
 instant card-confirmed booking, which **clashes with the manual PayPal/Monzo decision**.
 **Leaning:** build the request/hold + manual-confirm flow on the existing Worker + D1 —
-it's the more consistent answer. Pragmatic middle path if Roxy wants self-serve sooner:
+it's the more consistent answer. Pragmatic middle path if the artist wants self-serve sooner:
 trial an embedded booker for **flash only** while custom enquiries stay on the email flow.
 
-## Open — for Roxy to confirm before any build
+## Open — for the artist to confirm before any build
 
 How much customers self-serve (request vs instant); flash-first vs enquiries too;
 build-vs-buy; deposit-gated + hold TTL; where availability lives (and whether it lands on
-her calendar); Tiny Knives chair-time constraints; consultation vs session; multi-session
+their calendar); Tiny Knives chair-time constraints; consultation vs session; multi-session
 pieces; session length/buffer; reschedule/cancel self-serve + cut-off (must match the
 cancellation terms in the copy); reminders (email vs paid SMS); timezone (UK-only?).
 

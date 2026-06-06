@@ -49,8 +49,8 @@ There are **4 secrets to set** (all on free accounts) and **1 URL to paste back*
      so set `ARTIST_EMAIL` to that address during that test.
 
 You'll end up with `RESEND_API_KEY`, a verified `FROM_EMAIL` (`roxy@beansprout.ink`),
-and `ARTIST_EMAIL` (`roksanaklaudia.z@gmail.com` — where the artist reads mail; see
-`EMAIL-DOMAIN-SETUP.md`).
+and `ARTIST_EMAIL` (the artist's Gmail inbox — set as a Worker secret, kept out of
+the repo; see `EMAIL-DOMAIN-SETUP.md`).
 
 ---
 
@@ -70,7 +70,7 @@ Set the server-side secrets (not committed):
 
 ```bash
 wrangler secret put RESEND_API_KEY      # paste the re_… key
-wrangler secret put ARTIST_EMAIL        # roksanaklaudia.z@gmail.com
+wrangler secret put ARTIST_EMAIL        # the artist's Gmail inbox (kept out of the repo)
 wrangler secret put FROM_EMAIL          # roxy@beansprout.ink (or onboarding@resend.dev while testing)
 wrangler secret put RESEND_AUDIENCE_ID  # the newsletter Audience id (see NEWSLETTER-SETUP.md)
 ```

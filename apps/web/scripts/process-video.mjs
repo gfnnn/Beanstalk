@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ─────────────────────────────────────────────────────────────────────────────
-// process-video.mjs — turn a "Roxy tattooing" master clip into the two-format
+// process-video.mjs — turn an artist's master clip (e.g. tattooing footage) into the two-format
 // hero video + poster the site serves (see docs/MEDIA.md and src/data/media.js).
 // ─────────────────────────────────────────────────────────────────────────────
 // media.js has two hero slots, each expecting three files in public/videos/:
@@ -15,7 +15,7 @@
 //   • JPG poster from a representative frame (the LCP + reduced-motion still)
 // and prints each output's size against the slot budget.
 //
-// The masters are short phone clips of Roxy tattooing; this trims to a seamless-ish
+// The masters are short phone clips of the artist tattooing; this trims to a seamless-ish
 // loop window, drops audio, and sizes to the column (2× display is plenty).
 //
 // Usage

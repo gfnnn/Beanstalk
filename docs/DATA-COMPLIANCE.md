@@ -22,8 +22,8 @@ All in the D1 database `beansprout` (bound as `DB` in the Worker):
 | `rate_events` | rate limiter | abuse-limit counters (bucket, ts) — IP is in the bucket string | Low (transient) |
 
 Image **bytes are never stored** — only filenames/counts — so an erasure only has
-to clear the structured row. (Roxy's *email inbox* is a separate copy she controls;
-erasure there is a manual delete in Gmail.)
+to clear the structured row. (The artist's *email inbox* is a separate copy they
+control; erasure there is a manual delete in Gmail.)
 
 ## Retention policy (matches the privacy page)
 
@@ -59,7 +59,7 @@ wrangler d1 execute beansprout --remote \
              DELETE FROM newsletter_consent WHERE email = 'someone@example.com'"
 ```
 
-Then delete the matching email(s) from Roxy's Gmail, and remove the contact from
+Then delete the matching email(s) from the artist's Gmail, and remove the contact from
 the Resend Audience if it's a newsletter erasure. Respond within **one month** (as
 the privacy page states).
 
@@ -118,7 +118,7 @@ wrangler d1 time-travel restore beansprout --remote --bookmark <bookmark>
 ⚠️ A Time Travel **restore rewinds the whole database**, so it un-does any other
 writes (new enquiries, flash claims) since that point too — use it immediately after a
 mistaken op, not days later. For a single mis-deleted row it's usually quicker to
-re-enter it from Roxy's Gmail copy of the enquiry. Time Travel does **not** survive the
+re-enter it from the artist's Gmail copy of the enquiry. Time Travel does **not** survive the
 database being deleted/recreated, and it is **not** a GDPR loophole: a genuine erasure
 must not be silently restored — only use restore to recover from an *operator error*,
 and re-run the erasure afterwards if the subject's data comes back with it.

@@ -45,14 +45,15 @@
 //               they reserve the aspect-ratio box so the grid doesn't reflow as
 //               lazy images load (no layout shift).
 //
-// → The catalogue below is wired to Roxy's approved web exports (all 700×930 .webp
+// → The catalogue below is wired to the artist's approved web exports (all 700×930 .webp
 //   in /public/images/tattoos/). `styles`/`placement`/`title`/`subject` are a first
-//   pass for the filters + alt text — she can retune any of them in place. `date` is
+//   pass for the filters + alt text — the artist can retune any of them in place. `date` is
 //   each file's date; the grid orders newest → oldest from it (see header above).
 // ─────────────────────────────────────────────────────────────────────────────
 
 const IMG = '/images/tattoos'
 
+// ARTIST-COPY · PORT-D1/PORT-D2 · pending approval (piece titles + subjects/alt text) — see docs/COPY-REVIEW.md
 export const pieces = [
   { slug: 'peace',               title: 'Peace',                subject: 'a peace sign',                         styles: ['black-grey'],                  placement: 'forearm', date: '2026-05-30', tone: 't-ink',   glyph: 'branch',   img: `${IMG}/peace`,               w: 800, h: 1067 },
   { slug: 'scissors',            title: 'Shears',               subject: 'a pair of scissors',                   styles: ['fine-line'],                   placement: 'forearm', date: '2026-05-30', tone: 't-stone', glyph: 'branch',   img: `${IMG}/scissors`,            w: 800, h: 1067 },

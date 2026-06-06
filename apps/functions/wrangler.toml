@@ -35,7 +35,7 @@ migrations_dir = "migrations"
 # too) are set with `wrangler secret put` and are NOT committed here.
 [vars]
 # FROM_EMAIL   = "roxy@beansprout.ink"   # or onboarding@resend.dev while testing
-# ARTIST_EMAIL = "roksanaklaudia.z@gmail.com"
+# ARTIST_EMAIL = "artist@example.com"   # placeholder — the real inbox is a secret, not committed here
 # Abuse limits (optional — sane defaults applied if unset):
 # RATE_MAX_PER_IP    = "5"
 # RATE_IP_WINDOW_MIN = "15"

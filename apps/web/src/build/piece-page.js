@@ -170,6 +170,7 @@ ${LOADER_MARKUP}
       <p class="page-eyebrow">Portfolio</p>
       <h1 class="piece-title">${esc(p.title)}</h1>
       <ul class="piece-tags" role="list">${tags}</ul>
+      <!-- ARTIST-COPY · PIECE-01 · pending approval — see docs/COPY-REVIEW.md -->
       <!-- COPY: a sentence or two about this piece — the brief, the story, healed vs fresh. -->
       <p class="piece-note">${esc(altText(p))}.${p.img ? '' : ' A design ready to make yours — enquire to book.'}</p>
       <div class="piece-actions">
