@@ -1,9 +1,15 @@
 # Payment cost comparison — fees per provider (research notes)
 
+> **Direction has since evolved → see [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md).** The
+> fee maths below is still valid and is the input behind the choice; the studio later asked
+> for an integrated checkout, so the live plan is **Stripe** (card + Klarna) paying out to
+> Monzo Business, with the free Monzo bank-transfer route preserved. Read the figures here,
+> the decision there.
+
 Companion to [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md): the **cost** side of choosing how
-to take deposits / flash payments. `PAYMENTS-PLAN.md` holds the *product decision* (manual
-PayPal.Me + Monzo.me links, hand-reconciled, no gateway to build); this file holds the
-**fee maths** behind that decision and the Stripe/Klarna alternatives, so the trade-off is
+to take deposits / flash payments. `PAYMENTS-PLAN.md` holds the *original* manual-links
+product decision (PayPal.Me + Monzo.me, hand-reconciled, no gateway to build); this file
+holds the **fee maths** behind it and the Stripe/Klarna alternatives, so the trade-off is
 on the record.
 
 > **Rates verified June 2026 from the sources at the foot of this file. They change** —
@@ -89,8 +95,9 @@ Worth pinning which one the studio actually uses before this ships.
 
 ## Bottom line for this project
 
-- **Low volume + small deposits → manual bank-transfer links win on cost** (£0 fees vs the
-  ~2–4% a gateway skims), and the admin time is trivial. This matches the existing decision.
+- **Low volume + small deposits → bank transfer wins on cost** (£0 fees vs the ~2–4% a
+  gateway skims). This is exactly why the live Stripe plan **keeps a free Monzo Business
+  bank-transfer route** alongside card/Klarna, rather than dropping it.
 - **PayPal done *properly* (Goods & Services) is the most expensive "manual" option** (~3.9%
   on a £30 deposit) — the cheapness only exists if you (mis)use Friends & Family.
 - **Stripe's ~2% only becomes worth paying when volume makes manual reconciliation a chore**

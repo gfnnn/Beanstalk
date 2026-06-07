@@ -7,9 +7,11 @@ constraints below are the durable part; the detailed architecture/migration sket
 the full question list were trimmed to avoid going stale before the work starts (see git
 history for the earlier long-form spec). Flesh it back out when it's picked up.
 
-> Co-ships with [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md) — the deposit is the
-> booking-confirmation trigger, and scheduling reuses its reserve/TTL/`/studio`/customer-
-> email primitives. Couples with the ROADMAP "artist-facing view" (same admin surface).
+> Co-ships with the payments track ([`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) — the
+> live **Stripe** plan; superseded manual-links decision in
+> [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md)) — the deposit is the booking-confirmation
+> trigger, and scheduling reuses its reserve/TTL/`/studio`/customer-email primitives.
+> Couples with the ROADMAP "artist-facing view" (same admin surface).
 
 ## The model: request / hold + manual confirm (not instant booking)
 
@@ -17,11 +19,15 @@ Two facts force the shape:
 
 1. **Beansprout is a guest artist at Tiny Knives** — bookable time is gated by the host
    studio's chair schedule, which the site doesn't own.
-2. **Deposits are reconciled by hand** ([`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md)) —
-   nothing in the stack can auto-learn a deposit was paid.
+2. **The date still needs a human confirm.** Under the **Stripe** payments direction
+   ([`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)) the webhook *can* auto-learn a deposit
+   was paid — so payment is no longer the manual bottleneck it was under the original
+   PayPal/Monzo plan. What remains manual is **fact 1**: the chair schedule the site doesn't
+   own, so a specific date can't be auto-granted on payment.
 
-So a slot **cannot** be self-serve "pick → pay → instantly booked"; confirmation is a
-human step, exactly like a flash claim goes `pending` → (artist confirms) → `claimed`.
+So a slot **cannot** be self-serve "pick → pay → instantly booked": even with the deposit
+auto-confirmed, the **date** still needs a human confirm against Tiny Knives' chair time,
+exactly like a flash claim goes `pending` → (artist confirms) → `claimed`.
 The realistic design is **request/hold + manual confirm** — the calendar-shaped sibling
 of the flash inventory. **Flash goes first** (fixed scope → a slot can be offered at
 claim time); **custom enquiries are propose-after-triage** (the quote comes first, via a
@@ -42,7 +48,9 @@ calendar free-busy read (option c) is deferred — high blast-radius (OAuth/toke
 An embedded booker (Cal.com/Calendly/Acuity/Square) ships in days and handles timezones/
 reminders/reschedule — **but** it's a SaaS dependency that moves booking data off-stack
 (same reason Sanity lost in `CMS.md`), needs CSP `frame-src` widening, and most assume
-instant card-confirmed booking, which **clashes with the manual PayPal/Monzo decision**.
+instant card-confirmed booking — which still **clashes with the host-studio chair-time
+constraint** (the site can't promise a slot it doesn't own), even though the Stripe deposit
+itself could now confirm automatically.
 **Leaning:** build the request/hold + manual-confirm flow on the existing Worker + D1 —
 it's the more consistent answer. Pragmatic middle path if the artist wants self-serve sooner:
 trial an embedded booker for **flash only** while custom enquiries stay on the email flow.

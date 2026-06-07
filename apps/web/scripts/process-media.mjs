@@ -14,11 +14,15 @@
 // you want on every still:
 //   • auto-rotate from EXIF orientation, then drop the orientation tag
 //   • strip ALL metadata (privacy — removes GPS/camera; and a few bytes)
-//   • cover-crop to the lane's aspect (portfolio 3:4, flash 1:1 centre)
+//   • centre cover-crop to the lane's aspect (portfolio 3:4, flash 1:1)
 //   • sharpen when downscaling (camera masters are large; downscale softens)
 //   • emit avif + webp + jpg at each width
 //   • print every output's width,height + byte size so you can paste w,h into the
 //     data file and sanity-check the budget
+//
+// Masters are expected to arrive ALREADY FRAMED by the artist (pre-edited before
+// upload), so the crop is a plain centre cover-crop to the lane aspect — there is
+// no automated subject detection / re-centring on the tattoo.
 //
 // Usage
 //   Single:
@@ -42,18 +46,17 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
+import { pathToFileURL } from 'node:url'
 import sharp from 'sharp'
 
 // Per-lane recipe. Widths + the <img> base tier MUST match the renderer's srcset
 // (portfolio-tiles.js → -400/-800/-1200, base -800.jpg; flash-cards.js →
 // -300/-600/-900, base -600.jpg). Keep these in lockstep with those files.
 const LANES = {
-  // Portfolio masters are casual phone photos where the tattoo is a small part of
-  // a frame full of skin + studio background. `smart` finds the tattoo and zooms
-  // to it (see focalBox) instead of a fixed centre/cover crop that leaves the ink
-  // tiny. Flash is a clean centre square.
-  portfolio: { widths: [400, 800, 1200], aspect: 3 / 4, mode: 'smart',  position: 'attention' },
-  flash:     { widths: [300, 600, 900],  aspect: 1,      mode: 'cover',  position: 'centre' },
+  // Masters arrive already framed by the artist (pre-edited before upload), so both
+  // lanes are a plain centre cover-crop to the lane aspect — portfolio 3:4, flash 1:1.
+  portfolio: { widths: [400, 800, 1200], aspect: 3 / 4, position: 'centre' },
+  flash:     { widths: [300, 600, 900],  aspect: 1,     position: 'centre' },
 }
 
 // Encoder settings — quality tuned for photos; effort high since this is offline.
@@ -83,162 +86,24 @@ function parseArgs(argv) {
 
 const kb = bytes => `${(bytes / 1024).toFixed(1)} KB`
 
-// Broad skin test (YCbCr + red-dominant), tolerant across skin tones. Used to
-// keep the focal crop on the limb rather than the studio background.
-function isSkin(r, g, b) {
-  const Y = 0.299 * r + 0.587 * g + 0.114 * b
-  const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b
-  const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b
-  return Y > 45 && r > g && g > b - 12 && Cb >= 80 && Cb <= 130 && Cr >= 135 && Cr <= 175
-}
-
-// Find the tattoo and return a normalised crop box {lx,ty,rx,by} (the downstream
-// resize covers it to the exact tier aspect). The signal is colour DEVIATION from
-// skin, NOT edges: skin texture, hair and creases are all "edgy" yet match the
-// skin tone, so edge-based detection drifts; ink is what differs in colour from
-// the limb's skin. Steps: segment skin → keep the largest blob (the limb) →
-// hole-fill it → the enclosed pixels that deviate from the limb's skin tone (dark
-// lines or colour) are the ink → keep the dominant connected blob(s), dropping
-// scattered noise → centre a box on their bbox, sized to the tattoo (small pieces
-// zoom in, big pieces aren't cropped in half). Weak/no signal → a centred
-// fallback. Detection runs at low res; the box maps back to the full image.
-async function focalBox(input, aspect) {
-  const AW = 220, PAD = 0.16, MINF = 0.34
-  const { data, info } = await sharp(input).rotate().removeAlpha().resize({ width: AW }).raw().toBuffer({ resolveWithObject: true })
-  const W = info.width, H = info.height, ch = info.channels, N = W * H
-  if (W < 8 || H < 8) return null
-
-  // Box from a content centre + size: pad it, grow to `aspect`, floor to a minimum
-  // (never over-zoom a speck), clamp inside the frame.
-  const boxFrom = (ccx, ccy, bw, bh) => {
-    let cw = bw * (1 + 2 * PAD), chh = bh * (1 + 2 * PAD)
-    if (cw / chh > aspect) chh = cw / aspect; else cw = chh * aspect
-    const minW = W * Math.sqrt(MINF), minH = minW / aspect
-    if (cw < minW) { cw = minW; chh = minH }
-    if (cw > W) { cw = W; chh = cw / aspect }
-    if (chh > H) { chh = H; cw = chh * aspect }
-    const l = Math.max(0, Math.min(W - cw, ccx - cw / 2))
-    const t = Math.max(0, Math.min(H - chh, ccy - chh / 2))
-    return { lx: l / W, ty: t / H, rx: (l + cw) / W, by: (t + chh) / H }
-  }
-  const centre = () => boxFrom(W / 2, H / 2, W * 0.6, H * 0.6)
-
-  const skin = new Uint8Array(N)
-  for (let i = 0, p = 0; i < N; i++, p += ch) skin[i] = isSkin(data[p], data[p + 1], data[p + 2]) ? 1 : 0
-
-  // Largest connected skin component = the limb (rejects skin-toned background).
-  const lab = new Int32Array(N).fill(-1), stack = new Int32Array(N)
-  let bestLab = -1, bestSize = 0, cur = 0
-  for (let s = 0; s < N; s++) {
-    if (!skin[s] || lab[s] >= 0) continue
-    let sp = 0; stack[sp++] = s; lab[s] = cur; let size = 0
-    while (sp) {
-      const i = stack[--sp]; size++; const x = i % W, y = (i / W) | 0
-      if (x > 0 && skin[i-1] && lab[i-1] < 0) { lab[i-1] = cur; stack[sp++] = i-1 }
-      if (x < W-1 && skin[i+1] && lab[i+1] < 0) { lab[i+1] = cur; stack[sp++] = i+1 }
-      if (y > 0 && skin[i-W] && lab[i-W] < 0) { lab[i-W] = cur; stack[sp++] = i-W }
-      if (y < H-1 && skin[i+W] && lab[i+W] < 0) { lab[i+W] = cur; stack[sp++] = i+W }
-    }
-    if (size > bestSize) { bestSize = size; bestLab = cur }
-    cur++
-  }
-  if (bestLab < 0 || bestSize < N * 0.04) return centre()
-  const limb = new Uint8Array(N)
-  for (let i = 0; i < N; i++) limb[i] = lab[i] === bestLab ? 1 : 0
-
-  // Hole-fill: flood "outside" from the border over non-limb pixels; the non-limb
-  // pixels NOT reached are walled in by the limb = candidate ink.
-  const outside = new Uint8Array(N)
-  let sp = 0
-  const push = i => { if (!limb[i] && !outside[i]) { outside[i] = 1; stack[sp++] = i } }
-  for (let x = 0; x < W; x++) { push(x); push((H-1)*W + x) }
-  for (let y = 0; y < H; y++) { push(y*W); push(y*W + W-1) }
-  while (sp) { const i = stack[--sp], x = i % W, y = (i / W) | 0
-    if (x > 0) push(i-1); if (x < W-1) push(i+1); if (y > 0) push(i-W); if (y < H-1) push(i+W) }
-
-  // Ink = enclosed pixels that deviate from the limb's median skin tone.
-  const skinLumArr = []
-  for (let i = 0, p = 0; i < N; i++, p += ch) if (limb[i]) skinLumArr.push(0.299*data[p]+0.587*data[p+1]+0.114*data[p+2])
-  skinLumArr.sort((a, b) => a - b)
-  const skinLum = skinLumArr[(skinLumArr.length/2)|0] || 150
-  const ink = new Uint8Array(N); let inkCount = 0
-  for (let i = 0, p = 0; i < N; i++, p += ch) {
-    if (limb[i] || outside[i]) continue
-    const Y = 0.299*data[p]+0.587*data[p+1]+0.114*data[p+2]
-    const sat = Math.max(data[p],data[p+1],data[p+2]) - Math.min(data[p],data[p+1],data[p+2])
-    if (Y < skinLum * 0.88 || sat > 45) { ink[i] = 1; inkCount++ }   // dark line OR colour
-  }
-  if (inkCount < N * 0.0012) return centre()
-
-  // Connected components of ink; keep the dominant blob(s), drop scattered noise.
-  const ilab = new Int32Array(N).fill(-1), comps = []
-  for (let s = 0; s < N; s++) {
-    if (!ink[s] || ilab[s] >= 0) continue
-    let q = 0; stack[q++] = s; ilab[s] = comps.length
-    let size = 0, mnx = W, mny = H, mxx = 0, mxy = 0
-    while (q) {
-      const i = stack[--q], x = i % W, y = (i / W) | 0; size++
-      if (x < mnx) mnx = x; if (x > mxx) mxx = x; if (y < mny) mny = y; if (y > mxy) mxy = y
-      if (x > 0 && ink[i-1] && ilab[i-1] < 0) { ilab[i-1] = comps.length; stack[q++] = i-1 }
-      if (x < W-1 && ink[i+1] && ilab[i+1] < 0) { ilab[i+1] = comps.length; stack[q++] = i+1 }
-      if (y > 0 && ink[i-W] && ilab[i-W] < 0) { ilab[i-W] = comps.length; stack[q++] = i-W }
-      if (y < H-1 && ink[i+W] && ilab[i+W] < 0) { ilab[i+W] = comps.length; stack[q++] = i+W }
-    }
-    comps.push({ size, mnx, mny, mxx, mxy })
-  }
-  const maxSize = Math.max(...comps.map(c => c.size))
-  const kept = comps.filter(c => c.size >= maxSize * 0.12)  // main subject + comparable parts
-  let mnx = W, mny = H, mxx = 0, mxy = 0
-  for (const c of kept) { if (c.mnx < mnx) mnx = c.mnx; if (c.mny < mny) mny = c.mny; if (c.mxx > mxx) mxx = c.mxx; if (c.mxy > mxy) mxy = c.mxy }
-  return boxFrom((mnx+mxx)/2, (mny+mxy)/2, Math.max(1, mxx-mnx), Math.max(1, mxy-mny))
-}
-
 // Produce every tier×format for one master. Returns the per-output rows so the
 // caller can print a single aligned table for the whole batch.
-async function processOne({ src, name, lane, outDir, crop, sharpen, manualCrop }) {
+async function processOne({ src, name, lane, outDir, crop, sharpen }) {
   const recipe = LANES[lane]
   const input = await readFile(src)
   const meta = await sharp(input).rotate().metadata() // rotate() so meta w/h is post-orientation
   const srcW = meta.width
   const srcH = meta.height
 
-  // For the smart lane, crop every tier to one box. A per-image manual override
-  // (crop: { cx, cy, h } — normalised centre + height fraction) always wins, for
-  // the handful auto-detection can't nail; otherwise focalBox locates the tattoo
-  // (and centre-falls-back itself). The box is grown/covered to the tier aspect.
-  let focal = null, focalMethod = 'cover'
-  if (crop && recipe.mode === 'smart') {
-    let box
-    if (manualCrop) {
-      const hh = Math.min(1, manualCrop.h) * srcH, ww = hh * recipe.aspect
-      const cx = manualCrop.cx * srcW, cy = manualCrop.cy * srcH
-      const l = Math.max(0, Math.min(srcW - ww, cx - ww / 2)), t = Math.max(0, Math.min(srcH - hh, cy - hh / 2))
-      box = { lx: l / srcW, ty: t / srcH, rx: (l + ww) / srcW, by: (t + hh) / srcH }
-      focalMethod = 'manual'
-    } else {
-      box = await focalBox(input, recipe.aspect)
-      focalMethod = 'auto'
-    }
-    if (box) {
-      const left = Math.round(box.lx * srcW), top = Math.round(box.ty * srcH)
-      const w = Math.max(1, Math.round((box.rx - box.lx) * srcW))
-      const h = Math.max(1, Math.round((box.by - box.ty) * srcH))
-      focal = { left, top, width: Math.min(w, srcW - left), height: Math.min(h, srcH - top) }
-    }
-  }
-
   const rows = []
   for (const width of recipe.widths) {
-    // Base pipeline: apply EXIF rotation, then crop. `smart` extracts the detected
-    // tattoo box (already the lane aspect) then downscales; otherwise cover-crop to
-    // the lane aspect, or just downscale keeping source aspect (--no-crop).
+    // Base pipeline: apply EXIF rotation, then crop. Default is a centre cover-crop
+    // to the lane aspect (masters are pre-framed by the artist); --no-crop just
+    // downscales by width keeping the source aspect.
     let height
     const make = () => {
       let pipe = sharp(input).rotate()
-      if (crop && focal) {
-        height = Math.round(width / recipe.aspect)
-        pipe = pipe.extract(focal).resize(width, height, { fit: 'cover', position: 'centre', kernel: 'lanczos3' })
-      } else if (crop) {
+      if (crop) {
         height = Math.round(width / recipe.aspect)
         pipe = pipe.resize(width, height, { fit: 'cover', position: recipe.position, kernel: 'lanczos3' })
       } else {
@@ -259,7 +124,7 @@ async function processOne({ src, name, lane, outDir, crop, sharpen, manualCrop }
       rows.push({ name, width, ext: enc.ext, w: probe.width, h: probe.height, bytes: buf.length })
     }
   }
-  return { name, srcW, srcH, rows, focalMethod }
+  return { name, srcW, srcH, rows }
 }
 
 async function main() {
@@ -283,27 +148,39 @@ async function main() {
   for (const job of jobs) {
     const srcAbs = path.resolve(job.src)
     await stat(srcAbs) // fail loudly if a master is missing
-    results.push(await processOne({ src: srcAbs, name: job.name, lane: args.lane, outDir, crop: args.crop, sharpen: args.sharpen, manualCrop: job.crop }))
+    results.push(await processOne({ src: srcAbs, name: job.name, lane: args.lane, outDir, crop: args.crop, sharpen: args.sharpen }))
   }
 
-  // One aligned report for the whole run. The `base` line is what the data file
-  // needs: the no-extension path + the intrinsic w,h of the <img> tier
-  // (portfolio -800, flash -600).
-  const baseTier = args.lane === 'flash' ? 600 : 800
-  console.log(`\nlane=${args.lane}  out=${outDir}\n`)
+  printReport(results, args.lane, outDir)
+}
+
+// One aligned report for a whole run: each output's w×h + byte size, the data-file
+// `base` line to paste (the no-extension path + the intrinsic w,h of the <img> tier —
+// portfolio -800, flash -600), and the batch totals for a quick budget sanity check.
+// Exported so the Dropbox collector (sync-dropbox-media.mjs) prints identically.
+export function printReport(results, lane, outDir) {
+  const baseTier = lane === 'flash' ? 600 : 800
+  console.log(`\nlane=${lane}${outDir ? `  out=${outDir}` : ''}\n`)
   for (const r of results) {
-    console.log(`■ ${r.name}   (master ${r.srcW}×${r.srcH}, crop=${r.focalMethod})`)
+    console.log(`■ ${r.name}   (master ${r.srcW}×${r.srcH})`)
     for (const row of r.rows) {
       console.log(`    ${row.name}-${String(row.width).padEnd(4)} ${row.ext.padEnd(4)}  ${String(row.w).padStart(4)}×${String(row.h).toString().padEnd(4)}  ${kb(row.bytes).padStart(9)}`)
     }
     const base = r.rows.find(x => x.width === baseTier && x.ext === 'jpg')
     if (base) console.log(`    → data:  img:'/.../${r.name}'  w:${base.w}  h:${base.h}\n`)
   }
-
-  // Totals — quick budget sanity for the whole batch.
   const allRows = results.flatMap(r => r.rows)
   const total = allRows.reduce((s, r) => s + r.bytes, 0)
   console.log(`${results.length} image(s), ${allRows.length} files, ${kb(total)} total\n`)
 }
 
-main().catch(err => { console.error(err.message); process.exit(1) })
+// Reusable pieces for the Dropbox collector — the lane recipes and the single-master
+// processor. Imported there so the masters fetched from Dropbox go through the EXACT
+// same crop/encode pipeline (and report) as a hand-run batch.
+export { LANES, processOne }
+
+// Run as a CLI only when invoked directly (`node scripts/process-media.mjs …`).
+// When another module imports this file (the Dropbox collector), main() must NOT
+// fire — importing has no side effects.
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+if (invokedDirectly) main().catch(err => { console.error(err.message); process.exit(1) })

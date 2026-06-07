@@ -42,6 +42,9 @@ function wireForm(form) {
 
   form.addEventListener('submit', async e => {
     e.preventDefault()
+    // Ignore a re-entrant submit (e.g. Enter pressed in the email field) while a
+    // request is already in flight, so a keyboard submit can't fire a duplicate POST.
+    if (submitBtn?.dataset.loading === 'true') return
     clearError()
 
     const fields = {}

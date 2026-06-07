@@ -115,7 +115,7 @@ npm run preview:branch -- <branch>  # fetch a branch, install, and run its dev s
 - [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md) — GDPR retention / erasure runbook + D1 backup (Time Travel)
 - [`docs/MEDIA.md`](docs/MEDIA.md) — portfolio/flash image pipeline + hero video/GIF serving
 - [`docs/MOTION.md`](docs/MOTION.md) — the loader / entrance / page-transition motion system
-- [`docs/PAYMENTS-PLAN.md`](docs/PAYMENTS-PLAN.md) — deposits / flash-purchase plan (PayPal + Monzo, not yet built)
+- [`docs/PAYMENTS-ROADMAP.md`](docs/PAYMENTS-ROADMAP.md) — integrated payments plan (Stripe + Klarna → Monzo Business, with PayPal; not yet built); companions [`PAYMENTS-STRIPE-BUILD.md`](docs/PAYMENTS-STRIPE-BUILD.md) (build spec), [`PAYMENTS-FEES.md`](docs/PAYMENTS-FEES.md) (fee maths), and the superseded [`PAYMENTS-PLAN.md`](docs/PAYMENTS-PLAN.md) (original manual-links decision)
 - [`docs/SCHEDULING.md`](docs/SCHEDULING.md) — appointment-booking plan (not yet built)
 - [`docs/CMS.md`](docs/CMS.md) — content-CMS plan (planned, post-launch)
 - [`.env.example`](.env.example) — environment variables (copy to `.env` for local work)
