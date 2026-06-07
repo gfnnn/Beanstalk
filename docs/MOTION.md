@@ -69,6 +69,16 @@ entrance* waits on `pageReady`.
   classes) fade/blur content up as it enters the viewport. Most inner-page content
   is tagged `.reveal` in the markup; it's also FOUC-guarded and grouped in
   `motion.css`.
+  - **`.reveal-d1/2/3` is a *fixed delay applied after that element's own scroll
+    trigger fires* — so it only reads as a stagger for a group that crosses the
+    trigger line *together*** (a same-row grid like About's credentials / studio
+    tiles, or a small block that's all in the first viewport on load, like the
+    confirmation / 404 / per-piece headers). **Do not put `.reveal-d*` on a long
+    *vertical* list whose items each get their own trigger** (the FAQ accordion, the
+    legal-page sections): there the items cross the line one at a time, so the delay
+    isn't a cascade — it just makes the lower items *lag* (sit invisible past their
+    reveal point and blur in late, or not visibly at all). Those use plain `.reveal`
+    so every item blurs to focus cleanly on its own trigger.
 - **The filter bar** (portfolio / flash) cascades its chips + controls in between
   the header and the grid (children only — the sticky `.filter-bar` itself is left
   untouched so `position: sticky` keeps working).

@@ -165,15 +165,15 @@ ${LOADER_MARKUP}
   </nav>
 
   <div class="piece-layout">
-    <div class="piece-media">${media(p)}</div>
+    <div class="piece-media reveal">${media(p)}</div>
     <div class="piece-detail">
-      <p class="page-eyebrow">Portfolio</p>
-      <h1 class="piece-title">${esc(p.title)}</h1>
-      <ul class="piece-tags" role="list">${tags}</ul>
+      <p class="page-eyebrow reveal reveal-d1">Portfolio</p>
+      <h1 class="piece-title reveal reveal-d2">${esc(p.title)}</h1>
+      <ul class="piece-tags reveal reveal-d2" role="list">${tags}</ul>
       <!-- ARTIST-COPY · PIECE-01 · pending approval — see docs/COPY-REVIEW.md -->
       <!-- COPY: a sentence or two about this piece — the brief, the story, healed vs fresh. -->
-      <p class="piece-note">${esc(altText(p))}.${p.img ? '' : ' A design ready to make yours — enquire to book.'}</p>
-      <div class="piece-actions">
+      <p class="piece-note reveal reveal-d3">${esc(altText(p))}.${p.img ? '' : ' A design ready to make yours — enquire to book.'}</p>
+      <div class="piece-actions reveal reveal-d3">
         <a href="/enquire/" class="btn btn-primary">Enquire about a piece like this →</a>
         <a href="/portfolio/" class="btn btn-outline">See more work</a>
       </div>
