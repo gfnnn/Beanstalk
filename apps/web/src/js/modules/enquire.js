@@ -354,8 +354,11 @@ export function initEnquire() {
         // interpolate it into innerHTML (attribute-break / onerror injection).
         const img = document.createElement('img')
         // Free the blob URL once the browser has the decoded image, so repeated
-        // re-selections don't leak object URLs for the session.
-        img.onload = () => URL.revokeObjectURL(url)
+        // re-selections don't leak object URLs for the session. Revoke on error
+        // too — a file the browser can't decode never fires onload, so without
+        // this its object URL would leak for the page's lifetime.
+        img.onload  = () => URL.revokeObjectURL(url)
+        img.onerror = () => URL.revokeObjectURL(url)
         img.src = url
         img.alt = file.name
         thumb.appendChild(img)
@@ -511,6 +514,9 @@ export function initEnquire() {
   const form = document.getElementById('enquiry-form')
   form?.addEventListener('submit', async e => {
     e.preventDefault()
+    // Ignore a re-entrant submit (e.g. Enter pressed in a field) while a submission
+    // is already in flight, so a keyboard submit can't fire a duplicate enquiry POST.
+    if (document.getElementById('submit-btn')?.dataset.loading === 'true') return
 
     let firstBad = null
     for (let n = 1; n <= TOTAL; n++) if (!validateStep(n) && firstBad === null) firstBad = n

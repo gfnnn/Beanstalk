@@ -91,6 +91,22 @@ describe('initNewsletter', () => {
       expect($('#nl-success').hidden).toBe(false)
     })
 
+    it('ignores a re-entrant submit while one is in flight (no duplicate POST)', async () => {
+      // The disabled button blocks a second click, but a keyboard submit (Enter in
+      // the email field) would re-enter the handler; the in-flight guard must stop it.
+      let resolveFetch
+      global.fetch = vi.fn(() => new Promise(r => { resolveFetch = r }))
+      const form = setup()
+      initNewsletter()
+      fillValid(form)
+      submit(form) // first submit — fetch now pending, button in loading state
+      submit(form) // re-entrant submit while still in flight — must be ignored
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      resolveFetch({ ok: true, status: 200, json: () => Promise.resolve({ ok: true }) })
+      await flush()
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
     it('reveals the "already subscribed" note when the worker reports already:true', async () => {
       global.fetch = mockFetch(true, { already: true })
       const form = setup()

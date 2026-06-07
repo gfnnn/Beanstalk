@@ -250,6 +250,10 @@ export function initFlash() {
   if (form) {
     form.addEventListener('submit', async e => {
       e.preventDefault()
+      // Ignore a re-entrant submit (e.g. Enter pressed in a field) while a claim
+      // is already in flight — the disabled button blocks a second click, but a
+      // keyboard submit would otherwise fire a duplicate claim POST.
+      if (submitBtn?.dataset.loading === 'true') return
       clearModalError()
 
       setButtonLoading(submitBtn, 'Sending…')
