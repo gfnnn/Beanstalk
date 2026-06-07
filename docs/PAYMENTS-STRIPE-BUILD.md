@@ -254,7 +254,12 @@ Factor the tiny HTML/text builders alongside the existing ones (or a shared `lib
    reference) and return its `client_secret` (embedded Payment Element). Rolls the reserve +
    payment back on a Stripe failure; **shipped dark behind `PAYMENTS_ENABLED`** (503 until
    set). 18 unit tests (`checkout.test.js`).
-3. **`/webhooks/stripe` handler** (signature + idempotency + `promoteFlashClaim` + `markPaymentStatus('paid')` + emails) + unit tests.
+3. ✅ **`/webhooks/stripe` handler (landed)** — verify the signature (Web Crypto HMAC, no
+   SDK — `src/lib/stripe.js`, with a timestamp tolerance) → dedupe by event id
+   (`recordWebhookEvent`) → on `payment_intent.succeeded`: re-check the amount, then
+   `promoteFlashClaim` + `markPaymentStatus('paid')` + Resend customer receipt & artist notice
+   (best-effort); on `payment_intent.canceled`: `markPaymentStatus('expired')` + release the
+   hold. Idempotent + fail-safe end to end. 12 unit tests (`stripe-webhook.test.js`).
 4. **Frontend** — the flash modal's **embedded payment step** (method toggle: Payment Element,
    PayPal buttons, bank-transfer panel) + a flash confirmation state, `config`/CSP, web + E2E tests.
 5. **Stale release** — wire `expirePendingClaims` into the `flash-status` read (lazy), cron optional + `DATA-COMPLIANCE.md` update.
