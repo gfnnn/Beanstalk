@@ -112,14 +112,18 @@ export async function getFlashClaims(env) {
 // race). FAILS OPEN: a DB outage allows the claim (worst case a double-claim the
 // artist resolves) but omits `reserved` so the caller won't try to roll back a
 // reservation that was never written. A missing id is a no-op `{ ok: true }`.
-export async function reserveFlashPiece(env, id) {
+//
+// `expiresAt` (ISO 8601) sets a hold TTL so an abandoned *checkout* reserve frees
+// itself (see expirePendingClaims). The legacy manual claim passes none, so its
+// reserve never auto-expires — exactly as before.
+export async function reserveFlashPiece(env, id, expiresAt = null) {
   if (!id) return { ok: true }
   try {
     const res = await env.DB.prepare(
-      `INSERT INTO flash_claims (piece_id, status, updated_at)
-       VALUES (?1, 'pending', ?2)
+      `INSERT INTO flash_claims (piece_id, status, updated_at, expires_at)
+       VALUES (?1, 'pending', ?2, ?3)
        ON CONFLICT(piece_id) DO NOTHING`,
-    ).bind(id, nowIso()).run()
+    ).bind(id, nowIso(), expiresAt).run()
     if ((res?.meta?.changes ?? 0) > 0) return { ok: true, reserved: true }
     // Already taken — report its current status.
     const row = await env.DB.prepare(
@@ -143,6 +147,133 @@ export async function releaseFlashPiece(env, id) {
     ).bind(id).run()
   } catch (err) {
     console.error('flash-claims release failed (leaving pending):', err?.message || err)
+  }
+}
+
+// Promote a reserved piece to a confirmed sale on verified payment. Idempotent:
+// only a still-'pending' row flips, so a re-delivered webhook (or a piece already
+// claimed another way) is a harmless no-op. Clears the hold's expiry so a sold
+// piece can never be swept by expirePendingClaims. Returns true iff THIS call did
+// the promotion. Fail-safe → false.
+export async function promoteFlashClaim(env, id) {
+  if (!id) return false
+  try {
+    const res = await env.DB.prepare(
+      `UPDATE flash_claims SET status = 'claimed', updated_at = ?2, expires_at = NULL
+       WHERE piece_id = ?1 AND status = 'pending'`,
+    ).bind(id, nowIso()).run()
+    return (res?.meta?.changes ?? 0) > 0
+  } catch (err) {
+    console.error('promoteFlashClaim failed:', err?.message || err)
+    return false
+  }
+}
+
+// Free any 'pending' reservation whose hold has lapsed, so an abandoned checkout
+// can't lock a one-of-a-kind piece forever. Only expired pending rows are deleted;
+// confirmed claims and holds with no expiry (the legacy manual reserve) are left
+// untouched. Returns the number freed. Fail-safe → 0.
+export async function expirePendingClaims(env, now = nowIso()) {
+  try {
+    const res = await env.DB.prepare(
+      `DELETE FROM flash_claims
+       WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < ?1`,
+    ).bind(now).run()
+    return res?.meta?.changes ?? 0
+  } catch (err) {
+    console.error('expirePendingClaims failed (leaving holds):', err?.message || err)
+    return 0
+  }
+}
+
+// ── Payments ledger ──────────────────────────────────────────────────────────
+// The record of truth for money (table in migration 0002). Every helper is
+// fail-safe like the rest of this module: a DB hiccup logs and returns a benign
+// value rather than throwing into a payment flow.
+
+// Record a checkout attempt BEFORE talking to the provider, so a payment is
+// durable from its first moment. Status starts 'awaiting'; the verified webhook
+// flips it to 'paid'. `id` is OUR reference (stable across providers); a re-insert
+// of the same id is a no-op (ON CONFLICT DO NOTHING). Returns true on write.
+export async function recordPayment(env, p = {}) {
+  if (!p.id) return false
+  try {
+    await env.DB.prepare(
+      `INSERT INTO payments
+         (id, kind, status, provider, provider_ref, amount_pence, currency, email, piece_id, submission_id, created_at, paid_at)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)
+       ON CONFLICT(id) DO NOTHING`,
+    )
+      .bind(
+        p.id,
+        p.kind || 'flash',
+        p.status || 'awaiting',
+        p.provider || 'stripe',
+        p.providerRef || null,
+        Number(p.amountPence) || 0,
+        p.currency || 'gbp',
+        p.email || null,
+        p.pieceId || null,
+        p.submissionId || null,
+        p.createdAt || nowIso(),
+        p.paidAt || null,
+      )
+      .run()
+    return true
+  } catch (err) {
+    console.error('recordPayment failed (continuing):', err?.message || err)
+    return false
+  }
+}
+
+// Read a payment row by our reference id. Fails safe to null.
+export async function getPayment(env, id) {
+  if (!id) return null
+  try {
+    return await env.DB.prepare('SELECT * FROM payments WHERE id = ?1').bind(id).first()
+  } catch (err) {
+    console.error('getPayment failed:', err?.message || err)
+    return null
+  }
+}
+
+// Move a payment to a terminal status — 'paid' (with paid_at + the provider's
+// payment id) from the webhook, or 'failed'/'expired' on rollback. COALESCE means
+// a null providerRef/paidAt leaves the existing value intact, so a status-only
+// flip never wipes the provider id. Idempotent. Returns true iff a row changed.
+export async function markPaymentStatus(env, id, status, { providerRef = null, paidAt = null } = {}) {
+  if (!id || !status) return false
+  try {
+    const res = await env.DB.prepare(
+      `UPDATE payments
+          SET status = ?2,
+              provider_ref = COALESCE(?3, provider_ref),
+              paid_at = COALESCE(?4, paid_at)
+        WHERE id = ?1`,
+    ).bind(id, status, providerRef, paidAt).run()
+    return (res?.meta?.changes ?? 0) > 0
+  } catch (err) {
+    console.error('markPaymentStatus failed:', err?.message || err)
+    return false
+  }
+}
+
+// Webhook idempotency: record an event id the first time it's seen. Returns
+// { fresh: true } on the first delivery (process it) and { fresh: false } on a
+// replay (skip). FAILS OPEN ({ fresh: true }) if the DB is down — the downstream
+// promote/markPaid are themselves idempotent, so re-processing a possible
+// duplicate is safer than dropping a real payment confirmation.
+export async function recordWebhookEvent(env, id, type) {
+  if (!id) return { fresh: true }
+  try {
+    const res = await env.DB.prepare(
+      `INSERT INTO webhook_events (id, type, received_at)
+       VALUES (?1, ?2, ?3) ON CONFLICT(id) DO NOTHING`,
+    ).bind(id, type || null, nowIso()).run()
+    return { fresh: (res?.meta?.changes ?? 0) > 0 }
+  } catch (err) {
+    console.error('recordWebhookEvent failed (processing anyway):', err?.message || err)
+    return { fresh: true }
   }
 }
 

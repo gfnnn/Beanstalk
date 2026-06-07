@@ -6,22 +6,31 @@ file-by-file here; Phases 2–3 are outlined at the foot and flesh out once Phas
 the open decisions are confirmed.
 
 Stripe is the engine: one integration carries **card + Klarna**, funds land in the Stripe
-balance and pay out to the **Monzo Business** account. We use **hosted Stripe Checkout via a
-server-created session + a top-level redirect** — so **no card fields and no Stripe.js on our
-pages** (PCI **SAQ-A**, and almost nothing added to the CSP). The Worker does all the Stripe
-API talking; the browser only ever `fetch()`es our own Worker and then navigates to
-`checkout.stripe.com`.
+balance and pay out to the **Monzo Business** account. Card data is entered in Stripe's own
+**hosted iframe fields**, so it never touches our origin (PCI **SAQ-A**); the Worker does all
+the secret-bearing API talking.
 
-## Working assumptions (confirm; sensible defaults baked in)
+## Decisions locked (2026-06)
 
-- **Flash = full payment** at claim (deposit-to-hold option deferred to Phase 2 if wanted).
-- **Methods:** card **+ Klarna** from day one (Klarna is free to enable via Stripe). Best on
-  flash full payments; not offered on deposits.
-- **Amount authority is server-side** — the client never sends the price (see §3).
+These supersede the earlier "redirect" assumption — confirmed with the studio:
+
+- **In-flow, embedded, on-site.** The payment is a **step the customer never visibly leaves
+  the site for**: a Stripe **Payment Element** (card + Klarna), **PayPal smart buttons**, and a
+  **Monzo Business bank-transfer panel**, chosen via a **method toggle**. Trade-off vs a
+  redirect: a little more JS + a few provider hosts added to the CSP (§7).
+- **Flash only (for now).** The inline step appears **only for flash pieces** (a known, fixed
+  price). The **custom enquiry flow is untouched** — it still POSTs and lands on
+  `/enquiry-received/`; its deposit keeps the documented *"after the artist quotes, via a
+  tokenised link"* model (Phase 2). The site never auto-prices a custom tattoo.
+- **Flash = full payment** at claim (deposit-to-hold option still parked for later).
+- **All three methods** from day one: **card + Klarna** (Stripe), **PayPal**, **Monzo bank
+  transfer**. Sequenced *inside* Phase 1 — Stripe engine first, then bank transfer, then
+  PayPal — but all three land before flash checkout goes live.
+- **Amount authority is server-side** — the client never sends the price (see §3). ✅ built.
 - **Reference format** `BSF-<piece-id>-<4char>`; **stale-pending window 48h**, with the
-  Stripe Checkout session itself expiring at 30 min.
+  Stripe PaymentIntent/session expiring at ~30 min.
 - Ships to **staging only** until the apex cutover — no `apps/web/public/CNAME` (guardrail in
-  `CLAUDE.md`).
+  `CLAUDE.md`), test-mode keys first, behind a `PAYMENTS_ENABLED` flag.
 
 ## End-to-end flow (Phase 1)
 
@@ -232,12 +241,20 @@ Factor the tiny HTML/text builders alongside the existing ones (or a shared `lib
 
 ## 10. Build sequence (one PR per step, all → `develop`)
 
-1. **Groundwork** — migration `0002`, `sync-flash-prices.mjs` + manifest, `db.js` helpers,
-   secrets/dashboard set up. (No customer-facing change.)
-2. **`/checkout` handler** + the price authority + unit tests.
-3. **`/webhooks/stripe` handler** (signature + idempotency + promotion + emails) + unit tests.
-4. **Frontend** — flash modal redirect, `payment-received` page, config/CSP, web + E2E tests.
-5. **Stale release** (lazy first, cron optional) + `DATA-COMPLIANCE.md` update.
+1. ✅ **Groundwork (landed)** — migration `0002_payments.sql` (`payments` +
+   `webhook_events` + `flash_claims.expires_at`), `scripts/sync-flash-prices.mjs` + the
+   committed `src/data/flash-prices.json` manifest (+ `npm run sync:prices` and a CI drift
+   guard), and the `db.js` helpers (`recordPayment`, `getPayment`, `markPaymentStatus`,
+   `promoteFlashClaim`, `expirePendingClaims`, `recordWebhookEvent`, `reserveFlashPiece`
+   hold-expiry) with fail-safe unit tests. No customer-facing change. *(Account/secrets/
+   dashboard set-up is the studio's to do — see §1.)*
+2. **`/checkout` handler** — validate + rate-limit + server-side price → `reserveFlashPiece`
+   (48h hold) → `recordPayment('awaiting')` → create a Stripe **PaymentIntent** and return its
+   `client_secret` (embedded Payment Element), not a redirect URL. + unit tests.
+3. **`/webhooks/stripe` handler** (signature + idempotency + `promoteFlashClaim` + `markPaymentStatus('paid')` + emails) + unit tests.
+4. **Frontend** — the flash modal's **embedded payment step** (method toggle: Payment Element,
+   PayPal buttons, bank-transfer panel) + a flash confirmation state, `config`/CSP, web + E2E tests.
+5. **Stale release** — wire `expirePendingClaims` into the `flash-status` read (lazy), cron optional + `DATA-COMPLIANCE.md` update.
 6. **Verify on staging** end-to-end with Stripe **test mode** (test cards + Klarna test flow),
    then go live by swapping to live keys.
 
