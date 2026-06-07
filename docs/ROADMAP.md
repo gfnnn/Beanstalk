@@ -631,7 +631,7 @@ Priority reflects leverage. The first three are the **quick wins** in the sequen
 independent, low-effort, and they raise the floor under every feature that follows.
 
 - **[High · low-effort] Linter + formatter, gated in CI.** ESLint + Prettier, or **Biome**
-  (one fast tool). CI proves *correctness* (the 560-test net) but not *consistency*; this
+  (one fast tool). CI proves *correctness* (the 521-test net) but not *consistency*; this
   closes that gap and is the cheapest win available. Both forward benchmarks ship it; we ship
   neither. _Delivery: add the tool + config + a `lint` CI step in one PR; auto-format the tree
   in a separate mechanical PR so the diff stays reviewable._

@@ -104,6 +104,18 @@ npm run media:dropbox -- --lane flash --dry-run # preview the fetch+slug mapping
 Downloads are cached under `apps/web/.dropbox-cache/` (gitignored) so re-runs only pull
 changed masters; `--force` re-downloads everything.
 
+**Or run it hosted — the "Run sync" button (no laptop needed).** The same fetch +
+process runs in GitHub Actions via **`.github/workflows/media-sync.yml`** (*Dropbox media
+sync*): **Actions → Dropbox media sync → Run workflow**, pick a lane
+(`all` / `portfolio` / `flash`) and optionally `dry_run` / `force`. It runs
+`npm run media:dropbox`, commits any new tiers under `apps/web/public/images`, and opens a
+PR against `develop` with the `w`/`h` report to paste into `pieces.js` / `flash.js` (the
+same manual data step as the local run). It's **`workflow_dispatch`-only** — a collaborator
+clicks the button, never an automatic trigger. One-time setup, in **repo → Settings →
+Secrets and variables → Actions**, is the durable refresh-token flow above as secrets:
+`DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` (omit only for a PKCE app), `DROPBOX_REFRESH_TOKEN`,
+plus the optional `DROPBOX_MEDIA_PATH` **variable** (defaults to `/Beansprout/masters`).
+
 ## The crop (centre cover-crop)
 
 Masters are **pre-edited and framed by the artist before upload** — the artist's eye
