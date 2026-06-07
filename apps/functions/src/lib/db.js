@@ -92,12 +92,15 @@ export async function persistConsent(env, record) {
 // ── Flash inventory ─────────────────────────────────────────────────────────
 
 // The current map of claimed/pending flash piece ids → status. Fails safe to {}.
-// Lazily releases any lapsed pending hold first (expirePendingClaims), so a piece
-// from an abandoned checkout shows as available again on the next grid load without
-// needing a cron. The sweep is fail-safe, so it never blocks the read.
+// When payments are ON it first lazily releases any lapsed pending hold
+// (expirePendingClaims), so a piece from an abandoned checkout shows as available
+// again on the next grid load without a cron. The sweep is GATED on PAYMENTS_ENABLED
+// (and is fail-safe regardless): with payments off there are no holds to sweep, so
+// this path stays byte-for-byte identical to before — no extra query, no dependency
+// on the payments migration (0002). It never blocks the read.
 export async function getFlashClaims(env) {
   try {
-    await expirePendingClaims(env)
+    if (String(env.PAYMENTS_ENABLED) === 'true') await expirePendingClaims(env)
     const { results } = await env.DB.prepare(
       'SELECT piece_id, status FROM flash_claims',
     ).all()
@@ -123,11 +126,19 @@ export async function getFlashClaims(env) {
 export async function reserveFlashPiece(env, id, expiresAt = null) {
   if (!id) return { ok: true }
   try {
-    const res = await env.DB.prepare(
-      `INSERT INTO flash_claims (piece_id, status, updated_at, expires_at)
-       VALUES (?1, 'pending', ?2, ?3)
-       ON CONFLICT(piece_id) DO NOTHING`,
-    ).bind(id, nowIso(), expiresAt).run()
+    // The legacy claim-by-enquiry path passes NO expiry and uses the original
+    // 3-column insert, so it has zero dependency on the payments migration (0002).
+    // Only a checkout-created hold (with an expiry) references the expires_at column.
+    const stmt = expiresAt
+      ? env.DB.prepare(
+          `INSERT INTO flash_claims (piece_id, status, updated_at, expires_at)
+           VALUES (?1, 'pending', ?2, ?3) ON CONFLICT(piece_id) DO NOTHING`,
+        ).bind(id, nowIso(), expiresAt)
+      : env.DB.prepare(
+          `INSERT INTO flash_claims (piece_id, status, updated_at)
+           VALUES (?1, 'pending', ?2) ON CONFLICT(piece_id) DO NOTHING`,
+        ).bind(id, nowIso())
+    const res = await stmt.run()
     if ((res?.meta?.changes ?? 0) > 0) return { ok: true, reserved: true }
     // Already taken — report its current status.
     const row = await env.DB.prepare(

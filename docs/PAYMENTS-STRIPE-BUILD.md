@@ -32,6 +32,33 @@ These supersede the earlier "redirect" assumption — confirmed with the studio:
 - Ships to **staging only** until the apex cutover — no `apps/web/public/CNAME` (guardrail in
   `CLAUDE.md`), test-mode keys first, behind a `PAYMENTS_ENABLED` flag.
 
+## Isolation — zero impact on the non-payment go-live (a hard requirement)
+
+The whole feature is built to **develop in the background and toggle on when ready**,
+with **no effect on the launch journey** (marketing site, enquiry form, claim-by-enquiry,
+newsletter) until that switch is flipped. The guarantees, enforced in code + tests:
+
+- **Front end is unchanged until a build flag flips it.** The backbone PR touches **no
+  `apps/web` files at all** (the built bundle hash is identical). Slice 4 will gate the
+  embedded payment UI behind a build-time `VITE_PAYMENTS_ENABLED`; **off → the flash
+  "Claim" button behaves exactly as today** (POST `/enquiry` → `/enquiry-received/`). So the
+  frontend can merge and ship dark too.
+- **Worker routes are additive + flagged.** `/checkout` returns **503 unless
+  `PAYMENTS_ENABLED === 'true'`**; `/webhooks/stripe` is a new path nobody calls until Stripe
+  is configured. The existing `/enquiry`, `/newsletter`, `/flash-status` are untouched.
+- **No dependency on migration `0002` for the non-payment path.** `reserveFlashPiece`
+  *without* an expiry (the claim-by-enquiry path) uses the **original 3-column insert** — it
+  never references `expires_at`. The lazy stale-sweep in `getFlashClaims` is **gated on
+  `PAYMENTS_ENABLED`**, so with payments off that read is byte-for-byte as before. ⇒ `0002`
+  only needs applying **when you turn payments on**, and is purely additive when you do.
+- **Everything is fail-safe**, so even a half-configured state (code deployed, flag off, or
+  migration not yet applied) degrades to "no payments offered", never to a broken enquiry/claim.
+
+**To turn it on, later:** apply `0002` → set Worker secrets (`STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`) + `PAYMENTS_ENABLED="true"` → set `VITE_PAYMENTS_ENABLED` on the
+web build → rebuild. **To turn it off:** unset `PAYMENTS_ENABLED` (and the build flag). No
+code change either way.
+
 ## End-to-end flow (Phase 1)
 
 ```

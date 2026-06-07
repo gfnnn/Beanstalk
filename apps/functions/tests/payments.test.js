@@ -115,13 +115,22 @@ describe('expirePendingClaims', () => {
     expect(await expirePendingClaims(broken)).toBe(0)
   })
 
-  it('getFlashClaims sweeps lapsed holds on read (lazy release, no cron needed)', async () => {
+  it('getFlashClaims sweeps lapsed holds on read when payments are ON (lazy release, no cron)', async () => {
     const d1 = makeD1()
-    const e  = { DB: d1.DB }
+    const e  = { DB: d1.DB, PAYMENTS_ENABLED: 'true' }
     await reserveFlashPiece(e, 'lapsed', '2000-01-01T00:00:00Z')   // expired
     await reserveFlashPiece(e, 'fresh',  futureISO())              // still held
     expect(await getFlashClaims(e)).toEqual({ fresh: 'pending' })  // lapsed gone
     expect(d1.data.flash.has('lapsed')).toBe(false)
+  })
+
+  it('getFlashClaims does NOT sweep when payments are OFF — the non-payment grid is untouched', async () => {
+    const d1 = makeD1()
+    const e  = { DB: d1.DB }   // no PAYMENTS_ENABLED
+    await reserveFlashPiece(e, 'lapsed', '2000-01-01T00:00:00Z')
+    // The sweep is skipped entirely, so even a (hypothetical) lapsed hold is reported as-is.
+    expect(await getFlashClaims(e)).toEqual({ lapsed: 'pending' })
+    expect(d1.data.flash.has('lapsed')).toBe(true)
   })
 })
 
