@@ -164,7 +164,14 @@ function revealGroup(items, { trigger, y = 22, duration = 0.7, ease = 'power2.ou
   const list = gsap.utils.toArray(items)
   if (!list.length) return
   const root = trigger || list[0].parentElement
-  const vars = { opacity: 0, y, duration, ease, stagger: { each, from: 'start' } }
+  // clearProps:'transform' so GSAP strips the inline transform it would otherwise
+  // leave on each card at the end of the cascade. That residual `transform:
+  // translate(0,0)` is inline, so it overrides any CSS `:hover`/transition transform
+  // on the same element (the flash cards lift on hover) — and if the entrance is
+  // interrupted mid-flight (e.g. the flash grid re-sorting when the live-status fetch
+  // resolves), it can leave a card resting a few px off. Clearing it lets each card
+  // settle at its true CSS position with the hover transition intact.
+  const vars = { opacity: 0, y, duration, ease, stagger: { each, from: 'start' }, clearProps: 'transform' }
   if (blur) vars.filter = `blur(${blur}px)`
   const aboveFold = root.getBoundingClientRect().top < window.innerHeight * 0.85
   if (aboveFold) {

@@ -130,7 +130,16 @@ export function initFlash() {
       return +b.dataset.drop - +a.dataset.drop // newest first (default)
     })
 
-    sorted.forEach(c => grid.insertBefore(c, emptyState))
+    // Only touch the DOM when the order actually changes. Besides avoiding a needless
+    // reflow, this stops us yanking the cards mid-entrance: loadLiveStatus() re-runs this
+    // on its async resolve, and a status update never changes the order — reordering then
+    // would move the cards while the on-load cascade (modules/animations.js) is still
+    // running and could strand a card's transform a few px off. (insertBefore keeps cards
+    // before the empty state, which the static markup already guarantees.)
+    const domOrder = [...grid.querySelectorAll('.flash-card')]
+    if (sorted.some((c, i) => c !== domOrder[i])) {
+      sorted.forEach(c => grid.insertBefore(c, emptyState))
+    }
 
     // Show / hide. The archive (earlier drops) appears only under the 'past'
     // filter; every other view is scoped to the current drop.
