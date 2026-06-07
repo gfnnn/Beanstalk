@@ -6,7 +6,7 @@
 // must search the WHOLE catalogue, so a match that hasn't been paged into the
 // window yet (e.g. the single Script piece) is still found instead of falling into
 // a false "no results" empty state. We drive it against a fixture DOM in jsdom.
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { initFilter } from '../src/js/modules/filter.js'
 
 const chip = (f, label) =>
@@ -59,45 +59,10 @@ beforeEach(() => {
   document.body.innerHTML = ''
 })
 
-// Some tests stub the layout APIs jsdom doesn't implement (matchMedia for the
-// desktop breakpoint, ResizeObserver for the overflow watcher). Clean them up so
-// they don't leak into the unrelated tests.
-afterEach(() => {
-  delete window.matchMedia
-  delete global.ResizeObserver
-})
-
-// Build the real filter-bar markup (priority chips + "More" + collapsible
-// secondary cluster + selects) and stub the layout reads the desktop overflow
-// logic depends on: a desktop viewport, a fixed width per chip, and a given
-// chips-row width. Returns the bar element.
-function setupDesktopChips({ chipWidth, rowWidth }) {
-  window.matchMedia = () => ({ matches: true, addEventListener() {} })
-  global.ResizeObserver = class { observe() {} disconnect() {} }
-
-  document.body.innerHTML = `
-    <div id="filter-bar">
-      <div class="filter-chips">
-        ${chip('all', 'All')}${chip('fine-line', 'Fine line')}
-        <button class="chip-more" id="chip-more-btn" aria-expanded="false">More</button>
-        <span class="chips-secondary">${chip('script', 'Script')}${chip('dotwork', 'Dotwork')}</span>
-      </div>
-      <div class="filter-right">
-        <select id="sort-order"><option value="newest">newest</option></select>
-      </div>
-    </div>
-    <div id="masonry-grid">
-      <article class="masonry-tile" data-style="all" data-placement="forearm" data-order="0" data-shown="true"></article>
-    </div>
-  `
-  document.querySelectorAll('.chip').forEach(c =>
-    Object.defineProperty(c, 'offsetWidth', { value: chipWidth, configurable: true }))
-  Object.defineProperty(document.querySelector('.filter-chips'), 'clientWidth', {
-    value: rowWidth,
-    configurable: true,
-  })
-  return document.getElementById('filter-bar')
-}
+// NB: the responsive chip-overflow behaviour (the "More" toggle + the
+// desktop collapse-one-at-a-time logic) lives in the shared modules/chip-overflow.js
+// helper that both filter.js and flash.js call, and is covered in full by
+// chip-overflow.test.js — it is not re-tested here.
 
 describe('initFilter', () => {
   it('no-ops (returns undefined) when there is no masonry grid', () => {
@@ -229,64 +194,6 @@ describe('initFilter', () => {
     expect(
       document.querySelector('.chip[data-filter="all"]').classList.contains('active'),
     ).toBe(true)
-  })
-
-  it('the "More" toggle expands the secondary chips and tracks aria-expanded', () => {
-    // Mirror the real markup: a `.filter-chips` wrapper with a `#chip-more-btn`
-    // toggle that flips `.expanded` (CSS reveals `.chips-secondary` on mobile).
-    document.body.innerHTML = `
-      <div id="filter-bar">
-        <div class="filter-chips">
-          ${chip('all', 'All')}
-          <button class="chip-more" id="chip-more-btn" aria-expanded="false">More</button>
-          <span class="chips-secondary" id="chips-secondary">${chip('script', 'Script')}</span>
-        </div>
-      </div>
-      <div id="masonry-grid">
-        <article class="masonry-tile" data-style="all" data-placement="forearm" data-order="0" data-shown="true"></article>
-      </div>
-    `
-    initFilter()
-    const btn = document.getElementById('chip-more-btn')
-    const wrap = document.querySelector('.filter-chips')
-    expect(wrap.classList.contains('expanded')).toBe(false)
-    expect(btn.getAttribute('aria-expanded')).toBe('false')
-    click(btn)
-    expect(wrap.classList.contains('expanded')).toBe(true)
-    expect(btn.getAttribute('aria-expanded')).toBe('true')
-    click(btn)
-    expect(wrap.classList.contains('expanded')).toBe(false)
-    expect(btn.getAttribute('aria-expanded')).toBe('false')
-  })
-
-  const collapsedChips = () =>
-    [...document.querySelectorAll('.chip.is-collapsed')]
-
-  it('collapses the secondary chips behind "More" when a desktop row is too tight', () => {
-    // 4 chips × 100px = 400px of chips into a 250px row → nothing but the two
-    // priority chips + "More" fit, so both secondary chips collapse.
-    const bar = setupDesktopChips({ chipWidth: 100, rowWidth: 250 })
-    initFilter()
-    expect(bar.classList.contains('needs-more')).toBe(true)
-    expect(collapsedChips().map(c => c.dataset.filter)).toEqual(['script', 'dotwork'])
-  })
-
-  it('collapses chips ONE AT A TIME, keeping as many as fit', () => {
-    // Room for the two priority chips + one secondary + "More" (300px) but not
-    // both secondary (400px): only the last chip should drop, not the whole set.
-    setupDesktopChips({ chipWidth: 100, rowWidth: 360 })
-    const bar = document.getElementById('filter-bar')
-    initFilter()
-    expect(bar.classList.contains('needs-more')).toBe(true)
-    expect(collapsedChips().map(c => c.dataset.filter)).toEqual(['dotwork'])
-  })
-
-  it('keeps every chip inline when a desktop row has room for them all', () => {
-    // 4 chips × 100px = 400px into a 1000px row → plenty of room, no "More".
-    const bar = setupDesktopChips({ chipWidth: 100, rowWidth: 1000 })
-    initFilter()
-    expect(bar.classList.contains('needs-more')).toBe(false)
-    expect(collapsedChips()).toHaveLength(0)
   })
 
   it('exposes applyFilters so load-more can re-filter newly revealed tiles', () => {
