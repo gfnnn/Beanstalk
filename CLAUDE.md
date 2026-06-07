@@ -64,6 +64,16 @@ command instead of rediscovering the environment each time:
   rebasing other people's branches, and anything touching a ref other than the session's
   own must be done locally or in the GitHub UI** — not from a web session. Plan around
   this; don't keep retrying the 403.
+- **Don't narrate the CI-monitoring plumbing when you open a PR — it's a known constant,
+  not news.** In a web session `send_later` is typically unavailable, the shell has no
+  `gh`/token (GitHub auth is MCP-only, so CI can't be polled from bash), and CI results
+  arrive instead via the **`<github-webhook-activity>` webhook** stream (subscribe with
+  `subscribe_pr_activity`) plus, if needed, a **background timer that wakes the session to
+  re-check CI over MCP**. That's the standing setup — take it as given and just *do* it
+  silently. **Do not** re-explain, every PR, that "`send_later` isn't available… I can't
+  poll from a shell… I'll set a background timer… webhooks will deliver failures." Only
+  speak up when there's something actionable: a CI **failure** to diagnose/fix, or the
+  **green** result the user explicitly asked you to confirm.
 
 ## Commands
 
