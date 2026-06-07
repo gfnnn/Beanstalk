@@ -513,9 +513,13 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
 squash-merges, which discards a branch's individual commits, so a merged branch never
 becomes an ancestor of `main` and therefore looks "unmerged" forever — that's how dozens
 of dead `claude/*`, `feat/*`, `docs/*` heads accumulate. Two defences:
-- **Turn on GitHub → Settings → General → Pull Requests → "Automatically delete head
-  branches".** Then every squash-merge removes its own head and the pile never forms. This
-  is the single highest-leverage fix for the recurring branch-head pain.
+- **GitHub → Settings → General → Pull Requests → "Automatically delete head branches"
+  is currently OFF for this repo** — so don't assume a squash-merge cleans up after
+  itself; it doesn't, and merged heads pile up until pruned by hand. In the merge step,
+  pass `--delete-branch` (or delete the head in the UI) rather than relying on the repo to
+  do it. **Turning this setting ON is still the single highest-leverage fix** for the
+  recurring branch-head pain: once on, every squash-merge removes its own head and the
+  pile never forms. (Until someone flips it, treat auto-delete as not happening.)
 - **Prune what's already merged from a *local* clone** (a web session can't — the proxy
   403s on remote-ref deletion, see the web-session note up top). The authoritative test for
   "merged" under squash-merge is the PR state, not `git branch --merged`, so drive it off
