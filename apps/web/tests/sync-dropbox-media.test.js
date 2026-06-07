@@ -167,17 +167,16 @@ describe('collectLane', () => {
     listFolder: vi.fn(async () => entries),
     download: download || vi.fn(async () => Buffer.from([0, 1, 2])),
   })
-  const fakeProcess = () => vi.fn(async ({ name, lane, outDir: o, manualCrop }) => ({
-    name, srcW: 1200, srcH: 1600, rows: [{ name, width: 800, ext: 'jpg', w: 800, h: 1067, bytes: 50000 }], focalMethod: manualCrop ? 'manual' : 'auto', _lane: lane, _out: o,
+  const fakeProcess = () => vi.fn(async ({ name, lane, outDir: o }) => ({
+    name, srcW: 1200, srcH: 1600, rows: [{ name, width: 800, ext: 'jpg', w: 800, h: 1067, bytes: 50000 }], _lane: lane, _out: o,
   }))
 
-  it('downloads images, skips non-images, and processes each with the crop override', async () => {
+  it('downloads images, skips non-images, and processes each through the lane pipeline', async () => {
     const client = fakeClient([entry('Koi.jpg'), entry('notes.txt', { name: 'notes.txt' }), entry('Lily Script.png')])
     const processFn = fakeProcess()
     const results = await collectLane({
       lane: 'portfolio', remote: '/Beansprout/masters/portfolio', client,
       cacheDir, outDir, processFn, log: () => {},
-      crops: { 'lily-script': { cx: 0.58, cy: 0.46, h: 0.58 } },
     })
 
     // two images processed, the .txt ignored
@@ -189,11 +188,6 @@ describe('collectLane', () => {
     for (const call of processFn.mock.calls) {
       expect(call[0]).toMatchObject({ lane: 'portfolio', outDir, crop: true, sharpen: true })
     }
-    // the manual crop reached only the matching slug
-    const lily = processFn.mock.calls.find(c => c[0].name === 'lily-script')[0]
-    const koi = processFn.mock.calls.find(c => c[0].name === 'koi')[0]
-    expect(lily.manualCrop).toEqual({ cx: 0.58, cy: 0.46, h: 0.58 })
-    expect(koi.manualCrop).toBeUndefined()
 
     // masters cached to disk + an index written
     expect(existsSync(path.join(cacheDir, 'portfolio', 'koi.jpg'))).toBe(true)

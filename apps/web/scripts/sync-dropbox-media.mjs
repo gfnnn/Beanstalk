@@ -7,7 +7,7 @@
 // tiers are committed. This script automates the fetch half of that workflow:
 //
 //   Dropbox folder of masters  ──▶  download (cached)  ──▶  process-media.mjs
-//        /<base>/portfolio/*.jpg                            (smart 3:4 tiers)
+//        /<base>/portfolio/*.jpg                            (3:4 portrait tiers)
 //        /<base>/flash/*.jpg                                (1:1 square tiers)
 //                                                           ──▶ public/images/…
 //
@@ -35,8 +35,6 @@
 //   --remote-base <path>     override the base folder (lanes are subfolders of it)
 //   --out <dir>              override the output dir (defaults per lane, below)
 //   --cache <dir>            local staging dir for downloads (default below)
-//   --crops <file.json>      manual crop overrides { "<slug>": { cx, cy, h } },
-//                            merged into the portfolio lane (see MEDIA.md)
 //   --dry-run                list what WOULD be fetched/processed; touch nothing
 //   --force                  re-download even when the cached content hash matches
 // ─────────────────────────────────────────────────────────────────────────────
@@ -175,7 +173,7 @@ async function writeIndex(cacheDir, index) {
 // `processFn` are injectable so this is unit-testable without real network/sharp.
 export async function collectLane({
   lane, remote, client, cacheDir = DEFAULT_CACHE, outDir,
-  crops = {}, force = false, dryRun = false,
+  force = false, dryRun = false,
   processFn, log = console.log,
 }) {
   const laneDef = LANE_DEFAULTS[lane]
@@ -218,20 +216,18 @@ export async function collectLane({
       log(`  fetched ${slug}.${ext}  (${kb(buf.length)})`)
     }
 
-    const job = { src: localPath, name: slug }
-    if (lane === 'portfolio' && crops[slug]) job.crop = crops[slug]
-    jobs.push(job)
+    jobs.push({ src: localPath, name: slug })
   }
 
   if (dryRun) return []
   await writeIndex(cacheDir, index)
 
-  // Reuse the EXACT pipeline process-media.mjs uses (smart crop, encode, report).
+  // Reuse the EXACT pipeline process-media.mjs uses (centre cover-crop, encode, report).
   const runOne = processFn || (await import('./process-media.mjs')).processOne
   await mkdir(out, { recursive: true })
   const results = []
   for (const job of jobs) {
-    results.push(await runOne({ src: job.src, name: job.name, lane, outDir: out, crop: true, sharpen: true, manualCrop: job.crop }))
+    results.push(await runOne({ src: job.src, name: job.name, lane, outDir: out, crop: true, sharpen: true }))
   }
   return results
 }
@@ -239,7 +235,7 @@ export async function collectLane({
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 export function parseArgs(argv) {
-  const args = { lane: null, all: false, remote: null, remoteBase: null, out: null, cache: null, cropsFile: null, dryRun: false, force: false }
+  const args = { lane: null, all: false, remote: null, remoteBase: null, out: null, cache: null, dryRun: false, force: false }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     switch (a) {
@@ -249,7 +245,6 @@ export function parseArgs(argv) {
       case '--remote-base': args.remoteBase = argv[++i]; break
       case '--out': args.out = argv[++i]; break
       case '--cache': args.cache = argv[++i]; break
-      case '--crops': args.cropsFile = argv[++i]; break
       case '--dry-run': args.dryRun = true; break
       case '--force': args.force = true; break
       default: throw new Error(`Unknown arg: ${a}`)
@@ -268,7 +263,6 @@ async function main() {
     throw new Error('--remote targets a single lane; use --remote-base with --all')
   }
 
-  const crops = args.cropsFile ? JSON.parse(await readFile(args.cropsFile, 'utf8')) : {}
   const cacheDir = args.cache || DEFAULT_CACHE
   const base = normaliseFolder(args.remoteBase || process.env.DROPBOX_MEDIA_PATH || DEFAULT_BASE)
 
@@ -280,7 +274,7 @@ async function main() {
     const remote = args.remote || `${base}/${LANE_DEFAULTS[lane].sub}`
     const outDir = args.out || LANE_DEFAULTS[lane].out
     console.log(`\n── ${lane}  ⟵  dropbox:${remote}`)
-    const results = await collectLane({ lane, remote, client, cacheDir, outDir, crops, force: args.force, dryRun: args.dryRun })
+    const results = await collectLane({ lane, remote, client, cacheDir, outDir, force: args.force, dryRun: args.dryRun })
     if (results.length) printReport(results, lane, outDir)
   }
 

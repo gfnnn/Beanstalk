@@ -32,7 +32,8 @@ Shipped (audience-capture + early management layer):
 - **Inline newsletter capture** on the homepage, flash, and post-enquiry pages.
 - **Per-piece portfolio pages** at `/portfolio/<slug>/` (per-piece SEO + sitemap).
 - **Responsive image pipeline** (#109) — `apps/web/scripts/process-media.mjs` (sharp)
-  emits AVIF/WebP/JPG tiers with a **tattoo-aware crop** (+ manual override); the original
+  emits AVIF/WebP/JPG tiers with a **centre cover-crop** to the lane aspect (masters are
+  pre-framed by the artist before upload); the original
   exports were migrated to tiers and 30 new pieces added (now **58 portfolio pieces**).
   The style taxonomy is real execution styles (`fine-line · black-grey · colour · dotwork
   · script · cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though
