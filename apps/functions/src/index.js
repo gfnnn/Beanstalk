@@ -7,19 +7,23 @@
 //
 //   POST /enquiry       enquiry + flash-claim forms
 //   POST /newsletter    newsletter signup
+//   POST /checkout      begin a flash payment (Stripe PaymentIntent)
 //   GET  /flash-status  live flash availability
 //
-// Bindings/vars come from wrangler.toml + Worker secrets (RESEND_API_KEY, …) and
-// the D1 database (`DB`). See docs/ENQUIRY-SETUP.md for setup.
+// Bindings/vars come from wrangler.toml + Worker secrets (RESEND_API_KEY,
+// STRIPE_SECRET_KEY, …) and the D1 database (`DB`). See docs/ENQUIRY-SETUP.md and
+// docs/PAYMENTS-STRIPE-BUILD.md for setup.
 // ─────────────────────────────────────────────────────────────────────────────
 import { toEvent, SECURITY_HEADERS } from './lib/http.js'
 import { handler as enquiry } from './handlers/enquiry.js'
 import { handler as newsletter } from './handlers/newsletter.js'
 import { handler as flashStatus } from './handlers/flash-status.js'
+import { handler as checkout } from './handlers/checkout.js'
 
 const ROUTES = {
   '/enquiry': enquiry,
   '/newsletter': newsletter,
+  '/checkout': checkout,
   '/flash-status': flashStatus,
 }
 

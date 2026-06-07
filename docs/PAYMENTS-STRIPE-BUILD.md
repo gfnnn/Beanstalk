@@ -248,9 +248,12 @@ Factor the tiny HTML/text builders alongside the existing ones (or a shared `lib
    `promoteFlashClaim`, `expirePendingClaims`, `recordWebhookEvent`, `reserveFlashPiece`
    hold-expiry) with fail-safe unit tests. No customer-facing change. *(Account/secrets/
    dashboard set-up is the studio's to do — see §1.)*
-2. **`/checkout` handler** — validate + rate-limit + server-side price → `reserveFlashPiece`
-   (48h hold) → `recordPayment('awaiting')` → create a Stripe **PaymentIntent** and return its
-   `client_secret` (embedded Payment Element), not a redirect URL. + unit tests.
+2. ✅ **`/checkout` handler (landed)** — validate + rate-limit + server-side price (from the
+   manifest, never the request) → `reserveFlashPiece` (48h hold) → `recordPayment('awaiting')`
+   → create a Stripe **PaymentIntent** (REST via `fetch`, no SDK; idempotency-keyed on our
+   reference) and return its `client_secret` (embedded Payment Element). Rolls the reserve +
+   payment back on a Stripe failure; **shipped dark behind `PAYMENTS_ENABLED`** (503 until
+   set). 18 unit tests (`checkout.test.js`).
 3. **`/webhooks/stripe` handler** (signature + idempotency + `promoteFlashClaim` + `markPaymentStatus('paid')` + emails) + unit tests.
 4. **Frontend** — the flash modal's **embedded payment step** (method toggle: Payment Element,
    PayPal buttons, bank-transfer panel) + a flash confirmation state, `config`/CSP, web + E2E tests.
