@@ -210,7 +210,11 @@ async function processOne({ src, name, lane, outDir, crop, sharpen, manualCrop }
   if (crop && recipe.mode === 'smart') {
     let box
     if (manualCrop) {
-      const hh = Math.min(1, manualCrop.h) * srcH, ww = hh * recipe.aspect
+      let hh = Math.min(1, manualCrop.h) * srcH, ww = hh * recipe.aspect
+      // Clamp a too-wide box back inside the frame (mirroring boxFrom), so a manual
+      // override on a wide source can't silently mis-crop: without this, ww > srcW
+      // collapses the left edge to 0 and the requested centre/aspect is lost.
+      if (ww > srcW) { ww = srcW; hh = ww / recipe.aspect }
       const cx = manualCrop.cx * srcW, cy = manualCrop.cy * srcH
       const l = Math.max(0, Math.min(srcW - ww, cx - ww / 2)), t = Math.max(0, Math.min(srcH - hh, cy - hh / 2))
       box = { lx: l / srcW, ty: t / srcH, rx: (l + ww) / srcW, by: (t + hh) / srcH }

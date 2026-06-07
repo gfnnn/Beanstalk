@@ -108,7 +108,7 @@ async function main() {
 
   // MP4 (H.264) fallback, web-friendly.
   console.log('… MP4 (H.264)')
-  run('ffmpeg', ['-y', ...trim, '-i', a.src, '-an', '-c:v', 'libx264', '-crf', String(a.crf - 10), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-vf', vf, mp4])
+  run('ffmpeg', ['-y', ...trim, '-i', a.src, '-an', '-c:v', 'libx264', '-crf', String(Math.max(0, a.crf - 10)), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-vf', vf, mp4])
 
   // Poster: a representative frame (use the trim start), same crop/scale.
   console.log('… poster (JPG)')

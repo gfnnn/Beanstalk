@@ -7,8 +7,13 @@ function/secret setup in [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md),
 [`NEWSLETTER-SETUP.md`](./NEWSLETTER-SETUP.md) and
 [`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the content-CMS plan in
-[`CMS.md`](./CMS.md); image/video media in [`MEDIA.md`](./MEDIA.md); the deposits
-plan in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
+[`CMS.md`](./CMS.md); image/video media in [`MEDIA.md`](./MEDIA.md); the **payments**
+plan in [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) (the live plan — an integrated
+**Stripe** checkout; file-by-file build in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md),
+fee maths in [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md), and the **superseded** manual-links
+decision kept for the record in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md)); scheduling in
+[`SCHEDULING.md`](./SCHEDULING.md); and engineering benchmarking takeaways in
+[`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md).
 
 The work was derived from a platform evaluation (senior-dev / artist / marketer /
 customer lenses) plus a review of the setup docs, the privacy page, and the function
@@ -107,10 +112,16 @@ These unblock later phases. None require code to decide.
       (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
       launch-legal without it. *Recommend deferring to post-launch unless you want
       launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
-- [ ] **Deposit capture (PayPal + Monzo, manual)** — the enquire copy mentions
-      deposits, but deposit capture is **not** wired (Backlog P2). Decide: launch
-      without it (manual deposit requests) or build it first. *Recommend launch
-      without; add post-launch.*
+- [ ] **Online payments / deposits (now an integrated Stripe checkout)** — the enquire
+      copy mentions deposits, but payment capture is **not** wired (Backlog P2). The
+      direction has **moved on** from manual PayPal/Monzo links to an **integrated Stripe
+      checkout** (flash = full payment, custom = deposit only; Stripe engine → Monzo
+      Business payout, Klarna via Stripe, PayPal later) — see
+      [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md). Decide: launch without it (deposit
+      requested by email) or build it first. *Recommend launch without; add post-launch.*
+      The load-bearing decision to confirm is **Stripe as the engine, paying out to the
+      Monzo Business account** (the only way to get card + Klarna in one safe,
+      high-control integration).
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
@@ -440,6 +451,50 @@ the site is live.
 Everything that outlives the launch. None of it blocks the apex cutover; it's picked
 up after the site is live, in rough priority order.
 
+## Post-launch delivery sequence (the path to delivery for every in-flight feature)
+
+The detailed plans live in the per-feature stubs ([`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)
++ [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md), [`SCHEDULING.md`](./SCHEDULING.md),
+[`CMS.md`](./CMS.md), [`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md)); this is the
+**ordering and the dependencies between them** so nothing stalls for lack of a prerequisite.
+Each item below carries its own delivery detail; the sequence is what makes them shippable in
+turn.
+
+```
+Launch (Phase 6)
+  │
+  ├─0. Quick wins (independent, front-load) ─ linter+formatter in CI · reduced-motion as a
+  │     tested invariant + axe-core a11y in the Playwright tier · pick the analytics vendor
+  │
+  ├─1. /studio admin substrate ───────────┐  (token-protected read/manage over D1:
+  │      enquiry/claim status lifecycle +  │   the shared surface the next three reuse)
+  │      GDPR erasure UI)                   │
+  │                                         ▼
+  ├─2. Payments — Stripe checkout ──► 3. Scheduling (deposit = booking trigger;
+  │      (flash full-pay first, then          co-ships with payments Phase 2)
+  │       custom deposit via /studio)
+  │
+  ├─4. CMS (TinaCMS) ─ parallel track: crop→pieces.js refactor · POC · build-out
+  │
+  ├─5. Infrastructure consolidation (Cloudflare front + Tier-3 headers) ─ parallel;
+  │      pairs with the CMS's git-backed Cloudflare stack; NOT entangled with the cutover
+  │
+  └─(ongoing) TypeScript incrementally · Turnstile spam layer · retargeting/Instagram
+            (the last two unblock on the Phase-0 analytics/feed decisions)
+```
+
+**Why this order.** **(0)** raises the engineering floor cheaply and independently, so it
+rides alongside everything after it. **(1) `/studio` is the load-bearing substrate** — the
+artist-facing enquiry/claim view, the payments reconciliation surface, the scheduling
+confirm step, and the GDPR erasure UI are all the same token-protected D1 surface, so it's
+built once and reused. **(2) Payments** is the highest-value feature and is already specced
+file-by-file; its flash full-payment phase can ship before `/studio`, its custom-deposit
+phase needs it. **(3) Scheduling** rides on the deposit trigger, so it follows payments.
+**(4) CMS** and **(5) infra consolidation** are independent parallel tracks that pair
+naturally (both want a git-backed, Cloudflare-centred stack) and neither should be tangled
+into the apex cutover. **TypeScript** is incremental and threads through all of it. The
+detailed, ordered build steps for each are in the items below and their stubs.
+
 ## P2 — toward booking/enquiry *management*
 
 - **Artist-facing view + status lifecycle** _(parked — to be researched)._
@@ -465,18 +520,51 @@ up after the site is live, in rough priority order.
   - **Dependency:** the GDPR erasure UI (below) naturally lives in the same admin
     surface (delete-by-email).
 
-- **Deposit capture (PayPal + Monzo, manual).** The no-show defence the copy already
-  promises. Reserve → deposit links (PayPal.Me/Monzo.me) → artist marks paid → claim
-  confirmed, with a stale-pending auto-release. Manual reconciliation (no gateway/webhooks).
-  Decisions + backlog stub: [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md). _(Manual PayPal + Monzo, confirmed by the studio; Klarna parked there as a future consideration.)_
+- **Online payments — integrated Stripe checkout** _(planned; specced file-by-file and
+  ready to build)._ The no-show defence the copy already promises — now an **integrated
+  checkout**, not hand-reconciled links. The studio asked for "the safest integration with
+  the highest functionality and control," plus **Klarna**, which manual links can't give, so
+  the direction moved on from the original PayPal.Me/Monzo.me plan.
+  - **Model:** **flash = full payment online** (the `price` is known at build time, so paying
+    *is* the claim); **custom enquiry = deposit only** — never auto-price a custom tattoo, the
+    balance is quoted and paid in person on the day. The deposit is the shared primitive and
+    the booking-confirmation trigger for scheduling.
+  - **Architecture:** **Stripe is the engine** — one integration carries **card + Klarna** via
+    hosted Checkout (no card data on-site → PCI **SAQ-A**), funds pay out to the **Monzo
+    Business** account (which also gives the free bank-transfer route); **PayPal** is a
+    parallel method phased in later.
+  - **Path to delivery (one PR per step → `develop`):** ① groundwork — `0002_payments.sql`
+    migration, server-side price authority (a synced `flash-prices.json` so the client can't
+    set the amount), `db.js` helpers, Stripe account + secrets; ② `POST /checkout`
+    (reserve `pending` → record `awaiting` → create Checkout Session) + unit tests; ③
+    `POST /webhooks/stripe` (signature-verify + idempotent by event id → promote
+    `pending → claimed` → email customer + artist) + unit tests; ④ frontend — flash modal
+    redirect to Stripe, `/payment-received/` page, `CHECKOUT_FN_URL` config/CSP, web + **E2E**
+    tests (the browser-only path); ⑤ stale-pending release (lazy on the `flash-status` read,
+    optional cron) + `DATA-COMPLIANCE.md` financial-retention update; ⑥ verify on staging in
+    Stripe **test mode**, then swap to live keys. Then **Phase 2** = custom deposits (tokenised
+    "pay your deposit" magic link + a `/studio` reconciliation surface) and **Phase 3** =
+    PayPal + refunds/cancellation polish.
+  - **Closes a known durability gap:** step ⑤'s `expires_at` + stale-release also resolves the
+    narrow case (June 2026 review) where a flash `pending` row can be stranded if the Worker is
+    evicted between the atomic reserve and the send — the webhook/TTL model removes the
+    manual-release dependency entirely.
+  - **Decision to confirm first:** Stripe as the engine paying out to Monzo Business (load-
+    bearing). Live plan: [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md); build spec:
+    [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md); fee maths:
+    [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md); superseded manual-links decision (the zero-build
+    fallback): [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
 
-- **Scheduling / appointment booking** _(planned — post-go-live switch-over, several
-  decisions parked for the artist)._ A calendar layer over the flash claim (and later the custom
-  enquiry) so a booking moves toward a **confirmed date** instead of an open email thread.
-  Because deposits are reconciled by hand (above), the model is **request/hold + manual
-  confirm**, not instant self-serve — it reuses the flash atomic-reserve, the stale-pending
-  TTL/cron, the `/studio` admin and the customer-email work the deposit plan already needs,
-  so the two **co-ship as one track**. Couples with the artist-facing view below (same admin
+- **Scheduling / appointment booking** _(planned — post-go-live, several decisions parked
+  for the artist)._ A calendar layer over the flash claim (and later the custom enquiry) so a
+  booking moves toward a **confirmed date** instead of an open email thread. The model is
+  **request/hold + manual confirm**, not instant self-serve — but, under the Stripe direction,
+  for **one** reason rather than two: the *deposit* now confirms automatically (the webhook
+  promotes the claim), so what still forces a human step is that **Beansprout is a guest artist
+  at Tiny Knives** and the bookable chair time isn't owned by the site. It reuses the flash
+  atomic-reserve, the `expires_at`/stale-release, the `/studio` admin and the customer-email
+  work the **payments track** already builds, so the two **co-ship as one track** (payments
+  first — the deposit is the trigger). Couples with the artist-facing view below (same admin
   surface). Build-vs-buy and the product questions for the artist are open. Decisions + backlog
   stub: [`SCHEDULING.md`](./SCHEDULING.md).
 
@@ -533,6 +621,42 @@ the project grows; centralising removes it and **unlocks full security-header co
   cutover. Ship MVP on Pages with Tier 1 headers first; consolidate once the site is
   live and stable. Pairs naturally with the CMS track (both want a git-backed,
   Cloudflare-centred stack).
+
+## Engineering quality & tooling (from the benchmarking review)
+
+Scheduled work promoted out of [`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md)
+(which records the full set of takeaways and the `[KEEP]`/`[PARK]` items to protect/defer).
+Priority reflects leverage. The first three are the **quick wins** in the sequence above —
+independent, low-effort, and they raise the floor under every feature that follows.
+
+- **[High · low-effort] Linter + formatter, gated in CI.** ESLint + Prettier, or **Biome**
+  (one fast tool). CI proves *correctness* (the 560-test net) but not *consistency*; this
+  closes that gap and is the cheapest win available. Both forward benchmarks ship it; we ship
+  neither. _Delivery: add the tool + config + a `lint` CI step in one PR; auto-format the tree
+  in a separate mechanical PR so the diff stays reviewable._
+- **[High · a11y] Make `prefers-reduced-motion` a tested invariant.** Motion is the site's
+  differentiator *and* its biggest a11y risk (smooth-scroll/scroll-hijacking hurts a large
+  share of macOS/iOS users). Pin the reduced-motion kill-switch with assertions so a future
+  motion change can't silently regress it. _Delivery: a Playwright spec that loads with
+  `prefers-reduced-motion: reduce` and asserts GSAP/Lenis are inert and content is visible._
+- **[Medium · a11y] Automated accessibility checks** — axe-core inside the Playwright tier,
+  borrowing astro-paper's rigour without adopting its stack. _Delivery: an axe pass per key
+  page in the E2E job._
+- **[High] TypeScript, incrementally.** Start at the data→render contract
+  (`apps/web/src/data/*`, `apps/web/src/build/*`) and the Worker (`apps/functions/src/*`) —
+  types would formalise the field contracts the `data-integrity` tests assert by hand. The
+  Worker is the idiomatic first target. _Ongoing thread, not a single PR._
+- **[Medium] JS-weight / Core Web Vitals budgets.** GSAP + Lenis ship on *every* page,
+  heavier than the zero-JS-by-default benchmark. Audit per-page need, scope/defer motion to
+  the pages that use it, and track CWV as budgets (LCP ≤2.5s, INP ≤200ms, CLS ≤0.1).
+- **[Consider] Defense-in-depth spam layer** for the public forms — **Cloudflare Turnstile**
+  alongside the existing honeypot + rate limiting (and the consent/validation hardening noted
+  in the June 2026 review). Cheap to add when form spam appears.
+- **[Park] Astro migration** at a future v3/major-refresh inflection — *not now*. It would
+  absorb content collections, sitemap, RSS, OG-image and SEO injection as community-maintained
+  features, shrinking the bespoke 7-plugin Vite build (a documented bus-factor-of-one) to just
+  the motion layer; the Worker stays as-is. Recorded as a considered option, gated by the test
+  net that makes it safe to revisit.
 
 ## P1 leftovers (decision-blocked)
 
