@@ -520,6 +520,31 @@ of dead `claude/*`, `feat/*`, `docs/*` heads accumulate. Two defences:
     | xargs -r -n1 git push origin --delete   # deletes only confirmed-merged heads
   ```
 
+**Auto-delete and that merged-head prune both only catch *merged* heads** — so with
+auto-delete already on, the heads that still linger are the ones neither mechanism can
+reach, and they need a manual sweep from a local clone. Three kinds: a PR **closed without
+merging** (auto-delete never fires on close — the change has usually shipped via a different
+branch), a branch that **never opened a PR** at all, and a branch **re-pushed after its PR
+merged** (the merged head was already deleted; the new commits are a fresh, un-PR'd ref).
+Sweep the closed-but-unmerged heads the same way — but **only after confirming each one's
+change actually landed elsewhere** (`git diff origin/develop origin/<branch> -- <file>`
+empty = superseded) — then *list* whatever's left for an eyeball rather than bulk-deleting,
+since never-PR'd / re-pushed heads can hold un-reviewed work:
+  ```bash
+  # from a local clone, gh authenticated — run AFTER the merged-head prune above:
+  # 1) closed-but-NOT-merged PR heads (delete once you've confirmed the work shipped elsewhere):
+  gh pr list --state closed --limit 300 --json headRefName,merged \
+    -q '.[] | select(.merged==false) | .headRefName' | sort -u > /tmp/closed-unmerged
+  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+    | grep -vxE 'main|develop' | grep -xF -f /tmp/closed-unmerged \
+    | xargs -r -n1 git push origin --delete
+  # 2) leftovers with no open PR (never-PR'd, or re-pushed past a merged head) — REVIEW, don't bulk-delete:
+  gh pr list --state open --limit 300 --json headRefName -q '.[].headRefName' \
+    | sort -u > /tmp/open-heads
+  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+    | grep -vxE 'main|develop' | grep -vxF -f /tmp/open-heads
+  ```
+
 ## Deploy guardrail — do NOT switch the apex domain
 
 `beansprout.ink` (apex) is intentionally still served by the **v1** repo
