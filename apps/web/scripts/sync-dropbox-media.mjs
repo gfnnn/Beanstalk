@@ -60,7 +60,7 @@ const IMAGE_EXT = new Set(['jpg', 'jpeg', 'png', 'webp', 'tif', 'tiff', 'heic', 
 // ── pure helpers (unit-tested) ───────────────────────────────────────────────
 
 // Filename → URL-safe slug (the piece's `slug`, the output basename). Mirrors the
-// existing slugs (e.g. "Koi Sleeve.JPG" → "koi-sleeve"). De-accents, lowercases,
+// existing slugs (e.g. "Highland Cow.JPG" → "highland-cow"). De-accents, lowercases,
 // collapses non-alphanumerics to single hyphens.
 export function slugify(name) {
   return String(name)
