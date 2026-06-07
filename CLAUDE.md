@@ -494,6 +494,19 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
    let a structural branch sit for days while content PRs pile up behind it.
 5. **Keep branches small and short-lived** (a day or two). Small diffs rebase clean; long
    ones don't. CI (`.github/workflows/test.yml`) runs Vitest on every PR — merge on green.
+6. **Supersession gate — before you open a PR.** Re-check your change isn't already on
+   `develop` (`git fetch origin develop && git diff origin/develop -- <your files>`; an empty
+   diff = already shipped, so don't open the PR). And skim the open PRs *before starting* a
+   task so you don't re-fix something already in flight — duplicate PRs (the same fix arriving
+   via two branches) are a top source of the pile, and merging them is wasted work.
+7. **Verify repo settings — don't assert them.** Check Settings (or just the live branch / PR
+   list) before *documenting* a setting's state. A PR once baked in the wrong claim that
+   auto-delete head branches was OFF — it's **ON**.
+
+**Periodic cleanup is a documented routine, not archaeology.** When open PRs climb past ~5,
+run the **Backlog hygiene** sweep in [`docs/BRANCHING.md`](docs/BRANCHING.md) (list → close
+superseded → rebase+merge the live ones → re-target stragglers → prune branches) rather than
+re-deriving it each time.
 
 **Resolving a stale branch** (the standard recovery): from its worktree,
 `git fetch && git rebase origin/develop`, fix conflicts, `npm test && npm run build`, then

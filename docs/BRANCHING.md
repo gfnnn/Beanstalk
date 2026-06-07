@@ -52,6 +52,43 @@ one batch:
 straight into `main`, then merge `main` back into `develop` so the fix isn't lost on the
 next release. Use sparingly — the normal path is always through `develop`.
 
+## Backlog hygiene (run when open PRs climb past ~5)
+
+Parallel sessions spawn branches + PRs faster than they merge, and the stale ones rot. The
+recurring mess is three shapes: (a) PRs that **duplicate** work already shipped via another
+branch, (b) branches forked from an old `develop` and **left to drift**, and (c)
+**closed / never-merged heads** auto-delete can't reach. A periodic sweep stops it
+compounding — this is the exact routine, in order:
+
+1. **List what's open.** `gh pr list --state open` (or the GitHub MCP equivalent). More than
+   a handful → do the rest.
+2. **Close the superseded — don't merge duplicates.** For each PR, test whether its change
+   already landed: `git fetch origin develop && git diff origin/develop origin/<head> -- <changed files>`
+   — an **empty diff means it's already on `develop`** (a different branch shipped it). Close
+   it with a one-line "superseded by …" note. Beware the **stale-base illusion**: the raw
+   two-way diff looks huge only because `develop` moved on, so judge by the PR's *own*
+   commits (`git log origin/develop..origin/<head>`) and whether *their* content is present —
+   not by diff size.
+3. **Rebase + merge the live ones.** Anything genuinely pending: from its worktree
+   `git rebase origin/develop`, `npm test && npm run build`, `git push --force-with-lease`,
+   then squash-merge. A branch **> 2 days old or > ~10 commits behind** is the problem case —
+   take it first, before it drifts further.
+4. **Re-target stragglers.** A feature PR accidentally aimed at `main` → switch its base to
+   `develop` (or fold it into the next release PR). Feature work never lands on `main` directly.
+5. **Prune the branches.** Auto-delete clears *merged* heads automatically; the residue
+   (closed-but-unmerged, never-PR'd, re-pushed-after-merge) needs a **local** sweep — a web
+   session can't (the proxy 403s on remote-ref deletion). The ready-made commands live in
+   `CLAUDE.md` → *"Stop the tangle at the source"*.
+
+**Two cheap habits that stop the pile forming in the first place:**
+
+- **Supersession gate — before you *open* a PR.** Run step 2's diff against `develop` first;
+  if your fix is already there, don't open the PR at all. And when *picking up* a task, skim
+  the open PRs so you don't re-fix something already in flight (the usual source of duplicates).
+- **Verify repo settings — don't assert them.** e.g. auto-delete-head-branches is **ON**
+  here: check Settings (or just the live branch list) before *documenting* a setting's state,
+  so a PR can't bake in a wrong claim (it has happened — a PR once recorded auto-delete as OFF).
+
 ## One-time GitHub setup
 
 ### 1. Create the `develop` branch
