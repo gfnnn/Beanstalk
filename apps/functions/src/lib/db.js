@@ -92,8 +92,12 @@ export async function persistConsent(env, record) {
 // ── Flash inventory ─────────────────────────────────────────────────────────
 
 // The current map of claimed/pending flash piece ids → status. Fails safe to {}.
+// Lazily releases any lapsed pending hold first (expirePendingClaims), so a piece
+// from an abandoned checkout shows as available again on the next grid load without
+// needing a cron. The sweep is fail-safe, so it never blocks the read.
 export async function getFlashClaims(env) {
   try {
+    await expirePendingClaims(env)
     const { results } = await env.DB.prepare(
       'SELECT piece_id, status FROM flash_claims',
     ).all()

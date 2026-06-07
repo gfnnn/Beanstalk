@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest'
 import {
   recordPayment, getPayment, markPaymentStatus,
   promoteFlashClaim, expirePendingClaims, recordWebhookEvent,
-  reserveFlashPiece,
+  reserveFlashPiece, getFlashClaims,
 } from '../src/lib/db.js'
 import { makeD1, brokenD1, flashMap } from './helpers/fake-d1.js'
 
@@ -113,6 +113,15 @@ describe('expirePendingClaims', () => {
 
   it('fails safe → 0 when the DB is down', async () => {
     expect(await expirePendingClaims(broken)).toBe(0)
+  })
+
+  it('getFlashClaims sweeps lapsed holds on read (lazy release, no cron needed)', async () => {
+    const d1 = makeD1()
+    const e  = { DB: d1.DB }
+    await reserveFlashPiece(e, 'lapsed', '2000-01-01T00:00:00Z')   // expired
+    await reserveFlashPiece(e, 'fresh',  futureISO())              // still held
+    expect(await getFlashClaims(e)).toEqual({ fresh: 'pending' })  // lapsed gone
+    expect(d1.data.flash.has('lapsed')).toBe(false)
   })
 })
 

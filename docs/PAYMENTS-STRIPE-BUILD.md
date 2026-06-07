@@ -262,7 +262,10 @@ Factor the tiny HTML/text builders alongside the existing ones (or a shared `lib
    hold. Idempotent + fail-safe end to end. 12 unit tests (`stripe-webhook.test.js`).
 4. **Frontend** — the flash modal's **embedded payment step** (method toggle: Payment Element,
    PayPal buttons, bank-transfer panel) + a flash confirmation state, `config`/CSP, web + E2E tests.
-5. **Stale release** — wire `expirePendingClaims` into the `flash-status` read (lazy), cron optional + `DATA-COMPLIANCE.md` update.
+5. ✅ **Stale release (landed)** — `getFlashClaims` lazily sweeps lapsed pending holds
+   (`expirePendingClaims`) before reporting, so an abandoned checkout frees its piece on the
+   next grid load with no cron. `DATA-COMPLIANCE.md` updated (payments = 6-yr financial
+   record, erasure-exempt while paid; `webhook_events` prunable).
 6. **Verify on staging** end-to-end with Stripe **test mode** (test cards + Klarna test flow),
    then go live by swapping to live keys.
 
