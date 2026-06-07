@@ -181,3 +181,51 @@ claim** (`/flash/`) and the **newsletter** (`/newsletter/`).
   **`DATA-COMPLIANCE.md`** (plain SQL via `wrangler d1 execute`).
 - **No secrets in the repo.** Keys live only in Cloudflare (Worker secrets); `.env`
   and `.dev.vars` are gitignored.
+
+---
+
+## Form UX — validation timing & field limits
+
+The four-step enquiry form (`apps/web/src/js/modules/enquire.js`,
+markup in `apps/web/enquire/index.html`) follows a deliberate **"reward early,
+punish late"** contract. It's easy to undo by accident, so it's written down here —
+change the behaviour *and* this note together.
+
+- **Never nag before the first Continue.** A field only starts live-validating
+  **after** it has been flagged once (a failed Continue/submit sets `data-live` on
+  it). Before that, typing is silent.
+- **Once flagged, be gentle.** Text-like fields **clear the error the moment you
+  type** and are re-judged only on **blur** — so a slow typer or someone obviously
+  mid-correction is never scolded character by character. Discrete controls
+  (radio / checkbox / date) re-check **on change**, which is what keeps a
+  part-ticked consent group correctly red.
+- **A failed step takes you to the problem.** A failed Continue/submit **scrolls to
+  and focuses the first errored field**, so keyboard and screen-reader users land
+  on it directly.
+- **Messages are specific and in Roxy's first-person voice.** They distinguish
+  "too long" from a stray character, and don't claim "letters only" where hyphens,
+  apostrophes and spaces are accepted (names). Keep new messages warm and concrete,
+  not generic ("Please fill this in").
+- **Character counter is quiet.** A `… characters left` counter appears **only in
+  the last quarter** of a field's allowance (≥ 75% full) and emphasises (`.low`)
+  with ≤ 40 left — it never clutters an empty field.
+
+**Field limits — two layers (defence-in-depth).** The client `maxlength` keeps real
+users comfortably within budget; the Worker **re-clamps every field server-side**
+(`clampFields()` in `apps/functions/src/handlers/enquiry.js`) so a direct API call
+can't bloat a D1 row or the Resend payload. The Worker cap is intentionally higher
+than any single `maxlength` — it's a backstop, not the UX limit.
+
+| Field | Client `maxlength` | Worker clamp |
+|-------|-------------------:|-------------:|
+| First / last name | 50 each | 2000 (`MAX_FIELD_LEN`) |
+| Email | 254 | 2000 |
+| Idea / brief (textarea) | 1200 | 2000 |
+| Placement | 80 | 2000 |
+| Size | 40 | 2000 |
+| Allergies (textarea) | 600 | 2000 |
+| Additional notes (textarea) | 600 | 2000 |
+| Multi-selects (`style[]`, `days[]`, …) | — | 50 items (`MAX_ARRAY_ITEMS`), each clamped to 2000 |
+
+Image caps are separate (8 images, ~5 MB total after downscale, 4 MB per file) —
+see **Image handling** above and the constants at the top of `enquiry.js`.
