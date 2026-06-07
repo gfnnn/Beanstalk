@@ -33,7 +33,7 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (436 web + 118
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (441 web + 119
   functions) run fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
@@ -132,7 +132,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  MOTION.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS-ROADMAP.md  PAYMENTS-STRIPE-BUILD.md  PAYMENTS-FEES.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -140,11 +140,16 @@ The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve ins
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
-content-CMS plan; `docs/PAYMENTS-PLAN.md` is the (not-yet-built) **PayPal + Monzo** deposit /
-flash-purchase spec — manual reconciliation, no payment gateway to build (Klarna parked there
-as a future consideration); `docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** spec
-that co-ships with it (request/hold + manual confirm). Read `ROADMAP.md` for current
-priorities before starting larger work.
+content-CMS plan; the **payments** plan is `docs/PAYMENTS-ROADMAP.md` — the (not-yet-built)
+**integrated Stripe checkout** (flash = full payment online, custom = deposit only; one Stripe
+engine for card + Klarna, paying out to **Monzo Business**, with PayPal as a parallel method),
+specced file-by-file in `docs/PAYMENTS-STRIPE-BUILD.md`, fee maths in `docs/PAYMENTS-FEES.md`,
+and the **superseded** manual-links decision kept for the record in `docs/PAYMENTS-PLAN.md`
+(it now carries a "direction has evolved" banner); `docs/SCHEDULING.md` is the (not-yet-built)
+**appointment-booking** spec that co-ships with it (request/hold + manual confirm, gated by the
+host studio's chair schedule). `docs/ENGINEERING-LEARNINGS.md` records forward-looking
+benchmarking takeaways (linter/TS/CWV/a11y). Read `ROADMAP.md` for current priorities before
+starting larger work.
 
 ### Multi-page Vite build
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
