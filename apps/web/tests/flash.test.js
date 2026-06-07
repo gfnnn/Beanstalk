@@ -279,6 +279,21 @@ describe('initFlash', () => {
       expect(byId('claim-name').value).toBe('Robin') // form.reset() restored the default
     })
 
+    it('ignores a re-entrant submit while a claim is in flight (no duplicate claim)', async () => {
+      // The disabled button blocks a second click, but a keyboard submit (Enter)
+      // would re-enter the handler; the in-flight guard must stop a duplicate POST.
+      global.fetch = mockFetch({ submit: { ok: true, status: 200, json: () => Promise.resolve({ ok: true }) } })
+      setup(); initFlash()
+      click(cardById('p1').querySelector('.claim-btn'))
+      await raf()
+      const form = $('#claim-form')
+      form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })) // first — POST in flight, button loading
+      form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })) // re-entrant — must be ignored
+      await flush()
+      const posts = global.fetch.mock.calls.filter(([, o]) => o && o.method === 'POST')
+      expect(posts.length).toBe(1)
+    })
+
     it('on a 409 marks the piece claimed, shows the inline error, and keeps the modal open', async () => {
       await openAndSubmit({ ok: false, status: 409, json: () => Promise.resolve({ error: 'Just claimed by someone else.' }) })
       await flush()

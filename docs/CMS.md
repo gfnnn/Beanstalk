@@ -39,34 +39,29 @@ homepage alerts + hero (`homepage.js`), testimonials. **Needs a prereq refactor*
 About, Aftercare. **Out:** editable filters (the artist only assigns existing tokens), flash
 status (stays on the live claim flow), Visit home/guest mode, the enquiries/claims admin.
 
-## Image management (crop / re-centre)
+## Image management
 
-A real need for a non-technical editor: upload a photo and **re-frame it** (centre,
-crop, zoom) without code — not just edit metadata. This is the only image-specific
-work beyond exposing the data fields, and it's lighter than a bespoke crop app:
+**Framing happens at source, not in the CMS.** The artist pre-edits and frames every
+photo before it reaches Dropbox — that's the deliberate workflow — so
+`apps/web/scripts/process-media.mjs` just does a plain **centre cover-crop** to the
+lane aspect with no automated subject detection and no per-image `crop` override (see
+[`MEDIA.md`](./MEDIA.md)). For a non-technical editor, image work is therefore the
+same as everything else: expose the `src/data/{pieces,flash}.js` fields and run the
+processor on the committed master tiers — **no bespoke crop dashboard is needed**.
 
-- **Today:** `apps/web/scripts/process-media.mjs` auto-crops to the tattoo, with an
-  optional manual `crop: { cx, cy, h }` override per image (see [`MEDIA.md`](./MEDIA.md)).
-  Those override values currently live in the processing driver, not the repo.
-- **The prereq refactor (small, do first):** lift `crop` into `pieces.js` as optional
-  per-piece fields. Re-centring then becomes a *data* edit — hand-editable **and**
-  Tina-exposable — and the auto-crop stays the on-upload default.
-- **In Tina:** expose `crop` either as plain `cx`/`cy`/`h` number fields or as a small
-  **custom field component** (Tina supports custom React field UIs) — a drag-the-dot
-  focal picker over the image. That custom picker *is* the "crop dashboard"; it's a
-  contained component, not a separate app.
+- **If in-CMS re-framing is ever wanted** (re-crop/zoom without re-editing the master
+  at source), the path is: add an optional per-piece focal `crop` field to `pieces.js`,
+  thread it back into the processor's crop step, and expose it in Tina as plain
+  `cx`/`cy`/`h` number fields or a small custom drag-the-dot focal picker. This would
+  re-introduce the framing logic that was intentionally removed, so only build it if
+  the pre-upload framing workflow stops being enough.
 - **The one piece of glue — regeneration.** Because the responsive tiers are committed
-  binaries (git-backed model), changing `crop` must **re-run the processor**. Options:
-  a GitHub Action that regenerates a slug's tiers when its `crop`/`img` changes on
-  commit, or a Tina post-save hook. This is the only non-trivial build item; the rest
-  is field config.
+  binaries (git-backed model), any such field change must **re-run the processor**:
+  a GitHub Action that regenerates a slug's tiers when its `img`/focal field changes on
+  commit, or a Tina post-save hook.
 - **Why not a hosted hotspot UI (e.g. Sanity's built-in crop):** rejected with Sanity
   itself — it moves images to a SaaS/CDN and makes the build depend on it. We keep the
-  git-backed model; the focal picker is a small custom Tina field instead.
-
-Net: **no big bespoke dashboard** — pick up the data-driven `crop` refactor as a tiny
-standalone PR whenever, then the focal picker + regenerate Action ride along with the
-Tina build.
+  git-backed model; a focal picker, if ever needed, is a small custom Tina field instead.
 
 ## Security baseline (required when built)
 
