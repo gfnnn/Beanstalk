@@ -31,8 +31,9 @@ database_name = "beansprout"
 database_id = "a00316e2-098b-46a7-bfd9-5e0facf5275a"
 migrations_dir = "migrations"
 
-# Non-secret vars. Secrets (RESEND_API_KEY, and you may keep the rest as secrets
-# too) are set with `wrangler secret put` and are NOT committed here.
+# Non-secret vars. Secrets (RESEND_API_KEY, STRIPE_SECRET_KEY,
+# STRIPE_WEBHOOK_SECRET, and you may keep the rest as secrets too) are set with
+# `wrangler secret put` and are NOT committed here.
 [vars]
 # FROM_EMAIL   = "roxy@beansprout.ink"   # or onboarding@resend.dev while testing
 # ARTIST_EMAIL = "artist@example.com"   # placeholder — the real inbox is a secret, not committed here
@@ -40,3 +41,8 @@ migrations_dir = "migrations"
 # RATE_MAX_PER_IP    = "5"
 # RATE_IP_WINDOW_MIN = "15"
 # RATE_MAX_PER_DAY   = "80"
+# Payments (Phase 1 — flash checkout). Off until live keys are in place: the
+# /checkout route returns 503 unless this is exactly "true".
+# PAYMENTS_ENABLED   = "false"
+#   Secrets (NOT committed):  wrangler secret put STRIPE_SECRET_KEY
+#                             wrangler secret put STRIPE_WEBHOOK_SECRET   (for /webhooks/stripe)

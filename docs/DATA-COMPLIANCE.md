@@ -18,7 +18,9 @@ All in the D1 database `beansprout` (bound as `DB` in the Worker):
 |---|---|---|---|
 | `submissions` | enquiry handler | enquiry + flash-claim `fields` (name, email, phone, idea, **health info**), `received_at`, `ip`, `email_status`; `email` is denormalised out of `fields` for fast lookup | **Yes — incl. special-category** (health) |
 | `newsletter_consent` | newsletter handler | email, first name, `consented_at`, consent wording + version, source, ip | Yes |
-| `flash_claims` | enquiry handler | piece-id → `pending`/`claimed` | No (reservation state only) |
+| `flash_claims` | enquiry / checkout handlers | piece-id → `pending`/`claimed`, plus an optional hold `expires_at` | No (reservation state only) |
+| `payments` | checkout + Stripe webhook | flash payment ledger: our reference, status, provider + provider ref, amount, **email**, piece-id, timestamps | **Yes** (email) — and a **financial record** |
+| `webhook_events` | Stripe webhook | processed event ids (idempotency) — provider event id, type, timestamp | No |
 | `rate_events` | rate limiter | abuse-limit counters (bucket, ts) — IP is in the bucket string | Low (transient) |
 
 Image **bytes are never stored** — only filenames/counts — so an erasure only has
@@ -31,6 +33,11 @@ control; erasure there is a manual delete in Gmail.)
 - **Records for a tattoo actually carried out** (consent + health): kept for the
   insurer/local-authority-mandated period (years) — do **not** age-prune these.
 - **Newsletter consent:** kept until the subscriber unsubscribes.
+- **Payments (`payments` table):** a **paid** row is a financial/accounting record —
+  kept for the **HMRC-mandated period (6 years)**, *not* the 12-month enquiry window;
+  don't age-prune these. Unpaid rows (`awaiting`/`failed`/`expired`) carry no money and
+  may be pruned with the enquiries. `webhook_events` is idempotency bookkeeping (no
+  personal data) and can be pruned freely once older than a few days.
 
 These figures already appear on `apps/web/privacy/index.html` ("How long we keep
 it") and the subject-rights paragraph ("respond within one month"). **If you change
@@ -62,6 +69,17 @@ wrangler d1 execute beansprout --remote \
 Then delete the matching email(s) from the artist's Gmail, and remove the contact from
 the Resend Audience if it's a newsletter erasure. Respond within **one month** (as
 the privacy page states).
+
+⚠️ **A paid `payments` row is exempt from erasure** while inside its 6-year financial
+retention (UK GDPR allows retention for a legal/accounting obligation). Don't delete it
+on an erasure request; if needed, **redact the email** instead and keep the financial
+fields:
+
+```bash
+wrangler d1 execute beansprout --remote \
+  --command "UPDATE payments SET email = NULL WHERE email = 'someone@example.com' AND status = 'paid'"
+# (unpaid rows for that person CAN be deleted alongside the submissions above)
+```
 
 **Retention prune — drop un-booked enquiries past 12 months:**
 
