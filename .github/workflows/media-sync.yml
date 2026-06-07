@@ -1,0 +1,122 @@
+# Dropbox media sync — the "Run sync" button.
+#
+# Manually fetch the artist's tattoo masters from Dropbox and run them through the
+# image pipeline (apps/web/scripts/sync-dropbox-media.mjs → process-media.mjs),
+# then open a PR against `develop` with the generated tiers + the w/h report to
+# paste into the data files. This is the hosted, one-click version of running
+# `npm run media:dropbox` locally — so a sync doesn't depend on anyone's laptop or
+# on a token sitting in a local `.env`.
+#
+# Trigger: workflow_dispatch ONLY. There is no push/PR/comment trigger — this never
+# runs on attacker-controllable input, so the elevated permissions below are safe
+# (same model as deploy-web.yml's manual + push-to-main triggers; see CLAUDE.md →
+# "CI / GitHub Actions security"). It's started by a collaborator clicking
+# Actions → "Dropbox media sync" → Run workflow, or via `gh workflow run`.
+#
+# One-time setup — repo → Settings → Secrets and variables → Actions:
+#   Secrets (the Option-B refresh-token flow — see docs/MEDIA.md):
+#     DROPBOX_APP_KEY        your Dropbox app key
+#     DROPBOX_APP_SECRET     your Dropbox app secret  (omit only for a PKCE app)
+#     DROPBOX_REFRESH_TOKEN  the long-lived refresh token you minted once
+#   Variable (optional):
+#     DROPBOX_MEDIA_PATH     base folder in Dropbox (defaults to /Beansprout/masters)
+#
+# No third-party actions (only first-party actions/*), and the PR is opened with the
+# preinstalled `gh` CLI using the job's GITHUB_TOKEN. Note: a PR opened by
+# GITHUB_TOKEN does not itself trigger the test/E2E workflows — that's fine here,
+# because the required manual step (pasting w/h into pieces.js/flash.js and pushing
+# to the PR branch) is a normal push that DOES run CI.
+
+name: Dropbox media sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: Lane(s) to sync
+        type: choice
+        options: [all, portfolio, flash]
+        default: all
+      dry_run:
+        description: Preview only — list what would be fetched, change nothing
+        type: boolean
+        default: false
+      force:
+        description: Re-download even when the cached content hash matches
+        type: boolean
+        default: false
+
+# Elevated on purpose (push a branch + open a PR), and safe because the only trigger
+# is a manual, collaborator-initiated workflow_dispatch.
+permissions:
+  contents: write
+  pull-requests: write
+
+# Don't let two syncs race on the same branch/commit.
+concurrency:
+  group: media-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Run the Dropbox sync
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+          DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
+          DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          DROPBOX_MEDIA_PATH: ${{ vars.DROPBOX_MEDIA_PATH }}
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.lane }}" = "all" ]; then args="--all"; else args="--lane ${{ inputs.lane }}"; fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="$args --dry-run"; fi
+          if [ "${{ inputs.force }}" = "true" ]; then args="$args --force"; fi
+          echo "Running: media:dropbox $args"
+          npm run media:dropbox -- $args | tee sync-report.txt
+          {
+            echo "### Dropbox sync · lane \`${{ inputs.lane }}\`"
+            echo
+            echo '```'
+            cat sync-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit tiers and open a PR
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain apps/web/public/images)" ]; then
+            echo "No image tiers changed — nothing to commit (masters unchanged, or none found)." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          branch="media/dropbox-sync-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add apps/web/public/images
+          git commit -m "media: sync tattoo tiers from Dropbox (run ${{ github.run_id }})"
+          git push -u origin "$branch"
+          {
+            echo "Automated Dropbox media sync — lane \`${{ inputs.lane }}\`."
+            echo
+            echo "**Manual step still required:** paste the \`w\`/\`h\` below into \`apps/web/src/data/pieces.js\` / \`flash.js\` for any new pieces (keep each array newest-first), then commit to this branch — that push runs CI. The image tiers themselves are already in this PR."
+            echo
+            data=$(grep 'data:' sync-report.txt || true)
+            if [ -n "$data" ]; then
+              printf '### Data lines to paste\n```\n%s\n```\n\n' "$data"
+            fi
+            printf '<details><summary>Full sync report</summary>\n\n```\n%s\n```\n</details>\n' "$(cat sync-report.txt)"
+          } > pr-body.md
+          gh pr create --base develop --head "$branch" \
+            --title "media: Dropbox sync (run ${{ github.run_id }})" \
+            --body-file pr-body.md | tee -a "$GITHUB_STEP_SUMMARY"

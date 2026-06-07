@@ -32,11 +32,13 @@ Shipped (audience-capture + early management layer):
 - **Inline newsletter capture** on the homepage, flash, and post-enquiry pages.
 - **Per-piece portfolio pages** at `/portfolio/<slug>/` (per-piece SEO + sitemap).
 - **Responsive image pipeline** (#109) — `apps/web/scripts/process-media.mjs` (sharp)
-  emits AVIF/WebP/JPG tiers with a **tattoo-aware crop** (+ manual override); the original
-  exports were migrated to tiers and 30 new pieces added (now **58 portfolio pieces**).
-  The style taxonomy is real execution styles (`fine-line · black-grey · colour · dotwork
-  · script · cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though
-  the clips themselves are deferred (Phase 4). Full guide: [`MEDIA.md`](./MEDIA.md).
+  emits AVIF/WebP/JPG tiers with a **centre cover-crop** to the lane aspect (masters are
+  pre-framed by the artist before upload). The catalogue is the artist's **28 pre-edited
+  pieces** — an earlier unedited batch, added to trial an automated subject-detection crop
+  that has since been removed, was dropped along with that feature. The style taxonomy is
+  real execution styles (`fine-line · black-grey · colour · dotwork · script ·
+  cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though the clips
+  themselves are deferred (Phase 4). Full guide: [`MEDIA.md`](./MEDIA.md).
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
   (reject double-claims with 409); the grid reflects live availability.
@@ -90,7 +92,7 @@ Two things gate the apex cutover:
    erasure path** exist as plain SQL (`docs/DATA-COMPLIANCE.md`), and the privacy
    page matches. Built in **Phase 1** — this was the one real engineering blocker,
    and it's done.
-2. **Real copy + images.** Largely done (#53, #109; **58 portfolio pieces** with real
+2. **Real copy + images.** Largely done (#53, #109; **28 portfolio pieces** with real
    photos on a responsive pipeline). The **12 flash pieces are still placeholder art**
    (line-art glyphs, no flash photos yet); the hero video/GIF and a real og-image are the
    other open items — all listed in **Phase 4**.
@@ -273,9 +275,8 @@ drafted for them. The mechanism, end to end:
       is now committed so link previews and the `Person` schema don't point at a 404;
       **replace with a real 1200×630 photo before launch.** 👤 supply →
       🛠 swap `apps/web/public/images/og-image.jpg`.
-- [ ] **Portfolio / flash spot-check** — **58 portfolio pieces** carry real photos;
-      eyeball them, flagging any auto-crop that needs a manual `crop` override (see
-      [`MEDIA.md`](./MEDIA.md)). The **12 flash pieces are still placeholder art**
+- [ ] **Portfolio / flash spot-check** — **28 portfolio pieces** carry real photos;
+      eyeball them on the built site. The **12 flash pieces are still placeholder art**
       (`img: null` → line-art glyphs; titles/specs/prices are placeholders too) — add real
       flash photos + copy to `src/data/flash.js` and files to
       `apps/web/public/images/flash/` before launch.
@@ -630,7 +631,7 @@ Priority reflects leverage. The first three are the **quick wins** in the sequen
 independent, low-effort, and they raise the floor under every feature that follows.
 
 - **[High · low-effort] Linter + formatter, gated in CI.** ESLint + Prettier, or **Biome**
-  (one fast tool). CI proves *correctness* (the 560-test net) but not *consistency*; this
+  (one fast tool). CI proves *correctness* (the 521-test net) but not *consistency*; this
   closes that gap and is the cheapest win available. Both forward benchmarks ship it; we ship
   neither. _Delivery: add the tool + config + a `lint` CI step in one PR; auto-format the tree
   in a separate mechanical PR so the diff stays reviewable._
