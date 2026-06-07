@@ -36,6 +36,71 @@ node apps/web/scripts/process-media.mjs --lane portfolio \
 **already-cropped exports**, e.g. the artist's original 28 portfolio webps that were
 migrated to tiers without re-framing.
 
+## Collecting masters from Dropbox (automated)
+
+The masters live off-repo in **Dropbox** (only the generated tiers are committed —
+see [Reproducibility](#manual-crop-override) below). **`apps/web/scripts/sync-dropbox-media.mjs`**
+(`npm run media:dropbox`) automates the *fetch* half of the workflow: it lists a
+Dropbox folder, downloads the masters (incrementally — it skips anything whose
+content hash hasn't changed), and runs each one through **the exact same
+`process-media.mjs` pipeline** (smart crop, encode, report). So the artist just
+drops new photos into the shared Dropbox folder and a single command turns them into
+committable tiers.
+
+It is **offline dev/CI tooling**, like `process-media.mjs` itself: the live static
+site and the Worker never call Dropbox. You still review the emitted tiers, paste the
+printed `w,h` into `src/data/{pieces,flash}.js`, and commit the data + image files.
+
+> **A Claude-web session can't run it.** The Dropbox API hosts
+> (`api.dropboxapi.com` / `content.dropboxapi.com`) are blocked by the sandbox
+> network allowlist (`Host not in allowlist`), the same limit as the Playwright CDN.
+> Run it **locally or in CI**. The logic is unit-tested with the network mocked
+> (`tests/sync-dropbox-media.test.js`), so that part still has a signal in the sandbox.
+
+**Folder layout in Dropbox.** Under one base folder (default `/Beansprout/masters`,
+override with `DROPBOX_MEDIA_PATH` or `--remote-base`), keep a subfolder per lane:
+
+```
+/Beansprout/masters/
+  portfolio/   Koi Sleeve.jpg     → slug "koi-sleeve"  → public/images/tattoos/
+  flash/       Moth.jpg           → slug "moth"        → public/images/flash/
+```
+
+The **filename (minus extension) becomes the piece `slug`** (de-accented, lowercased,
+hyphenated) — so name the files deliberately; a collision (two files → the same slug)
+is a hard error. `.jpg/.jpeg/.png/.webp/.tif/.tiff/.heic/.heif/.avif` are picked up;
+anything else in the folder is ignored.
+
+**One-time Dropbox setup** (the artist or you, once):
+
+1. Create a Dropbox app at <https://www.dropbox.com/developers/apps> — *Scoped access*,
+   access type *App folder* (simplest; the app only sees its own folder) or *Full
+   Dropbox* if the masters live elsewhere.
+2. Under **Permissions**, enable `files.metadata.read` + `files.content.read`, then
+   **Submit**.
+3. Get a token. Quickest: the app console's **Generate access token** button → a
+   short-lived token (~4h) → `DROPBOX_ACCESS_TOKEN`. For a durable setup, mint a
+   **refresh token** once (authorize the app with `token_access_type=offline`, exchange
+   the returned `code` at `oauth2/token`) and set `DROPBOX_REFRESH_TOKEN` +
+   `DROPBOX_APP_KEY` (+ `DROPBOX_APP_SECRET` unless it's a PKCE app) — the script then
+   gets a fresh access token on every run. All four go in `.env` (gitignored); the
+   block is in [`.env.example`](../.env.example).
+
+**Run it** (from the repo root so `.env` is picked up automatically):
+
+```bash
+npm run media:dropbox -- --lane portfolio      # one lane
+npm run media:dropbox -- --all                 # both lanes
+npm run media:dropbox -- --lane flash --dry-run # preview the fetch+slug mapping, touch nothing
+npm run media:dropbox -- --lane portfolio --crops crops.json  # manual crop overrides (below)
+```
+
+Downloads are cached under `apps/web/.dropbox-cache/` (gitignored) so re-runs only pull
+changed masters; `--force` re-downloads everything. **Manual crop overrides** compose
+with the existing `process-media.mjs` feature — pass `--crops <file.json>` mapping
+`{ "<slug>": { "cx", "cy", "h" } }` (normalised 0–1; see the override table below) and
+they're applied to the portfolio lane.
+
 ## The tattoo-aware crop (portfolio "smart" lane)
 
 The portfolio masters are casual phone photos: the tattoo is a small part of a frame
@@ -75,10 +140,11 @@ as the original 28 hand-crops were):
 | `folding-fan` | `{ cx: 0.43, cy: 0.43, h: 0.56 }` | landscape master; auto drifted up-right |
 | `magnolia` | `{ cx: 0.64, cy: 0.60, h: 0.70 }` | striped shirt fooled the skin/ink split |
 
-> **Reproducibility:** re-deriving the tiers needs the **masters** (a Dropbox export,
-> kept off-repo) + these crop values. This is the same trade-off as the original 28
-> (only their cropped exports were ever committed). If image management moves into the
-> CMS, the plan is to lift `crop` into `pieces.js` so it's data-driven — see
+> **Reproducibility:** re-deriving the tiers needs the **masters** (kept off-repo in
+> Dropbox — fetched by [`sync-dropbox-media.mjs`](#collecting-masters-from-dropbox-automated))
+> + these crop values. This is the same trade-off as the original 28 (only their
+> cropped exports were ever committed). If image management moves into the CMS, the
+> plan is to lift `crop` into `pieces.js` so it's data-driven — see
 > [`CMS.md`](./CMS.md) and [`ROADMAP.md`](./ROADMAP.md).
 
 ## Adding / re-cropping a portfolio piece
