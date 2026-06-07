@@ -42,6 +42,7 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
+import { pathToFileURL } from 'node:url'
 import sharp from 'sharp'
 
 // Per-lane recipe. Widths + the <img> base tier MUST match the renderer's srcset
@@ -290,11 +291,16 @@ async function main() {
     results.push(await processOne({ src: srcAbs, name: job.name, lane: args.lane, outDir, crop: args.crop, sharpen: args.sharpen, manualCrop: job.crop }))
   }
 
-  // One aligned report for the whole run. The `base` line is what the data file
-  // needs: the no-extension path + the intrinsic w,h of the <img> tier
-  // (portfolio -800, flash -600).
-  const baseTier = args.lane === 'flash' ? 600 : 800
-  console.log(`\nlane=${args.lane}  out=${outDir}\n`)
+  printReport(results, args.lane, outDir)
+}
+
+// One aligned report for a whole run: each output's w×h + byte size, the data-file
+// `base` line to paste (the no-extension path + the intrinsic w,h of the <img> tier —
+// portfolio -800, flash -600), and the batch totals for a quick budget sanity check.
+// Exported so the Dropbox collector (sync-dropbox-media.mjs) prints identically.
+export function printReport(results, lane, outDir) {
+  const baseTier = lane === 'flash' ? 600 : 800
+  console.log(`\nlane=${lane}${outDir ? `  out=${outDir}` : ''}\n`)
   for (const r of results) {
     console.log(`■ ${r.name}   (master ${r.srcW}×${r.srcH}, crop=${r.focalMethod})`)
     for (const row of r.rows) {
@@ -303,11 +309,18 @@ async function main() {
     const base = r.rows.find(x => x.width === baseTier && x.ext === 'jpg')
     if (base) console.log(`    → data:  img:'/.../${r.name}'  w:${base.w}  h:${base.h}\n`)
   }
-
-  // Totals — quick budget sanity for the whole batch.
   const allRows = results.flatMap(r => r.rows)
   const total = allRows.reduce((s, r) => s + r.bytes, 0)
   console.log(`${results.length} image(s), ${allRows.length} files, ${kb(total)} total\n`)
 }
 
-main().catch(err => { console.error(err.message); process.exit(1) })
+// Reusable pieces for the Dropbox collector — the lane recipes and the single-master
+// processor. Imported there so the masters fetched from Dropbox go through the EXACT
+// same crop/encode pipeline (and report) as a hand-run batch.
+export { LANES, processOne }
+
+// Run as a CLI only when invoked directly (`node scripts/process-media.mjs …`).
+// When another module imports this file (the Dropbox collector), main() must NOT
+// fire — importing has no side effects.
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+if (invokedDirectly) main().catch(err => { console.error(err.message); process.exit(1) })
