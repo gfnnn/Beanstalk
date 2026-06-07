@@ -45,10 +45,11 @@
 //               they reserve the aspect-ratio box so the grid doesn't reflow as
 //               lazy images load (no layout shift).
 //
-// → The catalogue below is wired to the artist's approved web exports (all 700×930 .webp
-//   in /public/images/tattoos/). `styles`/`placement`/`title`/`subject` are a first
-//   pass for the filters + alt text — the artist can retune any of them in place. `date` is
-//   each file's date; the grid orders newest → oldest from it (see header above).
+// → The catalogue below is wired to the artist's pre-edited photos, processed into
+//   responsive tiers (≈800×1067) in /public/images/tattoos/ by scripts/process-media.mjs.
+//   `styles`/`placement`/`title`/`subject` are a first pass for the filters + alt text —
+//   the artist can retune any of them in place. `date` is each piece's date; the grid
+//   orders newest → oldest from it (see header above).
 // ─────────────────────────────────────────────────────────────────────────────
 
 const IMG = '/images/tattoos'
