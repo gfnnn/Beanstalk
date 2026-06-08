@@ -109,11 +109,12 @@ These unblock later phases. None require code to decide.
       Worker secret (the artist's Gmail, kept out of the repo; where
       `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
 - [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
-- [ ] **Analytics vendor (optional for MVP)** — Plausible/Fathom (cookieless, no
-      consent banner) vs GA4 (needs a banner). The `track()` scaffold
-      (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
-      launch-legal without it. *Recommend deferring to post-launch unless you want
-      launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
+- [ ] **Analytics vendor (optional for MVP)** — **decided: Plausible** (cookieless, no consent
+      banner; the read-only **shared link** is the non-technical "foolproof view" for the
+      artist), deferred to post-launch. GA4 is out (needs a banner + is unusable raw by a
+      non-tech artist). The `track()` scaffold (`src/js/modules/analytics.js`) no-ops until
+      one is wired, so the site is launch-legal without it. Full rationale, wiring, and the
+      Instagram-feed + retargeting calls in [`ANALYTICS.md`](./ANALYTICS.md).
 - [ ] **Online payments / deposits (integrated Stripe checkout)** — the enquire copy mentions
       deposits. The **Worker backbone is now built and shipped dark** behind `PAYMENTS_ENABLED`
       (flash full-payment via an embedded Stripe **Payment Element** → Monzo Business payout,
@@ -641,9 +642,12 @@ low-effort, and they raise the floor under every feature that follows.
 
 ## P1 leftovers (decision-blocked)
 
-- **Retargeting pixel** (Meta/TikTok) — blocked on the analytics-vendor decision
-  (Phase 0).
-- **Instagram feed embed** — blocked on the feed-mechanism decision (Phase 0).
+- **Retargeting pixel** (Meta/TikTok) — a deliberate either/or: it's a marketing cookie that
+  **forces a consent banner** (the cookieless analytics choice gives no head start here). Parked
+  behind that call; default is stay banner-free. See [`ANALYTICS.md`](./ANALYTICS.md) §4.
+- **Instagram feed embed** — recommended as a **build-time static snapshot** (no token, no
+  third-party cookies, no banner), reusing the `process-media.mjs` + data-file pattern. See
+  [`ANALYTICS.md`](./ANALYTICS.md) §6.
 
 ## P3 — polish
 
