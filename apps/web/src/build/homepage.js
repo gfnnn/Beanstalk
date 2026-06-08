@@ -12,7 +12,7 @@ const tone = t => (TONES.has(t) ? t : 'moss')
 // The nav "light" — the live status pill shared by every page. `center` is the
 // mobile-drawer variant. Returns '' when status.show is false (pill removed).
 export function renderStatus(status = {}, { center = false } = {}) {
-  if (!status || !status.show) return ''
+  if (!status?.show) return ''
   const style = center ? ' style="justify-content:center"' : ''
   return `<span class="status-pill ${tone(status.tone)}"${style}>${esc(status.label)}</span>`
 }
@@ -21,7 +21,7 @@ export function renderStatus(status = {}, { center = false } = {}) {
 // do, the whole block (and its top border) is omitted so there's no empty frame.
 // `html` is intentionally raw (author-controlled copy may include a link).
 export function renderNotices(notices = []) {
-  const items = (notices || []).filter(n => n && n.show)
+  const items = (notices || []).filter(n => n?.show)
   if (!items.length) return ''
   const rows = items.map(n => `
       <div class="notice-item">
@@ -48,7 +48,7 @@ export function renderHeroMediaTag(hero = {}) {
 // Returns '' until `videoCredit.show` is true (no video/credit yet). When a `url`
 // is set the name links out (new tab, rel-safe); otherwise it's plain text.
 export function renderVideoCredit(credit = {}) {
-  if (!credit || !credit.show) return ''
+  if (!credit?.show) return ''
   const label = credit.label ? `<span class="video-credit-label">${esc(credit.label)}</span> ` : ''
   const name  = credit.url
     ? `<a class="video-credit-name" href="${esc(credit.url)}" target="_blank" rel="noopener noreferrer">${esc(credit.name)}</a>`

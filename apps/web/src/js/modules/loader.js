@@ -89,7 +89,7 @@ export function initPageLoader() {
     setTimeout(remove, 700)
   }
 
-  const fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve()
+  const fontsReady = (document.fonts?.ready) || Promise.resolve()
   Promise.resolve(fontsReady).then(dismiss)
   setTimeout(dismiss, 3000) // hard ceiling — never trap the page behind the overlay
 }

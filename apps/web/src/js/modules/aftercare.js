@@ -35,7 +35,7 @@ export function initAftercare() {
       t.setAttribute('aria-selected', String(on))
       t.tabIndex = on ? 0 : -1
     })
-    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + method))
+    panels.forEach(p => p.classList.toggle('active', p.id === `panel-${method}`))
   }
 
   // ── First choice unfolds the switcher + step content ─────────────────────

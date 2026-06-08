@@ -56,7 +56,7 @@ describe('verifyStripeSignature', () => {
 
   it('rejects a tampered payload, a wrong secret, and a missing header', async () => {
     const { raw, header } = await sign({ id: 'evt_x', amount: 100 })
-    expect(await verifyStripeSignature(raw + ' ', header, SECRET)).toBe(false)
+    expect(await verifyStripeSignature(`${raw} `, header, SECRET)).toBe(false)
     expect(await verifyStripeSignature(raw, header, 'whsec_other')).toBe(false)
     expect(await verifyStripeSignature(raw, '', SECRET)).toBe(false)
   })

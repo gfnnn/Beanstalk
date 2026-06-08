@@ -37,7 +37,7 @@ export function priceToPence(price, id = 'piece') {
 export function buildPriceMap(flash) {
   const prices = {}
   for (const piece of flash) {
-    if (!piece || !piece.id) continue
+    if (!piece?.id) continue
     if (prices[piece.id] !== undefined) {
       throw new Error(`duplicate flash piece id "${piece.id}" — ids must be unique`)
     }
@@ -52,7 +52,7 @@ async function main() {
 
   const prices = buildPriceMap(flash)
   mkdirSync(dirname(OUT_FILE), { recursive: true })
-  writeFileSync(OUT_FILE, JSON.stringify(prices, null, 2) + '\n')
+  writeFileSync(OUT_FILE, `${JSON.stringify(prices, null, 2)}\n`)
   console.log(`Wrote ${Object.keys(prices).length} flash prices → ${OUT_FILE}`)
 }
 

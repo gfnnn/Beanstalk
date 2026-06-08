@@ -35,7 +35,7 @@ export function piecesForStyle(pieces, style, n = PREVIEWS, exclude) {
   return (pieces || [])
     .map((p, i) => ({ p, i }))
     .filter(({ p }) => p.img && Array.isArray(p.styles) && p.styles.includes(style)
-      && !(exclude && exclude.has(p.slug)))
+      && !(exclude?.has(p.slug)))
     .sort((a, b) => dateKey(b.p) - dateKey(a.p) || a.i - b.i)
     .slice(0, n)
     .map(o => o.p)
