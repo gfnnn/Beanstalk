@@ -123,20 +123,18 @@ These unblock later phases. None require code to decide.
       Worker secret (the artist's Gmail, kept out of the repo; where
       `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
 - [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
-- [ ] **Analytics vendor (optional for MVP)** — **decided: Plausible** (cookieless, no consent
+- [x] **Analytics — not live at launch** (decided) — **Plausible**, deferred to post-launch (cookieless, no consent
       banner; the read-only **shared link** is the non-technical "foolproof view" for the
-      artist), deferred to post-launch. GA4 is out (needs a banner + is unusable raw by a
+      artist). GA4 is out (needs a banner + is unusable raw by a
       non-tech artist). The `track()` scaffold (`src/js/modules/analytics.js`) no-ops until
       one is wired, so the site is launch-legal without it. Full rationale, wiring, and the
       Instagram-feed + retargeting calls in [`ANALYTICS.md`](./ANALYTICS.md).
-- [ ] **Online payments / deposits (integrated Stripe checkout)** — the enquire copy mentions
-      deposits. The **Worker backbone is now built and shipped dark** behind `PAYMENTS_ENABLED`
+- [x] **Online payments / deposits — not live at launch** (decided) — launch with the deposit
+      **requested by email**; the **Worker backbone stays dark** behind `PAYMENTS_ENABLED`
       (flash full-payment via an embedded Stripe **Payment Element** → Monzo Business payout,
-      Klarna via Stripe; custom = deposit only; PayPal timing TBD) — only the **step-4 frontend
-      + go-live config** remain (see [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)). Decide:
-      launch without payments live (deposit requested by email) or finish step 4 first.
-      *Recommend launch without; flip it on post-launch.* The load-bearing engine decision
-      (**Stripe → Monzo Business**) is effectively settled — it's what shipped.
+      Klarna via Stripe; custom = deposit only; PayPal timing TBD). The **step-4 frontend +
+      go-live config** are a **post-launch** item (see [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)).
+      The load-bearing engine decision (**Stripe → Monzo Business**) is settled — it's what shipped.
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /

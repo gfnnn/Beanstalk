@@ -137,13 +137,13 @@ Moves `beansprout.ink` from **v1 → v2**. Two test→prod flips happen together
 
 ---
 
-## Decisions still open (don't block the build — confirm before/at launch)
+## Launch decisions — settled (both deferred to post-launch)
 
-- **Payments live at launch?** Worker backbone is shipped dark behind `PAYMENTS_ENABLED`;
-  only the embedded Payment Element frontend + account setup remain. **Recommend launch
-  WITHOUT** (deposit requested by email), flip on post-launch. → needs a yes/no.
-- **Analytics** — decided **Plausible**, deferred post-launch; site is launch-legal without
-  it (the `track()` scaffold no-ops). No action to launch.
+- **Payments — NOT live at launch** ✅ decided. Launch with the deposit requested by email;
+  the Worker backbone stays dark behind `PAYMENTS_ENABLED`, and the embedded Payment Element
+  frontend + account setup are a post-launch item.
+- **Analytics — NOT live at launch** ✅ decided. Plausible, deferred post-launch; the site is
+  launch-legal without it (the `track()` scaffold no-ops).
 
 ## Ordering (the only constraints)
 
