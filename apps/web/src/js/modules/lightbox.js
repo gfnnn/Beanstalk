@@ -74,7 +74,7 @@ export function initLightbox() {
       const ph = document.getElementById('lightbox-placeholder')
       if (ph) {
         const swatches = ['t-moss','t-cream','t-ink','t-sage','t-clay','t-warm','t-deep','t-blush','t-stone','t-dark']
-        ph.className = 'lightbox-placeholder ' + swatches[lbIndex % swatches.length]
+        ph.className = `lightbox-placeholder ${swatches[lbIndex % swatches.length]}`
       }
     }
 

@@ -6,22 +6,64 @@ file-by-file here; Phases 2–3 are outlined at the foot and flesh out once Phas
 the open decisions are confirmed.
 
 Stripe is the engine: one integration carries **card + Klarna**, funds land in the Stripe
-balance and pay out to the **Monzo Business** account. We use **hosted Stripe Checkout via a
-server-created session + a top-level redirect** — so **no card fields and no Stripe.js on our
-pages** (PCI **SAQ-A**, and almost nothing added to the CSP). The Worker does all the Stripe
-API talking; the browser only ever `fetch()`es our own Worker and then navigates to
-`checkout.stripe.com`.
+balance and pay out to the **Monzo Business** account. Card data is entered in Stripe's own
+**iframe fields** (the embedded **Payment Element**), so it never touches our origin (PCI
+**SAQ-A**); the Worker does all the secret-bearing API talking.
 
-## Working assumptions (confirm; sensible defaults baked in)
+## Decisions locked (2026-06)
 
-- **Flash = full payment** at claim (deposit-to-hold option deferred to Phase 2 if wanted).
-- **Methods:** card **+ Klarna** from day one (Klarna is free to enable via Stripe). Best on
-  flash full payments; not offered on deposits.
-- **Amount authority is server-side** — the client never sends the price (see §3).
+These supersede the earlier "redirect" assumption — confirmed with the studio:
+
+- **In-flow, embedded, on-site — one Stripe integration.** The payment is a **step the customer
+  never visibly leaves the site for**: a single Stripe **Payment Element** that surfaces **card ·
+  Link · Apple/Google Pay · Klarna · PayPal** via `automatic_payment_methods` (each toggled on in
+  the Stripe dashboard, no code). Trade-off vs a redirect: a little more JS + the Stripe hosts on
+  the CSP (§7). Redirect methods (Klarna/PayPal/wallets) bounce off-site and back to a small return
+  page — inherent to those methods, not a second integration.
+- **Flash only (for now).** The inline step appears **only for flash pieces** (a known, fixed
+  price). The **custom enquiry flow is untouched** — it still POSTs and lands on
+  `/enquiry-received/`; its deposit keeps the documented *"after the artist quotes, via a
+  tokenised link"* model (Phase 2). The site never auto-prices a custom tattoo.
+- **Flash = full payment** at claim (deposit-to-hold option still parked for later).
+- **One Stripe integration carries every on-site method.** Research (June 2026) settled the old
+  open question: **PayPal is now a native Stripe payment method for UK accounts**, so card · Link ·
+  wallets · Klarna · **PayPal** all surface from the *single* shipped integration via
+  `automatic_payment_methods` — **no separate PayPal Orders-API integration, no on-page
+  bank-transfer panel**. The **Monzo bank-transfer** route is a manual, off-page option reconciled
+  in the artist dashboard ([`DASHBOARD.md`](./DASHBOARD.md)). The code stays Stripe-only
+  (`payments.provider` is always `'stripe'`).
+- **Amount authority is server-side** — the client never sends the price (see §3). ✅ built.
 - **Reference format** `BSF-<piece-id>-<4char>`; **stale-pending window 48h**, with the
-  Stripe Checkout session itself expiring at 30 min.
+  Stripe PaymentIntent/session expiring at ~30 min.
 - Ships to **staging only** until the apex cutover — no `apps/web/public/CNAME` (guardrail in
-  `CLAUDE.md`).
+  `CLAUDE.md`), test-mode keys first, behind a `PAYMENTS_ENABLED` flag.
+
+## Isolation — zero impact on the non-payment go-live (a hard requirement)
+
+The whole feature is built to **develop in the background and toggle on when ready**,
+with **no effect on the launch journey** (marketing site, enquiry form, claim-by-enquiry,
+newsletter) until that switch is flipped. The guarantees, enforced in code + tests:
+
+- **Front end is unchanged until a build flag flips it.** The backbone PR touches **no
+  `apps/web` files at all** (the built bundle hash is identical). Slice 4 will gate the
+  embedded payment UI behind a build-time `VITE_PAYMENTS_ENABLED`; **off → the flash
+  "Claim" button behaves exactly as today** (POST `/enquiry` → `/enquiry-received/`). So the
+  frontend can merge and ship dark too.
+- **Worker routes are additive + flagged.** `/checkout` returns **503 unless
+  `PAYMENTS_ENABLED === 'true'`**; `/webhooks/stripe` is a new path nobody calls until Stripe
+  is configured. The existing `/enquiry`, `/newsletter`, `/flash-status` are untouched.
+- **No dependency on migration `0002` for the non-payment path.** `reserveFlashPiece`
+  *without* an expiry (the claim-by-enquiry path) uses the **original 3-column insert** — it
+  never references `expires_at`. The lazy stale-sweep in `getFlashClaims` is **gated on
+  `PAYMENTS_ENABLED`**, so with payments off that read is byte-for-byte as before. ⇒ `0002`
+  only needs applying **when you turn payments on**, and is purely additive when you do.
+- **Everything is fail-safe**, so even a half-configured state (code deployed, flag off, or
+  migration not yet applied) degrades to "no payments offered", never to a broken enquiry/claim.
+
+**To turn it on, later:** apply `0002` → set Worker secrets (`STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`) + `PAYMENTS_ENABLED="true"` → set `VITE_PAYMENTS_ENABLED` on the
+web build → rebuild. **To turn it off:** unset `PAYMENTS_ENABLED` (and the build flag). No
+code change either way.
 
 ## End-to-end flow (Phase 1)
 
@@ -29,32 +71,33 @@ API talking; the browser only ever `fetch()`es our own Worker and then navigates
 Claim modal (name, email, placement)
   → POST /checkout { kind:'flash', piece_id, fields }
       Worker: rate-limit → validate → look up price (server authority)
-            → reserveFlashPiece(pending)         [409 if already taken]
+            → reserveFlashPiece(pending, +48h hold)    [409 if already taken]
             → record payment row (status 'awaiting')
-            → stripe.checkout.sessions.create(...)  → { url }
-  → browser window.location = url  → Stripe hosted Checkout (card / Klarna)
+            → create Stripe PaymentIntent (REST via fetch)  → { client_secret }
+  → browser mounts the Payment Element (card / Klarna) in the modal, confirms on-site
   → customer pays
-      Stripe → POST /webhooks/stripe  (checkout.session.completed)
-            Worker: verify signature → dedupe by event id
+      Stripe → POST /webhooks/stripe  (payment_intent.succeeded)
+            Worker: verify signature (Web-Crypto HMAC) → dedupe by event id
                   → promote piece pending→claimed
                   → mark payment 'paid'
                   → email customer receipt + artist notification
-  → success_url  → /payment-received/   (cancel_url → /flash/?cancelled)
-Abandoned/unpaid → session expires (30m) + 48h stale-release frees the piece
+  → in-modal confirmation state (no page redirect; Klarna & co. bounce back via return_url)
+Abandoned/unpaid → payment_intent.canceled + 48h stale-release frees the piece
 ```
 
 ## 1. Dependencies & secrets
 
-- **`apps/functions`**: add the official SDK — `npm i stripe --workspace @beansprout/functions`.
-  Use the Workers-native crypto/http: `Stripe.createFetchHttpClient()` and
-  `Stripe.createSubtleCryptoProvider()` (no Node `crypto` needed; `nodejs_compat` already on).
+- **`apps/functions`**: **no SDK** — the Worker calls the Stripe REST API directly with
+  `fetch` and verifies webhooks with a hand-rolled **Web-Crypto HMAC-SHA256**
+  (`src/lib/stripe.js`). Keeps the bundle tiny and the Node shims unneeded. *(As built — there
+  is intentionally no `stripe` dependency in `package.json`.)*
 - **Worker secrets** (`wrangler secret put …`, test-mode keys first):
   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Add them to the `wrangler.toml` header
   checklist and `docs/ENQUIRY-SETUP.md` (or a new `docs/PAYMENTS-SETUP.md`).
 - **Stripe dashboard**: connect the **Monzo Business** account as the payout bank; enable
-  **Klarna** under Payment methods; add the webhook endpoint
-  (`…workers.dev/webhooks/stripe`, event `checkout.session.completed`, copy its signing
-  secret into `STRIPE_WEBHOOK_SECRET`).
+  **Klarna** under Payment methods (it surfaces via `automatic_payment_methods`); add the
+  webhook endpoint (`…workers.dev/webhooks/stripe`, events **`payment_intent.succeeded`** +
+  **`payment_intent.canceled`**, copy its signing secret into `STRIPE_WEBHOOK_SECRET`).
 
 ## 2. Data model — migration `0002_payments.sql`
 
@@ -113,7 +156,7 @@ deploys (which the monorepo avoids). Resolution:
 
 **`src/index.js`** — add to `ROUTES`:
 ```js
-'/checkout':        checkout,        // POST  create a Checkout Session
+'/checkout':        checkout,        // POST  create a PaymentIntent (returns client_secret)
 '/webhooks/stripe': stripeWebhook,   // POST  Stripe → us (no CORS, raw body)
 ```
 
@@ -128,40 +171,45 @@ deploys (which the monorepo avoids). Resolution:
   `expires_at = now + 48h`.
 - `persistSubmission` (kind `flash`) + insert a `payments` row (`status:'awaiting'`, our
   `BSF-…` ref as id, `submission_id`).
-- Create the session:
+- Create the **PaymentIntent** (REST, **no SDK** — `fetch` to `…/v1/payment_intents`,
+  bearer-auth with the secret key, **idempotency-keyed on our reference**):
   ```js
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() })
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    currency: 'gbp',
-    automatic_payment_methods: { enabled: true },   // card + Klarna (per dashboard)
-    line_items: [{ quantity: 1, price_data: {
-      currency: 'gbp', unit_amount: pricePence,
-      product_data: { name: `Flash — ${pieceTitle}` },
-    }}],
-    customer_email: email,
-    client_reference_id: paymentRef,
-    metadata: { kind: 'flash', piece_id, submission_id, payment_ref: paymentRef },
-    expires_at: Math.floor(Date.now()/1000) + 30*60,
-    success_url: `${SITE}/payment-received/?ref=${paymentRef}`,
-    cancel_url:  `${SITE}/flash/?cancelled=1`,
+  const body = new URLSearchParams()
+  body.set('amount', String(pricePence))                  // server-side authority (§3)
+  body.set('currency', 'gbp')
+  body.set('automatic_payment_methods[enabled]', 'true')  // card + Klarna (per dashboard)
+  body.set('receipt_email', email)
+  body.set('metadata[kind]', 'flash')
+  body.set('metadata[piece_id]', piece_id)
+  body.set('metadata[payment_ref]', paymentRef)
+  const res = await fetch('https://api.stripe.com/v1/payment_intents', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Idempotency-Key': paymentRef,
+    },
+    body,
   })
+  const intent = await res.json()
   ```
-  Store `session.id` on the payment row (`provider_ref`); reply `{ url: session.url }`.
-- **Failure rollback** mirrors `enquiry.js`: if session creation throws, `releaseFlashPiece`
-  + mark the payment `failed`, return `502`.
+  Store `intent.id` (the `pi_…`) on the payment row (`provider_ref`); reply
+  `{ clientSecret: intent.client_secret, reference: paymentRef, amount: pricePence, currency: 'gbp' }`.
+- **Failure rollback** mirrors `enquiry.js`: if the call fails (`!res.ok` or no
+  `client_secret`), `releaseFlashPiece` + mark the payment `failed`, return `502`.
 
 **`src/handlers/stripe-webhook.js`**:
 - POST only; **use the raw `event.body`** (the `toEvent` adapter already hands us the
   untouched string — do **not** re-`JSON.stringify`) and the `stripe-signature` header.
-- `await stripe.webhooks.constructEventAsync(event.body, sig, env.STRIPE_WEBHOOK_SECRET,
-  undefined, Stripe.createSubtleCryptoProvider())` — bad signature → `400`.
+- **Verify the signature with Web Crypto** (`src/lib/stripe.js`, **no SDK**): split the
+  `t=`/`v1=` parts, recompute `HMAC-SHA256(secret, "${t}.${rawBody}")`, compare, and reject a
+  stale timestamp. Bad signature → `400`.
 - **Idempotency:** `INSERT … ON CONFLICT DO NOTHING` into `webhook_events`; if no row
   changed, it's a replay → `200` and stop.
-- On `checkout.session.completed`: read `metadata.piece_id`/`payment_ref`; **promote**
-  pending→claimed (only if not already claimed — idempotent UPDATE), mark the `payments` row
-  `paid` + `paid_at` + the `payment_intent` id, then send the two emails (§6). Other event
-  types → `200` ignore.
+- On **`payment_intent.succeeded`**: read `metadata.piece_id`/`payment_ref`, **re-check the
+  amount**, **promote** pending→claimed (idempotent UPDATE), mark the `payments` row `paid` +
+  `paid_at` + the `pi_…` id, then send the two emails (§6). On **`payment_intent.canceled`**:
+  mark the payment `expired` + `releaseFlashPiece`. Other event types → `200` ignore.
 - Return `200` quickly; never throw to Stripe (log + `200`/`500` deliberately). No CORS
   headers (server-to-server) — just `SECURITY_HEADERS`.
 
@@ -188,27 +236,99 @@ Same `fetch('https://api.resend.com/emails', …)` call as `enquiry.js`:
 - **Artist notification** — "Flash <piece> PAID by <name>", contact + placement + reference.
 Factor the tiny HTML/text builders alongside the existing ones (or a shared `lib/email.js`).
 
-## 7. Frontend (apps/web)
+## 7. Frontend (apps/web) — the embedded Payment Element step
 
-- **`src/js/modules/flash.js`** — change the modal submit: instead of POSTing the claim to
-  `ENQUIRY_FN_URL` and marking `pending` locally, POST to **`CHECKOUT_FN_URL`** and, on
-  `{ url }`, `window.location.href = url`. Keep the `409` handling (piece taken) and the
-  spinner. The optimistic `markCard('pending')` is no longer needed — the webhook + the
-  `flash-status` reconcile drive state.
-- **`src/js/modules/config.js`** — add `CHECKOUT_FN_URL` (+ `VITE_CHECKOUT_FN_URL`,
-  documented in `.env.example`).
-- **New page `apps/web/payment-received/index.html`** — branded "payment received" thank-you
-  (noindex, like `/enquiry-received/`). Register it in `vite.config.js`'s `input` map.
-- **CSP (`src/build/security.js`)** — the redirect approach needs **no new script/frame
-  sources** (Checkout is a navigation to Stripe's own domain). Add `VITE_CHECKOUT_FN_URL` to
-  `workerConnectOrigins()` so the `/checkout` fetch is covered even if its origin is ever
-  split out. *(Only if we later switch to embedded Payment Element do we add
-  `script-src https://js.stripe.com`, `frame-src https://js.stripe.com
-  https://checkout.stripe.com https://*.klarna.com`, `connect-src https://api.stripe.com`.)*
+> **Step 4 — the one remaining slice.** The Worker backbone (steps 1–3, 5) is shipped dark.
+> This wires the flash modal to it: **one Stripe integration**, the embedded **Payment Element**,
+> no card data on our origin. The earlier "method toggle (Payment Element / PayPal smart buttons /
+> bank-transfer panel)" design is **superseded** — see the line-up below. Account/dashboard set-up
+> is the studio's to do — runbook in [`PAYMENTS-SETUP.md`](./PAYMENTS-SETUP.md).
+
+### Method line-up — one Stripe integration, surfaced dynamically
+
+The point: **don't bolt on integrations.** `/checkout` already creates the PaymentIntent with
+`automatic_payment_methods[enabled]='true'` (`src/handlers/checkout.js:115`), so Stripe picks —
+per transaction, for a UK GBP business — which methods to render. With each toggled on in the
+Stripe dashboard (no code), a UK customer sees, from this **single** integration:
+
+- **Card** (Visa/Mastercard/Amex) — Stripe-hosted iframes (PCI **SAQ-A**).
+- **Link** — Stripe's one-click saved-details network.
+- **Apple Pay / Google Pay** — wallet buttons where supported (Apple Pay needs the domain
+  registered — see `PAYMENTS-SETUP.md`).
+- **Klarna** — pay-in-3, best fit on a fixed-price flash. Redirect-based.
+- **PayPal** — **now a native Stripe payment method for UK accounts** (UK + EEA-minus-Hungary +
+  Norway/Liechtenstein/Switzerland), available through the Payment Element via
+  `automatic_payment_methods` with **no separate integration** — click "Turn on" in the dashboard.
+  Redirect-based. *(Verified June 2026 — Stripe PayPal docs.)*
+
+This **resolves the open method-scope decision**: PayPal ships *with* the frontend, for free,
+because Stripe carries it natively. We do **not** add a PayPal Orders-API integration or an
+on-page bank-transfer panel. The **Monzo Business bank-transfer** route stays a manual, off-page
+option the artist reconciles in **the artist dashboard ([`DASHBOARD.md`](./DASHBOARD.md))** —
+keeping the on-site journey clean and Stripe-centric, exactly as asked.
+
+### Files to touch
+
+- **`src/js/modules/flash.js`** — change only the modal submit path. Gate on `PAYMENTS_ENABLED`:
+  off → **byte-for-byte today's behaviour** (POST `{kind:'flash', fields}` to `ENQUIRY_FN_URL`,
+  `markCard('pending')`, close). On → POST to **`CHECKOUT_FN_URL`** with the form `fields` **and
+  `piece_id` sent explicitly**, then on `{ clientSecret }` lazy-load Stripe.js, mount the Payment
+  Element, and `stripe.confirmPayment({ elements, confirmParams: { return_url } })`. **Drop the
+  optimistic `markCard('pending')`** — the **webhook is the source of truth**; the grid reconciles
+  via `loadLiveStatus()`. Keep a `409` (taken → `markCard('claimed')`, modal open) and a `503`
+  (payments not live → fall back to the enquiry flow) branch, plus the shared spinner.
+  - ⚠️ **Wiring caveat (load-bearing):** the Worker resolves the id from
+    `payload.piece_id || fields.piece_id` (`checkout.js:74`) and the live modal hidden input is
+    `name="piece_id"` (`flash/index.html`), but the jsdom fixture uses `name="id"` /
+    `#modal-id-input`. **Send `piece_id` in the body and align the test fixture**, or the price
+    lookup 404s. The price field is decorative — the Worker never trusts it (server authority, §3).
+- **`flash/index.html`** — add an empty `<div id="payment-element">`, a hidden confirmation panel,
+  and a distinct "Pay" button revealed once the Element mounts (copy under the `FLASH-05` marker).
+- **`src/js/modules/config.js`** — add `CHECKOUT_FN_URL` (`VITE_CHECKOUT_FN_URL`), `PAYMENTS_ENABLED`
+  (`VITE_PAYMENTS_ENABLED === 'true'`), and `STRIPE_PUBLISHABLE_KEY` (`VITE_STRIPE_PUBLISHABLE_KEY` —
+  a `pk_…`, **safe in the bundle**; `sk_…`/`whsec_…` live only in the Worker). Document all three
+  in `.env.example`.
+- **`src/build/security.js`** — the Element needs Stripe hosts the site doesn't load today (there
+  are **none** now). Add `script-src https://js.stripe.com` · `frame-src https://js.stripe.com
+  https://hooks.stripe.com` · `connect-src https://api.stripe.com` · `img-src https://*.stripe.com`,
+  plus `VITE_CHECKOUT_FN_URL`'s origin in `workerConnectOrigins()`. *(If a 3DS test card surfaces a
+  frame violation, add `https://m.stripe.network` to `frame-src`.)* Verify on `npm run build &&
+  npm run preview` — the strict CSP is build/preview-only.
+- **`vite.config.js`** — add a **noindex** return landing `/flash/payment-return/` (its own Rollup
+  `input` entry; **not** in `ROUTES`/sitemap, like `/enquiry-received/`). Redirect methods bounce
+  off-site and back to its `return_url`; on load it reads `?payment_intent_client_secret`, calls
+  `stripe.retrievePaymentIntent`, and renders the status (`succeeded` → "you're booked";
+  `processing` → "we'll email you"; `requires_payment_method` → "try again"). The **webhook still
+  does the real promotion** — this page is just the customer's view of the return.
+
+### Confirmation UX
+
+- **Card / Link (no redirect):** `confirmPayment` resolves in the modal → show the confirmation panel.
+- **Klarna / PayPal / wallets (redirect):** the browser leaves and returns to
+  `/flash/payment-return/`, which reads + renders the intent status.
+- **Either way, money truth = the webhook**; the UI is optimistic-but-honest and the grid catches
+  up via the `flash-status` overlay.
+
+### Tests
+
+- **`tests/flash.test.js` (jsdom):** align the fixture input to `name="piece_id"`; **payments
+  off** → unchanged (POST `/enquiry`, `markCard('pending')`); **payments on** → POST `/checkout`
+  with `piece_id`+`fields`, **stub `window.Stripe`**, assert the Element mounts and the confirmation
+  panel shows after a no-error `confirmPayment`; `409`/`503` branches. Stripe.js is never
+  network-loaded in jsdom.
+- **`e2e/flash.spec.js` (Playwright — the real gate):** a payments-on build that **stubs both**
+  `**/checkout` and `js.stripe.com` (never hit real Stripe) — open modal → submit → assert the
+  Element container mounts + the confirm button → simulate a no-redirect success → assert the
+  confirmation state; plus a small `/flash/payment-return/` spec from a stubbed
+  `retrievePaymentIntent`. This is the browser-only path the unit tier can't cover.
+- **Web-session build proof** (no browser): `npm run build`, then grep `dist/` for the Stripe CSP
+  hosts + `/flash/payment-return/index.html`, and that with the flag off the flash behaviour is
+  unchanged.
 
 ## 8. Security checklist (the "safest" part)
 
-- Hosted Checkout, **no card data on site** (SAQ-A); secrets only in the Worker.
+- Embedded **Payment Element** — card fields are Stripe-hosted iframes, so **no raw card data
+  touches our origin** (still PCI **SAQ-A**); secrets only in the Worker.
 - **Webhook signature verified** + **idempotent** by event id.
 - **Amount authority server-side** (§3) — client can't set the price.
 - Reuse the **rate limiter** on `/checkout`; CORS allowlist unchanged; DB writes fail-safe.
@@ -224,20 +344,45 @@ Factor the tiny HTML/text builders alongside the existing ones (or a shared `lib
   - `stripe-webhook`: valid vs **bad signature** (`400`), **replay** dedupe, promotion
     pending→claimed + payment `paid` + emails fired, unknown event ignored, fail-safe on DB
     error.
-- **`apps/web/tests`** (jsdom): flash submit calls `/checkout` and redirects on `{ url }`
-  (stub `window.location`); `409` keeps the modal open.
+- **`apps/web/tests`** (jsdom): flash submit calls `/checkout`, mounts the Payment Element on
+  `{ clientSecret }` (stub Stripe.js), and shows the in-modal confirmation; `409` keeps the
+  modal open.
 - **`apps/web/e2e`** (Playwright — browser-only, the real gate): extend the flash spec to
-  drive the modal and assert the redirect, **stubbing the Worker** to return a fake session
-  URL (never hit real Stripe). This is the path the unit tier can't cover.
+  drive the modal, **stubbing both the Worker `/checkout` and Stripe.js** (never hit real
+  Stripe) and asserting the confirmation state. This is the path the unit tier can't cover.
 
 ## 10. Build sequence (one PR per step, all → `develop`)
 
-1. **Groundwork** — migration `0002`, `sync-flash-prices.mjs` + manifest, `db.js` helpers,
-   secrets/dashboard set up. (No customer-facing change.)
-2. **`/checkout` handler** + the price authority + unit tests.
-3. **`/webhooks/stripe` handler** (signature + idempotency + promotion + emails) + unit tests.
-4. **Frontend** — flash modal redirect, `payment-received` page, config/CSP, web + E2E tests.
-5. **Stale release** (lazy first, cron optional) + `DATA-COMPLIANCE.md` update.
+1. ✅ **Groundwork (landed)** — migration `0002_payments.sql` (`payments` +
+   `webhook_events` + `flash_claims.expires_at`), `scripts/sync-flash-prices.mjs` + the
+   committed `src/data/flash-prices.json` manifest (+ `npm run sync:prices` and a CI drift
+   guard), and the `db.js` helpers (`recordPayment`, `getPayment`, `markPaymentStatus`,
+   `promoteFlashClaim`, `expirePendingClaims`, `recordWebhookEvent`, `reserveFlashPiece`
+   hold-expiry) with fail-safe unit tests. No customer-facing change. *(Account/secrets/
+   dashboard set-up is the studio's to do — see §1.)*
+2. ✅ **`/checkout` handler (landed)** — validate + rate-limit + server-side price (from the
+   manifest, never the request) → `reserveFlashPiece` (48h hold) → `recordPayment('awaiting')`
+   → create a Stripe **PaymentIntent** (REST via `fetch`, no SDK; idempotency-keyed on our
+   reference) and return its `client_secret` (embedded Payment Element). Rolls the reserve +
+   payment back on a Stripe failure; **shipped dark behind `PAYMENTS_ENABLED`** (503 until
+   set). 18 unit tests (`checkout.test.js`).
+3. ✅ **`/webhooks/stripe` handler (landed)** — verify the signature (Web Crypto HMAC, no
+   SDK — `src/lib/stripe.js`, with a timestamp tolerance) → dedupe by event id
+   (`recordWebhookEvent`) → on `payment_intent.succeeded`: re-check the amount, then
+   `promoteFlashClaim` + `markPaymentStatus('paid')` + Resend customer receipt & artist notice
+   (best-effort); on `payment_intent.canceled`: `markPaymentStatus('expired')` + release the
+   hold. Idempotent + fail-safe end to end. 12 unit tests (`stripe-webhook.test.js`).
+4. **Frontend** — wire the flash modal to `/checkout`: mount the embedded **Payment Element** on
+   the returned `client_secret` and `confirmPayment` on-site (one integration surfacing card ·
+   Link · Apple/Google Pay · Klarna · **PayPal**, all via `automatic_payment_methods` — PayPal is
+   native to Stripe in the UK, no separate integration). Add a noindex `/flash/payment-return/` for
+   redirect methods, the `config`/CSP/Vite wiring, and web + E2E tests. **`VITE_PAYMENTS_ENABLED`
+   off → the Claim button behaves exactly as today**, so it ships dark. Bank transfer is manual in
+   the dashboard (`DASHBOARD.md`), not an on-page method. (Full spec: §7.)
+5. ✅ **Stale release (landed)** — `getFlashClaims` lazily sweeps lapsed pending holds
+   (`expirePendingClaims`) before reporting, so an abandoned checkout frees its piece on the
+   next grid load with no cron. `DATA-COMPLIANCE.md` updated (payments = 6-yr financial
+   record, erasure-exempt while paid; `webhook_events` prunable).
 6. **Verify on staging** end-to-end with Stripe **test mode** (test cards + Klarna test flow),
    then go live by swapping to live keys.
 
@@ -252,13 +397,16 @@ mark a **manual Monzo bank-transfer** deposit paid, and issue refunds.
 
 ## Phase 3 — more methods & polish (outline)
 
-PayPal as a parallel method (its Orders API + its own webhook); refunds/cancellation flows
-matching the cancellation copy; reminders; optionally swap flash to an **embedded** Payment
-Element (adds the Stripe/Klarna CSP sources noted in §7) if an on-site checkout is wanted.
+Refunds/cancellation flows matching the cancellation copy (issued from the artist dashboard /
+Stripe dashboard); reminders. *(PayPal is **no longer** a separate track — it ships with step 4 as
+a native Stripe method, not its own Orders-API integration. The on-site embedded Payment Element
+is the chosen flash model — see "Decisions locked" — not a later swap.)*
 
 ## Open decisions (carried from the roadmap)
 
 Flash full-only vs deposit-option · deposit flat-£ vs % · Klarna on flash day-one (assumed
-yes) · PayPal now vs Phase 3 (assumed Phase 3) · reference format & stale window (assumed
-`BSF-<piece>-<4char>` / 48h). None block starting step 1.
+yes, via Stripe) · ~~PayPal + bank-transfer panel scope~~ **resolved** (June 2026): PayPal ships
+*with* step 4 as a native Stripe method (no separate integration), and bank transfer is manual in
+the dashboard · reference format & stale window (settled as built: `BSF-<piece>-<4char>` / 48h).
+None block step 4.
 </content>

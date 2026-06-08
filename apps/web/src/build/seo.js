@@ -22,6 +22,12 @@ export const SITE_LOCALE = 'en_GB'
 // (apps/web/public/images/og-image.jpg) — swap for a real photo before final launch;
 // see the note in index.html's <head>.
 export const OG_IMAGE = `${SITE_URL}/images/og-image.jpg`
+// Alt text for the shared social-card image. Describes the default brand image so
+// the link preview is meaningful to screen-reader users on platforms that expose
+// og:image:alt / twitter:image:alt (an SEO + accessibility overlap). Per-page
+// content that sets its own og:image (e.g. the per-piece pages) authors its own
+// matching alt; this is the default for everything that uses the brand image.
+export const OG_IMAGE_ALT = 'Beansprout — fine line, botanical and custom tattoo, Winchester.'
 
 // ── Staging vs apex: keep the pre-launch staging site out of search ──────────
 // The whole site lives on the GitHub Pages *.github.io URL until the apex
@@ -106,6 +112,14 @@ export function injectSeoHead(html) {
   }
   if (!/property=["']og:image["']/i.test(html)) {
     add.push(meta('property', 'og:image', OG_IMAGE))
+  }
+  // Describe the share image for assistive tech on platforms that surface it.
+  // Mirror the same value to twitter:image:alt (X reads its own namespaced tag).
+  if (!/property=["']og:image:alt["']/i.test(html)) {
+    add.push(meta('property', 'og:image:alt', OG_IMAGE_ALT))
+  }
+  if (!/name=["']twitter:image:alt["']/i.test(html)) {
+    add.push(meta('name', 'twitter:image:alt', OG_IMAGE_ALT))
   }
   if (!/name=["']twitter:card["']/i.test(html)) {
     add.push(meta('name', 'twitter:card', 'summary_large_image'))

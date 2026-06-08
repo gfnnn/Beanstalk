@@ -454,6 +454,22 @@ describe('renderPiecePage', () => {
     expect(html).toContain('content="https://beansprout.ink/images/tattoos/foxglove-1200.jpg"')
   })
 
+  it('marks the detail image (the LCP element) high-priority', () => {
+    expect(renderPiecePage(withImage)).toContain('fetchpriority="high"')   // <picture> path
+    expect(renderPiecePage(exportImage)).toContain('fetchpriority="high"') // single-export path
+    // The placeholder is a styled div, not an LCP image — no priority hint there.
+    expect(renderPiecePage(placeholder)).not.toContain('fetchpriority')
+  })
+
+  it('gives the share image a descriptive alt (piece-specific, brand default for placeholders)', () => {
+    const withPhoto = renderPiecePage(withImage)
+    const alt = 'Fine line tattoo of foxglove sprig on Forearm'
+    expect(withPhoto).toContain(`<meta property="og:image:alt" content="${alt}">`)
+    expect(withPhoto).toContain(`<meta name="twitter:image:alt" content="${alt}">`)
+    // No photo → the brand default alt (matches the og:image fallback).
+    expect(renderPiecePage(placeholder)).toContain('property="og:image:alt"')
+  })
+
   it('serves an extension-bearing export as-is (no broken -1200.jpg suffix)', () => {
     const html = renderPiecePage(exportImage)
     expect(html).not.toContain('<picture>')                         // single export, no srcset

@@ -12,7 +12,7 @@
 // same constants/labels as the rest of the site so nothing drifts.
 import { GLYPHS, styleLabel, placeLabel, altText, dateKey } from './portfolio-tiles.js'
 import { esc, HAS_EXT } from './html.js'
-import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE } from './seo.js'
+import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE, OG_IMAGE_ALT } from './seo.js'
 import { renderStatus } from './homepage.js'
 import { renderPaletteStyle, themeColor } from './palette.js'
 import { LOADER_STYLE, LOADER_MARKUP } from './loader.js'
@@ -32,9 +32,11 @@ const ogImagePath = img => (HAS_EXT.test(img) ? img : `${img}-1200.jpg`)
 // is dropped in.
 function media(p) {
   if (p.img) {
+    // This is the page's LCP element — eager by default (no loading attr); flag it
+    // high-priority so the browser fetches it ahead of the font CSS and below-fold work.
     if (HAS_EXT.test(p.img)) {
       return `<img src="${esc(p.img)}" alt="${esc(altText(p))}"
-               width="${p.w}" height="${p.h}" decoding="async">`
+               width="${p.w}" height="${p.h}" fetchpriority="high" decoding="async">`
     }
     const srcset = ext => `${p.img}-400.${ext} 400w, ${p.img}-800.${ext} 800w, ${p.img}-1200.${ext} 1200w`
     const sizes  = '(min-width:900px) 56vw, 100vw'
@@ -42,7 +44,7 @@ function media(p) {
           <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
           <source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">
           <img src="${esc(p.img)}-1200.jpg" alt="${esc(altText(p))}"
-               width="${p.w}" height="${p.h}" decoding="async">
+               width="${p.w}" height="${p.h}" fetchpriority="high" decoding="async">
         </picture>`
   }
   const glyph = GLYPHS[p.glyph] || GLYPHS.sprig
@@ -66,6 +68,9 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
   const title   = `${p.title} · ${SITE_NAME}`
   const desc    = `${altText(p)} — by ${SITE_NAME} at Tiny Knives, Winchester.`
   const ogImage = p.img ? `${SITE_URL}${ogImagePath(p.img)}` : OG_IMAGE
+  // Alt for the share image: the piece's own description when it has a photo,
+  // else the brand default (it falls back to OG_IMAGE above).
+  const ogImageAlt = p.img ? altText(p) : OG_IMAGE_ALT
   const tags    = [...p.styles.map(styleLabel), placeLabel(p.placement)]
     .map(t => `<li class="piece-tag">${esc(t)}</li>`).join('')
 
@@ -94,7 +99,9 @@ ${securityMeta ? `${securityMeta}\n` : ''}${robotsMeta ? `${robotsMeta}\n` : ''}
 <meta property="og:site_name" content="${SITE_NAME}">
 <meta property="og:locale" content="${SITE_LOCALE}">
 <meta property="og:image" content="${ogImage}">
+<meta property="og:image:alt" content="${esc(ogImageAlt)}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="${esc(ogImageAlt)}">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="theme-color" content="${themeColor}">
@@ -165,15 +172,15 @@ ${LOADER_MARKUP}
   </nav>
 
   <div class="piece-layout">
-    <div class="piece-media">${media(p)}</div>
+    <div class="piece-media reveal">${media(p)}</div>
     <div class="piece-detail">
-      <p class="page-eyebrow">Portfolio</p>
-      <h1 class="piece-title">${esc(p.title)}</h1>
-      <ul class="piece-tags" role="list">${tags}</ul>
+      <p class="page-eyebrow reveal reveal-d1">Portfolio</p>
+      <h1 class="piece-title reveal reveal-d2">${esc(p.title)}</h1>
+      <ul class="piece-tags reveal reveal-d2" role="list">${tags}</ul>
       <!-- ARTIST-COPY · PIECE-01 · pending approval — see docs/COPY-REVIEW.md -->
       <!-- COPY: a sentence or two about this piece — the brief, the story, healed vs fresh. -->
-      <p class="piece-note">${esc(altText(p))}.${p.img ? '' : ' A design ready to make yours — enquire to book.'}</p>
-      <div class="piece-actions">
+      <p class="piece-note reveal reveal-d3">${esc(altText(p))}.${p.img ? '' : ' A design ready to make yours — enquire to book.'}</p>
+      <div class="piece-actions reveal reveal-d3">
         <a href="/enquire/" class="btn btn-primary">Enquire about a piece like this →</a>
         <a href="/portfolio/" class="btn btn-outline">See more work</a>
       </div>

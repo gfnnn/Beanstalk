@@ -294,7 +294,7 @@ function sniffImage(base64) {
 // Safe attachment filename, always ending in the SNIFFED extension — never a
 // client-supplied one (no "reference.jpg.exe" reaching the inbox).
 function safeName(n, ext) {
-  let base = String(n || 'reference').replace(/[^\w.\-]+/g, '_').replace(/\.[^.]*$/, '').slice(-72)
+  let base = String(n || 'reference').replace(/[^\w.-]+/g, '_').replace(/\.[^.]*$/, '').slice(-72)
   if (!base || /^_+$/.test(base)) base = 'reference'
   return `${base}.${ext}`
 }

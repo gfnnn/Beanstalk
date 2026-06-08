@@ -9,6 +9,7 @@
     "deploy": "wrangler deploy",
     "migrate": "wrangler d1 migrations apply beansprout",
     "migrate:local": "wrangler d1 migrations apply beansprout --local",
+    "sync:prices": "node scripts/sync-flash-prices.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

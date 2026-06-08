@@ -11,7 +11,7 @@ import { injectPageLoader, LOADER_STYLE, LOADER_MARKUP } from '../src/build/load
 import { initPageLoader } from '../src/js/modules/loader.js'
 
 const doc = body =>
-  '<!doctype html><html><head><title>t</title></head><body>' + body + '</body></html>'
+  `<!doctype html><html><head><title>t</title></head><body>${body}</body></html>`
 
 describe('injectPageLoader (build-time)', () => {
   it('adds the critical <style> into the head and the overlay after <body>', () => {

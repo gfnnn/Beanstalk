@@ -4,7 +4,7 @@ import { initStickyShadow } from './sticky.js'
 import { setButtonLoading, clearButtonLoading } from './spinner.js'
 
 export function initEnquire() {
-  const steps = [1, 2, 3, 4].map(n => document.getElementById('step-' + n))
+  const steps = [1, 2, 3, 4].map(n => document.getElementById(`step-${n}`))
   if (!steps[0]) return
 
   const fill      = document.getElementById('progress-fill')
@@ -40,7 +40,7 @@ export function initEnquire() {
   // just shape: a real-looking name, a deliverable-looking email, a date of birth
   // that makes the enquirer 18–120, and appointment dates that sit in the future
   // and in the right order.
-  const NAME_RE  = /^[\p{L}][\p{L}\p{M} .'’\-]{0,48}$/u
+  const NAME_RE  = /^[\p{L}][\p{L}\p{M} .'’-]{0,48}$/u
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
   // Name: tell the user *which* problem it is — over-length reads very differently
@@ -178,11 +178,11 @@ export function initEnquire() {
       // Hidden upcoming steps are kept out of the tab order and the a11y tree.
       s.toggleAttribute('inert', isUpcoming)
     })
-    if (fill) fill.style.width = (active / TOTAL * 100) + '%'
+    if (fill) fill.style.width = `${active / TOTAL * 100}%`
     if (track2) track2.setAttribute('aria-valuenow', String(active))
     if (pct) {
       const name = stepNames[active - 1]
-      pct.textContent = `Step ${active} of ${TOTAL}${name ? ' — ' + name : ''}`
+      pct.textContent = `Step ${active} of ${TOTAL}${name ? ` — ${name}` : ''}`
     }
     progSteps.forEach((ps, i) => {
       ps.classList.toggle('done',    i + 1 < active)
@@ -195,7 +195,7 @@ export function initEnquire() {
     active  = n
     reached = Math.max(reached, n)
     render()
-    const target = document.getElementById('step-' + active)
+    const target = document.getElementById(`step-${active}`)
     if (target && window.innerWidth < 900) {
       setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     }
@@ -220,7 +220,7 @@ export function initEnquire() {
     return !bad
   }
   function validateStep(n) {
-    const step = document.getElementById('step-' + n)
+    const step = document.getElementById(`step-${n}`)
     if (!step) return true
     const fields = new Set()
     step.querySelectorAll('[required]').forEach(el => {
@@ -271,7 +271,7 @@ export function initEnquire() {
   ;[['step1-next', 1], ['step2-next', 2], ['step3-next', 3]].forEach(([id, n]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (validateStep(n)) setStep(n + 1)
-      else focusFirstError(document.getElementById('step-' + n))
+      else focusFirstError(document.getElementById(`step-${n}`))
     })
   })
 
@@ -407,7 +407,7 @@ export function initEnquire() {
 
   // ── Restore from sessionStorage ───────────────────────────────────────────
   try {
-    const saved = parseInt(sessionStorage.getItem('beansprout_step'))
+    const saved = parseInt(sessionStorage.getItem('beansprout_step'), 10)
     if (saved > 1 && saved <= TOTAL) setStep(saved)
   } catch (_) {}
 
@@ -483,7 +483,10 @@ export function initEnquire() {
     for (const el of form.elements) {
       if (!el.name || el.disabled || el.type === 'file') continue
       if (el.name.endsWith('[]')) {
-        if (el.checked) (data[el.name] ||= []).push(el.value)
+        if (el.checked) {
+          data[el.name] ||= []
+          data[el.name].push(el.value)
+        }
       } else if (el.type === 'radio') {
         if (el.checked) data[el.name] = el.value
       } else if (el.type === 'checkbox') {
@@ -522,7 +525,7 @@ export function initEnquire() {
     for (let n = 1; n <= TOTAL; n++) if (!validateStep(n) && firstBad === null) firstBad = n
     if (firstBad !== null) {
       setStep(firstBad)
-      focusFirstError(document.getElementById('step-' + firstBad))
+      focusFirstError(document.getElementById(`step-${firstBad}`))
       return
     }
 

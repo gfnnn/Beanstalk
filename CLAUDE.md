@@ -33,8 +33,8 @@ command instead of rediscovering the environment each time:
   the agent runs a command before deps exist). These two files are the *only* tracked
   things under `.claude/`; everything else there (incl. `settings.local.json`) stays
   git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (441 web + 119
-  functions) run fully in the sandbox.
+- **`npm test` is the trustworthy signal here.** Both Vitest suites (web + functions) run
+  fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
   browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
   allowlist blocks (`403 Host not in allowlist`). `npm run test:e2e` therefore routes
@@ -80,6 +80,8 @@ npm run test:web      # only apps/web (renderers, data integrity, build pipeline
 npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
 npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke);
                       #   skips cleanly if no Chromium is installed — see the web-session note above
+npm run lint          # Biome static-analysis floor over apps/**/{src,tests,e2e,scripts} + root scripts
+npm run lint:fix      # same, applying Biome's safe autofixes (biome lint --write)
 ```
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
@@ -107,8 +109,16 @@ a clean no-op where it can't run rather than a false failure — it still execut
 once the browser is present. So the tier **effectively runs in exactly two places**: the
 **E2E GitHub workflow** (auto-triggered on every `pull_request` touching `apps/web/**`, and
 on push to `main`) and a **local run with Chromium installed** — a skipped sandbox run is a
-no-op, not a pass, so don't treat it as having covered a browser-only change. There is **no
-linter or formatter** — don't invent `npm run lint`. To exercise the Worker for real locally
+no-op, not a pass, so don't treat it as having covered a browser-only change. **Static
+analysis is Biome** (`npm run lint`, config in `biome.json`): a lint-only floor on the
+**recommended** rule set with the **formatter deliberately off** — so there is no enforced
+code style and you should **not** run a formatter or invent `npm run format`. It scans
+`apps/**/{src,tests,e2e,scripts}` plus the root `scripts/`, runs as its own `lint` job in
+CI (`.github/workflows/test.yml`, alongside the per-workspace Vitest matrix), and
+`npm run lint:fix` applies its safe autofixes. Three high-count purely-mechanical rules
+(`useTemplate`, `useOptionalChain`, `useIterableCallbackReturn`) are turned off in
+`biome.json` and deferred to a separate mechanical PR (see `docs/ROADMAP.md`) — don't
+re-enable them piecemeal. To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
 
@@ -120,7 +130,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   index.html (home) + 404.html + page folders:
     portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
     newsletter/ enquiry-received/ privacy/ terms/
-  src/data/      pieces, flash, homepage, testimonials, media, palette  (content = single sources of truth)
+  src/data/      pieces, flash, homepage, testimonials, media, palette, business  (content = single sources of truth)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
@@ -132,17 +142,18 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  CMS.md  MEDIA.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS-ROADMAP.md  PAYMENTS-STRIPE-BUILD.md  PAYMENTS-FEES.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
-.github/workflows/{test.yml, e2e.yml, deploy-web.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS-ROADMAP.md  PAYMENTS-STRIPE-BUILD.md  PAYMENTS-SETUP.md  PAYMENTS-FEES.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+.github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
-content-CMS plan; the **payments** plan is `docs/PAYMENTS-ROADMAP.md` — the (not-yet-built)
-**integrated Stripe checkout** (flash = full payment online, custom = deposit only; one Stripe
-engine for card + Klarna, paying out to **Monzo Business**, with PayPal as a parallel method),
+content-CMS plan; the **payments** plan is `docs/PAYMENTS-ROADMAP.md` — the **integrated Stripe
+checkout** (flash = full payment online, custom = deposit only; one Stripe engine for card +
+Klarna, paying out to **Monzo Business**, with PayPal a parallel method) whose **Worker backbone
+is shipped dark** behind `PAYMENTS_ENABLED`, with the embedded Payment Element frontend still to come,
 specced file-by-file in `docs/PAYMENTS-STRIPE-BUILD.md`, fee maths in `docs/PAYMENTS-FEES.md`,
 and the **superseded** manual-links decision kept for the record in `docs/PAYMENTS-PLAN.md`
 (it now carries a "direction has evolved" banner); `docs/SCHEDULING.md` is the (not-yet-built)
@@ -494,6 +505,19 @@ eventual merge fights conflicts. These rules keep parallel work cheap:
    let a structural branch sit for days while content PRs pile up behind it.
 5. **Keep branches small and short-lived** (a day or two). Small diffs rebase clean; long
    ones don't. CI (`.github/workflows/test.yml`) runs Vitest on every PR — merge on green.
+6. **Supersession gate — before you open a PR.** Re-check your change isn't already on
+   `develop` (`git fetch origin develop && git diff origin/develop -- <your files>`; an empty
+   diff = already shipped, so don't open the PR). And skim the open PRs *before starting* a
+   task so you don't re-fix something already in flight — duplicate PRs (the same fix arriving
+   via two branches) are a top source of the pile, and merging them is wasted work.
+7. **Verify repo settings — don't assert them.** Check Settings (or just the live branch / PR
+   list) before *documenting* a setting's state. A PR once baked in the wrong claim that
+   auto-delete head branches was OFF — it's **ON**.
+
+**Periodic cleanup is a documented routine, not archaeology.** When open PRs climb past ~5,
+run the **Backlog hygiene** sweep in [`docs/BRANCHING.md`](docs/BRANCHING.md) (list → close
+superseded → rebase+merge the live ones → re-target stragglers → prune branches) rather than
+re-deriving it each time.
 
 **Resolving a stale branch** (the standard recovery): from its worktree,
 `git fetch && git rebase origin/develop`, fix conflicts, `npm test && npm run build`, then
@@ -520,6 +544,31 @@ of dead `claude/*`, `feat/*`, `docs/*` heads accumulate. Two defences:
     | xargs -r -n1 git push origin --delete   # deletes only confirmed-merged heads
   ```
 
+**Auto-delete and that merged-head prune both only catch *merged* heads** — so with
+auto-delete already on, the heads that still linger are the ones neither mechanism can
+reach, and they need a manual sweep from a local clone. Three kinds: a PR **closed without
+merging** (auto-delete never fires on close — the change has usually shipped via a different
+branch), a branch that **never opened a PR** at all, and a branch **re-pushed after its PR
+merged** (the merged head was already deleted; the new commits are a fresh, un-PR'd ref).
+Sweep the closed-but-unmerged heads the same way — but **only after confirming each one's
+change actually landed elsewhere** (`git diff origin/develop origin/<branch> -- <file>`
+empty = superseded) — then *list* whatever's left for an eyeball rather than bulk-deleting,
+since never-PR'd / re-pushed heads can hold un-reviewed work:
+  ```bash
+  # from a local clone, gh authenticated — run AFTER the merged-head prune above:
+  # 1) closed-but-NOT-merged PR heads (delete once you've confirmed the work shipped elsewhere):
+  gh pr list --state closed --limit 300 --json headRefName,merged \
+    -q '.[] | select(.merged==false) | .headRefName' | sort -u > /tmp/closed-unmerged
+  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+    | grep -vxE 'main|develop' | grep -xF -f /tmp/closed-unmerged \
+    | xargs -r -n1 git push origin --delete
+  # 2) leftovers with no open PR (never-PR'd, or re-pushed past a merged head) — REVIEW, don't bulk-delete:
+  gh pr list --state open --limit 300 --json headRefName -q '.[].headRefName' \
+    | sort -u > /tmp/open-heads
+  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+    | grep -vxE 'main|develop' | grep -vxF -f /tmp/open-heads
+  ```
+
 ## Deploy guardrail — do NOT switch the apex domain
 
 `beansprout.ink` (apex) is intentionally still served by the **v1** repo
@@ -532,17 +581,22 @@ the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security
 
-The repo ships two workflows (`.github/workflows/`) and **no AI/agent action** — keep it
+The repo ships four workflows (`.github/workflows/`) and **no AI/agent action** — keep it
 that way unless there's a clear reason, and follow these rules if that changes. (The Worker
 deploys via **Cloudflare Workers Builds** — Git-connected on Cloudflare's side, holding its
 own scoped API token there — so there is intentionally no Cloudflare token in GitHub.)
 
-- **Least-privilege tokens.** `test.yml` runs with `permissions: contents: read` — don't
-  widen it. `deploy-web.yml` declares `id-token: write` **on purpose**: it's GitHub's own
-  OIDC, required by `actions/deploy-pages@v5` to verify the Pages artifact. It is *not* an
-  Anthropic/Claude token exchange, and the workflow only triggers on `push` to `main` and
-  manual `workflow_dispatch` — never on attacker-controllable input — so there's no
-  injection path. Leave it as-is.
+- **Least-privilege tokens.** `test.yml` and `e2e.yml` both run with `permissions:
+  contents: read` — don't widen them. `deploy-web.yml` declares `id-token: write` **on
+  purpose**: it's GitHub's own OIDC, required by `actions/deploy-pages@v5` to verify the
+  Pages artifact. It is *not* an Anthropic/Claude token exchange, and the workflow only
+  triggers on `push` to `main` and manual `workflow_dispatch` — never on
+  attacker-controllable input — so there's no injection path. Leave it as-is.
+  `media-sync.yml` is the one workflow holding write scope (`contents: write` +
+  `pull-requests: write`, to push a branch and open the Dropbox-sync PR), but it's
+  **`workflow_dispatch`-only** — a collaborator clicks "Run workflow", never an automatic
+  trigger — the same safe model as `deploy-web.yml`'s manual/push-to-`main` triggers, so
+  the elevated scope can't be reached by untrusted input.
 - **Never run a workflow's privileged half on untrusted input.** Don't trigger build/deploy
   or any token-bearing job from `pull_request_target`, `issue_comment`, `issues`, or
   `workflow_run`. Untrusted-PR CI stays read-only (as `test.yml` is).

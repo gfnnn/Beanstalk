@@ -160,7 +160,11 @@ describe('rateLimit', () => {
     await limiter.commit()
     const ipRows = d1.data.rate.filter(r => r.bucket === 's:ip:6.6.6.6')
     expect(ipRows).toHaveLength(1)            // the stale row swept, the fresh one kept
-    expect(ipRows[0].ts).toBe(now)
+    // The kept row is the fresh hit, stamped with commit-time Date.now() — which is
+    // captured inside rateLimit(), so it's >= the `now` this test sampled beforehand.
+    // Asserting exact equality raced the clock (flaky when a ms ticked between the two
+    // samples); >= is the real invariant and is still well above the 30-min-stale row.
+    expect(ipRows[0].ts).toBeGreaterThanOrEqual(now)
   })
 
   it('commit() prunes stale per-day counter rows (older than ~2 days)', async () => {

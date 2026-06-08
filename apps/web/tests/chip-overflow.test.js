@@ -34,6 +34,7 @@ function setupBar(html, { chipWidth, rowWidth }) {
 }
 
 const collapsed = () => [...document.querySelectorAll('.chip.is-collapsed')]
+const click = el => el.dispatchEvent(new window.Event('click', { bubbles: true }))
 
 // A flash-style bar: a handful of status chips, no "More" toggle and no
 // `.chips-secondary` cluster, plus the sort select on the right.
@@ -45,6 +46,19 @@ const flashBar = `
     <div class="filter-right">
       <select id="sort-select"><option value="default">Newest first</option></select>
     </div>
+  </div>
+`
+
+// A portfolio-style bar: two priority chips, a "More" toggle and a
+// `.chips-secondary` cluster (the chips that collapse), plus the sort select.
+const portfolioBar = `
+  <div id="filter-bar">
+    <div class="filter-chips">
+      ${chip('all', 'All')}${chip('fine-line', 'Fine line')}
+      <button class="chip-more" id="chip-more-btn" aria-expanded="false">More</button>
+      <span class="chips-secondary">${chip('script', 'Script')}${chip('dotwork', 'Dotwork')}</span>
+    </div>
+    <div class="filter-right"><select id="sort-order"><option>n</option></select></div>
   </div>
 `
 
@@ -71,20 +85,47 @@ describe('initChipOverflow', () => {
     expect(collapsed()).toHaveLength(0)
   })
 
+  it('portfolio bar: keeps every chip inline when the row has room', () => {
+    // 4 chips × 100px = 400px into a 1000px row → plenty of room, no "More".
+    const bar = setupBar(portfolioBar, { chipWidth: 100, rowWidth: 1000 })
+    initChipOverflow(bar)
+    expect(bar.classList.contains('needs-more')).toBe(false)
+    expect(collapsed()).toHaveLength(0)
+  })
+
   it('portfolio bar: collapses secondary chips one at a time', () => {
     // 2 priority + 2 secondary, room for one secondary + "More" (300) not two.
-    const bar = setupBar(`
-      <div id="filter-bar">
-        <div class="filter-chips">
-          ${chip('all', 'All')}${chip('fine-line', 'Fine line')}
-          <button class="chip-more" id="chip-more-btn" aria-expanded="false">More</button>
-          <span class="chips-secondary">${chip('script', 'Script')}${chip('dotwork', 'Dotwork')}</span>
-        </div>
-        <div class="filter-right"><select id="sort-order"><option>n</option></select></div>
-      </div>
-    `, { chipWidth: 100, rowWidth: 360 })
+    const bar = setupBar(portfolioBar, { chipWidth: 100, rowWidth: 360 })
     initChipOverflow(bar)
     expect(bar.classList.contains('needs-more')).toBe(true)
     expect(collapsed().map(c => c.dataset.filter)).toEqual(['dotwork'])
+  })
+
+  it('portfolio bar: collapses every secondary chip when the row is very tight', () => {
+    // 4 chips × 100px = 400px into a 250px row → only the two priority chips +
+    // "More" fit, so both secondary chips collapse.
+    const bar = setupBar(portfolioBar, { chipWidth: 100, rowWidth: 250 })
+    initChipOverflow(bar)
+    expect(bar.classList.contains('needs-more')).toBe(true)
+    expect(collapsed().map(c => c.dataset.filter)).toEqual(['script', 'dotwork'])
+  })
+
+  it('the "More" toggle reveals the secondary chips and tracks aria-expanded', () => {
+    // No matchMedia stub → the desktop measure pass bails, so apply() never
+    // resets the expanded state; this pins the toggle wiring itself.
+    document.body.innerHTML = portfolioBar
+    const bar = document.getElementById('filter-bar')
+    const chips = bar.querySelector('.filter-chips')
+    const btn = document.getElementById('chip-more-btn')
+    initChipOverflow(bar)
+
+    expect(chips.classList.contains('expanded')).toBe(false)
+    expect(btn.getAttribute('aria-expanded')).toBe('false')
+    click(btn)
+    expect(chips.classList.contains('expanded')).toBe(true)
+    expect(btn.getAttribute('aria-expanded')).toBe('true')
+    click(btn)
+    expect(chips.classList.contains('expanded')).toBe(false)
+    expect(btn.getAttribute('aria-expanded')).toBe('false')
   })
 })

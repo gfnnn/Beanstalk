@@ -57,7 +57,7 @@ export function initChipOverflow(filterBar) {
     // toggle can never be clipped. Read `avail` AFTER it's applied.
     const prioritySum = widths.slice(0, priorityCount).reduce((a, b) => a + b, 0)
     const floor = prioritySum + moreW + gap * priorityCount
-    filterChips.style.minWidth = floor + 'px'
+    filterChips.style.minWidth = `${floor}px`
     const avail = filterChips.clientWidth
     filterBar.classList.remove('measuring')
 

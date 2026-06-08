@@ -164,7 +164,14 @@ function revealGroup(items, { trigger, y = 22, duration = 0.7, ease = 'power2.ou
   const list = gsap.utils.toArray(items)
   if (!list.length) return
   const root = trigger || list[0].parentElement
-  const vars = { opacity: 0, y, duration, ease, stagger: { each, from: 'start' } }
+  // clearProps:'transform' so GSAP strips the inline transform it would otherwise
+  // leave on each card at the end of the cascade. That residual `transform:
+  // translate(0,0)` is inline, so it overrides any CSS `:hover`/transition transform
+  // on the same element (the flash cards lift on hover) — and if the entrance is
+  // interrupted mid-flight (e.g. the flash grid re-sorting when the live-status fetch
+  // resolves), it can leave a card resting a few px off. Clearing it lets each card
+  // settle at its true CSS position with the hover transition intact.
+  const vars = { opacity: 0, y, duration, ease, stagger: { each, from: 'start' }, clearProps: 'transform' }
   if (blur) vars.filter = `blur(${blur}px)`
   const aboveFold = root.getBoundingClientRect().top < window.innerHeight * 0.85
   if (aboveFold) {
@@ -274,15 +281,31 @@ export function initScrollAnimations() {
   }
 
   // ── Generic .reveal elements (about, visit, and other inner pages) ──────────
+  //    Below the fold → reveal on scroll as each crosses into view. Above the fold
+  //    on load → play an on-LOAD reveal instead of a ScrollTrigger. A `from()` +
+  //    ScrollTrigger whose `start` is ALREADY passed at creation (the element sits
+  //    in the first viewport) doesn't animate — ScrollTrigger resolves it straight
+  //    to its end state, so the element just appears with no blur-fade. That's the
+  //    reported "blur fade-in broken on load" on inner pages (worst on 404 /
+  //    enquiry-received / per-piece pages, whose whole entrance is this path). It's
+  //    the same reason revealGroup sequences above-the-fold grids on load rather
+  //    than on a trigger — match it here. `.reveal-d1/2/3` becomes the on-load
+  //    stagger (the cascade #134 intends for those first-viewport blocks).
   document.querySelectorAll('.reveal').forEach(el => {
-    const delay = el.classList.contains('reveal-d3') ? 0.3
-                : el.classList.contains('reveal-d2') ? 0.2
-                : el.classList.contains('reveal-d1') ? 0.1 : 0
-    gsap.from(el, {
-      scrollTrigger: { trigger: el, start: 'top 90%', once: true },
-      opacity: 0, y: 20, filter: 'blur(4px)', duration: 0.7, ease: 'power2.out',
-      delay,
-    })
+    const step = el.classList.contains('reveal-d3') ? 0.3
+               : el.classList.contains('reveal-d2') ? 0.2
+               : el.classList.contains('reveal-d1') ? 0.1 : 0
+    const vars = { opacity: 0, y: 20, filter: 'blur(4px)', duration: 0.7, ease: 'power2.out' }
+    const aboveFold = el.getBoundingClientRect().top < window.innerHeight * 0.9
+    if (aboveFold) {
+      gsap.from(el, { ...vars, delay: 0.4 + step })   // on-load cascade, after the header entrance
+    } else {
+      gsap.from(el, {
+        ...vars,
+        delay: step,
+        scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+      })
+    }
   })
 
   // ── Mobile sticky CTA — appears after hero scrolls out (home page only) ───

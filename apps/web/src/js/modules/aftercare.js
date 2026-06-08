@@ -19,7 +19,7 @@ export function initAftercare() {
   let revealed = false
 
   const navH = () =>
-    parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'))
+    parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'), 10)
     || (nav ? nav.offsetHeight : 0)
 
   // ── Reflect the chosen route across cards, switch tabs, and panels ────────
@@ -35,7 +35,7 @@ export function initAftercare() {
       t.setAttribute('aria-selected', String(on))
       t.tabIndex = on ? 0 : -1
     })
-    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + method))
+    panels.forEach(p => p.classList.toggle('active', p.id === `panel-${method}`))
   }
 
   // ── First choice unfolds the switcher + step content ─────────────────────
