@@ -140,9 +140,10 @@ The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve ins
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
-content-CMS plan; the **payments** plan is `docs/PAYMENTS-ROADMAP.md` — the (not-yet-built)
-**integrated Stripe checkout** (flash = full payment online, custom = deposit only; one Stripe
-engine for card + Klarna, paying out to **Monzo Business**, with PayPal as a parallel method),
+content-CMS plan; the **payments** plan is `docs/PAYMENTS-ROADMAP.md` — the **integrated Stripe
+checkout** (flash = full payment online, custom = deposit only; one Stripe engine for card +
+Klarna, paying out to **Monzo Business**, with PayPal a parallel method) whose **Worker backbone
+is shipped dark** behind `PAYMENTS_ENABLED`, with the embedded Payment Element frontend still to come,
 specced file-by-file in `docs/PAYMENTS-STRIPE-BUILD.md`, fee maths in `docs/PAYMENTS-FEES.md`,
 and the **superseded** manual-links decision kept for the record in `docs/PAYMENTS-PLAN.md`
 (it now carries a "direction has evolved" banner); `docs/SCHEDULING.md` is the (not-yet-built)

@@ -40,9 +40,9 @@ highest-control way to actually deliver them resolves like this:
 - **Stripe is the engine.** A *single* Stripe integration gives **card + Klarna** (Stripe
   carries Klarna in the UK out-of-the-box — no separate Klarna merchant contract, funds land
   in your Stripe balance upfront minus fees, Klarna carries the customer-credit risk).
-  Use **hosted Stripe Checkout / Payment Element** so card data never touches the site
-  (**PCI SAQ-A — this is the "safest" part**), with full API/webhooks/dashboard/refunds
-  (the "functionality and control" part).
+  Use the embedded **Stripe Payment Element** — the card fields are Stripe-hosted iframes, so
+  card data never touches the site (**PCI SAQ-A — the "safest" part**), with full
+  API/webhooks/dashboard/refunds (the "functionality and control" part).
 - **Monzo Business is the bank account**, not a separate integration: Stripe **pays out**
   into it. It also gives the **free bank-transfer deposit** route (Monzo Business "Get Paid"
   easy bank transfer, £0 fee — see `PAYMENTS-FEES.md`) for customers who prefer it. Note:
@@ -72,14 +72,15 @@ The Worker + D1 spine is in place — `apps/functions/src/lib/db.js`:
 
 From `PAYMENTS-PLAN.md`, still true, plus the new gateway pieces:
 
-1. **No `pending → paid → claimed` promotion.** `reserveFlashPiece` only sets `pending`.
-   A **Stripe webhook** should promote it on payment success (was a manual artist action).
-2. **No customer email.** A claim only emails the artist today; payment instructions /
-   receipts must reach the customer (a new Resend send).
-3. **No stale-pending release.** An unpaid hold locks a one-of-a-kind piece forever — needs a
-   TTL (~48h) via a Cron Trigger or lazy release on the `flash-status` read.
-4. **New:** a `payments` table, checkout + webhook routes, provider secrets, CSP widening, a
-   `/studio` reconciliation surface, and compliance updates.
+1. ✅ **`pending → paid → claimed` promotion — built.** `/webhooks/stripe` promotes on
+   `payment_intent.succeeded` (`promoteFlashClaim`), replacing the old manual artist action.
+2. ✅ **Customer email — built.** The webhook sends a customer receipt alongside the artist
+   notice (Resend), best-effort.
+3. ✅ **Stale-pending release — built.** `getFlashClaims` lazily expires lapsed ~48h holds on
+   the `flash-status` read (no cron needed; an optional Cron Trigger stays a belt-and-braces).
+4. **Still to do:** the **step-4 embedded frontend** (Payment Element + CSP +
+   `VITE_PAYMENTS_ENABLED`), the `/studio` reconciliation surface, the studio's
+   Stripe/Monzo/Klarna account setup, and (decision pending) PayPal + the bank-transfer panel.
 
 ## Phased delivery
 
@@ -95,19 +96,22 @@ From `PAYMENTS-PLAN.md`, still true, plus the new gateway pieces:
 
 ### Phase 1 — Stripe checkout for FLASH full payment (the backbone)
 > **Specced file-by-file in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md)** —
-> the executable build plan (migration, handlers, frontend, tests, sequencing).
-- **Worker:** `POST /checkout` (create a Stripe Checkout Session for a flash piece at its
-  `price`; reserve the piece `pending` first) and `POST /webhooks/stripe` (verify the
-  `Stripe-Signature`, and on `checkout.session.completed` promote `pending → claimed`, record
-  the payment, email customer + artist — **idempotent**, keyed on the event id).
-- **Frontend:** flash claim → hosted Stripe Checkout (card **+ Klarna**); reuse the
-  `spinner` busy-state. No card fields on our pages.
-- **CSP:** add Stripe (+ Klarna) hosts to `connect-src` / `frame-src` / `script-src` in
-  `apps/web/src/build/security.js`.
-- **Stale-release:** lazy release on the `flash-status` read, or a Cloudflare **Cron
-  Trigger**.
-- **E2E:** extend the flash spec under `apps/web/e2e/` with Stripe in test mode / stubbed —
-  this is a browser-only path the unit tier can't cover.
+> the executable build plan. **The Worker backbone (steps 1–3, 5) is shipped, dark behind
+> `PAYMENTS_ENABLED`;** only the step-4 embedded frontend + go-live config remain.
+- ✅ **Worker (shipped):** `POST /checkout` (creates a Stripe **PaymentIntent** for a flash
+  piece at its server-side `price`; reserves the piece `pending` with a 48h hold first; returns
+  a `client_secret`) and `POST /webhooks/stripe` (verifies the signature with **Web-Crypto
+  HMAC**, and on `payment_intent.succeeded` promotes `pending → claimed`, records the payment,
+  emails customer + artist — **idempotent**, keyed on the event id).
+- **Frontend (step 4, to do):** the flash modal mounts the embedded **Payment Element**
+  (card **+ Klarna**) on the `client_secret` and confirms on-site; reuse the `spinner`
+  busy-state. No card fields on our pages (Stripe iframes).
+- **CSP (with step 4):** add Stripe (+ Klarna) hosts to `connect-src` / `frame-src` /
+  `script-src` in `apps/web/src/build/security.js`.
+- ✅ **Stale-release (shipped):** lazy release on the `flash-status` read (a Cloudflare **Cron
+  Trigger** is an optional belt-and-braces).
+- **E2E (with step 4):** extend the flash spec under `apps/web/e2e/` with Stripe stubbed —
+  a browser-only path the unit tier can't cover.
 
 ### Phase 2 — Deposit system for CUSTOM bookings (post-quote)
 - The artist reviews & **quotes** (offline / email), which issues a **tokenised "pay your
@@ -126,7 +130,8 @@ From `PAYMENTS-PLAN.md`, still true, plus the new gateway pieces:
 
 ## Safety & compliance checklist (the "safest" part)
 
-- **Hosted checkout only** — no card data on the site (PCI **SAQ-A**).
+- **Embedded Payment Element** — card fields are Stripe-hosted iframes, so no raw card data on
+  the site (PCI **SAQ-A**).
 - **Secrets in the Worker** (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PAYPAL_*`) via
   `wrangler secret put` — never in the repo.
 - **Webhook signature verification + idempotency** on every provider callback; **rate-limit**
