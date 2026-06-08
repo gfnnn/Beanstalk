@@ -132,7 +132,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS-ROADMAP.md  PAYMENTS-STRIPE-BUILD.md  PAYMENTS-FEES.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS-ROADMAP.md  PAYMENTS-STRIPE-BUILD.md  PAYMENTS-FEES.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
