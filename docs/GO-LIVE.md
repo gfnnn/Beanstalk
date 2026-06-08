@@ -58,16 +58,22 @@ I apply each to source and flip/clear its `ARTIST-COPY · <REF>` marker.
 Phase 2 (Resend + Cloudflare Worker + D1) is ✅ done. These remain. All are safe **before**
 cutover (MX/TXT and repo settings only — they don't touch the website's A/CNAME).
 
-- [ ] **O1 · Wire the inbox** (Phase 3, `EMAIL-DOMAIN-SETUP.md`): ImprovMX aliases
-      `hello@` / `roxy@` → artist Gmail; GoDaddy **MX + one SPF TXT** (remove the default
-      `*.secureserver.net` MX); **DMARC** at `_dmarc` (`p=none`); Gmail **"Send mail as"**
-      `roxy@beansprout.ink` via Resend SMTP. Test: email `hello@` from your phone → lands.
-- [ ] **O2 · Set build-time Worker URLs** — repo → Settings → Secrets and variables →
-      Actions → **Variables**: `VITE_ENQUIRY_FN_URL`, `VITE_NEWSLETTER_FN_URL`,
-      `VITE_FLASH_STATUS_FN_URL` = your `…workers.dev/<route>` URLs (all three; the
-      subdomain is account-specific).
-- [ ] **O3 · Enable GitHub Pages** — Settings → Pages → Source = **GitHub Actions**. Safe:
-      CNAME is gone, so Pages serves only on `*.github.io` until the deliberate cutover.
+- [~] **O1 · Wire the inbox** (Phase 3, `EMAIL-DOMAIN-SETUP.md`) — **receive side ✅ done.**
+      ImprovMX live ("Email forwarding active"); `hello@` / `roxy@` → artist Gmail
+      (`beansprouttattoo@gmail.com`), catch-all `*@` → `harrisonfisher1990@gmail.com`; no
+      `*.secureserver.net` default MX existed (nothing to remove); Resend's `send`/amazonses
+      MX left intact; a **real test email to `hello@` landed in the artist inbox**; the
+      `_dmarc` TXT (`v=DMARC1; p=none; rua=mailto:hello@beansprout.ink`) is ✅ in at GoDaddy.
+      **Outstanding (send side) — one item:** the Gmail **"Send mail as"** `roxy@beansprout.ink`
+      via Resend SMTP (needs the artist's Gmail — the reply-as-domain piece).
+- [x] **O2 · Set build-time Worker URLs** — ✅ done. Three repo Actions **Variables**
+      (`VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` / `VITE_FLASH_STATUS_FN_URL`) set to
+      the `beansprout-forms.harrisonfisher1990.workers.dev/<route>` URLs (matches the
+      `config.js` default). *(Cloudflare Pages staging project still needs these in its own
+      env if the `*.pages.dev` URL is used for verification.)*
+- [x] **O3 · Enable GitHub Pages** — ✅ done. Settings → Pages → Source = **GitHub Actions**.
+      No `CNAME`, so it serves only on `gfnnn.github.io` until the deliberate cutover — apex
+      untouched. (Builds on push to `main` / manual dispatch.)
 
 ## C. Verify on staging  (👤 YOU + 🛠) — before *any* apex change
 
