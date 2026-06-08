@@ -10,7 +10,9 @@ history for the earlier long-form spec). Flesh it back out when it's picked up.
 > Co-ships with the payments track ([`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) — the
 > live **Stripe** plan; superseded manual-links decision in
 > [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md)) — the deposit is the booking-confirmation
-> trigger, and scheduling reuses its reserve/TTL/`/studio`/customer-email primitives.
+> trigger, and scheduling reuses its reserve/TTL/`/studio`/customer-email primitives —
+> **several of which the shipped payments backbone already provides** (the 48h hold
+> `expires_at` + lazy stale-release, `promoteFlashClaim`, and the webhook customer-email).
 > Couples with the ROADMAP "artist-facing view" (same admin surface).
 
 ## The model: request / hold + manual confirm (not instant booking)
@@ -37,8 +39,9 @@ tokenised "choose your time" magic link).
 
 The hard primitives already ship: atomic one-of-a-kind reserve (`reserveFlashPiece`,
 `ON CONFLICT DO NOTHING`), reserve→persist→email with rollback, a live-availability read
-endpoint (`flash-status`), and timing capture on the forms (`date_from`/`days[]` /
-`available_dates`). The genuinely **new** problem is *availability* — knowing which slots
+endpoint (`flash-status`), timing capture on the forms (`date_from`/`days[]` /
+`available_dates`), and — new with the payments backbone — a **hold TTL** (`expires_at` +
+lazy stale-release) and a `pending → claimed` promotion (`promoteFlashClaim`). The genuinely **new** problem is *availability* — knowing which slots
 to offer. Simplest workable answer: **(a) artist-defined windows in `/studio`** minus
 held/confirmed slots, plus **(b) an `.ics` invite on confirm** (cheap). A two-way
 calendar free-busy read (option c) is deferred — high blast-radius (OAuth/token storage).

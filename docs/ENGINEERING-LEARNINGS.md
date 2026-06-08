@@ -59,7 +59,7 @@ Priority (`High`/`Medium`/`Low`) reflects leverage, not urgency.
    chore.
 4. **[KEEP-AWARE] The 7-plugin bespoke Vite build is a known bus-factor-of-one liability.**
    It reimplements things a framework gives for free and is understood by one person. Keep
-   it well-documented; the 521-test net is what makes it safe to refactor when needed.
+   it well-documented; the test net is what makes it safe to refactor when needed.
 5. **[KEEP] The monorepo split + independent deploys + `develop`→staging / `main`→prod
    gate is team-grade** and validated against how full-stack projects (Cloudflare, T3)
    structure themselves. Preserve it.
@@ -94,10 +94,12 @@ Priority (`High`/`Medium`/`Low`) reflects leverage, not urgency.
 
 ## Testing & CI
 
-13. **[KEEP] The 521-test (402 web + 119 functions) + 5-spec Playwright tier is a genuine
+13. **[KEEP] The 600-test (429 web + 171 functions) + 5-spec Playwright tier is a genuine
     strength** — far above typical solo-creative sites, level with Cloudflare's own org.
     It's what lets us refactor fearlessly; protect and extend it as features land. (Note:
-    once item 1 lands, CI will cover consistency as well as correctness.)
+    once item 1 lands, CI will cover consistency as well as correctness.) *This is the **one**
+    doc that cites the exact suite size — elsewhere it's "the test net", no number — so the
+    count can't drift out of sync across files; update it **here** when it moves.*
 
 ---
 
