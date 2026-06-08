@@ -7,7 +7,10 @@ work through to launch. When an item lands, tick it here and reflect it in `ROAD
 
 **Verified against the codebase on 2026-06-08** — counts and states below are real
 (not assumed): `npm test` = **620 pass**, CNAME absent (staging posture intact), 28
-portfolio photos in, 12 flash pieces still placeholder, 68 copy markers still pending.
+portfolio photos in, 12 flash pieces still placeholder. The **Round-1 copy pass** (#155)
+applied the artist's reviewed words + the global tone/style/fact decisions; the **68
+`ARTIST-COPY` markers are still in source** and need flipping→`approved` + stripping (the
+remaining copy step), so the gate count below hasn't moved yet.
 
 Owners: 👤 **YOU** (external accounts / DNS / dashboards / sign-off) · 🛠 **CODE**
 (I do it in-repo via PR — most need a value from you first).
@@ -18,30 +21,43 @@ Owners: 👤 **YOU** (external accounts / DNS / dashboards / sign-off) · 🛠 *
 
 1. **GDPR retention/erasure** — ✅ **cleared** (12-month retention + delete-by-email SQL
    runbook in `DATA-COMPLIANCE.md`; privacy page matches). Only a *dry-run* remains (O5).
-2. **Real copy + images** — ⏳ **the live blocker.** 28 portfolio photos are in, but
-   **68 copy slots are unapproved**, **12 flash pieces are placeholder art**, and the
-   hero clip / og-image / logo are placeholders. This is the bulk of the work below (C1–C9).
+2. **Real copy + images** — ⏳ **the live blocker.** The Round-1 copy pass (#155) landed
+   the artist's reviewed words + confirmed facts (pricing, deposit, touch-up/reschedule
+   windows, the three **fine line · high detail · realism** style categories) for the
+   checklist **up to enquiries**; the `ARTIST-COPY` markers still need flipping/stripping.
+   Still open: **12 flash pieces are placeholder art**, the **hero clip / og-image / logo**,
+   and the sections after *enquire* (hours, reply time, flash data, legal numbers). This is
+   the bulk of the work below (C1–C9).
 
 ---
 
 ## A. Content & copy sign-off  (👤 supply values → 🛠 I apply)
 
 The gate for copy is one command reaching zero: `grep -rn "pending approval" apps/web/`
-(currently **68**, across 22 files). The artist fills in [`COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md);
+(still **68**, across 22 files — the Round-1 pass applied the artist's words but the markers
+haven't been flipped/stripped yet). The artist fills in [`COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md);
 I apply each to source and flip/clear its `ARTIST-COPY · <REF>` marker.
 
-- [ ] **C1 · Copy approval (umbrella)** — work `COPY-FOR-ARTIST.md` against the staging
-      site; 🛠 I apply words + flip markers until `pending approval` = 0, then strip the
-      `ARTIST-COPY` comments before cutover. Refs span HOME-01..10, FLASH, PORT, SERV,
-      VISIT, PRIV, TERMS, NL, PIECE, SHARED.
-- [ ] **C2 · Services prices** (`SERV-02`) — `services/index.html` prices (£120 / £180–280
-      / £420) are *design-brief placeholders*. 👤 confirm real prices/tiers → 🛠 apply.
-- [ ] **C3 · Terms/privacy effective date + legal review** (`TERMS-01/02/03`) — placeholder
-      effective date; have wording reviewed against current consumer law; **deposit figures
-      must match `/services/`.** 👤 review → 🛠 apply.
+- [~] **C1 · Copy approval (umbrella)** — **Round 1 applied (#155):** the artist's reviewed
+      words + the global tone/style/fact decisions are in source for the checklist **up to
+      enquiries** (HOME, ABOUT, SERV, FAQ, AFTER, FLASH copy, ENQ, PORT styles, SHARED tagline/
+      CTA), incl. "custom"→"bespoke", botanical/illustrative removed, the three style
+      categories, and em dashes stripped from visible copy. **Remaining:** flip those markers
+      `pending approval`→`approved` + strip the `ARTIST-COPY` comments, and review the
+      still-pending refs (VISIT hours, PRIV/TERMS legal, NL, CONFIRM voice, PIECE, BUS
+      reply-time, PORT piece names, flash data). `pending approval` = **68** until the flip.
+- [x] **C2 · Services prices** (`SERV-02/03`) — ✅ confirmed + applied (#155): **£80 /
+      £120–£200 / £300 / £500** (min / small / half-day / full-day), a **flat 50% deposit**,
+      **48h** reschedule, **one-year** touch-up. `/enquire/` budget bands mirror them.
+- [~] **C3 · Terms/privacy effective date + legal review** (`TERMS/PRIV`) — deposit figures
+      now match `/services/` (flat 50%) and the **effective date is approved** ("June 2026").
+      **Open:** the **ICO public registration reference** (ZA###### — held until confirmed; the
+      account/cert number must never be published), the **tattoo-registration number** (TBC),
+      and a professional review of the wording.
 - [ ] **C4 · Flash art + copy** — all **12** pieces in `flash.js` are `img: null` (line-art
       glyphs; titles/specs/prices placeholder). 👤 supply photos + real copy → 🛠 add to
-      `flash.js` + drop files in `public/images/flash/`.
+      `flash.js` + drop files in `public/images/flash/`. *(In #155 the homepage flash-day
+      notice now reads "26 July" and the one stray "Botanical" spec label was removed.)*
 - [ ] **C5 · og-image.jpg** — a branded **placeholder** (68 KB) is committed so cards/JSON-LD
       don't 404. 👤 supply a real **1200×630** photo → 🛠 swap `public/images/og-image.jpg`.
 - [ ] **C6 · Hero video / GIF** — both slots in `media.js` are `show: false`. 👤 supply clip/GIF
@@ -139,8 +155,10 @@ and **X2 (re-add CNAME) only at cutover** — never earlier, or Pages claims the
 
 ## What I can start on now vs. what's waiting on you
 
-- **Waiting on your values** (then 🛠 same-day): C2 prices, C3 terms date, C4 flash photos/copy,
-  C5 og-image, C6 hero clip, C7 logo/icon, and each C1 copy block as you fill `COPY-FOR-ARTIST.md`.
+- **Waiting on your values** (then 🛠 same-day): C4 flash photos/copy, C5 og-image, C6 hero
+  clip, C7 logo/icon, the **ICO public reference** (C3), the still-pending copy refs (VISIT
+  hours, reply time, portfolio piece names, NL, CONFIRM), and the marker flip/strip for the
+  Round-1 copy that's already applied (C1).
 - **Yours alone** (external): O1 inbox, O2 Worker URLs, O3 Pages, O4/O5/O6 verification, all of D.
 - **Lowest-friction first move:** O1–O3 (you) unblock the staging email test, while you/the
   artist work the copy sheet — those two tracks run fully in parallel.
