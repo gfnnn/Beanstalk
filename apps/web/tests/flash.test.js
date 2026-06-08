@@ -31,7 +31,7 @@ const raf   = () => new Promise(r => requestAnimationFrame(() => r()))
 // claims; a POST (the claim submit) returns `submit`. Branch on method so a single
 // mock serves both, regardless of call order/count.
 function mockFetch({ claims = {}, submit } = {}) {
-  return vi.fn((url, opts) => {
+  return vi.fn((_url, opts) => {
     if (opts && opts.method === 'POST') return Promise.resolve(submit)
     return Promise.resolve({ ok: true, json: () => Promise.resolve({ claims }) })
   })

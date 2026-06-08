@@ -621,9 +621,17 @@ two don't drift). This is the **actionable view**: priority + delivery. Priority
 leverage. The first three are the **quick wins** in the sequence above — independent,
 low-effort, and they raise the floor under every feature that follows.
 
-- **[High · low-effort] Linter + formatter, gated in CI** (LEARNINGS #1). _Delivery: add the
-  tool + config (ESLint + Prettier, or **Biome**) + a `lint` CI step in one PR; auto-format the
-  tree in a separate mechanical PR so the diff stays reviewable._
+- **[High · low-effort] Linter, gated in CI** (LEARNINGS #1) — **✅ lint floor shipped.**
+  **Biome** is wired in: config in `biome.json`, `npm run lint` (`lint:fix` to apply safe
+  fixes), and a dedicated `lint` job in `.github/workflows/test.yml`. The recommended rule
+  set is on and the tree passes; the genuine correctness findings it surfaced were fixed
+  (missing `parseInt` radix, a dead variable, useless regex escapes, `Math.pow`→`**`, an
+  unused param, a bracket-key access, an assignment-in-expression). _Deliberately deferred —
+  the **formatter is off** and three high-count purely-mechanical rules are disabled in
+  `biome.json` (`useTemplate`, `useOptionalChain`, `useIterableCallbackReturn`) so this stayed
+  a reviewable lint-setup + fix diff. **The mechanical sweep is the follow-up PR:** turn the
+  formatter on, re-enable those three rules, and `npm run lint:fix` + `biome format --write`
+  the tree in one mechanical commit._
 - **[High · a11y] Make `prefers-reduced-motion` a tested invariant** (LEARNINGS #7).
   _Delivery: a Playwright spec that loads with `prefers-reduced-motion: reduce` and asserts
   GSAP/Lenis are inert and content is visible._

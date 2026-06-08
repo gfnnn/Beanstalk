@@ -172,7 +172,6 @@ export function initFlash() {
   const overlay = document.getElementById('claim-modal')
   if (!overlay) return
 
-  const modal      = overlay.querySelector('.modal')
   const closeBtn   = document.getElementById('modal-close')
   const cancelBtn  = document.getElementById('modal-cancel')
   const submitBtn  = document.getElementById('modal-submit')

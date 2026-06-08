@@ -2,7 +2,9 @@
 # guard the branch instead of relying on running `npm test` locally.
 #
 # Both workspaces are tested via a matrix so each area (web / functions) reports
-# its own status. A single `npm ci` at the root installs all workspaces.
+# its own status. A single `npm ci` at the root installs all workspaces. A separate
+# `lint` job runs Biome over the tree (config in biome.json) as the static-analysis
+# floor; it's lint-only — formatting is intentionally not enforced (see biome.json).
 name: Tests
 
 on:
@@ -15,6 +17,18 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: lint (biome)
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
   test:
     runs-on: ubuntu-latest
     strategy:

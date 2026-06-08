@@ -24,7 +24,7 @@ describe('corsFor', () => {
   it('always advertises POST/OPTIONS and varies on Origin', () => {
     const h = corsFor({ headers: {} })
     expect(h['Access-Control-Allow-Methods']).toContain('POST')
-    expect(h['Vary']).toBe('Origin')
+    expect(h.Vary).toBe('Origin')
   })
 })
 

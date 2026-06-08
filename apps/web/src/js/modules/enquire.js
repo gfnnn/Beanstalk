@@ -40,7 +40,7 @@ export function initEnquire() {
   // just shape: a real-looking name, a deliverable-looking email, a date of birth
   // that makes the enquirer 18–120, and appointment dates that sit in the future
   // and in the right order.
-  const NAME_RE  = /^[\p{L}][\p{L}\p{M} .'’\-]{0,48}$/u
+  const NAME_RE  = /^[\p{L}][\p{L}\p{M} .'’-]{0,48}$/u
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
   // Name: tell the user *which* problem it is — over-length reads very differently
@@ -407,7 +407,7 @@ export function initEnquire() {
 
   // ── Restore from sessionStorage ───────────────────────────────────────────
   try {
-    const saved = parseInt(sessionStorage.getItem('beansprout_step'))
+    const saved = parseInt(sessionStorage.getItem('beansprout_step'), 10)
     if (saved > 1 && saved <= TOTAL) setStep(saved)
   } catch (_) {}
 
@@ -483,7 +483,10 @@ export function initEnquire() {
     for (const el of form.elements) {
       if (!el.name || el.disabled || el.type === 'file') continue
       if (el.name.endsWith('[]')) {
-        if (el.checked) (data[el.name] ||= []).push(el.value)
+        if (el.checked) {
+          data[el.name] ||= []
+          data[el.name].push(el.value)
+        }
       } else if (el.type === 'radio') {
         if (el.checked) data[el.name] = el.value
       } else if (el.type === 'checkbox') {
