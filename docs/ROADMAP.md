@@ -74,6 +74,11 @@ guardrail in `CLAUDE.md`.
 
 # Go-live plan (staging → apex)
 
+> **Working the launch?** [`GO-LIVE.md`](./GO-LIVE.md) is the short, **codebase-verified
+> tick-list of only the remaining actions** — the surface to work through, item by item.
+> The phases below are the *narrative* (why/how, the acceptance test, the rollback plan);
+> keep the two in sync when an item lands.
+
 A step-by-step path to take this repo from **staging** (GitHub Pages + the Cloudflare
 Worker) to **live on the apex `beansprout.ink`**, replacing the v1 site. The phases
 are parallelisable except for the ordering called out below.

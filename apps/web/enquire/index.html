@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beansprout · Enquire</title>
-<meta name="description" content="Start an enquiry with Beansprout: fine line, botanical and custom tattoo in Winchester. Tell me your idea and I'll be in touch.">
+<meta name="description" content="Start an enquiry with Beansprout: fine line, high detail and realism tattoo in Winchester. Tell me your idea and I'll be in touch.">
 <meta property="og:title"       content="Enquire · Beansprout.ink">
-<meta property="og:description" content="Tell me about your tattoo idea and I'll get back to you personally. Fine line, botanical and custom work in Winchester.">
+<meta property="og:description" content="Tell me about your tattoo idea and I'll get back to you personally. Fine line, high detail and realism work in Winchester.">
 <meta property="og:type"        content="website">
 <meta name="theme-color"        content="#F7F1E3">
   <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
@@ -92,7 +92,7 @@
   <div class="progress-head">
     <!-- ARTIST-COPY · ENQ-02 · pending approval — see docs/COPY-REVIEW.md -->
     <p class="progress-intro">Four short steps · about 2 minutes</p>
-    <span class="progress-pct" id="progress-pct">Step 1 of 4 — About you</span>
+    <span class="progress-pct" id="progress-pct">Step 1 of 4 · About you</span>
   </div>
   <div class="progress-bar-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-label="Form progress">
     <div class="progress-fill" id="progress-fill"></div>
@@ -253,10 +253,10 @@
             <div class="field-row single">
               <div class="field">
                 <label>What kind of piece are you after?</label>
-                <div class="radio-cards" role="group" aria-label="Custom or flash">
+                <div class="radio-cards" role="group" aria-label="Bespoke or flash">
                   <label class="radio-card">
                     <input type="radio" name="tattoo_type" value="custom" required>
-                    <span class="radio-card-title">Custom piece</span>
+                    <span class="radio-card-title">Bespoke piece</span>
                     <span class="radio-card-hint">Designed for you from scratch</span>
                   </label>
                   <label class="radio-card">
@@ -278,7 +278,7 @@
                 <label for="idea">Tell me your idea</label>
                 <span class="field-hint">Subject, mood, and any meaning behind it, as much or as little as you've got.</span>
                 <textarea id="idea" name="idea" rows="4" maxlength="1200"
-                          placeholder="I've been wanting a small botanical piece, maybe foxgloves and ferns down my forearm…"></textarea>
+                          placeholder="I've been wanting a small fine line piece, maybe foxgloves and ferns down my forearm…"></textarea>
               </div>
             </div>
 
@@ -287,7 +287,8 @@
                 <label>Style (pick up to two)</label>
                 <div class="pill-group" role="group" aria-label="Select style" data-max="2">
                   <label class="pill"><input type="checkbox" name="style[]" value="fine-line">Fine line</label>
-                  <label class="pill"><input type="checkbox" name="style[]" value="botanical">Botanical</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="high-detail">High detail</label>
+                  <label class="pill"><input type="checkbox" name="style[]" value="realism">Realism</label>
                   <label class="pill"><input type="checkbox" name="style[]" value="single-needle">Single needle</label>
                   <label class="pill"><input type="checkbox" name="style[]" value="blackwork">Blackwork</label>
                   <label class="pill"><input type="checkbox" name="style[]" value="script">Script &amp; lettering</label>
@@ -318,17 +319,16 @@
               <div class="field">
                 <label for="budget">Budget</label>
                 <span class="field-hint">Helps me suggest the right scale</span>
-                <!-- Bands mirror the /services rates (minimum £120, small custom £180–£280,
-                     half day £420, full day £680). Those figures are still placeholders pending
-                     launch — if /services changes, update these labels to match. The `value`
-                     tokens are stable keys (the Worker humanises them into the email), so only
-                     the visible £ labels track the pricing page. -->
+                <!-- Bands mirror the /services rates (minimum £80, small bespoke £120–£200,
+                     half day £300, full day £500). If /services changes, update these labels to
+                     match. The `value` tokens are stable keys (the Worker humanises them into the
+                     email), so only the visible £ labels track the pricing page. -->
                 <select id="budget" name="budget">
                   <option value="">Choose a range…</option>
-                  <option value="min">Up to £180</option>
-                  <option value="small">£180–£280</option>
-                  <option value="half-day">Half day (~£420)</option>
-                  <option value="full-day">Full day (~£680)</option>
+                  <option value="min">Up to £120</option>
+                  <option value="small">£120–£200</option>
+                  <option value="half-day">Half day (~£300)</option>
+                  <option value="full-day">Full day (~£500)</option>
                   <option value="flexible">I'm flexible / not sure</option>
                 </select>
               </div>
@@ -552,7 +552,7 @@
   <div class="footer-top">
     <div class="footer-brand">
       <p class="wordmark">beansprout<em>.ink</em></p>
-      <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
+      <p class="tagline">Fine line, high detail and realism tattoo at Tiny Knives, Winchester.</p>
     </div>
     <nav class="footer-col" aria-label="Site links"><h2>Explore</h2><ul>
       <li><a href="/portfolio/">Portfolio</a></li>

@@ -87,7 +87,7 @@ function wireForm(form) {
       } else {
         // No panel wired — fall back to an inline confirmation in the feedback slot.
         if (feedback) {
-          feedback.textContent = 'You’re on the list — thanks for signing up.'
+          feedback.textContent = 'You’re on the list. Thanks for signing up.'
           feedback.hidden = false
         }
       }

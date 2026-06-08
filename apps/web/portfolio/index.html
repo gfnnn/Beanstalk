@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio · Beansprout</title>
-  <meta name="description" content="A portfolio of fine line, botanical, black and grey, illustrative and dotwork tattoo work, healed and fresh, in Winchester.">
+  <meta name="description" content="A portfolio of fine line, high detail, realism, black and grey and dotwork tattoo work, healed and fresh, in Winchester.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <meta property="og:title"       content="Portfolio · Beansprout.ink">
-  <meta property="og:description" content="Fine line, botanical, black and grey, illustrative and dotwork tattoo work in Winchester.">
+  <meta property="og:description" content="Fine line, high detail, realism, black and grey and dotwork tattoo work in Winchester.">
   <meta property="og:type"        content="website">
   <meta name="theme-color"        content="#F7F1E3">
   <link rel="icon"             href="/favicon.svg" type="image/svg+xml">
@@ -111,7 +111,7 @@
 
   <div class="page-header-right">
     <p class="page-descriptor">
-      A selection of healed and fresh work: fine line, botanical, black and grey, illustrative and dotwork pieces. Tap any piece to see it larger.
+      A selection of healed and fresh work: fine line, high detail, realism, black and grey and dotwork pieces. Tap any piece to see it larger.
     </p>
   </div>
 
@@ -128,7 +128,7 @@
   <!-- COPY: chip labels are the style category display names -->
   <!--
     PRIORITY vs SECONDARY chips: the first cluster (All + the three styles the
-    homepage "specialisms" cards feature — fine-line, black-grey, colour) is
+    homepage "specialisms" cards feature — fine-line, high-detail, realism) is
     always visible. The rest live in `.chips-secondary` and collapse behind the
     "More" toggle whenever they don't fit — always on narrow viewports, and on
     desktop too once the row can't hold every chip beside the selects (filter.js
@@ -144,11 +144,11 @@
     <button class="chip" data-filter="fine-line">
       Fine line <span class="chip-count" data-count="0">0</span>
     </button>
-    <button class="chip" data-filter="black-grey">
-      Black &amp; grey <span class="chip-count" data-count="0">0</span>
+    <button class="chip" data-filter="high-detail">
+      High detail <span class="chip-count" data-count="0">0</span>
     </button>
-    <button class="chip" data-filter="colour">
-      Colour <span class="chip-count" data-count="0">0</span>
+    <button class="chip" data-filter="realism">
+      Realism <span class="chip-count" data-count="0">0</span>
     </button>
 
     <!-- Narrow-viewport toggle for the secondary chips (hidden on desktop) -->
@@ -158,6 +158,12 @@
     </button>
 
     <span class="chips-secondary" id="chips-secondary">
+      <button class="chip" data-filter="black-grey">
+        Black &amp; grey <span class="chip-count" data-count="0">0</span>
+      </button>
+      <button class="chip" data-filter="colour">
+        Colour <span class="chip-count" data-count="0">0</span>
+      </button>
       <button class="chip" data-filter="dotwork">
         Dotwork <span class="chip-count" data-count="0">0</span>
       </button>
@@ -212,7 +218,7 @@
 
      ALT TEXT FORMULA (set per piece in pieces.js, for SEO):
        "[Style] tattoo of [subject] on [placement]"
-       e.g. "Fine line botanical tattoo of foxglove on inner forearm"
+       e.g. "Fine line tattoo of foxglove on inner forearm"
 
      LOAD MORE: first 16 tiles shown; load-more reveals the next 16
      and the filter re-applies so reveals respect active filters.
@@ -325,7 +331,7 @@
         <img src="/images/logo-light.svg" alt="Beansprout" class="nav-logo-img">
       -->
       <p class="wordmark">beansprout<em>.ink</em></p>
-      <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
+      <p class="tagline">Fine line, high detail and realism tattoo at Tiny Knives, Winchester.</p>
     </div>
     <nav class="footer-col" aria-label="Site links">
       <h2>Explore</h2>
