@@ -502,28 +502,15 @@ detailed, ordered build steps for each are in the items below and their stubs.
 
 ## P2 — toward booking/enquiry *management*
 
-- **Artist-facing view + status lifecycle** _(parked — to be researched)._
-  - **Goal:** make the captured data manageable — a list of submissions/claims
-    with a status lifecycle (new → replied → booked → completed) and a
-    flash-claimed view, so enquiries don't live only in an inbox.
-  - **The data already exists:** every enquiry/flash claim is persisted to the
-    `submissions` D1 table (with `email_status`), and flash reservations to
-    `flash_claims` — both written in `apps/functions/src/lib/db.js`. What's missing
-    is a **read/manage surface** and a **status write-path**. D1 being a real SQL DB
-    makes this a normal query layer, not a scan.
-  - **Open decision — where it lives:**
-    - **(a) Gated admin route on the Worker** (e.g. `/admin`) that reads/writes the
-      D1 tables, behind a shared secret / Cloudflare Access. _Smallest step; reuses
-      the existing Worker + D1; no new infra._
-    - **(b) Separate lightweight admin app.** More isolation, more infra.
-    - **(c) No UI** — structured email labelling / a Resend-side workflow, with
-      D1 as the system of record. Cheapest; least "management".
-  - **Recommendation (for when you pick this up):** **(a)** — a gated route querying
-    the D1 tables, plus a write-path to flip a record's status. It
-    delivers a real lifecycle view with the least new surface area. Pairs with a
-    `status` write-path so replies/bookings update the record.
-  - **Dependency:** the GDPR erasure UI (below) naturally lives in the same admin
-    surface (delete-by-email).
+- **Artist dashboard (enquiry/claim management + the admin substrate)** _(designed — see
+  [`DASHBOARD.md`](./DASHBOARD.md))._ A private, single-artist dashboard over the D1 data
+  (`submissions` / `flash_claims` / `payments`), **Worker-served and gated by Cloudflare
+  Access**: an enquiry inbox with a status lifecycle, flash inventory, payments reconciliation,
+  the GDPR delete-by-email tools, and the scheduling confirm queue. It's the **load-bearing
+  substrate** — payments reconciliation, the scheduling confirm, and the erasure UI all live
+  here — so it's built once, before the deposit/scheduling features that depend on it. The
+  full functional design, data-model addition (`0003`), security model, and phased build are in
+  [`DASHBOARD.md`](./DASHBOARD.md).
 
 - **Online payments — integrated Stripe checkout** _(backbone **shipped dark**; embedded
   frontend + go-live config remain)._ The no-show defence the copy already promises — an
