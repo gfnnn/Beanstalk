@@ -114,16 +114,14 @@ These unblock later phases. None require code to decide.
       (`src/js/modules/analytics.js`) no-ops until one is wired, so the site is
       launch-legal without it. *Recommend deferring to post-launch unless you want
       launch-day numbers.* (Also unblocks the retargeting pixel — see the Backlog.)
-- [ ] **Online payments / deposits (now an integrated Stripe checkout)** — the enquire
-      copy mentions deposits, but payment capture is **not** wired (Backlog P2). The
-      direction has **moved on** from manual PayPal/Monzo links to an **integrated Stripe
-      checkout** (flash = full payment, custom = deposit only; Stripe engine → Monzo
-      Business payout, Klarna via Stripe, PayPal later) — see
-      [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md). Decide: launch without it (deposit
-      requested by email) or build it first. *Recommend launch without; add post-launch.*
-      The load-bearing decision to confirm is **Stripe as the engine, paying out to the
-      Monzo Business account** (the only way to get card + Klarna in one safe,
-      high-control integration).
+- [ ] **Online payments / deposits (integrated Stripe checkout)** — the enquire copy mentions
+      deposits. The **Worker backbone is now built and shipped dark** behind `PAYMENTS_ENABLED`
+      (flash full-payment via an embedded Stripe **Payment Element** → Monzo Business payout,
+      Klarna via Stripe; custom = deposit only; PayPal timing TBD) — only the **step-4 frontend
+      + go-live config** remain (see [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)). Decide:
+      launch without payments live (deposit requested by email) or finish step 4 first.
+      *Recommend launch without; flip it on post-launch.* The load-bearing engine decision
+      (**Stripe → Monzo Business**) is effectively settled — it's what shipped.
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
@@ -488,9 +486,9 @@ Launch (Phase 6)
 rides alongside everything after it. **(1) `/studio` is the load-bearing substrate** — the
 artist-facing enquiry/claim view, the payments reconciliation surface, the scheduling
 confirm step, and the GDPR erasure UI are all the same token-protected D1 surface, so it's
-built once and reused. **(2) Payments** is the highest-value feature and is already specced
-file-by-file; its flash full-payment phase can ship before `/studio`, its custom-deposit
-phase needs it. **(3) Scheduling** rides on the deposit trigger, so it follows payments.
+built once and reused. **(2) Payments** is the highest-value feature and its **Worker
+backbone is already built** (shipped dark); its flash-frontend phase can ship before
+`/studio`, its custom-deposit phase needs it. **(3) Scheduling** rides on the deposit trigger, so it follows payments.
 **(4) CMS** and **(5) infra consolidation** are independent parallel tracks that pair
 naturally (both want a git-backed, Cloudflare-centred stack) and neither should be tangled
 into the apex cutover. **TypeScript** is incremental and threads through all of it. The
@@ -521,40 +519,38 @@ detailed, ordered build steps for each are in the items below and their stubs.
   - **Dependency:** the GDPR erasure UI (below) naturally lives in the same admin
     surface (delete-by-email).
 
-- **Online payments — integrated Stripe checkout** _(planned; specced file-by-file and
-  ready to build)._ The no-show defence the copy already promises — now an **integrated
-  checkout**, not hand-reconciled links. The studio asked for "the safest integration with
-  the highest functionality and control," plus **Klarna**, which manual links can't give, so
-  the direction moved on from the original PayPal.Me/Monzo.me plan.
+- **Online payments — integrated Stripe checkout** _(backbone **shipped dark**; embedded
+  frontend + go-live config remain)._ The no-show defence the copy already promises — an
+  **integrated checkout**, not hand-reconciled links. The studio asked for "the safest
+  integration with the highest functionality and control," plus **Klarna**, which manual links
+  can't give, so the direction moved on from the original PayPal.Me/Monzo.me plan.
   - **Model:** **flash = full payment online** (the `price` is known at build time, so paying
     *is* the claim); **custom enquiry = deposit only** — never auto-price a custom tattoo, the
     balance is quoted and paid in person on the day. The deposit is the shared primitive and
     the booking-confirmation trigger for scheduling.
   - **Architecture:** **Stripe is the engine** — one integration carries **card + Klarna** via
-    hosted Checkout (no card data on-site → PCI **SAQ-A**), funds pay out to the **Monzo
-    Business** account (which also gives the free bank-transfer route); **PayPal** is a
-    parallel method phased in later.
-  - **Path to delivery (one PR per step → `develop`):** ① groundwork — `0002_payments.sql`
-    migration, server-side price authority (a synced `flash-prices.json` so the client can't
-    set the amount), `db.js` helpers, Stripe account + secrets; ② `POST /checkout`
-    (reserve `pending` → record `awaiting` → create Checkout Session) + unit tests; ③
-    `POST /webhooks/stripe` (signature-verify + idempotent by event id → promote
-    `pending → claimed` → email customer + artist) + unit tests; ④ frontend — flash modal
-    redirect to Stripe, `/payment-received/` page, `CHECKOUT_FN_URL` config/CSP, web + **E2E**
-    tests (the browser-only path); ⑤ stale-pending release (lazy on the `flash-status` read,
-    optional cron) + `DATA-COMPLIANCE.md` financial-retention update; ⑥ verify on staging in
-    Stripe **test mode**, then swap to live keys. Then **Phase 2** = custom deposits (tokenised
-    "pay your deposit" magic link + a `/studio` reconciliation surface) and **Phase 3** =
-    PayPal + refunds/cancellation polish.
-  - **Closes a known durability gap:** step ⑤'s `expires_at` + stale-release also resolves the
-    narrow case (June 2026 review) where a flash `pending` row can be stranded if the Worker is
+    the embedded **Payment Element** (card fields are Stripe iframes → PCI **SAQ-A**), funds pay
+    out to the **Monzo Business** account (which also gives the free bank-transfer route);
+    **PayPal** is a parallel method whose timing is an open decision.
+  - **Status — backbone shipped, dark behind `PAYMENTS_ENABLED`:** migration `0002`, server-side
+    price authority (synced `flash-prices.json`), `db.js` helpers, `POST /checkout`
+    (PaymentIntent → `client_secret`, REST/no-SDK), `POST /webhooks/stripe` (Web-Crypto
+    signature verify → promote `pending→claimed` → customer + artist emails, idempotent), and
+    lazy stale-release — all unit-tested. **Remaining:** ④ the embedded **Payment Element**
+    frontend (flash modal + CSP + `VITE_PAYMENTS_ENABLED` + web/E2E tests), the studio's
+    Stripe/Monzo/Klarna account setup, and a staging **test-mode** run before live keys. The
+    step-by-step build log lives in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md) §10
+    (not duplicated here).
+  - **Closed a known durability gap:** the `expires_at` + stale-release also resolves the narrow
+    case (June 2026 review) where a flash `pending` row could be stranded if the Worker is
     evicted between the atomic reserve and the send — the webhook/TTL model removes the
     manual-release dependency entirely.
-  - **Decision to confirm first:** Stripe as the engine paying out to Monzo Business (load-
-    bearing). Live plan: [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md); build spec:
+  - **Then:** **Phase 2** = custom deposits (tokenised "pay your deposit" magic link + a
+    `/studio` reconciliation surface); **Phase 3** = PayPal + refunds/cancellation polish.
+    Live plan: [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md); build spec:
     [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md); fee maths:
-    [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md); superseded manual-links decision (the zero-build
-    fallback): [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
+    [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md); superseded manual-links decision:
+    [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
 
 - **Scheduling / appointment booking** _(planned — post-go-live, several decisions parked
   for the artist)._ A calendar layer over the flash claim (and later the custom enquiry) so a
