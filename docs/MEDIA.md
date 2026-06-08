@@ -118,14 +118,10 @@ plus the optional `DROPBOX_MEDIA_PATH` **variable** (defaults to `/Beansprout/ma
 
 ## The crop (centre cover-crop)
 
-Masters are **pre-edited and framed by the artist before upload** — the artist's eye
-is the final framing step, so the pipeline does **no** automated subject detection.
-Each tier is a plain **centre cover-crop** to the lane aspect (portfolio 3:4, flash
-1:1): sharp trims the master around its centre to the target aspect, then downscales.
-Frame the shot the way it should appear on the site before dropping it in Dropbox.
-
-> If a master isn't already close to the lane aspect, re-frame/crop it at source
-> before upload rather than relying on the pipeline to find the subject — it won't.
+As the masters note above explains, framing is the artist's job, not the pipeline's: each
+tier is a plain **centre cover-crop** to the lane aspect (portfolio 3:4, flash 1:1) — **no**
+subject detection. So if a master isn't already close to that aspect, **re-frame it at source
+before upload** rather than relying on the pipeline to find the subject — it won't.
 
 ## Adding / re-cropping a portfolio piece
 
@@ -194,7 +190,13 @@ Rename freely — the paths are just the `sources` / `gif` / `poster` values in
   ≈ 720×900 — 2× is plenty, the column is small).
 - **Poster:** a JPG/WebP still (first frame), same aspect ratio.
 
-Rough starting points (tune the bitrate to hit the budget):
+**A helper script automates this** — [`apps/web/scripts/process-video.mjs`](../apps/web/scripts/process-video.mjs)
+takes a master clip and emits the WebM + MP4 + poster, cover-cropped to the slot aspect and
+reported against the budget:
+`node scripts/process-video.mjs --slot hero|about --src <master> --out public/videos
+[--start <s> --duration <s> --crf <n>]` (CLI-only — needs `ffmpeg`/`ffprobe` on PATH; not an
+`npm` script). The raw recipes below are the equivalent if you'd rather run ffmpeg by hand
+(tune the bitrate to hit the budget):
 
 ```bash
 # WebM (VP9)

@@ -486,7 +486,13 @@ Launch (Phase 6)
 rides alongside everything after it. **(1) `/studio` is the load-bearing substrate** — the
 artist-facing enquiry/claim view, the payments reconciliation surface, the scheduling
 confirm step, and the GDPR erasure UI are all the same token-protected D1 surface, so it's
-built once and reused. **(2) Payments** is the highest-value feature and its **Worker
+built once and reused. **Recommended next to scope** (post-audit, June 2026): now that the
+payments backbone is shipped, a thin **`/studio`** admin page is the highest-leverage next
+step — the custom-deposit reconciliation, the scheduling confirm, and the erasure UI all wait
+on it. A short scoping note is enough to start: the **auth model** (a single shared
+token/passcode vs. a real login), the handful of **read/update actions** (list submissions &
+payments, mark a manual bank-transfer paid, confirm/decline a date, delete-by-email), and that
+it **reuses the existing D1 + Worker** rather than a new app. **(2) Payments** is the highest-value feature and its **Worker
 backbone is already built** (shipped dark); its flash-frontend phase can ship before
 `/studio`, its custom-deposit phase needs it. **(3) Scheduling** rides on the deposit trigger, so it follows payments.
 **(4) CMS** and **(5) infra consolidation** are independent parallel tracks that pair
@@ -621,39 +627,30 @@ the project grows; centralising removes it and **unlocks full security-header co
 
 ## Engineering quality & tooling (from the benchmarking review)
 
-Scheduled work promoted out of [`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md)
-(which records the full set of takeaways and the `[KEEP]`/`[PARK]` items to protect/defer).
-Priority reflects leverage. The first three are the **quick wins** in the sequence above —
-independent, low-effort, and they raise the floor under every feature that follows.
+Scheduled work promoted out of [`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md), which
+holds the **benchmark rationale** for each (cited by number below, not restated here, so the
+two don't drift). This is the **actionable view**: priority + delivery. Priority reflects
+leverage. The first three are the **quick wins** in the sequence above — independent,
+low-effort, and they raise the floor under every feature that follows.
 
-- **[High · low-effort] Linter + formatter, gated in CI.** ESLint + Prettier, or **Biome**
-  (one fast tool). CI proves *correctness* (the 521-test net) but not *consistency*; this
-  closes that gap and is the cheapest win available. Both forward benchmarks ship it; we ship
-  neither. _Delivery: add the tool + config + a `lint` CI step in one PR; auto-format the tree
-  in a separate mechanical PR so the diff stays reviewable._
-- **[High · a11y] Make `prefers-reduced-motion` a tested invariant.** Motion is the site's
-  differentiator *and* its biggest a11y risk (smooth-scroll/scroll-hijacking hurts a large
-  share of macOS/iOS users). Pin the reduced-motion kill-switch with assertions so a future
-  motion change can't silently regress it. _Delivery: a Playwright spec that loads with
-  `prefers-reduced-motion: reduce` and asserts GSAP/Lenis are inert and content is visible._
-- **[Medium · a11y] Automated accessibility checks** — axe-core inside the Playwright tier,
-  borrowing astro-paper's rigour without adopting its stack. _Delivery: an axe pass per key
-  page in the E2E job._
-- **[High] TypeScript, incrementally.** Start at the data→render contract
-  (`apps/web/src/data/*`, `apps/web/src/build/*`) and the Worker (`apps/functions/src/*`) —
-  types would formalise the field contracts the `data-integrity` tests assert by hand. The
-  Worker is the idiomatic first target. _Ongoing thread, not a single PR._
-- **[Medium] JS-weight / Core Web Vitals budgets.** GSAP + Lenis ship on *every* page,
-  heavier than the zero-JS-by-default benchmark. Audit per-page need, scope/defer motion to
-  the pages that use it, and track CWV as budgets (LCP ≤2.5s, INP ≤200ms, CLS ≤0.1).
-- **[Consider] Defense-in-depth spam layer** for the public forms — **Cloudflare Turnstile**
-  alongside the existing honeypot + rate limiting (and the consent/validation hardening noted
-  in the June 2026 review). Cheap to add when form spam appears.
-- **[Park] Astro migration** at a future v3/major-refresh inflection — *not now*. It would
-  absorb content collections, sitemap, RSS, OG-image and SEO injection as community-maintained
-  features, shrinking the bespoke 7-plugin Vite build (a documented bus-factor-of-one) to just
-  the motion layer; the Worker stays as-is. Recorded as a considered option, gated by the test
-  net that makes it safe to revisit.
+- **[High · low-effort] Linter + formatter, gated in CI** (LEARNINGS #1). _Delivery: add the
+  tool + config (ESLint + Prettier, or **Biome**) + a `lint` CI step in one PR; auto-format the
+  tree in a separate mechanical PR so the diff stays reviewable._
+- **[High · a11y] Make `prefers-reduced-motion` a tested invariant** (LEARNINGS #7).
+  _Delivery: a Playwright spec that loads with `prefers-reduced-motion: reduce` and asserts
+  GSAP/Lenis are inert and content is visible._
+- **[Medium · a11y] Automated accessibility checks** — axe-core in the Playwright tier
+  (LEARNINGS #8). _Delivery: an axe pass per key page in the E2E job._
+- **[High] TypeScript, incrementally** (LEARNINGS #2) — start at the data→render contract
+  (`apps/web/src/data/*`, `apps/web/src/build/*`) and the Worker (`apps/functions/src/*`).
+  _Ongoing thread, not a single PR._
+- **[Medium] JS-weight / Core Web Vitals budgets** (LEARNINGS #6) — audit per-page motion need
+  and track CWV as budgets (LCP ≤2.5s, INP ≤200ms, CLS ≤0.1).
+- **[Consider] Defense-in-depth spam layer** (LEARNINGS #12) — **Cloudflare Turnstile**
+  alongside the existing honeypot + rate limiting (plus the consent/validation hardening from
+  the June 2026 review). Cheap to add when form spam appears.
+- **[Park] Astro migration** at a future v3/major-refresh inflection (LEARNINGS #3) — *not
+  now*; recorded as a considered option, gated by the test net that makes it safe to revisit.
 
 ## P1 leftovers (decision-blocked)
 
