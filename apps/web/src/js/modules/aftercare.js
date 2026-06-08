@@ -19,7 +19,7 @@ export function initAftercare() {
   let revealed = false
 
   const navH = () =>
-    parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'))
+    parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'), 10)
     || (nav ? nav.offsetHeight : 0)
 
   // ── Reflect the chosen route across cards, switch tabs, and panels ────────

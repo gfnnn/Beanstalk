@@ -16,6 +16,7 @@ import {
   SITE_NAME,
   SITE_LOCALE,
   OG_IMAGE,
+  OG_IMAGE_ALT,
 } from '../src/build/seo.js'
 
 // A minimal page head carrying only the hand-authored, per-page content.
@@ -33,6 +34,22 @@ describe('injectSeoHead', () => {
     expect(out).toContain(`<meta property="og:locale" content="${SITE_LOCALE}">`)
     expect(out).toContain(`<meta property="og:image" content="${OG_IMAGE}">`)
     expect(out).toContain('<meta name="twitter:card" content="summary_large_image">')
+  })
+
+  it('describes the share image for assistive tech (og/twitter image alt)', () => {
+    const out = injectSeoHead(page('<meta property="og:url" content="https://beansprout.ink/">'))
+    expect(out).toContain(`<meta property="og:image:alt" content="${OG_IMAGE_ALT}">`)
+    expect(out).toContain(`<meta name="twitter:image:alt" content="${OG_IMAGE_ALT}">`)
+  })
+
+  it('lets a per-page image alt override win (does not duplicate it)', () => {
+    const og = '<meta property="og:image:alt" content="A healed fine-line fern on a forearm">'
+    const tw = '<meta name="twitter:image:alt" content="A healed fine-line fern on a forearm">'
+    const out = injectSeoHead(page(`<meta property="og:url" content="https://beansprout.ink/">\n${og}\n${tw}`))
+    expect(out).toContain(og)
+    expect(out).not.toContain(`content="${OG_IMAGE_ALT}"`)
+    expect(out.match(/property="og:image:alt"/g)).toHaveLength(1)
+    expect(out.match(/name="twitter:image:alt"/g)).toHaveLength(1)
   })
 
   it('mirrors twitter:title / twitter:description from the OpenGraph tags', () => {
@@ -82,7 +99,9 @@ describe('injectSeoHead', () => {
       `<meta property="og:site_name" content="${SITE_NAME}">`,
       `<meta property="og:locale" content="${SITE_LOCALE}">`,
       `<meta property="og:image" content="${OG_IMAGE}">`,
+      `<meta property="og:image:alt" content="${OG_IMAGE_ALT}">`,
       '<meta name="twitter:card" content="summary_large_image">',
+      `<meta name="twitter:image:alt" content="${OG_IMAGE_ALT}">`,
     ].join('\n'))
     expect(injectSeoHead(full)).toBe(full)
   })
