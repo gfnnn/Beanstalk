@@ -85,10 +85,12 @@ Fastest loop is local (`wrangler dev` + `npm run dev`). Run the **staging (a)** 
       (server-side reserved, re-claim blocked); newsletter → contact **Subscribed** in the Resend
       Audience (`Beansprout_SUBS`). Staging `SPF`/`DKIM`/`DMARC` all **pass** (resend.dev sender).
       *(Production deliverability against `beansprout.ink` is the separate X7 check.)*
-- [ ] **O5 · Erasure runbook dry-run** — run an access `SELECT` + the prune **preview**
-      against D1 (`DATA-COMPLIANCE.md`), so the GDPR path is proven before a real request.
-      Easiest route: Cloudflare → D1 → `beansprout` → Console. Also captures O4's D1
-      source-of-truth check (test rows present, `email_status='sent'`). Set a quarterly prune reminder.
+- [x] **O5 · Erasure runbook dry-run** — ✅ **done** (2026-06-08, D1 console). Access `SELECT`
+      returned the test rows (1 flash + 2 enquiries), each `email_status='sent'` (also satisfies
+      O4's source-of-truth check); the 12-month prune **preview** correctly returned **0 rows**
+      (nothing aged past the window). Both the access and retention paths proven safe; the erasure
+      `DELETE` shares the same `WHERE`, so it's validated by extension.
+      *Residual (👤, not a launch blocker): set a quarterly prune reminder.*
 - [~] **O6 · Console clean** — **largely covered**: `beanstalk-e61.pages.dev` has run stably for
       days. To formally close, glance at the dev-tools console on home / portfolio / enquire
       (zero errors) + confirm the nav status light renders. (Browser-only interaction paths are
