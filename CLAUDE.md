@@ -18,6 +18,32 @@ app that backs it. This is an **npm-workspaces monorepo** with two deployable pa
 Shared docs live in `docs/`; each workspace owns its own `package.json`, `vitest.config.js`
 and `tests/`. The two parts deploy independently — see **Deploy targets** below.
 
+## Scope discipline — keep it lean (read this before adding anything)
+
+This is a **marketing site + a small form/email Worker for one tattoo artist**, not an
+enterprise platform. The codebase earns its quality by staying small (a 2-dependency frontend,
+a 0-dependency Worker, no framework, no formatter); the standing risk is *meta*-bloat — building
+ahead of need and accumulating planning docs that then cost more to keep consistent than they're
+worth. These rules exist to hold the line. Follow them, and flag it when a request would cross one.
+
+1. **Ship before you build ahead.** Don't write a feature's *code* — even gated/"dark" — before
+   the thing it serves is live and the dependency is real. **Plans are cheap and welcome; inert
+   backbones are not.** (The site isn't on the apex yet; resist building the next speculative tier
+   until real usage pulls it.)
+2. **One doc per concern; consolidate on sight.** If two docs cross-reference each other to stay
+   in step, they should be one doc. A commit whose job is "reconcile docs / de-dup / fix counts"
+   is a smell that the docs have fragmented — **merge them, don't reconcile them again.**
+3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. A plan
+   for an unbuilt feature is a **short stub of durable decisions**, not a file-by-file build spec
+   (detail goes stale before it's picked up).
+4. **State each rule once.** Especially here: say it in one place and link, don't repeat. CLAUDE.md
+   is for what changes how an agent *acts* (architecture, the build pipeline, guardrails) — not
+   narration of the same caveat three times.
+5. **Guard the lean baseline.** No new runtime dependency, build tool, framework, or process step
+   without a named reason that outweighs its standing cost. The smallness is a feature.
+6. **Match effort to a one-artist business.** Reach for the smallest thing that genuinely helps
+   day-to-day. "AAA polish" is for the **visitor-facing site**, not for speculative internal tiers.
+
 ## Working in a Claude Code web session (read this first)
 
 When this repo is opened in **Claude Code on the web** (a remote, ephemeral container —
@@ -103,13 +129,11 @@ in `.github/workflows/e2e.yml`) that drives the real production build in a brows
 paths jsdom can't reach (lightbox, the enquiry image preview/downscale, the mobile nav
 drawer) plus a whole-site load sweep; it stubs the Worker so it's hermetic, and needs a
 browser binary (`npx playwright install chromium`, done automatically in CI). `test:e2e`
-runs through `apps/web/scripts/run-e2e.mjs`, which **skips with exit 0 when that binary
-isn't installed** (e.g. a web sandbox that can't reach `cdn.playwright.dev`) so the tier is
-a clean no-op where it can't run rather than a false failure — it still executes normally
-once the browser is present. So the tier **effectively runs in exactly two places**: the
-**E2E GitHub workflow** (auto-triggered on every `pull_request` touching `apps/web/**`, and
-on push to `main`) and a **local run with Chromium installed** — a skipped sandbox run is a
-no-op, not a pass, so don't treat it as having covered a browser-only change. **Static
+(via `apps/web/scripts/run-e2e.mjs`) **skips cleanly (exit 0) when that binary isn't
+installed**, so it effectively runs in just two places — the **E2E GitHub workflow**
+(auto-triggered on every `pull_request` under `apps/web/**`, and on push to `main`) and a
+**local run with Chromium** — and a sandbox skip is a no-op, not a pass (see the
+web-session note up top). **Static
 analysis is Biome** (`npm run lint`, config in `biome.json`): a lint-only floor on the
 **recommended** rule set with the **formatter deliberately off** — so there is no enforced
 code style and you should **not** run a formatter or invent `npm run format`. It scans
@@ -142,7 +166,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email a
   src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
   migrations/0001_init.sql                # D1 schema
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS-ROADMAP.md  PAYMENTS-STRIPE-BUILD.md  PAYMENTS-SETUP.md  PAYMENTS-FEES.md  PAYMENTS-PLAN.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS.md  SCHEDULING.md  ROADMAP.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -150,13 +174,11 @@ The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve ins
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
 backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
 post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
-content-CMS plan; the **payments** plan is `docs/PAYMENTS-ROADMAP.md` — the **integrated Stripe
-checkout** (flash = full payment online, custom = deposit only; one Stripe engine for card +
-Klarna, paying out to **Monzo Business**, with PayPal a parallel method) whose **Worker backbone
-is shipped dark** behind `PAYMENTS_ENABLED`, with the embedded Payment Element frontend still to come,
-specced file-by-file in `docs/PAYMENTS-STRIPE-BUILD.md`, fee maths in `docs/PAYMENTS-FEES.md`,
-and the **superseded** manual-links decision kept for the record in `docs/PAYMENTS-PLAN.md`
-(it now carries a "direction has evolved" banner); `docs/SCHEDULING.md` is the (not-yet-built)
+content-CMS plan; the **payments** plan is `docs/PAYMENTS.md` — the **integrated Stripe
+checkout** (flash = full payment, custom = deposit only; one Stripe engine for card + Klarna +
+PayPal, paying out to **Monzo Business**) whose **Worker backbone is shipped dark** behind
+`PAYMENTS_ENABLED`, with the embedded Payment Element frontend still to come; that one doc holds
+the model, build spec, fees, and operator runbook; `docs/SCHEDULING.md` is the (not-yet-built)
 **appointment-booking** spec that co-ships with it (request/hold + manual confirm, gated by the
 host studio's chair schedule). `docs/ENGINEERING-LEARNINGS.md` records forward-looking
 benchmarking takeaways (linter/TS/CWV/a11y). Read `ROADMAP.md` for current priorities before
@@ -452,32 +474,21 @@ for any user-visible feature, verify it in the browser and attach the proof:
 
 Skip this only when the change genuinely can't be seen in the browser.
 
-**From a Claude Code web session, steps 2–4 (drive the browser + screenshot) can't run —
-and that's expected, not a skipped step.** The remote sandbox has no display and can't
-install a browser binary: Playwright's Chromium downloads from `cdn.playwright.dev`, which
-the sandbox network allowlist blocks (`403 Host not in allowlist`), and there's no headed
-Chrome either. So a web session **cannot** take a screenshot or visually drive a page,
-**at this stage of the workflow**, no matter the change — don't burn time trying to install
-the browser, and don't treat the missing screenshot as a gap or a failure. This is a
-recurring, structural limit of the environment, not a problem with the change. What a web
-session *can* do, and should do instead, is: run `npm test` (the trustworthy signal here),
-run `npm run build`, and verify the rendered/served markup directly (e.g. `curl` the dev
-server or grep `apps/web/dist/**` after a build) to prove the change is wired in. Then state
-plainly in the PR that the browser/visual check wasn't possible from the web sandbox, and
-hand the actual *visual* verification to the two places that can do it: the **PR's E2E
-workflow** (auto-runs on every `pull_request` under `apps/web/**`) and a **human/local
-review** — `npm run preview:branch -- <branch>` fetches the branch and serves it locally for
-an eyes-on look. A developer on their own machine still follows steps 1–5 in full.
+**From a Claude Code web session, steps 2–4 (drive the browser + screenshot) can't run — and
+that's expected, not a skipped step** (the sandbox has no display and can't install Chromium —
+see the web-session note up top). Instead: run `npm test` + `npm run build` and verify the
+rendered/served markup directly (`curl` the dev server, or grep `apps/web/dist/**` after a
+build) to prove the change is wired in; then state plainly in the PR that the visual check
+wasn't possible from the sandbox, and hand the *visual* verification to the two places that can
+do it — the **PR's E2E workflow** (auto-runs on every `pull_request` under `apps/web/**`) and a
+**human/local review** (`npm run preview:branch -- <branch>`). A developer on their own machine
+still follows steps 1–5 in full.
 
-**Browser-only interactions also need the E2E gate, not just a screenshot.** If the
-feature touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav
-drawer, flash modal), remember the unit suite under jsdom can't exercise it and a web
-sandbox's `npm run test:e2e` only **skips** (no-op, not a pass). Real verification is the
-PR's **E2E workflow** — which auto-runs on every `pull_request` under `apps/web/**` — or a
-**local** `npm run test:e2e` with Chromium installed (`npx playwright install chromium`).
-From a web session, push and let the PR's E2E job be the gate; see the web-session note up
-top. When you add browser-only behaviour, add/extend a spec under `apps/web/e2e/` so that
-gate actually covers it.
+**Browser-only interactions also need the E2E gate, not just a screenshot.** If the feature
+touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav drawer, flash
+modal), the jsdom unit suite can't exercise it and a sandbox `test:e2e` only skips — real
+verification is the PR's **E2E workflow** or a **local** run with Chromium. When you add
+browser-only behaviour, add/extend a spec under `apps/web/e2e/` so that gate actually covers it.
 
 ### Working on several features at once (avoid the branch tangle)
 
@@ -524,50 +535,13 @@ re-deriving it each time.
 `git push --force-with-lease`, then `gh pr merge --squash --delete-branch`.
 
 **Stop the tangle at the source — delete merged branches automatically.** This repo
-squash-merges, which discards a branch's individual commits, so a merged branch never
-becomes an ancestor of `main` and therefore looks "unmerged" forever — that's how dozens
-of dead `claude/*`, `feat/*`, `docs/*` heads accumulate. Two defences:
-- **Turn on GitHub → Settings → General → Pull Requests → "Automatically delete head
-  branches".** Then every squash-merge removes its own head and the pile never forms. This
-  is the single highest-leverage fix for the recurring branch-head pain.
-- **Prune what's already merged from a *local* clone** (a web session can't — the proxy
-  403s on remote-ref deletion, see the web-session note up top). The authoritative test for
-  "merged" under squash-merge is the PR state, not `git branch --merged`, so drive it off
-  the merged PR list:
-  ```bash
-  # from a local clone, with the gh CLI authenticated:
-  gh pr list --state merged --limit 200 --json headRefName -q '.[].headRefName' \
-    | sort -u > /tmp/merged-heads
-  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
-    | grep -vxE 'main|develop' \
-    | grep -xF -f /tmp/merged-heads \
-    | xargs -r -n1 git push origin --delete   # deletes only confirmed-merged heads
-  ```
-
-**Auto-delete and that merged-head prune both only catch *merged* heads** — so with
-auto-delete already on, the heads that still linger are the ones neither mechanism can
-reach, and they need a manual sweep from a local clone. Three kinds: a PR **closed without
-merging** (auto-delete never fires on close — the change has usually shipped via a different
-branch), a branch that **never opened a PR** at all, and a branch **re-pushed after its PR
-merged** (the merged head was already deleted; the new commits are a fresh, un-PR'd ref).
-Sweep the closed-but-unmerged heads the same way — but **only after confirming each one's
-change actually landed elsewhere** (`git diff origin/develop origin/<branch> -- <file>`
-empty = superseded) — then *list* whatever's left for an eyeball rather than bulk-deleting,
-since never-PR'd / re-pushed heads can hold un-reviewed work:
-  ```bash
-  # from a local clone, gh authenticated — run AFTER the merged-head prune above:
-  # 1) closed-but-NOT-merged PR heads (delete once you've confirmed the work shipped elsewhere):
-  gh pr list --state closed --limit 300 --json headRefName,merged \
-    -q '.[] | select(.merged==false) | .headRefName' | sort -u > /tmp/closed-unmerged
-  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
-    | grep -vxE 'main|develop' | grep -xF -f /tmp/closed-unmerged \
-    | xargs -r -n1 git push origin --delete
-  # 2) leftovers with no open PR (never-PR'd, or re-pushed past a merged head) — REVIEW, don't bulk-delete:
-  gh pr list --state open --limit 300 --json headRefName -q '.[].headRefName' \
-    | sort -u > /tmp/open-heads
-  git ls-remote --heads origin | sed 's#.*refs/heads/##' \
-    | grep -vxE 'main|develop' | grep -vxF -f /tmp/open-heads
-  ```
+squash-merges, so a merged branch never becomes an ancestor of `main` and looks "unmerged"
+forever — that's how dead `claude/*`/`feat/*`/`docs/*` heads pile up. The fix is **GitHub →
+Settings → General → Pull Requests → "Automatically delete head branches"** (already **ON**
+here), so every squash-merge removes its own head. The residue auto-delete can't reach
+(closed-but-unmerged, never-PR'd, re-pushed-after-merge) needs a **local** sweep — a web
+session can't (the proxy 403s on remote-ref deletion). The ready-made prune commands and the
+three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backlog hygiene*, step 5.
 
 ## Deploy guardrail — do NOT switch the apex domain
 

@@ -179,6 +179,6 @@ editing (that's the CMS — `CMS.md`), and anything the **Stripe dashboard** alr
 
 ---
 
-_Companion docs: payments (`PAYMENTS-ROADMAP.md` / `PAYMENTS-STRIPE-BUILD.md` — the reconciliation
-data), scheduling (`SCHEDULING.md` — the bookings section), compliance (`DATA-COMPLIANCE.md` — the
-erasure runbook the GDPR tools wrap)._
+_Companion docs: payments (`PAYMENTS.md` — the reconciliation data, build spec, and operator
+runbook), scheduling (`SCHEDULING.md` — the bookings section), compliance (`DATA-COMPLIANCE.md` —
+the erasure runbook the GDPR tools wrap)._
