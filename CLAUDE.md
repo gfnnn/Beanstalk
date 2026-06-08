@@ -80,6 +80,8 @@ npm run test:web      # only apps/web (renderers, data integrity, build pipeline
 npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
 npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke);
                       #   skips cleanly if no Chromium is installed — see the web-session note above
+npm run lint          # Biome static-analysis floor over apps/**/{src,tests,e2e,scripts} + root scripts
+npm run lint:fix      # same, applying Biome's safe autofixes (biome lint --write)
 ```
 
 You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
@@ -107,8 +109,16 @@ a clean no-op where it can't run rather than a false failure — it still execut
 once the browser is present. So the tier **effectively runs in exactly two places**: the
 **E2E GitHub workflow** (auto-triggered on every `pull_request` touching `apps/web/**`, and
 on push to `main`) and a **local run with Chromium installed** — a skipped sandbox run is a
-no-op, not a pass, so don't treat it as having covered a browser-only change. There is **no
-linter or formatter** — don't invent `npm run lint`. To exercise the Worker for real locally
+no-op, not a pass, so don't treat it as having covered a browser-only change. **Static
+analysis is Biome** (`npm run lint`, config in `biome.json`): a lint-only floor on the
+**recommended** rule set with the **formatter deliberately off** — so there is no enforced
+code style and you should **not** run a formatter or invent `npm run format`. It scans
+`apps/**/{src,tests,e2e,scripts}` plus the root `scripts/`, runs as its own `lint` job in
+CI (`.github/workflows/test.yml`, alongside the per-workspace Vitest matrix), and
+`npm run lint:fix` applies its safe autofixes. Three high-count purely-mechanical rules
+(`useTemplate`, `useOptionalChain`, `useIterableCallbackReturn`) are turned off in
+`biome.json` and deferred to a separate mechanical PR (see `docs/ROADMAP.md`) — don't
+re-enable them piecemeal. To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
 
