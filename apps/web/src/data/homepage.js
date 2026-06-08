@@ -62,21 +62,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const homepage = {
-  // ARTIST-COPY · HOME-01 · pending approval — see docs/COPY-REVIEW.md
   status: {
     show:  true,
     label: 'Books open',
     tone:  'moss',
   },
 
-  // ARTIST-COPY · HOME-02 · pending approval — see docs/COPY-REVIEW.md
   notices: [
     { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open for summer. <a href="/enquire/">Request a slot</a>' },
     { show: true,  tone: 'clay',  label: 'Flash day',  html: 'Next flash day 26 July. <a href="/flash/">Preview the sheet</a>' },
     { show: false, tone: 'faint', label: 'Guest spot', html: 'Guest artist [Name], [Dates].' },
   ],
 
-  // ARTIST-COPY · HOME-03 · pending approval — see docs/COPY-REVIEW.md
   hero: {
     eyebrow:  'Winchester · Fine line & high detail',
     headLead: 'Quietly considered',
@@ -85,7 +82,6 @@ export const homepage = {
     mediaTag: 'Tiny Knives · Winchester',
   },
 
-  // ARTIST-COPY · HOME-04 · pending approval — see docs/COPY-REVIEW.md
   specialisms: [
     { style: 'fine-line',   em: 'precise',   body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile, drawn to age as well as it looks on day one.' },
     { style: 'high-detail', em: 'intricate', body: 'Dense, considered detail: fine textures and layered shading built up with patience, for intricate subjects that hold together up close and from across the room.' },

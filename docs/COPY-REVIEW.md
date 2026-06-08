@@ -27,10 +27,11 @@ approved the wording.
 > and em dashes stripped from visible copy (incl. JS UI strings). **Switched off for go-live:**
 > the About **stats** (ABOUT-04) and **"The space"** (ABOUT-05). **Held:** the ICO number
 > (need the public **ZA######** reference) + tattoo-reg (TBC); a legal review of privacy/terms
-> is still due (effective dates "June 2026" are approved). **Not yet done:** the `ARTIST-COPY`
-> markers are still in source — flip `pending approval`→`approved` + strip them as the closing
-> step (`grep` still = **68**). The per-row "Current text" snapshots below are **pre-pass**
-> (kept for reference); the reviewed sections now hold the artist's approved words.
+> is still due (effective dates "June 2026" are approved). **Markers:** the reviewed-section
+> markers have been **flipped + stripped**; **33** remain for the still-open sections (stats,
+> flash, visit, newsletter, legal, reply time, small pages). The per-row "Current text"
+> snapshots below are **pre-pass** (kept for reference); the reviewed sections now hold the
+> artist's approved words.
 
 ## How this maps to the source
 
@@ -321,16 +322,16 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 
 ## Sign-off checklist
 
-> Round-1 (#155): rows marked **[~]** have the artist's approved words applied to source —
-> the only step left for them is flipping/stripping the `ARTIST-COPY` markers.
+> Round-1 (#155): the reviewed sections below have the artist's approved words applied **and
+> their `ARTIST-COPY` markers flipped + stripped**; the open sub-items are noted inline.
 
-- [~] SHARED-01..03 brand line + CTA (tagline now "Fine line, high detail and realism…")
-- [~] Homepage (HOME-01..09; HOME-10 video credit still off)
-- [~] About (ABOUT-01..03, 05, 06); ABOUT-04 stats switched off (8 yrs confirmed, rest TBC)
-- [x] Services (SERV-01..06) + real prices/deposits
-- [~] FAQ (FAQ-01..05) — incl. a new "what to avoid after a tattoo" Q (now 16)
-- [~] Aftercare (AFTER-01..06) + voice consistency settled
-- [~] Enquire (ENQ-01..09) — copy/bespoke/budget bands; **booking lead time still open**
+- [x] SHARED-01 brand line + SHARED-03 CTA — tagline now "Fine line, high detail and realism…"; markers stripped
+- [~] Homepage (HOME-01..07, 09 stripped); HOME-08 testimonials + HOME-10 video credit still off
+- [~] About (ABOUT-01..03, 05, 06 stripped); ABOUT-04 stats switched off (8 yrs confirmed, rest TBC)
+- [x] Services (SERV-01..06) + real prices/deposits; markers stripped
+- [x] FAQ (FAQ-01..05) — incl. a new "what to avoid after a tattoo" Q (now 16); markers stripped
+- [x] Aftercare (AFTER-01..06) + voice consistency settled; markers stripped
+- [~] Enquire (ENQ-01..05 stripped); ENQ-06 booking lead time + ENQ-07 consent wording still open
 - [ ] Visit (VISIT-01..05) + real hours/directions
 - [ ] Flash (FLASH-03/04/05 copy applied) — **real drop data/photos still open**
 - [~] Portfolio (PORT-01..04 + the 3 style categories); **piece names (PORT-D1) still to confirm**
@@ -338,4 +339,4 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 - [ ] Enquiry received (CONFIRM-01 voice) + 404 (E404-01) + piece pages (PIECE-01)
 - [ ] Privacy + Terms — **legal review** + ICO/tattoo-reg numbers (dates approved)
 - [ ] Reply time (BUS-01) + testimonials (DATA-TEST)
-- [ ] `grep -rn "pending approval" apps/web/` returns nothing (still **68** — markers to flip/strip)
+- [ ] `grep -rn "pending approval" apps/web/` returns nothing (now **33** — reviewed-section markers flipped + stripped; the rest are the still-open sections)

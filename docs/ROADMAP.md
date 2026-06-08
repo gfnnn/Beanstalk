@@ -65,9 +65,9 @@ Shipped (audience-capture + early management layer):
   "What I do" cards; confirmed **pricing** (£80 / £120–£200 / £300 / £500), a **flat 50%
   deposit**, a **48h** reschedule window and a **one-year** touch-up; "custom"→"bespoke" and
   the botanical/illustrative wording removed; em dashes stripped from visible copy; the About
-  **stats** + **"The space"** modules switched off for go-live. The `ARTIST-COPY` markers
-  still need flipping/stripping and the sections after *enquire* remain pending — see
-  [`GO-LIVE.md`](./GO-LIVE.md).
+  **stats** + **"The space"** modules switched off for go-live. The reviewed-section
+  `ARTIST-COPY` markers have since been flipped + stripped (**33** remain for the still-open
+  sections) — see [`GO-LIVE.md`](./GO-LIVE.md).
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
@@ -271,14 +271,13 @@ drafted for them. The mechanism, end to end:
    review aid and ship into page source; clear them as part of this phase so the
    apex (Phase 6) carries none. See the convention note in `COPY-REVIEW.md`.
 
-- [~] **Artist copy review** — **Round 1 done & applied (#155):** the artist reviewed the
-      checklist **up to enquiries** plus the global tone/style/fact decisions, and those words
-      are in source. **Remaining:** flip the `ARTIST-COPY` markers `pending approval`→`approved`
-      + strip them, and review the still-pending sections (visit hours/directions, reply time,
-      flash names/photos, portfolio piece names, newsletter, enquiry-received voice,
-      privacy/terms legal). `grep -rn "pending approval" apps/web/` = **68**. The specific
-      value-only items below are called out separately because they also gate other things
-      (legal, pricing parity).
+- [~] **Artist copy review** — **Round 1 done, applied + cleaned (#155):** the artist reviewed
+      the checklist **up to enquiries** plus the global tone/style/fact decisions; those words
+      are in source and **those sections' markers are flipped + stripped.** **Remaining:** the
+      still-pending sections (ABOUT-04 stats, visit hours/directions, reply time, flash
+      names/photos, portfolio piece names, newsletter, enquiry-received voice, privacy/terms
+      legal). `grep -rn "pending approval" apps/web/` = **33**. The specific value-only items
+      below are called out separately because they also gate other things (legal, pricing parity).
 
 ### Specific items (also tracked above)
 
