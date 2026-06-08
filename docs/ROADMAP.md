@@ -36,8 +36,8 @@ Shipped (audience-capture + early management layer):
   pre-framed by the artist before upload). The catalogue is the artist's **28 pre-edited
   pieces** — an earlier unedited batch, added to trial an automated subject-detection crop
   that has since been removed, was dropped along with that feature. The style taxonomy is
-  real execution styles (`fine-line · black-grey · colour · dotwork · script ·
-  cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though the clips
+  real execution styles (`fine-line · high-detail · realism · black-grey · colour ·
+  dotwork · script · cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though the clips
   themselves are deferred (Phase 4). Full guide: [`MEDIA.md`](./MEDIA.md).
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
@@ -59,6 +59,15 @@ Shipped (audience-capture + early management layer):
   `nosniff` / `default-src 'none'` / `no-referrer` on every Worker JSON response
   (`SECURITY_HEADERS` in `src/lib/http.js`). The clickjacking/HSTS gap that a `<meta>`
   CSP can't close on Pages is tracked under infrastructure consolidation (Tier 3).
+- **Artist copy pass — Round 1** (#155) — the artist's reviewed words + the global
+  tone/style/fact decisions applied site-wide: the three approved style categories
+  (**fine line · high detail · realism**) wired through the portfolio taxonomy + the homepage
+  "What I do" cards; confirmed **pricing** (£80 / £120–£200 / £300 / £500), a **flat 50%
+  deposit**, a **48h** reschedule window and a **one-year** touch-up; "custom"→"bespoke" and
+  the botanical/illustrative wording removed; em dashes stripped from visible copy; the About
+  **stats** + **"The space"** modules switched off for go-live. The reviewed-section
+  `ARTIST-COPY` markers have since been flipped + stripped (**33** remain for the still-open
+  sections) — see [`GO-LIVE.md`](./GO-LIVE.md).
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
@@ -262,18 +271,24 @@ drafted for them. The mechanism, end to end:
    review aid and ship into page source; clear them as part of this phase so the
    apex (Phase 6) carries none. See the convention note in `COPY-REVIEW.md`.
 
-- [ ] **Artist copy review** — the artist works through `docs/COPY-FOR-ARTIST.md`
-      against the staging site; 🛠 apply their words to source + flip/clear markers. This is
-      the umbrella task; the specific value-only items below are called out
-      separately because they also gate other things (legal, pricing parity).
+- [~] **Artist copy review** — **Round 1 done, applied + cleaned (#155):** the artist reviewed
+      the checklist **up to enquiries** plus the global tone/style/fact decisions; those words
+      are in source and **those sections' markers are flipped + stripped.** **Remaining:** the
+      still-pending sections (ABOUT-04 stats, visit hours/directions, reply time, flash
+      names/photos, portfolio piece names, newsletter, enquiry-received voice, privacy/terms
+      legal). `grep -rn "pending approval" apps/web/` = **33**. The specific value-only items
+      below are called out separately because they also gate other things (legal, pricing parity).
 
 ### Specific items (also tracked above)
 
-- [ ] **Services prices** — `apps/web/services/index.html` flags prices as
-      *placeholders from the design brief*. Confirm real prices/tiers. 🛠 apply.
-- [ ] **Terms & privacy effective date + legal review** — `terms/index.html` has a
-      placeholder effective date and a note to have wording reviewed against current
-      consumer law; deposit figures must match `/services/`. 👤 review → 🛠 apply.
+- [x] **Services prices** — ✅ confirmed + applied (#155): **£80 / £120–£200 / £300 / £500**
+      (min / small / half-day / full-day), a **flat 50% deposit**, **48h** reschedule and a
+      **one-year** touch-up; the deposit box was reworked and the `/enquire/` budget bands mirror them.
+- [~] **Terms & privacy effective date + legal review** — deposit figures now match `/services/`
+      (flat 50%) and the **effective date is approved** ("June 2026"). **Open:** the **ICO public
+      registration reference** (ZA###### — held until confirmed; the account/cert number must
+      never be published), the **tattoo-registration number** (TBC), and a professional review of
+      the wording. 👤 → 🛠 apply.
 - [ ] **`og-image.jpg` (1200×630)** — used site-wide for social cards, the default
       piece-page OG image, **and the homepage JSON-LD `image`**. A **branded placeholder**
       is now committed so link previews and the `Person` schema don't point at a 404;
@@ -442,8 +457,10 @@ Pages in Phase 5).
    and Gmail "Send mail as". Safe before cutover (MX/TXT only, no A/CNAME change).
 5. **Set the build-time Worker URLs** (Phase 5) — `VITE_*_FN_URL` as repo Actions
    Variables — then enable GitHub Pages and run the staging email test.
-6. Send me confirmed **service prices**, a signed-off **terms effective date**, and
-   the **og-image** (Phase 4) and I'll apply them.
+6. Prices + the terms effective date are in (#155). Still needed for Phase 4: the **ICO
+   public reference** (ZA######), the **og-image**, **flash photos/copy**, **hours/directions**,
+   **reply time**, the **logo/icon**, and the marker flip/strip for the Round-1 copy — send
+   each and I'll apply it.
 
 **Post-launch (Phase 7) is the [Backlog](#backlog-post-launch--extends-past-go-live)
 below** — the same items, in rough priority order. Launch first; pick those up once
