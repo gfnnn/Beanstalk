@@ -79,15 +79,21 @@ cutover (MX/TXT and repo settings only — they don't touch the website's A/CNAM
 
 Fastest loop is local (`wrangler dev` + `npm run dev`). Run the **staging (a)** email test.
 
-- [ ] **O4 · End-to-end email test (staging run "a")** — `FROM_EMAIL=onboarding@resend.dev`,
-      `ARTIST_EMAIL`=your own inbox. The 6 checks in `ROADMAP.md` → *End-to-end email test*:
-      enquiry→inbox (photos attached), reply-path `To:` = enquirer, flash claim→inbox + 409
-      on re-claim, newsletter→Audience + D1 row, and the D1 source-of-truth `SELECT`.
+- [x] **O4 · End-to-end email test (staging run "a")** — ✅ **verified on `beanstalk-e61.pages.dev`**
+      (2026-06-08). Enquiry → inbox with **2 photos attached** + full field layout; reply-path
+      `Reply-To` = the enquirer; flash claim → inbox **and** the grid flips to **● PENDING**
+      (server-side reserved, re-claim blocked); newsletter → contact **Subscribed** in the Resend
+      Audience (`Beansprout_SUBS`). Staging `SPF`/`DKIM`/`DMARC` all **pass** (resend.dev sender).
+      *(Production deliverability against `beansprout.ink` is the separate X7 check.)*
 - [ ] **O5 · Erasure runbook dry-run** — run an access `SELECT` + the prune **preview**
       against D1 (`DATA-COMPLIANCE.md`), so the GDPR path is proven before a real request.
-      Set a quarterly prune reminder.
-- [ ] **O6 · Console clean** — no errors per page; nav status light, sitemap, robots, 404
-      all render. (E2E browser paths are gated by the PR's `e2e.yml` job, not the sandbox.)
+      Easiest route: Cloudflare → D1 → `beansprout` → Console. Also captures O4's D1
+      source-of-truth check (test rows present, `email_status='sent'`). Set a quarterly prune reminder.
+- [~] **O6 · Console clean** — **largely covered**: `beanstalk-e61.pages.dev` has run stably for
+      days. To formally close, glance at the dev-tools console on home / portfolio / enquire
+      (zero errors) + confirm the nav status light renders. (Browser-only interaction paths are
+      gated by the PR's `e2e.yml` job, not this manual sweep. On staging, `robots.txt` =
+      `Disallow: /` with no sitemap — expected, not a bug.)
 
 ## D. The apex cutover — Phase 6, LAST, only after A–C are green  (👤 + 🛠)
 
