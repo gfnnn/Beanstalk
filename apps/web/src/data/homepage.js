@@ -72,27 +72,27 @@ export const homepage = {
   // ARTIST-COPY · HOME-02 · pending approval — see docs/COPY-REVIEW.md
   notices: [
     { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open for summer. <a href="/enquire/">Request a slot</a>' },
-    { show: true,  tone: 'clay',  label: 'Flash day',  html: 'New flash dropping soon. <a href="/flash/">Preview the sheet</a>' },
+    { show: true,  tone: 'clay',  label: 'Flash day',  html: 'Next flash day 26 July. <a href="/flash/">Preview the sheet</a>' },
     { show: false, tone: 'faint', label: 'Guest spot', html: 'Guest artist [Name], [Dates].' },
   ],
 
   // ARTIST-COPY · HOME-03 · pending approval — see docs/COPY-REVIEW.md
   hero: {
-    eyebrow:  'Winchester · Fine line & botanical',
+    eyebrow:  'Winchester · Fine line & high detail',
     headLead: 'Quietly considered',
-    headEm:   'custom tattoo.',
-    body:     "I'm Roxy, the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed.",
+    headEm:   'bespoke tattoo.',
+    body:     "I'm Roxy, the fine line, high detail and realism tattoo artist behind Beansprout, working out of Tiny Knives in Winchester. Bespoke pieces, drawn for one person, at a pace that never feels rushed.",
     mediaTag: 'Tiny Knives · Winchester',
   },
 
   // ARTIST-COPY · HOME-04 · pending approval — see docs/COPY-REVIEW.md
   specialisms: [
-    { style: 'fine-line',  em: 'precise', body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile, drawn to age as well as it looks on day one.' },
-    { style: 'black-grey', em: 'soft',    body: 'Smooth black and grey with gentle, smoky shading: animals, portraits and illustrative work with depth, contrast and a soft edge.' },
-    { style: 'colour',     em: 'vivid',   body: 'Saturated colour with clean, considered blends over the same careful linework. For a piece that wants to sing rather than whisper, without losing its softness.' },
+    { style: 'fine-line',   em: 'precise',   body: 'Clean, confident single-weight linework that stays readable as it heals. Delicate without being fragile, drawn to age as well as it looks on day one.' },
+    { style: 'high-detail', em: 'intricate', body: 'Dense, considered detail: fine textures and layered shading built up with patience, for intricate subjects that hold together up close and from across the room.' },
+    { style: 'realism',     em: 'lifelike',  body: 'Animals, portraits and natural subjects rendered with depth and soft tonal shading, capturing the likeness and weight of the real thing.' },
     // Tablet-only balance tile (fill) — squares the 2-column grid; hidden on
     // phone and desktop. Not counted in the "0X / 0Y" numbering.
-    { style: 'dotwork', fill: true, em: 'textured', body: 'Soft gradients and depth built dot by dot: a slower, hand-worked technique that gives botanical and ornamental pieces a gently stippled texture.' },
+    { style: 'black-grey', fill: true, em: 'soft', body: 'Smooth black and grey with gentle, smoky shading, for work with depth, contrast and a soft edge.' },
   ],
 
   // ARTIST-COPY · HOME-10 · pending approval — see docs/COPY-REVIEW.md

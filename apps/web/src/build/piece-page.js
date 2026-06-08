@@ -198,7 +198,7 @@ ${LOADER_MARKUP}
   <div class="footer-top">
     <div class="footer-brand">
       <p class="wordmark">beansprout<em>.ink</em></p>
-      <p class="tagline">Fine line, botanical and custom tattoo at Tiny Knives, Winchester.</p>
+      <p class="tagline">Fine line, high detail and realism tattoo at Tiny Knives, Winchester.</p>
     </div>
     <nav class="footer-col" aria-label="Site links"><h2>Explore</h2><ul>
       <li><a href="/portfolio/">Portfolio</a></li>
