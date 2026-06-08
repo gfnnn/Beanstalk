@@ -8,8 +8,7 @@
 // No-ops when there are no clips or the APIs are unavailable, so it's safe in the
 // single shared bundle on every page.
 export function initMedia() {
-  const reduce = window.matchMedia
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   // GIFs: under reduced motion, swap to the still poster if one was provided.
   if (reduce) {

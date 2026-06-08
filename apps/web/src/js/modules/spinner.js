@@ -23,7 +23,7 @@ export function setButtonLoading(btn, text = 'Sending…') {
 /** Restore `btn` to the markup it had before setButtonLoading. No-op if it isn't
  *  currently in a loading state. */
 export function clearButtonLoading(btn) {
-  if (!btn || btn.dataset.loading !== 'true') return
+  if (btn?.dataset.loading !== 'true') return
   if (btn.dataset.idleHtml != null) btn.innerHTML = btn.dataset.idleHtml
   delete btn.dataset.idleHtml
   delete btn.dataset.loading

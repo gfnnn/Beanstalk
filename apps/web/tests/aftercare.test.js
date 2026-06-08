@@ -52,7 +52,7 @@ function setup() {
 
 const card  = m => document.querySelector(`.choice-card[data-method="${m}"]`)
 const tab   = m => document.querySelector(`.switch-tab[data-method="${m}"]`)
-const panel = m => document.getElementById('panel-' + m)
+const panel = m => document.getElementById(`panel-${m}`)
 const click = el => el.dispatchEvent(new window.Event('click', { bubbles: true }))
 const arrow = (el, key) => el.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true }))
 

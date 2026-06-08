@@ -27,7 +27,7 @@ import { esc } from './html.js'
 // src/js/modules/media.js.
 function videoEl(slot) {
   const sources = (slot.sources || [])
-    .filter(s => s && s.src)
+    .filter(s => s?.src)
     .map(s => `<source src="${esc(s.src)}" type="${esc(s.type || '')}">`)
     .join('')
   return `<video class="media-clip" muted loop playsinline preload="none" `
@@ -74,7 +74,7 @@ const PLACEHOLDERS = {
 // The one hero-media component, shared by both pages. `variant` only picks the
 // placeholder for the off state; the live clip is rendered identically either way.
 export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
-  if (slot && slot.show) {
+  if (slot?.show) {
     const clip = slot.kind === 'gif' ? gifEl(slot) : videoEl(slot)
     const caption = slot.caption
       ? `\n    <span class="media-caption">${esc(slot.caption)}</span>`

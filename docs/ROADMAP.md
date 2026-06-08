@@ -621,17 +621,21 @@ two don't drift). This is the **actionable view**: priority + delivery. Priority
 leverage. The first three are the **quick wins** in the sequence above — independent,
 low-effort, and they raise the floor under every feature that follows.
 
-- **[High · low-effort] Linter, gated in CI** (LEARNINGS #1) — **✅ lint floor shipped.**
-  **Biome** is wired in: config in `biome.json`, `npm run lint` (`lint:fix` to apply safe
-  fixes), and a dedicated `lint` job in `.github/workflows/test.yml`. The recommended rule
-  set is on and the tree passes; the genuine correctness findings it surfaced were fixed
-  (missing `parseInt` radix, a dead variable, useless regex escapes, `Math.pow`→`**`, an
-  unused param, a bracket-key access, an assignment-in-expression). _Deliberately deferred —
-  the **formatter is off** and three high-count purely-mechanical rules are disabled in
-  `biome.json` (`useTemplate`, `useOptionalChain`, `useIterableCallbackReturn`) so this stayed
-  a reviewable lint-setup + fix diff. **The mechanical sweep is the follow-up PR:** turn the
-  formatter on, re-enable those three rules, and `npm run lint:fix` + `biome format --write`
-  the tree in one mechanical commit._
+- **[High · low-effort] Linter, gated in CI** (LEARNINGS #1) — **✅ shipped.**
+  **Biome** is wired in: config in `biome.json`, `npm run lint` (`lint:fix` for safe fixes),
+  and a dedicated `lint` job in `.github/workflows/test.yml`. The recommended rule set is on
+  and the tree passes. Genuine correctness findings were fixed in the setup PR (missing
+  `parseInt` radix, a dead variable, useless regex escapes, `Math.pow`→`**`, an unused param,
+  a bracket-key access, an assignment-in-expression); the **mechanical-modernisation sweep**
+  (separate PR) then applied the two high-count behaviour-preserving rewrites across the tree
+  (`useTemplate` → template literals, `useOptionalChain` → `?.`). Two deliberate, documented
+  exclusions remain and are **not** a TODO:
+  - The **formatter is intentionally off.** The code uses deliberate hand column-alignment
+    (e.g. aligned `=` in `const` blocks) that Biome's formatter would collapse; the lint rules
+    give the static-analysis value without imposing whitespace opinions over that craft.
+  - **`useIterableCallbackReturn` is off** — the side-effecting one-liner `arr.forEach(x => fn(x))`
+    is idiomatic throughout the codebase; wrapping ~22 call sites in braces is cosmetic churn
+    with no real bug caught. Re-enable if that pattern is ever retired.
 - **[High · a11y] Make `prefers-reduced-motion` a tested invariant** (LEARNINGS #7).
   _Delivery: a Playwright spec that loads with `prefers-reduced-motion: reduce` and asserts
   GSAP/Lenis are inert and content is visible._

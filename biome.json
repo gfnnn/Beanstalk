@@ -21,12 +21,6 @@
       "recommended": true,
       "suspicious": {
         "useIterableCallbackReturn": "off"
-      },
-      "style": {
-        "useTemplate": "off"
-      },
-      "complexity": {
-        "useOptionalChain": "off"
       }
     }
   },
