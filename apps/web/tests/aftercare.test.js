@@ -28,6 +28,7 @@ let cascadeReveal
 
 beforeEach(async () => {
   window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} })
+  window.innerWidth = 1024   // default to desktop; the mobile case overrides it
   globalThis.requestAnimationFrame = cb => { cb(0); return 0 }
   window.scrollTo = vi.fn()
   location.hash = ''
@@ -128,7 +129,8 @@ describe('initAftercare', () => {
   })
 
   describe('the slim switcher', () => {
-    it('flips routes without scrolling (keeps your reading position)', () => {
+    it('on desktop, flips routes without scrolling (keeps your reading position)', () => {
+      window.innerWidth = 1024            // two-column/sticky-aside layout
       setup()
       initAftercare()
       click(card('second-skin'))      // reveal + the one initial scroll
@@ -142,6 +144,19 @@ describe('initAftercare', () => {
       expect(window.scrollTo).not.toHaveBeenCalled()
       // Switching routes keeps the quick CSS panel-fade — no repeat cascade.
       expect(cascadeReveal).not.toHaveBeenCalled()
+    })
+
+    it('on mobile, flips routes AND scrolls down to the steps (like a card pick)', () => {
+      window.innerWidth = 480             // single-column stack
+      setup()
+      initAftercare()
+      click(card('second-skin'))      // reveal + the one initial scroll
+      window.scrollTo.mockClear()
+
+      click(tab('cling-film'))
+      expect(panel('cling-film').classList.contains('active')).toBe(true)
+      expect(card('cling-film').classList.contains('selected')).toBe(true)
+      expect(window.scrollTo).toHaveBeenCalledTimes(1)
     })
 
     it('ArrowRight moves focus to the next route and selects it', () => {
