@@ -5,6 +5,7 @@
 // reorders the tiles. The returned `applyFilters` is handed back to load-more so
 // newly-revealed tiles get filtered too (see main.js).
 import { initStickyShadow } from './sticky.js'
+import { initFilterCollapse } from './filter-collapse.js'
 import { initChipOverflow } from './chip-overflow.js'
 
 export function initFilter({ resetWindow } = {}) {
@@ -33,6 +34,12 @@ export function initFilter({ resetWindow } = {}) {
   // The bar stays pinned under the nav (position: sticky) the whole time — no
   // scroll-driven hide/show; only a shadow fades in once it's stuck.
   initStickyShadow(filterBar)
+
+  // ── Mobile collapse ("Filters" toggle) ────────────────────────────────────
+  // On a narrow screen the bar starts collapsed so it doesn't cover the grid; a
+  // tap reveals it. No-op on desktop (the full bar always shows). See
+  // modules/filter-collapse.js.
+  initFilterCollapse(filterBar)
 
   // ── Chip counts — from the full catalogue, not the loaded window ──────────
   function updateCounts() {
