@@ -160,25 +160,30 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
   public/        favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml are generated, see SEO)
   vite.config.js  vitest.config.js  tests/
-apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email app)
-  src/index.js                           # Worker entry — routes /enquiry /newsletter /flash-status
-  src/handlers/{enquiry,newsletter,flash-status}.js
-  src/lib/{http,db}.js                    # CORS/IP/adapter + D1 storage (persist, rate limit, flash)
-  migrations/0001_init.sql                # D1 schema
+apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email + payments app)
+  src/index.js                           # Worker entry — routes /enquiry /newsletter /checkout /webhooks/stripe /flash-status
+  src/handlers/{enquiry,newsletter,flash-status,checkout,stripe-webhook}.js
+  src/lib/{http,db,stripe}.js            # CORS/IP/adapter + D1 storage (persist, rate limit, flash, payments) + Stripe client
+  src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
+  migrations/{0001_init,0002_payments}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS.md  SCHEDULING.md  ROADMAP.md
+docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS.md  SCHEDULING.md  ROADMAP.md  GO-LIVE.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
 workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
-backlog — what's shipped, the phased **go-live plan** (staging → apex), and the
-post-launch backlog that extends past it; `docs/CMS.md` is the (not-yet-built)
+backlog — what's shipped, the sequenced path to launch, and the post-launch backlog that
+extends past it; **`docs/GO-LIVE.md` is the working tick-list** for the apex cutover (just
+what's *left*, with 👤 you-vs-🛠 code owners) — keep the two in step (tick GO-LIVE, reflect
+it in ROADMAP). `docs/CMS.md` is the (not-yet-built)
 content-CMS plan; the **payments** plan is `docs/PAYMENTS.md` — the **integrated Stripe
 checkout** (flash = full payment, custom = deposit only; one Stripe engine for card + Klarna +
 PayPal, paying out to **Monzo Business**) whose **Worker backbone is shipped dark** behind
-`PAYMENTS_ENABLED`, with the embedded Payment Element frontend still to come; that one doc holds
-the model, build spec, fees, and operator runbook; `docs/SCHEDULING.md` is the (not-yet-built)
+`PAYMENTS_ENABLED` (the `/checkout` + `/webhooks/stripe` routes, the `payments`/`webhook_events`
+ledger in `0002_payments.sql`, and `flash-prices.json` are all in — the `/checkout` route just
+returns 503 until `PAYMENTS_ENABLED === "true"`), with the embedded Payment Element frontend
+still to come; that one doc holds the model, build spec, fees, and operator runbook; `docs/SCHEDULING.md` is the (not-yet-built)
 **appointment-booking** spec that co-ships with it (request/hold + manual confirm, gated by the
 host studio's chair schedule). `docs/ENGINEERING-LEARNINGS.md` records forward-looking
 benchmarking takeaways (linter/TS/CWV/a11y). Read `ROADMAP.md` for current priorities before
@@ -307,7 +312,10 @@ inits immediately. **The full motion / page-transition system is mapped in
 on every page. Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
 `filter`, `lightbox`, `sticky` (shared sticky-shadow helper for pinned bars — used by
 filter, flash and the enquire progress bar), `chip-overflow` (shared responsive "More"
-collapse for tight filter rows — used by filter and flash), `aftercare`, `faq`, `enquire`,
+collapse for tight filter rows — used by filter and flash), `filter-collapse` (mobile-only:
+collapses the whole filter bar behind a deterministic "Filters" toggle — a tap, not a
+scroll-driven auto-hide, so it can't flicker on mobile browser-chrome motion; also shared by
+filter and flash), `aftercare`, `faq`, `enquire`,
 `flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
 on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that no-ops until
 a provider is wired in — no cookie banner owed yet), `loader` (dismisses the full-page
@@ -348,7 +356,8 @@ hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/
 ### Forms → Cloudflare Worker → Resend
 The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
 Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js` routes
-`/enquiry`, `/newsletter`, `/flash-status` to the handlers in `src/handlers/`.
+`/enquiry`, `/newsletter`, `/flash-status` — plus the **shipped-dark** `/checkout` and
+`/webhooks/stripe` payment routes (see `docs/PAYMENTS.md`) — to the handlers in `src/handlers/`.
 
 - `src/handlers/enquiry.js` handles **both** the enquiry and flash-claim forms,
   distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines the
@@ -363,13 +372,22 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   build), so this overlays pieces claimed since the last build. Returns
   `{ claims: { "<piece-id>": "pending" | "claimed" } }`; no secrets, no writes, fails safe
   to an empty map.
+- `src/handlers/checkout.js` + `src/handlers/stripe-webhook.js` are the **payments backbone,
+  shipped dark** (see `docs/PAYMENTS.md`): `/checkout` opens a Stripe PaymentIntent for a
+  flash piece (amount read server-side from `src/data/flash-prices.json`, never the client)
+  and reserves it with a ~48h hold; `/webhooks/stripe` is the verified server-to-server
+  confirmation that promotes the claim and flips the ledger. Both are inert until
+  `PAYMENTS_ENABLED === "true"` — `/checkout` returns 503 otherwise. Signing/HTTP for Stripe
+  lives in `src/lib/stripe.js`.
 - `src/lib/db.js` is the **D1 (SQLite) storage layer** (binding `DB`), and the system of
   record: `persistSubmission`/`persistConsent`, the **flash inventory** (`reserveFlashPiece`
   — atomic via `ON CONFLICT DO NOTHING`; `releaseFlashPiece` rolls back if the send fails;
-  `getFlashClaims`), and the **rate limiter** (per-IP sliding window + global daily ceiling).
-  Every function **fails safe / fails open** — a DB outage never blocks a real enquiry.
-  Schema in `migrations/0001_init.sql`. GDPR retention/erasure is plain SQL — see
-  `docs/DATA-COMPLIANCE.md`.
+  `getFlashClaims`; `promoteFlashClaim`/`expirePendingClaims` for the paid/abandoned paths),
+  the **payments ledger** (`recordPayment`/`getPayment`/`markPaymentStatus` +
+  `recordWebhookEvent` for webhook idempotency), and the **rate limiter** (per-IP sliding
+  window + global daily ceiling). Every function **fails safe / fails open** — a DB outage
+  never blocks a real enquiry. Schema in `migrations/0001_init.sql` (+ `0002_payments.sql`
+  for the payments ledger). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
 - `src/lib/http.js` is the HTTP plumbing: the **CORS origin allowlist** (the *site* origins,
   not the Worker's own URL), the JSON reply helper, `clientIp` (anti-spoof — trusts only
   `cf-connecting-ip`), and the Request→event adapter that keeps handlers `(event, env)`-shaped.
@@ -549,7 +567,8 @@ three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backl
 (`gfnnn/beansprout`). This v2 repo publishes only to GitHub Pages (the staging Pages
 URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
 **no `apps/web/public/CNAME`**, and don't add apex A-records for Pages — until the
-copy and real images are finalised (see `docs/ROADMAP.md` → Go-live plan, Phase 6).
+copy and real images are finalised (the remaining launch actions are tracked in
+`docs/GO-LIVE.md`).
 Cloudflare hosts
 the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
