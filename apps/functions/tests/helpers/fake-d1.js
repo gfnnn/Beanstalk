@@ -32,6 +32,22 @@ export function makeD1() {
     if (s.startsWith('SELECT piece_id, status FROM flash_claims')) {
       return { results: [...data.flash.entries()].map(([piece_id, v]) => ({ piece_id, status: v.status })) }
     }
+    // promoteFlashClaim — UPSERT to 'claimed': missing row → inserted claimed,
+    // pending → flipped, already-claimed → no-op. (Must match before the
+    // reserve INSERT below, which shares the prefix.)
+    if (s.startsWith('INSERT INTO flash_claims') && s.includes("'claimed'")) {
+      const [piece_id, updated_at] = args
+      const row = data.flash.get(piece_id)
+      if (!row) {
+        data.flash.set(piece_id, { status: 'claimed', updated_at, expires_at: null })
+        return { meta: { changes: 1 } }
+      }
+      if (row.status === 'pending') {
+        row.status = 'claimed'; row.updated_at = updated_at; row.expires_at = null
+        return { meta: { changes: 1 } }
+      }
+      return { meta: { changes: 0 } }
+    }
     if (s.startsWith('INSERT INTO flash_claims')) {
       const [piece_id, updated_at, expires_at = null] = args
       if (data.flash.has(piece_id)) return { meta: { changes: 0 } }   // ON CONFLICT DO NOTHING
@@ -41,16 +57,6 @@ export function makeD1() {
     if (s.startsWith('SELECT status FROM flash_claims WHERE piece_id')) {
       const row = data.flash.get(args[0])
       return row ? { status: row.status } : null
-    }
-    // promoteFlashClaim — only a still-'pending' row flips to 'claimed'.
-    if (s.startsWith('UPDATE flash_claims SET status = \'claimed\'')) {
-      const [piece_id, updated_at] = args
-      const row = data.flash.get(piece_id)
-      if (row && row.status === 'pending') {
-        row.status = 'claimed'; row.updated_at = updated_at; row.expires_at = null
-        return { meta: { changes: 1 } }
-      }
-      return { meta: { changes: 0 } }
     }
     // expirePendingClaims — sweep lapsed pending holds (more specific than the
     // release DELETE below, so it must match first).

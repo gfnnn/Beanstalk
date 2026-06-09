@@ -89,7 +89,12 @@ async function onSucceeded(env, pi) {
   }
 
   await markPaymentStatus(env, reference, 'paid', { providerRef: pi.id, paidAt: nowIso() })
-  if (pieceId) await promoteFlashClaim(env, pieceId)
+  if (pieceId) {
+    const promoted = await promoteFlashClaim(env, pieceId)
+    // A paid piece that didn't end up 'claimed' (it was already claimed another
+    // way, or D1 failed) needs the artist's eyes — log loudly, never silently.
+    if (!promoted) console.error('stripe-webhook: paid but piece not newly promoted — check inventory', reference, pieceId)
+  }
 
   // Best-effort notifications — never let an email failure throw out of the webhook.
   await sendEmails(env, { pi, reference, pieceId, payment })

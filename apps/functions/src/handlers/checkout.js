@@ -117,8 +117,10 @@ export async function handler(event, env = {}) {
     body.set('description', `Flash · ${pieceId}`)
     body.set('metadata[reference]', reference)               // the key the webhook reconciles on
     body.set('metadata[piece_id]', pieceId)
-    body.set('metadata[name]', name)
-    if (fields.placement) body.set('metadata[placement]', String(fields.placement).slice(0, MAX_FIELD_LEN))
+    // Stripe rejects metadata values over 500 chars — clamp below that, not just
+    // our own MAX_FIELD_LEN, so a long-but-valid field can't 400 the intent.
+    body.set('metadata[name]', name.slice(0, 480))
+    if (fields.placement) body.set('metadata[placement]', String(fields.placement).slice(0, 480))
 
     const res = await fetch(STRIPE_API, {
       method: 'POST',

@@ -102,7 +102,7 @@ describe('enquiry handler — validation', () => {
   })
 
   it('does not require consent boxes for a flash claim', async () => {
-    const res = await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth' } }))
+    const res = await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03' } }))
     expect(res.statusCode).toBe(200)
     expect(fetchMock).toHaveBeenCalledOnce()
   })
@@ -256,7 +256,7 @@ describe('enquiry handler — email rendering details', () => {
   })
 
   it('builds the flash-claim subject from the piece and claimant names', async () => {
-    await H(post({ kind: 'flash', fields: { name: 'Ada Lovelace', email: 'ada@example.com', piece: 'Luna Moth' } }))
+    await H(post({ kind: 'flash', fields: { name: 'Ada Lovelace', email: 'ada@example.com', piece: 'Luna Moth', piece_id: 'flash-03' } }))
     expect(sentBody(fetchMock).subject).toBe('Flash claim — Luna Moth — Ada Lovelace')
   })
 
@@ -359,10 +359,25 @@ describe('enquiry handler — flash inventory', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('still sends a claim that carries no piece_id (nothing to reserve)', async () => {
+  it('rejects a claim that carries no piece_id (it would bypass the reservation)', async () => {
     const res = await H(post(flashClaim({ piece_id: '' })))
+    expect(res.statusCode).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(flashMap(d1.data)).toEqual({})
+  })
+
+  it('emails the manifest price for a known piece, ignoring a tampered client price', async () => {
+    const res = await H(post(flashClaim({ price: '1' })))
     expect(res.statusCode).toBe(200)
-    expect(fetchMock).toHaveBeenCalledOnce()
+    // flash-03 is 22000 pence (£220) in src/data/flash-prices.json.
+    expect(sentBody(fetchMock).html).toContain('£220')
+    expect(sentBody(fetchMock).html).not.toContain('£1<')
+  })
+
+  it('flattens newlines out of the email subject', async () => {
+    const res = await H(post(flashClaim({ name: 'Ada\r\nBcc: evil@example.com' })))
+    expect(res.statusCode).toBe(200)
+    expect(sentBody(fetchMock).subject).not.toMatch(/[\r\n]/)
   })
 
   it('releases the reservation when the send fails, so the piece is claimable again', async () => {

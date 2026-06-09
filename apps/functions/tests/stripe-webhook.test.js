@@ -126,6 +126,19 @@ describe('stripe-webhook — payment_intent.succeeded', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('claims the piece even when the 48h hold was already swept (paid after lapse)', async () => {
+    // The pending hold expired and the lazy sweep deleted it, but the customer
+    // still completed the PaymentIntent. A verified payment must end with the
+    // piece claimed — never silently relisted for a second sale.
+    await seedCheckout()
+    d1.data.flash.delete(PIECE)   // simulate expirePendingClaims having run
+    const { raw, header } = await sign(succeeded())
+    const res = await H(post(raw, header))
+    expect(res.statusCode).toBe(200)
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'claimed' })
+    expect(d1.data.payments.get(REF).status).toBe('paid')
+  })
+
   it('still confirms (fail-open) when no payment row exists — promotes + emails from intent data', async () => {
     // Only the hold exists (e.g. the checkout DB write failed open); the webhook
     // must still honour a real payment by promoting the piece.

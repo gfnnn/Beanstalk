@@ -165,17 +165,23 @@ export async function releaseFlashPiece(env, id) {
   }
 }
 
-// Promote a reserved piece to a confirmed sale on verified payment. Idempotent:
-// only a still-'pending' row flips, so a re-delivered webhook (or a piece already
-// claimed another way) is a harmless no-op. Clears the hold's expiry so a sold
-// piece can never be swept by expirePendingClaims. Returns true iff THIS call did
-// the promotion. Fail-safe → false.
+// Promote a piece to a confirmed sale on verified payment. An UPSERT, not a bare
+// UPDATE: a verified payment must always end with the piece marked 'claimed',
+// even if its pending hold was already swept by expirePendingClaims (a customer
+// can complete a PaymentIntent after the 48h hold lapsed — without this the paid
+// piece would silently read available again). Idempotent: an existing 'claimed'
+// row is a no-op, so a re-delivered webhook can't double-promote. Clears the
+// hold's expiry so a sold piece can never be swept. Returns true iff THIS call
+// marked it claimed. Fail-safe → false.
 export async function promoteFlashClaim(env, id) {
   if (!id) return false
   try {
     const res = await env.DB.prepare(
-      `UPDATE flash_claims SET status = 'claimed', updated_at = ?2, expires_at = NULL
-       WHERE piece_id = ?1 AND status = 'pending'`,
+      `INSERT INTO flash_claims (piece_id, status, updated_at)
+       VALUES (?1, 'claimed', ?2)
+       ON CONFLICT(piece_id) DO UPDATE
+         SET status = 'claimed', updated_at = excluded.updated_at, expires_at = NULL
+         WHERE flash_claims.status = 'pending'`,
     ).bind(id, nowIso()).run()
     return (res?.meta?.changes ?? 0) > 0
   } catch (err) {

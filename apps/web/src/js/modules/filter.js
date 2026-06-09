@@ -146,7 +146,10 @@ export function initFilter({ resetWindow } = {}) {
   if (filterClear) {
     filterClear.addEventListener('click', clearFilters)
     filterClear.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') clearFilters()
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()   // Space must not also scroll the page
+        clearFilters()
+      }
     })
   }
   if (emptyClear) emptyClear.addEventListener('click', clearFilters)
