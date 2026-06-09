@@ -271,7 +271,10 @@
   pointer-events: all;
 }
 
-.nav-drawer a {
+/* The `:where(:not(.btn))` keeps these nav-link styles off the CTA button at the
+   bottom of the drawer (a .btn anchor), which owns its own typography/colour —
+   :where() adds no specificity, so secondary-link precedence is unchanged. */
+.nav-drawer a:where(:not(.btn)) {
   font-family: var(--serif);
   font-weight: 300;
   font-size: 36px;
@@ -286,8 +289,8 @@
   display: flex;
   align-items: center;
 }
-.nav-drawer a:hover  { color: var(--moss); }
-.nav-drawer a.active { color: var(--moss); }
+.nav-drawer a:where(:not(.btn)):hover  { color: var(--moss); }
+.nav-drawer a:where(:not(.btn)).active { color: var(--moss); }
 
 .drawer-secondary {
   margin-top: 24px;

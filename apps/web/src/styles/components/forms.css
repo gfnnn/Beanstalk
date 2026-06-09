@@ -48,7 +48,7 @@
   background: var(--bg);
 }
 .form__input::placeholder,
-.form__textarea::placeholder { color: var(--ink-faint); }
+.form__textarea::placeholder { color: rgba(var(--ink-faint-rgb), 0.6); }
 
 .form__textarea {
   resize: vertical;

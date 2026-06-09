@@ -351,6 +351,11 @@ describe('initScrollAnimations', () => {
     expect(reveal).toBeTruthy()
     expect(reveal.vars.y).toBe(14)
     expect(reveal.vars.filter).toBeUndefined() // keep the fields crisp — no blur
+    // Transform-only on purpose: the form's visibility is owned by the motion.css
+    // guard + its 2s failsafe, never by this tween. Animating opacity would let an
+    // interrupted tween strand the form at opacity:0 (the "blank on mobile" bug).
+    expect(reveal.vars.opacity).toBeUndefined()
+    expect(reveal.vars.clearProps).toBe('transform') // drop inline transform on finish
     expect(reveal.vars.scrollTrigger).toBeUndefined() // plays on load
   })
 
