@@ -97,6 +97,32 @@ describe('initFaq', () => {
       click($('.faq-cat[data-cat="all"]'))
       expect(visible()).toHaveLength(2)
     })
+
+    it('reveals a filtered-in item the scroll entrance had left hidden', () => {
+      setup(); initFaq()
+      // Simulate GSAP holding a below-the-fold .reveal item at opacity:0 until its
+      // ScrollTrigger fires — filtering to it must not leave it display:block-but-invisible.
+      const aftercare = $('.faq-item[data-category="aftercare"]')
+      aftercare.style.opacity = '0'
+      click($('.faq-cat[data-cat="aftercare"]'))
+      expect(aftercare.style.display).not.toBe('none')
+      expect(aftercare.style.opacity).toBe('') // hide-style cleared, so it's actually seen
+    })
+
+    it('picking a category clears a stale search query (box and list agree)', () => {
+      setup(); initFaq()
+      const search = $('#faq-search-input')
+      search.value = 'wash'
+      input(search) // search → 1 result, chips snap to "All"
+      expect(visible()).toHaveLength(1)
+
+      click($('.faq-cat[data-cat="booking"]'))
+      // The whole category shows (not the stale 1-item search subset)…
+      expect(visible()).toHaveLength(1)
+      expect(visible()[0].dataset.category).toBe('booking')
+      // …and the search field is cleared so it can't disagree with the list.
+      expect(search.value).toBe('')
+    })
   })
 
   describe('search', () => {
