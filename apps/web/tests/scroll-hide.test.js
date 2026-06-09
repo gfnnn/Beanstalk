@@ -100,8 +100,66 @@ describe('initScrollHide', () => {
     await scrollTo(300)            // up   → shown again, still below the resting spot
     expect(hidden(el)).toBe(false)
 
-    await scrollTo(302) // +2px, inside the deadzone → no change
+    await scrollTo(302) // +2px, below the directional threshold → no change
     expect(hidden(el)).toBe(false)
+  })
+
+  // Regression guard for the mobile flicker: while scrolling DOWN, momentum bounce /
+  // the address-bar reveal nudges scrollY a few px back up for a frame. The bar must
+  // NOT pop back into view on those sub-threshold wobbles — only a sustained scroll-up
+  // should reveal it. (The old per-frame ±4px deadzone revealed it on any > 4px nudge.)
+  it('does not reveal a hidden bar on sub-threshold upward wobble while scrolling down', async () => {
+    mockMatchMedia(true)
+    const el = bar(100)
+    initScrollHide(el)
+
+    await scrollTo(400)        // down → hidden
+    expect(hidden(el)).toBe(true)
+
+    await scrollTo(392)        // −8px wobble (under the 12px threshold) → stay hidden
+    expect(hidden(el)).toBe(true)
+    await scrollTo(410)        // back down → stay hidden
+    expect(hidden(el)).toBe(true)
+    await scrollTo(404)        // −6px wobble → still hidden
+    expect(hidden(el)).toBe(true)
+  })
+
+  // A deliberate, sustained scroll-up of more than the threshold still reveals it —
+  // the wobble immunity must not make the reveal sluggish for a real upward scroll.
+  it('reveals on a sustained upward scroll past the threshold', async () => {
+    mockMatchMedia(true)
+    const el = bar(100)
+    initScrollHide(el)
+
+    await scrollTo(400)        // down → hidden
+    expect(hidden(el)).toBe(true)
+    await scrollTo(380)        // −20px (> threshold) → shown
+    expect(hidden(el)).toBe(false)
+  })
+
+  // Regression guard for the bottom-of-page bounce: iOS rubber-band carries scrollY
+  // past the maximum and back. Clamping to [0, maxScroll] means the over-the-end
+  // excursion registers no movement, so the bounce can't reveal a hidden bar (which
+  // is why momentum settling at the bottom used to leave the filters showing).
+  it('ignores rubber-band overscroll past the page bottom', async () => {
+    mockMatchMedia(true)
+    const el = bar(100)
+    // Give jsdom a real scroll range so the clamp engages (maxScroll = 1000 − 600).
+    Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1000, configurable: true })
+    const realInnerHeight = window.innerHeight
+    Object.defineProperty(window, 'innerHeight', { value: 600, configurable: true })
+    initScrollHide(el)
+
+    try {
+      await scrollTo(400)      // at the bottom → hidden
+      expect(hidden(el)).toBe(true)
+      await scrollTo(450)      // overscroll past max (clamps to 400) → no movement
+      await scrollTo(420)      // bouncing back (still past max → clamps to 400)
+      expect(hidden(el)).toBe(true)
+    } finally {
+      delete document.documentElement.scrollHeight
+      Object.defineProperty(window, 'innerHeight', { value: realInnerHeight, configurable: true })
+    }
   })
 
   it('never hides on desktop (the breakpoint does not match)', async () => {
