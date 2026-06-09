@@ -37,11 +37,16 @@ test.describe('mobile drawer', () => {
     await expect(page.locator('#nav-drawer')).not.toHaveClass(/open/)
   })
 
-  test('following a drawer link navigates and the drawer closes', async ({ page }) => {
+  test('following a drawer link navigates and lands on a fresh, closed drawer', async ({ page }) => {
     await page.locator('#nav-hamburger').click()
     await page.locator('#nav-drawer a[href="/portfolio/"]').first().click()
     await expect(page).toHaveURL(/\/portfolio\/$/)
+    // The drawer is deliberately left open through the navigation (so the page
+    // cross-fade carries the menu out in one motion rather than collapsing it
+    // first); the destination is a fresh document, so it loads with the drawer
+    // closed and the body scroll-lock cleared.
     await expect(page.locator('#nav-drawer')).not.toHaveClass(/open/)
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('')
   })
 })
 
