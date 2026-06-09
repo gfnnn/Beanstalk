@@ -237,7 +237,7 @@
     2. Form submitted → card UI marks data-status="pending"
     3. Backend marks ticket "Pending" for 48h
     4. Deposit link (PayPal.Me / Monzo.me) emailed; artist marks paid → "Claimed"
-  Manual reconciliation — no payment gateway or webhooks (see docs/PAYMENTS-PLAN.md).
+  Manual reconciliation — no payment gateway or webhooks (see docs/PAYMENTS.md).
   Klarna is parked there as a future consideration (a real gateway → a different model).
 */
 .modal-overlay {

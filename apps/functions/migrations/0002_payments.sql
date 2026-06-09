@@ -1,5 +1,5 @@
 -- D1 schema — payments backbone (Phase 1: flash full payment via Stripe).
--- Apply with:  wrangler d1 migrations apply beansprout   (see docs/PAYMENTS-STRIPE-BUILD.md)
+-- Apply with:  wrangler d1 migrations apply beansprout   (see docs/PAYMENTS.md)
 --
 -- Adds the money system-of-record on top of 0001_init.sql. The flash flow keeps
 -- its existing reserve→email path; what's new is a durable payment ledger, webhook
