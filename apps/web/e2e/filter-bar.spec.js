@@ -41,6 +41,14 @@ test.describe('mobile — hides on scroll-down into the grid, reveals on scroll-
       // we don't race the slide — the transform settles the top to roughly -height.
       await expect.poll(async () => (await bar.boundingBox())?.y ?? 0).toBeLessThan(0)
 
+      // A tiny upward wobble (momentum bounce / address-bar reveal) must NOT pop the
+      // bar back over the grid — only a sustained scroll-up should. Nudge a few px up
+      // from the clamped bottom and confirm it stays tucked away.
+      const atBottom = await page.evaluate(() => window.scrollY)
+      await scrollWindow(page, atBottom - 6)
+      await page.waitForTimeout(100)
+      await expect(bar).toHaveClass(/bar-hidden/)
+
       // Scroll back up → it comes straight back, re-anchored under the nav.
       await scrollWindow(page, 150)
       await expect(bar).not.toHaveClass(/bar-hidden/)
