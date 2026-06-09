@@ -13,7 +13,7 @@
 //
 // Bindings/vars come from wrangler.toml + Worker secrets (RESEND_API_KEY,
 // STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, …) and the D1 database (`DB`). See
-// docs/ENQUIRY-SETUP.md and docs/PAYMENTS-STRIPE-BUILD.md for setup.
+// docs/ENQUIRY-SETUP.md and docs/PAYMENTS.md for setup.
 // ─────────────────────────────────────────────────────────────────────────────
 import { toEvent, SECURITY_HEADERS } from './lib/http.js'
 import { handler as enquiry } from './handlers/enquiry.js'
