@@ -21,6 +21,17 @@
 
 .btn:hover { transform: translateY(-1px); }
 
+/* Animated serif arrow — shared by any button that includes a `.arrow` span
+   (ghost CTAs, outline secondaries). Rides currentColor, slides on hover. */
+.btn .arrow {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  display: inline-block;
+  transition: transform var(--dur) var(--ease);
+}
+.btn:hover .arrow { transform: translateX(4px); }
+
 /* Primary — clay */
 .btn-primary {
   background: var(--clay);
@@ -56,15 +67,6 @@
 }
 .btn-ghost:hover { color: var(--moss); }
 
-.btn-ghost .arrow {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 18px;
-  display: inline-block;
-  transition: transform var(--dur) var(--ease);
-}
-.btn-ghost:hover .arrow { transform: translateX(4px); }
-
 /* Light — cream button for dark backgrounds */
 .btn-light {
   background: var(--bg);
@@ -76,6 +78,19 @@
   border-color: var(--cream);
 }
 
+/* Outline light — cream border for dark backgrounds (the dark-bg twin of
+   .btn-outline; fills cream on hover, flipping the label to ink). */
+.btn-outline-light {
+  background: transparent;
+  border-color: rgba(var(--bg-rgb), 0.4);
+  color: var(--bg);
+}
+.btn-outline-light:hover {
+  background: var(--bg);
+  border-color: var(--bg);
+  color: var(--ink);
+}
+
 /* Ghost light — text-only for dark backgrounds */
 .btn-ghost-light {
   background: transparent;
@@ -85,14 +100,6 @@
   padding-right: 0;
 }
 .btn-ghost-light:hover { color: var(--bg); }
-.btn-ghost-light .arrow {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 18px;
-  display: inline-block;
-  transition: transform var(--dur) var(--ease);
-}
-.btn-ghost-light:hover .arrow { transform: translateX(4px); }
 
 /* ── Loading spinner ─────────────────────────────────────────────────────────
    Shared "busy" indicator the JS swaps into a button while an async action runs
