@@ -288,15 +288,24 @@ export function initScrollAnimations() {
 
   // ── Enquiry form column — a gentle on-load entrance so the form doesn't sit
   //    static while its aside cards (`.reveal`) settle in. Just the progress bar +
-  //    the active step (the rest are display:none); light rise, NO blur so the
-  //    fields stay crisp. Above the fold → motion.css guards it against a flash.
+  //    the active step (the rest are display:none); a light rise only, NO blur so
+  //    the fields stay crisp — and crucially NO opacity. The form is the page's
+  //    whole purpose, so its visibility must never hinge on this tween finishing:
+  //    motion.css holds it hidden only until `.motion-ready` (backed by the 2s
+  //    failsafe), and from there CSS keeps it at opacity:1. Animating opacity here
+  //    would let an interrupted / never-completed tween strand the form at
+  //    opacity:0 with that failsafe already removed — the reported "enquiry form
+  //    blank on mobile". A transform-only rise can't strand it: worst case the form
+  //    rests a few px low but is fully visible. `clearProps` drops the inline
+  //    transform on finish so the sticky progress bar settles at its true spot.
   const formIntro = [
     document.querySelector('.progress-wrap'),
     document.querySelector('.form-step.active'),
   ].filter(Boolean)
   if (formIntro.length) {
     gsap.from(formIntro, {
-      opacity: 0, y: 14, duration: 0.6, ease: 'power2.out', stagger: 0.1, delay: 0.45,
+      y: 14, duration: 0.6, ease: 'power2.out', stagger: 0.1, delay: 0.45,
+      clearProps: 'transform',
     })
   }
 
