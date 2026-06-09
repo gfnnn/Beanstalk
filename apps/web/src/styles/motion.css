@@ -30,7 +30,10 @@
    Keep this selector list in step with the on-load / in-viewport `.from()`
    targets in src/js/modules/animations.js (hero entrance + sprout-media column,
    the inner-page `.page-header` entrance, the filter-bar controls, the
-   scroll-reveal text, the generic `.reveal`, and the grid tiles/cards).
+   scroll-reveal text, the generic `.reveal`, the unified section-reveal registry's
+   above-the-fold bespoke headers + the enquiry form column, and the grid
+   tiles/cards). Only above-the-fold targets need guarding — below-the-fold ones
+   reveal on scroll, long after the bundle is live, so they can't flash.
    ════════════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: no-preference) {
   html:not(.motion-ready) :is(
@@ -55,6 +58,16 @@
     .body-text,
     .serif-note,
     .reveal,
+    /* Bespoke inner-page section headers the unified registry reveals (those that
+       can sit above the fold — aftercare chooser, visit contact) */
+    .chooser-eyebrow,
+    .chooser-heading,
+    .chooser-sub,
+    .contact-heading,
+    .contact-subhead,
+    /* Enquiry form column — gentle on-load entrance (progress bar + active step) */
+    .progress-wrap,
+    .form-step.active,
     /* Grid tiles / cards that enter on first scroll (top rows can be on-screen) */
     .portfolio-grid .tile,
     .masonry-tile,

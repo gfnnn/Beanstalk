@@ -1,5 +1,6 @@
 import { lenis } from './lenis.js'
 import { initStickyShadow } from './sticky.js'
+import { cascadeReveal } from './animations.js'
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -42,6 +43,10 @@ export function initAftercare() {
   function reveal() {
     switchWrap.hidden = false
     stage.hidden = false
+    // When the children will cascade in (full motion), drop the stage's own block
+    // slide so the two don't compound — the container just fades, the steps carry
+    // the movement. Under reduced motion the CSS handles a plain instant reveal.
+    if (!reduced) stage.style.transform = 'none'
     void stage.offsetHeight            // commit layout before transitioning
     switchWrap.classList.add('shown')
     stage.classList.add('shown')
@@ -49,6 +54,20 @@ export function initAftercare() {
     // Pin-shadow via the shared IntersectionObserver helper (no per-scroll reflow);
     // started here, once the switcher is actually shown.
     initStickyShadow(switchWrap)
+  }
+
+  // ── Cascade the just-revealed route's steps + the shared rules in, the same
+  //    homepage-style stagger the rest of the site uses (no-ops under reduced
+  //    motion). Only on the FIRST reveal; later route switches keep the quick
+  //    CSS panel-fade so toggling back and forth doesn't re-perform every time.
+  function cascadeStage(method) {
+    const panel = document.getElementById(`panel-${method}`)
+    if (panel) {
+      const aside = panel.querySelector('.steps-aside')
+      const steps = panel.querySelectorAll('.step')
+      cascadeReveal([aside, ...steps], { y: 16, each: 0.05 })
+    }
+    cascadeReveal(document.querySelectorAll('.rule-item'), { y: 18, each: 0.08, delay: 0.1 })
   }
 
   function scrollToStage() {
@@ -59,8 +78,10 @@ export function initAftercare() {
   }
 
   function choose(method, { scroll }) {
-    if (!revealed) reveal()
+    const first = !revealed
+    if (first) reveal()
     setSelection(method)
+    if (first) cascadeStage(method)   // cascade the now-active route's content in
     if (scroll) requestAnimationFrame(scrollToStage)
   }
 
