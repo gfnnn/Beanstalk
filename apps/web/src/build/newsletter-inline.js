@@ -23,7 +23,7 @@ export function renderNewsletterInline() {
       <p class="newsletter-band-sub">Drops, fresh flash and the occasional studio note, in your inbox before they go up on Instagram.</p>
     </div>
 
-    <form class="newsletter-band-form" data-newsletter data-nl-success="#nl-band-success" novalidate>
+    <form class="newsletter-band-form reveal" data-newsletter data-nl-success="#nl-band-success" novalidate>
       <div class="newsletter-band-row">
         <div class="signup-field">
           <label class="signup-label" for="nli-email">Email</label>

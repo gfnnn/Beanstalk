@@ -65,9 +65,29 @@ entrance* waits on `pageReady`.
     after the header); below-the-fold groups reveal on scroll. So the portfolio /
     flash grids, which sit right under the header, cascade after it instead of
     flashing in on load.
-- **Scroll reveals** (`revealFrom`, the generic `.reveal` + `.reveal-d1/2/3` stagger
-  classes) fade/blur content up as it enters the viewport. Most inner-page content
-  is tagged `.reveal` in the markup; it's also FOUC-guarded and grouped in
+- **Unified section reveal (one registry).** Every section's *eyebrow · heading ·
+  body* animates the same way site-wide through a single registry in
+  `initScrollAnimations` — the generic semantic classes the homepage uses
+  (`.eyebrow`, `.section-title`, `.body-text`, `.serif-note`) **plus** the per-page
+  bespoke equivalents inner pages invented (`.chooser-*`, `.contact-*`,
+  `.newsletter-band-*`). This is the fix for the old drift where a page that named
+  its header differently silently got **no** motion. Headings carry the
+  blur-to-sharp; offsets shrink on mobile. A **claim guard** skips anything already
+  animated by another pass — explicit `.reveal` wrappers, the hero / page-header
+  timelines, the filter-bar cascade, the grid `revealGroup`s, and the dynamic
+  regions a page module reveals itself (the aftercare `[hidden]` stage, the enquiry
+  `.form-steps`) — so the registry never *double*-animates. It's above-the-fold
+  aware (on-load cascade vs. own scroll trigger), exactly like the generic
+  `.reveal` below.
+- **`cascadeReveal(items, …)`** is the homepage card cascade exported for content a
+  page **module** reveals itself at runtime rather than on load (the aftercare step
+  / rule lists, which live inside a `[hidden]` stage until a dressing is picked, so
+  a load-time scroll trigger can't measure them). `modules/aftercare.js` calls it on
+  the first route pick so the steps stagger in instead of the stage fading as one
+  flat block. Reduced-motion / empty inputs no-op.
+- **Scroll reveals** (the registry above, the generic `.reveal` + `.reveal-d1/2/3`
+  stagger classes) fade/blur content up as it enters the viewport. Most inner-page
+  content is tagged `.reveal` in the markup; it's also FOUC-guarded and grouped in
   `motion.css`.
   - **The generic `.reveal` handler is above-the-fold-aware** (same split as
     `revealGroup`): an element already in the first viewport on load plays an
@@ -173,10 +193,19 @@ and a pure-CSS failsafe on each so a blocked/failed bundle can never strand cont
 
 ## How to add motion
 
-- **A new entrance element / cascade** → add it in `animations.js` (use
-  `revealGroup` for a card/tile group, `revealFrom` or a `.reveal` class for
-  scroll-up content), and add its selector to the FOUC-guard list in `motion.css`
-  if it's above the fold (so it doesn't flash before the reveal).
+- **A new section (eyebrow / heading / body)** → reuse the generic classes
+  (`.eyebrow`, `.section-title`, `.body-text`/`.serif-note`) and it animates for
+  free via the unified registry. If the page needs a bespoke header class, **add
+  that class to the matching role in the registry** (`initScrollAnimations`) — and,
+  only if it can sit **above the fold**, to the FOUC-guard list in `motion.css`.
+  Don't hand-wrap it in `.reveal` *as well* — the claim guard already keeps the two
+  from double-animating, but a redundant wrapper is noise.
+- **A new entrance element / card cascade** → add it in `animations.js` (use
+  `revealGroup` for a card/tile group on load, or a `.reveal` / `.reveal-d*` class
+  for scroll-up content). For content a **module** reveals at runtime (hidden until
+  an interaction), call the exported **`cascadeReveal`** from that module instead of
+  relying on a load-time trigger. Add above-the-fold targets to the FOUC-guard list
+  in `motion.css` so they don't flash before the reveal.
 - **A new hairline divider** → no JS, no new state rule. Either drop a
   `<div class="divider">` (or `<hr class="divider">`) element, **or** draw a 1px
   `::before`/`::after` hairline and add its selector to the registry list in

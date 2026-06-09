@@ -133,18 +133,22 @@ function growSprout() {
   }
 }
 
-// ── Helper: reveal from vars on scroll ────────────────────────────────────────
-function revealFrom(selector, fromVars, triggerVars = {}) {
-  gsap.utils.toArray(selector).forEach(el => {
-    gsap.from(el, {
-      scrollTrigger: {
-        trigger: el,
-        start: 'top 88%',
-        once: true,
-        ...triggerVars,
-      },
-      ...fromVars,
-    })
+// ── Helper: reveal a group as a staggered cascade, on demand ──────────────────
+// The homepage card feel, exposed for content a page MODULE reveals itself at
+// runtime rather than on load — e.g. the aftercare step / rule lists, which live
+// inside a `[hidden]` stage until a dressing route is picked, so a load-time
+// scroll trigger can't measure them. Centralised here so every cascade across the
+// site shares one vocabulary (per-item `each` stagger, gentle rise, blur-free).
+// Reduced motion and empty inputs no-op; `clearProps:'transform'` strips the
+// inline transform afterwards so hover / sticky states settle at their true spot.
+export function cascadeReveal(items, { y = 16, each = 0.06, duration = 0.6, ease = 'power2.out', delay = 0 } = {}) {
+  if (reduced) return
+  const list = gsap.utils.toArray(items).filter(Boolean)
+  if (!list.length) return
+  gsap.from(list, {
+    opacity: 0, y, duration, ease,
+    stagger: { each, from: 'start' },
+    delay, clearProps: 'transform',
   })
 }
 
@@ -198,28 +202,46 @@ export function initScrollAnimations() {
     })
   }
 
-  const mm = gsap.matchMedia()
-
-  // ── Text reveals — smaller offsets on mobile, full on desktop. A faint
-  //    blur-to-sharp ("coming into focus through foliage", §3-C) rides on the
-  //    headings only; tile grids stay blur-free to protect the mobile budget. ─
-  mm.add('(max-width: 899px)', () => {
-    revealFrom('.eyebrow', { opacity: 0, x: -14, duration: 0.6, ease: 'power2.out' })
-    revealFrom('.section-title, .page-hero__title', {
-      opacity: 0, y: 16, filter: 'blur(4px)', duration: 0.7, ease: 'power3.out',
-    })
-    revealFrom('.body-text, .serif-note', {
-      opacity: 0, y: 12, duration: 0.6, ease: 'power2.out',
-    })
-  })
-
-  mm.add('(min-width: 900px)', () => {
-    revealFrom('.eyebrow', { opacity: 0, x: -20, duration: 0.65, ease: 'power2.out' })
-    revealFrom('.section-title, .page-hero__title', {
-      opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.85, ease: 'power3.out',
-    })
-    revealFrom('.body-text, .serif-note', {
-      opacity: 0, y: 18, duration: 0.7, ease: 'power2.out',
+  // ── Unified section reveal — ONE registry, every page ───────────────────────
+  // Reveals each section's eyebrow / heading / body the same way site-wide: the
+  // generic semantic classes the homepage uses, PLUS the per-page bespoke
+  // equivalents inner pages invented (`.chooser-*`, `.contact-*`, `.newsletter-
+  // band-*`) — so a page can't quietly fall out of motion coverage just by naming
+  // its header differently. A faint blur-to-sharp ("coming into focus through
+  // foliage", §3-C) rides the headings only; offsets shrink on mobile to protect
+  // the budget.
+  //
+  // A CLAIM guard skips anything already animated by another pass — explicit
+  // `.reveal` wrappers, the hero / page-header entrance timelines, the filter-bar
+  // cascade, the grid card cascades (revealGroup), and the dynamic regions a page
+  // module reveals itself (the aftercare stage, the enquiry steps) — so the
+  // registry never DOUBLE-animates an element. Above-the-fold elements play an
+  // on-LOAD cascade sequenced after the header; the rest reveal on their own
+  // scroll trigger (matching `.reveal` + revealGroup). motion.css FOUC-guards the
+  // above-the-fold bespoke headers so they don't flash before this runs. Adding a
+  // new section header => use a listed class, or add its class here.
+  const mobile = window.matchMedia('(max-width: 899px)').matches
+  const roles = [
+    ['.eyebrow, .chooser-eyebrow', 0,
+      { opacity: 0, x: mobile ? -14 : -20, duration: mobile ? 0.6 : 0.65, ease: 'power2.out' }],
+    ['.section-title, .page-hero__title, .chooser-heading, .contact-heading, .newsletter-band-title', 0.08,
+      { opacity: 0, y: mobile ? 16 : 28, filter: `blur(${mobile ? 4 : 6}px)`, duration: mobile ? 0.7 : 0.85, ease: 'power3.out' }],
+    ['.body-text, .serif-note, .chooser-sub, .contact-subhead, .newsletter-band-sub', 0.16,
+      { opacity: 0, y: mobile ? 12 : 18, duration: mobile ? 0.6 : 0.7, ease: 'power2.out' }],
+  ]
+  const claimed =
+    '.reveal, .hero, .page-header, .filter-bar, [hidden], .care-stage, .form-steps, ' +
+    '.portfolio-grid, .masonry, .gallery--masonry, .specialism-grid, .process-grid, ' +
+    '.testimonials-grid, .flash-grid'
+  roles.forEach(([sel, base, vars]) => {
+    document.querySelectorAll(sel).forEach(el => {
+      if (el.closest(claimed)) return                 // already animated elsewhere
+      const aboveFold = el.getBoundingClientRect().top < window.innerHeight * 0.9
+      if (aboveFold) {
+        gsap.from(el, { ...vars, delay: 0.4 + base })             // on-load, after the header
+      } else {
+        gsap.from(el, { ...vars, scrollTrigger: { trigger: el, start: 'top 88%', once: true } })
+      }
     })
   })
 
@@ -262,6 +284,20 @@ export function initScrollAnimations() {
     if (pageEye)  tl.from(pageEye,  { opacity: 0, duration: 0.65 })
     tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
     if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
+  }
+
+  // ── Enquiry form column — a gentle on-load entrance so the form doesn't sit
+  //    static while its aside cards (`.reveal`) settle in. Just the progress bar +
+  //    the active step (the rest are display:none); light rise, NO blur so the
+  //    fields stay crisp. Above the fold → motion.css guards it against a flash.
+  const formIntro = [
+    document.querySelector('.progress-wrap'),
+    document.querySelector('.form-step.active'),
+  ].filter(Boolean)
+  if (formIntro.length) {
+    gsap.from(formIntro, {
+      opacity: 0, y: 14, duration: 0.6, ease: 'power2.out', stagger: 0.1, delay: 0.45,
+    })
   }
 
   // ── Filter bar (portfolio / flash) — chips + controls cascade in between the
