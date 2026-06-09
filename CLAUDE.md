@@ -167,27 +167,26 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email +
   src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
   migrations/{0001_init,0002_payments}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  DASHBOARD.md  CMS.md  MEDIA.md  ANALYTICS.md  MOTION.md  ENGINEERING-LEARNINGS.md  COPY-REVIEW.md  COPY-FOR-ARTIST.md  PAYMENTS.md  SCHEDULING.md  ROADMAP.md  GO-LIVE.md
+docs/   ROADMAP.md  BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
-workspace; nothing needs path edits when adding pages. `docs/ROADMAP.md` is the living
-backlog — what's shipped, the sequenced path to launch, and the post-launch backlog that
-extends past it; **`docs/GO-LIVE.md` is the working tick-list** for the apex cutover (just
-what's *left*, with 👤 you-vs-🛠 code owners) — keep the two in step (tick GO-LIVE, reflect
-it in ROADMAP). `docs/CMS.md` is the (not-yet-built)
+workspace; nothing needs path edits when adding pages. **`docs/ROADMAP.md` is the single
+living plan** — what's shipped, the remaining launch tick-list (👤 you-vs-🛠 code owners),
+the cutover/rollback narrative, and the post-launch backlog incl. the engineering-quality
+thread; launch state is tracked there and nowhere else. `docs/CMS.md` is the (not-yet-built)
 content-CMS plan; the **payments** plan is `docs/PAYMENTS.md` — the **integrated Stripe
 checkout** (flash = full payment, custom = deposit only; one Stripe engine for card + Klarna +
 PayPal, paying out to **Monzo Business**) whose **Worker backbone is shipped dark** behind
 `PAYMENTS_ENABLED` (the `/checkout` + `/webhooks/stripe` routes, the `payments`/`webhook_events`
 ledger in `0002_payments.sql`, and `flash-prices.json` are all in — the `/checkout` route just
 returns 503 until `PAYMENTS_ENABLED === "true"`), with the embedded Payment Element frontend
-still to come; that one doc holds the model, build spec, fees, and operator runbook; `docs/SCHEDULING.md` is the (not-yet-built)
-**appointment-booking** spec that co-ships with it (request/hold + manual confirm, gated by the
-host studio's chair schedule). `docs/ENGINEERING-LEARNINGS.md` records forward-looking
-benchmarking takeaways (linter/TS/CWV/a11y). Read `ROADMAP.md` for current priorities before
-starting larger work.
+still to come; that one doc holds the model, build spec, fees, and operator runbook;
+`docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** stub that co-ships with it
+(request/hold + manual confirm, gated by the host studio's chair schedule); `docs/DASHBOARD.md`
+is the artist-dashboard stub. Read `ROADMAP.md` for current priorities before starting larger
+work.
 
 ### Multi-page Vite build
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
@@ -570,7 +569,7 @@ three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backl
 URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
 **no `apps/web/public/CNAME`**, and don't add apex A-records for Pages — until the
 copy and real images are finalised (the remaining launch actions are tracked in
-`docs/GO-LIVE.md`).
+`docs/ROADMAP.md`).
 Cloudflare hosts
 the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
