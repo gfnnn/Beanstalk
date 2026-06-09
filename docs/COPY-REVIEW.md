@@ -73,11 +73,11 @@ the highest-priority rows:
 
 - 🟠 Reply time — `within 3 days` (`src/data/business.js:19`) — **still open**
 - ✅ Pricing + deposit figures — **set** (#155): £80 / £120–£200 / £300 / £500, flat 50% deposit, 48h, one-year touch-up
-- 🟠 Opening hours + "short walk from the station" / parking (`visit/index.html`) — **still open**
+- ✅ Opening hours (**Tue–Sat · 11am–6pm**) + getting here (**short walk from station / paid parking nearby**) — **confirmed** (placeholders locked in; `visit/index.html`)
 - ✅ About-page stats — **resolved** (#155): module switched off for go-live (8 yrs confirmed; rest TBC)
 - 🟠 Flash season label `Summer 2026` + all flash names/specs/prices (`src/data/flash.js`) — **still open** (flash day **26 July** is set on the homepage notice)
-- 🟠 Booking lead time `3–4 weeks` (`enquire/index.html`) — **still open**
-- 🔵 Legal: effective dates **approved** ("June 2026"); **ICO public ref** (ZA######) + **tattoo-reg** still needed (`privacy`, `terms`)
+- ✅ Booking lead time (**~3–4 weeks ahead**) — **confirmed** (placeholder locked in; `enquire/index.html`)
+- 🔵 Legal: effective dates **approved** ("June 2026"); trading name **"Beansprout Tattoo"** + **public liability insurance** now **confirmed** (in `privacy`/`terms`); **ICO public ref** (ZA######) + **tattoo-reg** still needed (`privacy`, `terms`)
 
 ## Voice-consistency flags (for the artist to settle)
 
@@ -162,7 +162,7 @@ The most voice-heavy page on the site. Every paragraph here is the artist's voic
 |-----|------|----------|--------------|
 | FAQ-01 | 🟡 Voice | `:79–82` header | eyebrow "FAQ" + H1 "Good *questions.*" + descriptor "The things I get asked most…" |
 | FAQ-02 | ⚪ Factual | `:103–126` category labels | All questions / Before you book / On the day / Aftercare & healing / Pricing & deposits / Policies (+ counts) |
-| FAQ-03 | 🟡 Voice | `:146–329` — **all 15 Q&As** | Questions + answers, e.g. "How far in advance do I need to book?", "Will it hurt?…", "I'm pregnant / breastfeeding / on medication…", "Do you offer touch-ups?" — every answer is the artist's voice |
+| FAQ-03 | 🟡 Voice | `:146–360` — **all 17 Q&As** | Questions + answers, e.g. "How far in advance do I need to book?", "Will it hurt?…", "I'm pregnant / breastfeeding / on medication…", "Are you registered and insured?", "Do you offer touch-ups?" — every answer is the artist's voice |
 | FAQ-04 | 🟡 Voice | `:333–335` empty state | "No matches" + "Nothing here answers it. Try another word, or just ask me directly." |
 | FAQ-05 | 🟡 Voice | `:345–346` CTA | H2 "Still *wondering?*" + "If your question isn't here, send it over…" |
 
@@ -194,7 +194,7 @@ Health-critical instructions **and** artist-voice — worth a careful read.
 | ENQ-03 | 🟡 Voice | `:115–129` aside | "My promise" + "Every enquiry comes straight to me. Never an agency, never a bot…" + "What happens next" 5-step timeline (incl. reply-time marker → BUS-01) |
 | ENQ-04 | 🟡 Voice | `:170, 203, 211` step 1 | "First, a little *about you.*" + hint "I only tattoo over-18s. This just confirms it." + "How did you find me?" |
 | ENQ-05 | 🟡 Voice | `:240, 260–274` step 2 | "Now, the *fun part.*" + radio hints ("Designed for you from scratch" / "One of my ready-to-go pieces" / "Help me figure it out") + "Tell me your idea" + hint + placeholder "I've been wanting a small botanical piece, maybe foxgloves and ferns…" |
-| ENQ-06 | 🟡 Voice + 🟠 | `:365, 376, 399, 415` step 3 | "References *& timing.*" + image hint + cover-up hint + 🟠 booking-lead hint "I'm usually booking about 3–4 weeks ahead…" (`TODO(artist)`) |
+| ENQ-06 | 🟡 Voice | `:365, 376, 399, 415` step 3 | "References *& timing.*" + image hint + cover-up hint + ✅ booking-lead hint "I'm usually booking about 3–4 weeks ahead…" **confirmed** |
 | ENQ-07 | 🔵 Legal + 🟡 | `:455, 465–521` step 4 | "Health, consent *& the legal bit.*" + allergies/notes hints ("This stays private between us.") + photo-permission copy ("I love showing healed work, but only with your blessing…") + 3 consent checkboxes (`TODO(artist)` confirm deposit/cancellation wording) |
 | ENQ-08 | 🟡 Voice | `:229, 354, 444, 532` | step buttons "Continue →" / "Send my enquiry" |
 | ENQ-09 | ⚪ Factual | various | input placeholders "Jane" / "Smith" / "you@email.com" — but the *idea*/notes placeholders (ENQ-05, and `:477`) are 🟡 Voice |
@@ -208,7 +208,7 @@ Health-critical instructions **and** artist-voice — worth a careful read.
 | VISIT-01 | 🟡 Voice | `:79–81` header | eyebrow "The studio" + H1 "Find me at *Tiny Knives.*" + descriptor "I tattoo from Tiny Knives, a studio in Winchester…" |
 | VISIT-02 | 🟡 Voice | `:90–91` | H2 "Where to *find me.*" + "All my work happens at Tiny Knives in Winchester." |
 | VISIT-03 | ⚪ Factual | `:93–103` | address (41 Southgate Street, SO23 9EH) + studio tags "Women-owned studio" / "LGBTQ+ friendly" (genuine Tiny Knives attributes — confirm still accurate) |
-| VISIT-04 | 🟠 Placeholder | `:109–146` contact rows | 🟠 Hours "Tue–Sat · 11am–6pm" (`TODO(artist)`) · 🟠 "A short walk from Winchester station / Paid parking nearby" (`TODO(artist)`) · Email/Instagram ⚪ · 🟡 "Bookings are by enquiry only…" |
+| VISIT-04 | 🟡 Voice | `:109–146` contact rows | ✅ Hours "Tue–Sat · 11am–6pm" **confirmed** · ✅ "A short walk from Winchester station / Paid parking nearby" **confirmed** · Email/Instagram ⚪ · 🟡 "Bookings are by enquiry only…" (still voice) |
 | VISIT-05 | 🟠 Placeholder + 🟡 | `:180–189` access | "What to expect on the day" — 6 access/prep points (`TODO(artist)`: "tweak these so they match how you actually run a session"), incl. "The studio is up a flight of stairs and isn't step-free." |
 
 ---
@@ -287,7 +287,7 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 |-----|------|----------|-------|
 | PRIV-01 | 🔵 Legal | `:84–91` header | eyebrow "Legal" + H1 "Privacy *policy.*" + plain-English descriptor |
 | PRIV-02 | 🟠 Placeholder | `:105` | "Last updated: June 2026" — set real effective date on sign-off |
-| PRIV-03 | 🔵 Legal | `:108–124` Who I am | **[ICO REGISTRATION REFERENCE]** + **[TATTOO REGISTRATION NUMBER]** must be filled (see in-source COPY notes) |
+| PRIV-03 | 🔵 Legal | `:108–124` Who I am | Trading name **"Beansprout Tattoo"** **confirmed**; **[ICO REGISTRATION REFERENCE]** + **[TATTOO REGISTRATION NUMBER]** still to be filled (see in-source COPY notes) |
 | PRIV-04 | 🔵 Legal | `:128–182` | What I collect / How I use it / Lawful basis / Retention / Sharing / Cookies & analytics / Your rights / Changes & contact |
 
 ---
@@ -298,7 +298,7 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 |-----|------|----------|-------|
 | TERMS-01 | 🔵 Legal | `:84–91` header | eyebrow "Legal" + H1 "Terms of *service.*" + descriptor |
 | TERMS-02 | 🟠 Placeholder | `:105` | "Last updated: June 2026" |
-| TERMS-03 | 🔵 Legal | `:108–160` | Booking & enquiries / Deposits / Cancellations / Age & ID / Health & suitability / Aftercare & touch-ups / Designs & copyright / Photography / Liability / Changes & contact — keep deposit figures aligned with SERV-03 |
+| TERMS-03 | 🔵 Legal | `:108–160` | Booking & enquiries / Deposits / Cancellations / Age & ID / Health & suitability / Aftercare & touch-ups / Designs & copyright / Photography / Liability / Changes & contact — keep deposit figures aligned with SERV-03. Trading name **"Beansprout Tattoo"** + **public liability insurance** (Liability §) now **confirmed** |
 
 ---
 
@@ -329,14 +329,14 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 - [~] Homepage (HOME-01..07, 09 stripped); HOME-08 testimonials + HOME-10 video credit still off
 - [~] About (ABOUT-01..03, 05, 06 stripped); ABOUT-04 stats switched off (8 yrs confirmed, rest TBC)
 - [x] Services (SERV-01..06) + real prices/deposits; markers stripped
-- [x] FAQ (FAQ-01..05) — incl. a new "what to avoid after a tattoo" Q (now 16); markers stripped
+- [x] FAQ (FAQ-01..05) — now 17 Q&As (added "what to avoid after a tattoo" + "are you registered and insured?"); markers stripped
 - [x] Aftercare (AFTER-01..06) + voice consistency settled; markers stripped
-- [~] Enquire (ENQ-01..05 stripped); ENQ-06 booking lead time + ENQ-07 consent wording still open
-- [ ] Visit (VISIT-01..05) + real hours/directions
+- [~] Enquire (ENQ-01..05 stripped); ENQ-06 booking lead time **confirmed**; ENQ-07 consent wording still open
+- [~] Visit (VISIT-01..03, 05 voice still open); VISIT-04 hours + getting-here **confirmed**
 - [ ] Flash (FLASH-03/04/05 copy applied) — **real drop data/photos still open**
 - [~] Portfolio (PORT-01..04 + the 3 style categories); **piece names (PORT-D1) still to confirm**
 - [ ] Newsletter (NL-01..04, NLBAND-01)
 - [ ] Enquiry received (CONFIRM-01 voice) + 404 (E404-01) + piece pages (PIECE-01)
-- [ ] Privacy + Terms — **legal review** + ICO/tattoo-reg numbers (dates approved)
+- [~] Privacy + Terms — trading name **"Beansprout Tattoo"** + **public liability insurance** confirmed; still need **legal review** + ICO/tattoo-reg numbers (dates approved)
 - [ ] Reply time (BUS-01) + testimonials (DATA-TEST)
 - [ ] `grep -rn "pending approval" apps/web/` returns nothing (now **33** — reviewed-section markers flipped + stripped; the rest are the still-open sections)
