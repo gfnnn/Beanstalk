@@ -7,45 +7,58 @@
 // under the nav. The bar stays sticky throughout; we only add/remove a `.bar-hidden`
 // class, and the slide (plus the mobile gate) lives in components/filter-bar.css.
 //
+// THE HARD PART — mobile browser toolbars. The decision can't be a naive
+// frame-to-frame scrollY delta: on Android Chrome (and iOS) a single flick retracts
+// the dynamic URL/toolbar, and while that toolbar animates it (a) changes the
+// viewport height every frame and (b) perturbs window.scrollY non-monotonically. A
+// delta-based bar then reads those layout artifacts as little "scroll ups" and
+// flickers — reappearing mid-scroll and often ending up shown. The toolbar is ~50px,
+// so no fixed delta threshold can separate "user scrolled up" from "toolbar moved".
+// The fix is to distrust scroll while the viewport is resizing: we watch the visual
+// viewport height (visualViewport API, falling back to innerHeight) and, on any frame
+// where it moved — plus a short settle window after — we make NO decision, we just
+// track position. Only deltas measured against a STABLE viewport flip the bar.
+//
 // Gated to a narrow viewport so the desktop single-row bar — which barely costs any
 // height — is never touched (it matches the `min-width: 640px` desktop layout
-// boundary). The handler is rAF-latched like nav.js (one read/toggle per frame) and
+// boundary). The handler is rAF-latched like nav.js (one read/toggle per frame),
 // reads window.scrollY (so it rides the native scroll Lenis drives), and:
 //   • keeps the bar shown until it's actually pinned under the nav — i.e. below its
 //     pin point (offsetTop − nav height). Hiding it while it's still in flow,
 //     mid-screen, would make it vanish abruptly; once pinned, sliding it up reads
-//     naturally. (Using `offsetTop` alone left a nav-height dead band where the bar
-//     was pinned and covering the grid but still refused to hide.)
+//     naturally. (Using `offsetTop` alone left a nav-height dead band.)
 //   • flips the bar only after a SUSTAINED scroll past a threshold in one direction,
-//     not on a single frame's delta. A per-frame ±deadzone flickered on mobile:
-//     momentum bounce, sub-pixel jitter and the address-bar show/hide each nudge
-//     scrollY a few px the "wrong" way mid-scroll, and any nudge over the deadzone
-//     toggled the bar — so it flashed as you scrolled down. Banking signed travel
-//     (and zeroing it the instant the direction flips) means a brief wobble never
-//     accumulates enough to reveal a hidden bar (or hide a shown one); only a
-//     deliberate scroll of >THRESHOLD px crosses the line.
-//   • clamps scrollY to [0, maxScroll] so iOS rubber-band overscroll — which carries
-//     scrollY past either end and back — can't read as a phantom direction change
-//     (the source of the bar reappearing when momentum settles at the bottom).
+//     zeroing the accumulator the instant the direction flips, so momentum / sub-pixel
+//     jitter can't toggle it;
+//   • skips the decision entirely while the viewport height is changing (toolbar in
+//     motion) and for a brief settle window after — see above;
 //   • reveals the bar if a control inside it takes focus (keyboard reach);
 //   • clears the hidden state when the viewport grows past the mobile breakpoint.
 // No-ops without the element. The slide is governed by the global reduced-motion
 // guard (reset.css), so it's instant — not animated — when the user asks for that.
 const MOBILE_MQ = '(max-width: 639px)'
-const THRESHOLD = 12 // px of sustained directional travel before flipping the bar
+const THRESHOLD = 12  // px of sustained directional travel before flipping the bar
+const SETTLE_MS = 350 // ignore scroll toggles for this long after the viewport resizes
 
 export function initScrollHide(el, { query = MOBILE_MQ } = {}) {
   if (!el) return
 
   const mobileMq = window.matchMedia?.(query) ?? null
+  const vv = window.visualViewport ?? null
   // Nav height — the bar pins flush under it (CSS: top: var(--nav-h)), so it's the
   // offset between the bar's flow position and the scroll point where it pins.
   const navH = parseInt(
     getComputedStyle(document.documentElement).getPropertyValue('--nav-h'), 10
   ) || 65
-  let lastY   = Math.max(0, window.scrollY)
-  let travel  = 0 // signed px scrolled since the last direction change
-  let ticking = false
+
+  const viewportH = () => (vv ? vv.height : window.innerHeight)
+  const now       = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+
+  let lastY       = Math.max(0, window.scrollY)
+  let lastVH      = viewportH()
+  let travel      = 0 // signed px scrolled since the last direction change
+  let settleUntil = 0 // while now() < this, the toolbar is moving → make no decision
+  let ticking     = false
 
   const show = () => el.classList.remove('bar-hidden')
   const hide = () => el.classList.add('bar-hidden')
@@ -56,18 +69,21 @@ export function initScrollHide(el, { query = MOBILE_MQ } = {}) {
     requestAnimationFrame(() => {
       ticking = false
 
-      // Clamp away rubber-band overscroll: iOS reports scrollY below 0 (top) or past
-      // the maximum (bottom) at the boundaries, and the bounce back reads as a
-      // direction change. Pinning y inside the real scroll range neutralises it.
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-      const raw       = Math.max(0, window.scrollY)
-      const y         = maxScroll > 0 ? Math.min(raw, maxScroll) : raw
+      const vh        = viewportH()
+      const y         = Math.max(0, window.scrollY)
+      const delta     = y - lastY
+      const vhChanged = vh !== lastVH
+      lastY  = y
+      lastVH = vh
 
       // Desktop (or no matchMedia): the bar is always shown — never auto-hide it.
-      if (!mobileMq?.matches) { show(); lastY = y; travel = 0; return }
+      if (!mobileMq?.matches) { show(); travel = 0; return }
 
-      const delta = y - lastY
-      lastY = y
+      // Toolbar in motion (viewport height moved this frame, or we're still inside
+      // the settle window after it did): the scroll delta is a layout artifact, not
+      // a user scroll — make no decision, just keep tracking position.
+      if (vhChanged) settleUntil = now() + SETTLE_MS
+      if (now() < settleUntil) { travel = 0; return }
 
       // Not pinned yet (still in flow, mid-screen) → keep it shown, and reset the
       // accumulator so a fresh downward run is needed once it does pin.
