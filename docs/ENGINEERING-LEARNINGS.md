@@ -39,10 +39,10 @@ Priority (`High`/`Medium`/`Low`) reflects leverage, not urgency.
 
 ## Tooling & code quality
 
-1. **[IMPROVE · High · low-effort] Adopt a linter + formatter** (ESLint + Prettier, or
-   **Biome** for a single fast tool) and gate it in CI. Both forward benchmarks ship
-   this; we ship neither. Our CI currently proves *correctness* (tests) but not
-   *consistency* — this closes that gap and is the cheapest win available.
+1. **[DONE ✅] Adopt a linter, gated in CI** — shipped as **Biome** (`npm run lint`,
+   `biome.json`, a dedicated `lint` job in `test.yml`). The **formatter stays
+   deliberately off** (the codebase's hand column-alignment is a feature, not an
+   omission) — see ROADMAP's engineering-quality section for the delivery detail.
 2. **[IMPROVE · High] Introduce TypeScript incrementally**, starting at the data→render
    contract (`apps/web/src/data/*`, `apps/web/src/build/*`) and the Worker
    (`apps/functions/src/*`). Both benchmarks are TS-first; types would formalise the
@@ -90,16 +90,16 @@ Priority (`High`/`Medium`/`Low`) reflects leverage, not urgency.
     the CORS allowlist exceed what the benchmarks ship. Treat it as our model and don't
     regress it.
 12. **[CONSIDER · Low/Medium] Add a defense-in-depth spam layer** for public forms —
-    Cloudflare Turnstile and/or a honeypot field — alongside the existing rate limiting.
+    Cloudflare Turnstile — alongside the existing honeypot (`_gotcha`, already shipped
+    on all three forms) and rate limiting.
 
 ## Testing & CI
 
-13. **[KEEP] The 600-test (429 web + 171 functions) + 5-spec Playwright tier is a genuine
-    strength** — far above typical solo-creative sites, level with Cloudflare's own org.
-    It's what lets us refactor fearlessly; protect and extend it as features land. (Note:
-    once item 1 lands, CI will cover consistency as well as correctness.) *This is the **one**
-    doc that cites the exact suite size — elsewhere it's "the test net", no number — so the
-    count can't drift out of sync across files; update it **here** when it moves.*
+13. **[KEEP] The two-workspace Vitest suite (660+ tests) + the Playwright E2E tier is a
+    genuine strength** — far above typical solo-creative sites, level with Cloudflare's
+    own org. It's what lets us refactor fearlessly; protect and extend it as features
+    land. (With item 1 shipped, CI covers consistency as well as correctness.) *No doc
+    bakes the exact count — `npm test` is the live figure — so it can't drift.*
 
 ---
 

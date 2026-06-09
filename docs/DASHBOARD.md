@@ -12,10 +12,10 @@ the scheduling confirm step, and the GDPR erasure UI all live here, so it's buil
 > **Status: planned, not built.** Post-launch backlog (ROADMAP P2). This doc is the complete
 > functional design; the build is sequenced at the foot so each slice ships independently.
 
-> **Naming.** Earlier docs called this `/studio`. It's the *artist's* dashboard, not a studio
-> product — the route is just a path. This plan keeps the short route **`/studio`** for
-> continuity with those references; rename to `/dashboard` if preferred (one-line change). All
-> other docs should read "the artist dashboard" wherever they say `/studio`.
+> **Naming.** It's the *artist's* dashboard, not a studio product — the route is just a
+> path. This plan keeps the short route **`/studio`** (rename to `/dashboard` if preferred —
+> a one-line change), and "`/studio`" remains an acceptable shorthand for it in other docs
+> (ROADMAP/PAYMENTS use both interchangeably; they all link here).
 
 ## What it manages (all already in D1)
 

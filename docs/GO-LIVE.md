@@ -5,13 +5,13 @@ This is intentionally *just what's left* — every shipped/closed item and the w
 post-launch backlog live in [`ROADMAP.md`](./ROADMAP.md); this page is the short list we
 work through to launch. When an item lands, tick it here and reflect it in `ROADMAP.md`.
 
-**Verified against the codebase on 2026-06-08** — counts and states below are real
-(not assumed): `npm test` = **620 pass**, CNAME absent (staging posture intact), 28
-portfolio photos in, 12 flash pieces still placeholder. The **Round-1 copy pass** (#155)
-applied the artist's reviewed words + the global tone/style/fact decisions, and the approved
-markers for the reviewed sections have now been **flipped + stripped** — leaving **33
-`ARTIST-COPY` markers** for the still-open sections (stats, flash, visit, newsletter, legal,
-reply time, small pages).
+**Verified against the codebase on 2026-06-09** — states below are real (not assumed):
+`npm test` fully green, CNAME absent (staging posture intact), 28 portfolio photos in,
+12 flash pieces still placeholder. The **Round-1 copy pass** (#155) applied the artist's
+reviewed words + the global tone/style/fact decisions, and the approved markers for the
+reviewed sections have been **flipped + stripped**; the still-open sections (stats, flash,
+visit voice, newsletter, legal, reply time, small pages) carry the remaining `ARTIST-COPY`
+markers — the live count is the §A gate command below (the only place it's tracked).
 
 Owners: 👤 **YOU** (external accounts / DNS / dashboards / sign-off) · 🛠 **CODE**
 (I do it in-repo via PR — most need a value from you first).
@@ -34,9 +34,10 @@ Owners: 👤 **YOU** (external accounts / DNS / dashboards / sign-off) · 🛠 *
 
 ## A. Content & copy sign-off  (👤 supply values → 🛠 I apply)
 
-The gate for copy is one command reaching zero: `grep -rn "pending approval" apps/web/`
-(now **33**, across 19 files — the reviewed-section markers were flipped + stripped; the rest
-stay pending). The artist fills in [`COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md);
+The gate for copy is one command reaching zero: `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules`
+(currently **32** — the reviewed-section markers were flipped + stripped; the rest stay
+pending; run the grep for the live figure rather than trusting a baked count). The artist
+fills in [`COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md);
 I apply each to source and flip/clear its `ARTIST-COPY · <REF>` marker.
 
 - [~] **C1 · Copy approval (umbrella)** — **Round 1 applied + cleaned (#155):** the artist's
@@ -44,9 +45,10 @@ I apply each to source and flip/clear its `ARTIST-COPY · <REF>` marker.
       **up to enquiries** (HOME, ABOUT, SERV, FAQ, AFTER, ENQ), incl. "custom"→"bespoke",
       botanical/illustrative removed, the three style categories, and em dashes stripped from
       visible copy; **those sections' `ARTIST-COPY` markers are now flipped + stripped.**
-      **Remaining (`pending approval` = 33):** the still-open refs — ABOUT-04 stats, HOME-08/10,
-      ENQ-06/07, FLASH, PORT page copy + piece names, NL, VISIT hours, PRIV/TERMS legal,
-      CONFIRM voice, PIECE, BUS reply-time, DATA-MEDIA/TEST.
+      **Remaining (the §A gate):** the still-open refs — ABOUT-04 stats, HOME-08/10,
+      ENQ-06/07 (lead-time fact ✅ confirmed in #179; voice still pending), FLASH, PORT page
+      copy + piece names, NL, VISIT-04 (hours/getting-here facts ✅ confirmed in #179; voice
+      still pending), PRIV/TERMS legal, CONFIRM voice, PIECE, BUS reply-time, DATA-MEDIA/TEST.
 - [x] **C2 · Services prices** (`SERV-02/03`) — ✅ confirmed + applied (#155): **£80 /
       £120–£200 / £300 / £500** (min / small / half-day / full-day), a **flat 50% deposit**,
       **48h** reschedule, **one-year** touch-up. `/enquire/` budget bands mirror them.
@@ -158,8 +160,8 @@ and **X2 (re-add CNAME) only at cutover** — never earlier, or Pages claims the
 
 - **Waiting on your values** (then 🛠 same-day): C4 flash photos/copy, C5 og-image, C6 hero
   clip, C7 logo/icon, the **ICO public reference** (C3), and the still-pending copy refs
-  (VISIT hours, reply time, booking lead time, portfolio piece names, NL, CONFIRM, the
-  remaining flash/legal/testimonial slots) — the **33** markers left.
+  (reply time, portfolio piece names, NL, CONFIRM, the visit/enquire *voice* lines, the
+  remaining flash/legal/testimonial slots) — the markers the §A gate counts.
 - **Yours alone** (external): O1 inbox, O2 Worker URLs, O3 Pages, O4/O5/O6 verification, all of D.
 - **Lowest-friction first move:** O1–O3 (you) unblock the staging email test, while you/the
   artist work the copy sheet — those two tracks run fully in parallel.

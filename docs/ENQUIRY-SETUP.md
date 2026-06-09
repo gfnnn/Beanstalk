@@ -25,11 +25,11 @@ does not pause the project when a monthly credit runs out.
 
 | File | Role |
 |------|------|
-| `apps/functions/src/index.js` | Worker entry — routes `/enquiry`, `/newsletter`, `/flash-status` |
+| `apps/functions/src/index.js` | Worker entry — routes `/enquiry`, `/newsletter`, `/flash-status` (+ the shipped-dark `/checkout` and `/webhooks/stripe`, see `PAYMENTS.md`) |
 | `apps/functions/src/handlers/enquiry.js` | Handler for **both** forms (`kind: enquiry` / `flash`) — validates, emails via Resend, attaches images |
 | `apps/functions/src/lib/db.js` | D1 storage: persistence, rate limiting, flash inventory (fail-safe/open) |
 | `apps/functions/src/lib/http.js` | CORS allowlist, JSON replies, anti-spoof client IP, Request→event adapter |
-| `apps/functions/migrations/0001_init.sql` | D1 schema |
+| `apps/functions/migrations/` | D1 schema (`0001_init.sql` forms + `0002_payments.sql` payments ledger) |
 | `apps/functions/wrangler.toml` | Worker name, D1 binding, vars |
 | `apps/web/src/js/modules/config.js` | The Worker URLs the forms POST to (set via `VITE_*_FN_URL`) |
 

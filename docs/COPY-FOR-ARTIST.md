@@ -46,9 +46,9 @@ page section below.)
 | Deposit | (was Standard / half-day / full-day) | £60 / £120 / £200 | ✅ **Flat 50% of the price** |
 | Touch-up window | Free touch-up valid for… | 6 months | ✅ **1 year** |
 | Reschedule notice | Notice needed to move a booking | 72 hours | ✅ **48 hours** |
-| Hours | Days + times you work | "Tue–Sat · 11am–6pm" | _still to confirm_ |
-| Getting there | Walk from station / parking | "short walk… paid parking nearby" | _still to confirm_ |
-| Booking lead time | How far ahead you're usually booking | "3–4 weeks" | _still to confirm_ |
+| Hours | Days + times you work | "Tue–Sat · 11am–6pm" | ✅ **Tue–Sat · 11am–6pm** confirmed (#179) |
+| Getting there | Walk from station / parking | "short walk… paid parking nearby" | ✅ **confirmed** (#179) |
+| Booking lead time | How far ahead you're usually booking | "3–4 weeks" | ✅ **~3–4 weeks** confirmed (#179) |
 | Your stats | Years tattooing / pieces healed | "6 yrs / 900+" | ✅ **8 yrs** confirmed (rest TBC; the stats block is **switched off** for go-live) |
 | Style categories | The three styles you lead with | (was fine line / black & grey / colour) | ✅ **Fine line · High detail · Realism** |
 | Flash | Next flash day + the season + 12 names/sizes/prices | "Summer 2026" + placeholders | ⏳ **Next flash day 26 July** set; season label + the 12 pieces still to confirm |

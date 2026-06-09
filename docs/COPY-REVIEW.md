@@ -235,7 +235,7 @@ Health-critical instructions **and** artist-voice — worth a careful read.
 | PORT-02 | ⚪ Factual | `:138–201` filter bar | style chips + placement select + sort + "Clear" |
 | PORT-03 | 🟡 Voice | `:245–246` empty state | "No work found" + "No pieces match those filters…" |
 | PORT-04 | ⚪ Factual | `:259–273` | "Showing X of Y pieces" + "Load more work →" |
-| PORT-D1 | 🟡 Voice | `pieces.js:56–115` | 56 piece **titles** (the artist's naming — "Good dog", "God's timing", "Storyteller", "The Lovers"…). Confirm the artist is happy with each. |
+| PORT-D1 | 🟡 Voice | `pieces.js` | 28 piece **titles** (the artist's naming — "Good dog", "God's timing", "Storyteller", "The Lovers"…). Confirm the artist is happy with each. |
 | PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | feeds alt text ("a koi carp", "a barn owl and chrysanthemums"); SEO/a11y, but the artist's descriptions — skim for accuracy |
 
 > Per-piece pages (`/portfolio/<slug>/`) render the style/placement tags + CTAs

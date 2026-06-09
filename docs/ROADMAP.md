@@ -64,8 +64,8 @@ Shipped (audience-capture + early management layer):
   deposit**, a **48h** reschedule window and a **one-year** touch-up; "custom"→"bespoke" and
   the botanical/illustrative wording removed; em dashes stripped from visible copy; the About
   **stats** + **"The space"** modules switched off for go-live. The reviewed-section
-  `ARTIST-COPY` markers have since been flipped + stripped (**33** remain for the still-open
-  sections) — see [`GO-LIVE.md`](./GO-LIVE.md).
+  `ARTIST-COPY` markers have since been flipped + stripped; the live count of remaining
+  markers is the §A gate in [`GO-LIVE.md`](./GO-LIVE.md) (tracked there only).
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
@@ -226,17 +226,16 @@ So `hello@` / `roxy@beansprout.ink` actually **receive**, and the artist can rep
 the domain. Full detail in `docs/EMAIL-DOMAIN-SETUP.md`. This uses **MX/TXT** only
 and does **not** touch the website's A/CNAME — so it's safe to do before cutover.
 
-- [ ] **ImprovMX** (free) — add `beansprout.ink`, create `hello@` and `roxy@`
-      aliases → the artist's Gmail.
-- [ ] **GoDaddy DNS** — add ImprovMX's MX records + SPF TXT; **remove GoDaddy's
-      default `*.secureserver.net` MX** (after confirming no current mail relies on
-      them). Keep nameservers on GoDaddy.
-- [ ] **One SPF record only** at `@` (edit the existing default, don't add a second).
-- [ ] **Add a DMARC record** at `_dmarc` (`p=none` to start).
+- [x] **ImprovMX** (free) — ✅ live; `hello@` / `roxy@` aliases → the artist's Gmail
+      (see GO-LIVE O1 for the verified detail).
+- [x] **GoDaddy DNS** — ✅ ImprovMX MX + SPF TXT in (no `*.secureserver.net` default
+      MX existed). Nameservers stay on GoDaddy.
+- [x] **One SPF record only** at `@`.
+- [x] **Add a DMARC record** at `_dmarc` (`p=none`) — ✅ in at GoDaddy.
 - [ ] **Gmail "Send mail as"** `roxy@beansprout.ink` **via Resend SMTP**
       (`smtp.resend.com`, port 465/587, user `resend`, pass = `RESEND_API_KEY`) so
-      manual replies stay DKIM-aligned and don't land in spam.
-- [ ] **Test:** email `hello@beansprout.ink` from your phone → lands in Gmail.
+      manual replies stay DKIM-aligned and don't land in spam. **The one O1 item left.**
+- [x] **Test:** email `hello@beansprout.ink` → ✅ landed in the artist's Gmail.
 
 ## Phase 4 — Content sign-off (👤 YOU, with 🛠 CODE to apply edits)
 
@@ -270,10 +269,12 @@ drafted for them. The mechanism, end to end:
 - [~] **Artist copy review** — **Round 1 done, applied + cleaned (#155):** the artist reviewed
       the checklist **up to enquiries** plus the global tone/style/fact decisions; those words
       are in source and **those sections' markers are flipped + stripped.** **Remaining:** the
-      still-pending sections (ABOUT-04 stats, visit hours/directions, reply time, flash
+      still-pending sections (ABOUT-04 stats, the visit/enquire *voice* lines — the hours,
+      getting-here and lead-time *facts* were confirmed in #179 — reply time, flash
       names/photos, portfolio piece names, newsletter, enquiry-received voice, privacy/terms
-      legal). `grep -rn "pending approval" apps/web/` = **33**. The specific value-only items
-      below are called out separately because they also gate other things (legal, pricing parity).
+      legal). The live marker count is the §A gate in `GO-LIVE.md`. The specific value-only
+      items below are called out separately because they also gate other things (legal,
+      pricing parity).
 
 ### Specific items (also tracked above)
 
@@ -313,18 +314,17 @@ Do this on the Pages project URL **before** any apex change. The fastest loop is
 **local** (`wrangler dev` + `npm run dev`), which needs no cloud at all
 (`ENQUIRY-SETUP.md` Part D).
 
-- [ ] **Set the build-time Worker URLs.** Repo → Settings → Secrets and variables →
-      Actions → **Variables** → `VITE_ENQUIRY_FN_URL`, `VITE_NEWSLETTER_FN_URL`,
-      `VITE_FLASH_STATUS_FN_URL` = your `…workers.dev/<route>` URLs (the workers.dev
-      subdomain is account-specific, so all three must be set). 👤
-- [ ] **Enable GitHub Pages** — Settings → Pages → Source = **GitHub Actions**.
-      Safe now: the apex `CNAME` has been removed (Phase 6), so Pages serves only on
-      the `*.github.io` URL until the deliberate cutover. 👤
-- [ ] **End-to-end email test** — the acceptance test below. 👤
-- [ ] **Erasure runbook dry-run** — run an access `SELECT` and the prune preview
-      against D1 (the Phase 1 / `DATA-COMPLIANCE.md` path). 👤
-- [ ] **Console clean** — no errors on each page; nav status light, sitemap, robots,
-      404 all render. 👤
+- [x] **Set the build-time Worker URLs.** ✅ done — the three repo Actions **Variables**
+      (`VITE_ENQUIRY_FN_URL`, `VITE_NEWSLETTER_FN_URL`, `VITE_FLASH_STATUS_FN_URL`) are
+      set (GO-LIVE O2). 👤
+- [x] **Enable GitHub Pages** — ✅ done; Source = **GitHub Actions**, no `CNAME`, so it
+      serves only on the `*.github.io` URL until the deliberate cutover (GO-LIVE O3). 👤
+- [x] **End-to-end email test** — ✅ staging run "a" verified 2026-06-08 on
+      `beanstalk-e61.pages.dev` (GO-LIVE O4); the production run "b" repeats at Phase 6. 👤
+- [x] **Erasure runbook dry-run** — ✅ done 2026-06-08 (access `SELECT` + prune preview
+      against D1; GO-LIVE O5). 👤
+- [~] **Console clean** — largely covered by days of stable staging; a formal dev-tools
+      glance on home/portfolio/enquire remains (GO-LIVE O6). 👤
 
 ### End-to-end email test (go-live acceptance)
 
@@ -449,14 +449,14 @@ Pages in Phase 5).
 3. ~~Start the Resend + Cloudflare accounts (Phase 2)~~ ✅ done — Resend (key/domain/
    Audience) + Cloudflare Worker + D1 are live. The production email flip is held for
    Phase 6.
-4. **Wire the inbox (Phase 3)** — ImprovMX aliases + the GoDaddy MX/SPF/DMARC records,
-   and Gmail "Send mail as". Safe before cutover (MX/TXT only, no A/CNAME change).
-5. **Set the build-time Worker URLs** (Phase 5) — `VITE_*_FN_URL` as repo Actions
-   Variables — then enable GitHub Pages and run the staging email test.
-6. Prices + the terms effective date are in (#155). Still needed for Phase 4: the **ICO
-   public reference** (ZA######), the **og-image**, **flash photos/copy**, **hours/directions**,
-   **reply time**, the **logo/icon**, and the marker flip/strip for the Round-1 copy — send
-   each and I'll apply it.
+4. ~~Wire the inbox (Phase 3)~~ ✅ receive side done (ImprovMX + MX/SPF/DMARC, test
+   landed). **One item left: Gmail "Send mail as"** via Resend SMTP.
+5. ~~Set the build-time Worker URLs / enable Pages / staging email test / erasure
+   dry-run (Phase 5)~~ ✅ all verified 2026-06-08 (GO-LIVE O2–O5).
+6. Prices, the terms effective date (#155) and the hours / getting-here / booking
+   lead-time facts (#179) are in. Still needed for Phase 4: the **ICO public reference**
+   (ZA######), the **og-image**, **flash photos/copy**, **reply time**, the **logo/icon**,
+   and the still-pending voice copy — send each and I'll apply it.
 
 **Post-launch (Phase 7) is the [Backlog](#backlog-post-launch--extends-past-go-live)
 below** — the same items, in rough priority order. Launch first; pick those up once
@@ -481,8 +481,9 @@ turn.
 ```
 Launch (Phase 6)
   │
-  ├─0. Quick wins (independent, front-load) ─ linter+formatter in CI · reduced-motion as a
-  │     tested invariant + axe-core a11y in the Playwright tier · pick the analytics vendor
+  ├─0. Quick wins (independent, front-load) ─ reduced-motion as a tested invariant +
+  │     axe-core a11y in the Playwright tier · pick the analytics vendor
+  │     (the lint floor already shipped — Biome, formatter deliberately off)
   │
   ├─1. /studio admin substrate ───────────┐  (token-protected read/manage over D1:
   │      enquiry/claim status lifecycle +  │   the shared surface the next three reuse)

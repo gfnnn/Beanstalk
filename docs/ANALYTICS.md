@@ -8,9 +8,9 @@ already in the codebase. **GA4 is out** unless its two costs (a banner + ongoing
 dashboard work) are explicitly accepted. **Retargeting pixels are a separate, opt-in
 decision that *does* force a banner** — so they trade against this whole strategy.
 
-This doc is the decision record for the open Phase-0 item in
-[`ROADMAP.md`](./ROADMAP.md) ("Analytics vendor") and the two P1 leftovers it gates
-("Retargeting pixel", "Instagram feed embed").
+This doc is the decision record for the (now **decided**) Phase-0 analytics item in
+[`ROADMAP.md`](./ROADMAP.md) — **Plausible, deferred to post-launch** — and the two
+P1 leftovers it gates ("Retargeting pixel", "Instagram feed embed").
 
 > Status: **proposed / not yet wired.** The `track()` scaffold
 > (`apps/web/src/js/modules/analytics.js`) deliberately no-ops in production, so the

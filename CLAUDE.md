@@ -139,10 +139,10 @@ analysis is Biome** (`npm run lint`, config in `biome.json`): a lint-only floor 
 code style and you should **not** run a formatter or invent `npm run format`. It scans
 `apps/**/{src,tests,e2e,scripts}` plus the root `scripts/`, runs as its own `lint` job in
 CI (`.github/workflows/test.yml`, alongside the per-workspace Vitest matrix), and
-`npm run lint:fix` applies its safe autofixes. Three high-count purely-mechanical rules
-(`useTemplate`, `useOptionalChain`, `useIterableCallbackReturn`) are turned off in
-`biome.json` and deferred to a separate mechanical PR (see `docs/ROADMAP.md`) — don't
-re-enable them piecemeal. To exercise the Worker for real locally
+`npm run lint:fix` applies its safe autofixes. One rule (`useIterableCallbackReturn`) is
+deliberately off in `biome.json` — the side-effecting one-liner `arr.forEach(x => fn(x))`
+is idiomatic here (the `useTemplate`/`useOptionalChain` mechanical sweep already landed,
+so those rules are ON — see `docs/ROADMAP.md`). To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
 
@@ -321,7 +321,9 @@ on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that n
 a provider is wired in — no cookie banner owed yet), `loader` (dismisses the full-page
 preloader — see below), `spinner` (shared button busy-state: swaps a button's label for an
 animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by
-load-more and the enquiry/flash/newsletter submits), and `config` (function URLs). Portfolio
+load-more and the enquiry/flash/newsletter submits), `cta` (the mobile sticky "Enquire"
+bar — a functional control, deliberately NOT reduced-motion gated), and `config`
+(function URLs). Portfolio
 load-more, filter/sort and lightbox cooperate via callbacks wired in `main.js` (load-more
 owns the visible window; filter re-applies after a reveal/sort). New page behaviour = a new
 `modules/<name>.js` exporting `initX()`, added to `main.js`.

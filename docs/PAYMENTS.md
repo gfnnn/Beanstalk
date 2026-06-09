@@ -172,7 +172,7 @@ truth, but the Worker can't import across workspaces without coupling the two de
 `apps/functions/scripts/sync-flash-prices.mjs` reads `apps/web/src/data/flash.js` (pure data) and
 writes a committed `apps/functions/src/data/flash-prices.json` (`{ "flash-01": 18000, … }`,
 **pence**). The Worker imports that JSON and looks the price up by `piece_id`; an unknown id →
-`400`. Run `npm run sync:prices` whenever a drop's prices change and **commit** the regenerated
+`404`. Run `npm run sync:prices` whenever a drop's prices change and **commit** the regenerated
 JSON; a CI drift guard fails if the manifest and `flash.js` disagree.
 
 ### 6.3 Worker routes & handlers
@@ -187,20 +187,23 @@ JSON; a CI drift guard fails if the manifest and `flash.js` disagree.
 env-guard `STRIPE_SECRET_KEY`; `PAYMENTS_ENABLED` guard → 503; parse
 `{ kind:'flash', piece_id, fields:{ name, email, placement } }`; `clampFields`; honeypot;
 validate required + `EMAIL_RE`; **rate-limit** (`storeName:'checkout-rate'`) before any Stripe
-call; price lookup from the manifest (§6.2, reject unknown/zero); `reserveFlashPiece` → `409` if
-taken, set `expires_at = now + 48h`; `persistSubmission` + insert a `payments` row
-(`status:'awaiting'`, the `BSF-…` ref as id); create the PaymentIntent (REST, **idempotency-keyed
-on our reference**):
+call; price lookup from the manifest (§6.2, reject unknown/zero → `404`); `reserveFlashPiece` →
+`409` if taken, set `expires_at = now + 48h`; insert a `payments` row (`status:'awaiting'`, the
+`BSF-…` ref as id; no `submissions` row is written in Phase 1, so `payments.submission_id`
+stays NULL until the custom-deposit phase needs the join); create the PaymentIntent (REST,
+**idempotency-keyed on our reference**):
 
 ```js
 const body = new URLSearchParams()
-body.set('amount', String(pricePence))                  // server-side authority (§6.2)
+body.set('amount', String(amountPence))                 // server-side authority (§6.2)
 body.set('currency', 'gbp')
 body.set('automatic_payment_methods[enabled]', 'true')  // card + Klarna + PayPal (per dashboard)
 body.set('receipt_email', email)
-body.set('metadata[kind]', 'flash')
-body.set('metadata[piece_id]', piece_id)
-body.set('metadata[payment_ref]', paymentRef)
+body.set('description', `Flash · ${pieceId}`)
+body.set('metadata[reference]', reference)              // the key the webhook reconciles on
+body.set('metadata[piece_id]', pieceId)
+body.set('metadata[name]', name)                        // (+ placement if given; both ≤480 chars
+                                                        //  — Stripe caps metadata values at 500)
 const res = await fetch('https://api.stripe.com/v1/payment_intents', {
   method: 'POST',
   headers: {
@@ -222,10 +225,12 @@ header. **Verify with Web Crypto** (`src/lib/stripe.js`): split `t=`/`v1=`, reco
 `HMAC-SHA256(secret, "${t}.${rawBody}")`, compare, reject a stale timestamp → bad signature
 `400`. **Idempotency:** `INSERT … ON CONFLICT DO NOTHING` into `webhook_events`; no row changed =
 replay → `200` stop. On **`payment_intent.succeeded`**: read metadata, **re-check the amount**,
-`promoteFlashClaim` (pending→claimed, idempotent), mark `payments` `paid` + `paid_at` + the
-`pi_…`, send the two emails (§6.5). On **`payment_intent.canceled`**: mark `expired` +
-`releaseFlashPiece`. Other types → `200` ignore. Return `200` quickly, never throw to Stripe; no
-CORS (server-to-server) — just `SECURITY_HEADERS`.
+mark `payments` `paid` + `paid_at` + the `pi_…`, `promoteFlashClaim` (an **upsert** — it marks
+the piece claimed even if the 48h hold was already swept, so a verified payment can never leave
+the piece silently relisted; idempotent on an already-claimed row), send the two emails (§6.5).
+On **`payment_intent.canceled`**: mark `expired` + `releaseFlashPiece`. Other types → `200`
+ignore. Return `200` quickly, never throw to Stripe. (The handler reuses the shared
+`corsFor`/`replyWith` plumbing like every route — harmless on a server-to-server endpoint.)
 
 **`src/lib/db.js`** helpers (all fail-safe): `recordPayment`, `getPayment`, `markPaymentStatus`,
 `promoteFlashClaim`, `expirePendingClaims(now)`, `recordWebhookEvent`, plus `reserveFlashPiece`
@@ -239,6 +244,29 @@ hold-expiry.
 - **Belt-and-braces (optional):** a Cloudflare **Cron Trigger**
   (`[triggers] crons = ["*/30 * * * *"]` + a `scheduled()` export) calling the same function. Add
   when convenient; the lazy path covers the common case.
+
+### 6.4a Known gaps to close (or accept) before `PAYMENTS_ENABLED` flips
+
+From the June 2026 code review — all narrow, none reachable while the flag is off. The first
+two share one root cause (the claim row isn't tied to the payment that created it) and would be
+closed together by storing the payment reference on `flash_claims` (a small `0003` migration):
+
+1. **Webhook dedupe-before-work.** `recordWebhookEvent` marks the event seen *before* the
+   processing runs, and the sub-steps swallow DB errors — so a transient D1 failure mid-event
+   is acked `200` and Stripe's redelivery is then treated as a duplicate. Mitigated: the
+   promote is now an upsert and a paid-but-unpromoted piece logs loudly; the full fix is
+   recording the event id only after the sub-steps report success (they're idempotent, so
+   re-processing is safe).
+2. **`payment_intent.canceled` releases by piece id alone.** A delayed cancel from checkout A
+   (whose hold already lapsed) can release customer B's *live* hold on the same piece. Needs
+   the reference-on-claim tie above to release only its own hold.
+3. **`makeRef` collisions are silent.** 36⁴ ≈ 1.7M combinations per piece; on a collision
+   `recordPayment`'s `ON CONFLICT DO NOTHING` no-ops but still returns `true`, and the old
+   row's `provider_ref` gets overwritten. Return `meta.changes > 0` and retry the ref.
+4. **Toggling the flag *off* strands live holds.** The lazy sweep in `getFlashClaims` is gated
+   on `PAYMENTS_ENABLED`, so any 48h holds open when it's switched off never expire. Either
+   leave the flag on ~48h after the last checkout, or clear lapsed `pending` rows manually
+   (`DATA-COMPLIANCE.md` has the D1 console pattern).
 
 ### 6.5 Emails (Resend) — reuse the enquiry pattern
 
@@ -300,7 +328,7 @@ optimistic-but-honest and the grid catches up via the `flash-status` overlay.
 ## 8. Tests & build sequence
 
 **Tests.** *Functions* (Vitest + `fake-d1`, mock `fetch` to Stripe/Resend): `checkout`
-(validation, unknown-piece `400`, reserve `409`, happy path writes an `awaiting` payment + returns
+(validation, unknown-piece `404`, reserve `409`, happy path writes an `awaiting` payment + returns
 a `client_secret`, rollback on Stripe failure); `stripe-webhook` (valid vs **bad signature** `400`,
 **replay** dedupe, promotion pending→claimed + payment `paid` + emails fired, unknown event
 ignored, fail-safe on DB error). *Web (jsdom)*: flash submit — **payments off** unchanged; **on**
