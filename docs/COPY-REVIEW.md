@@ -18,6 +18,21 @@ approved the wording.
 > (`ROADMAP.md` → Phase 4 → *Copy sign-off — the review loop*). Refs match across
 > all three (e.g. `HOME-03`).
 
+> **Update — Round-1 copy pass landed (2026-06-08, #155).** The artist reviewed the
+> checklist **up to enquiries** and gave the global tone/style/fact decisions; those words
+> are now in source. **Confirmed facts:** pricing **£80 / £120–£200 / £300 / £500**, a
+> **flat 50% deposit**, **48h** reschedule, a **one-year** touch-up, flash day **26 July**,
+> and the three style categories **fine line · high detail · realism** (replacing botanical/
+> illustrative/custom). **Applied globally:** "custom"→"bespoke", "tattooer"→"tattoo artist",
+> and em dashes stripped from visible copy (incl. JS UI strings). **Switched off for go-live:**
+> the About **stats** (ABOUT-04) and **"The space"** (ABOUT-05). **Held:** the ICO number
+> (need the public **ZA######** reference) + tattoo-reg (TBC); a legal review of privacy/terms
+> is still due (effective dates "June 2026" are approved). **Markers:** the reviewed-section
+> markers have been **flipped + stripped**; **33** remain for the still-open sections (stats,
+> flash, visit, newsletter, legal, reply time, small pages). The per-row "Current text"
+> snapshots below are **pre-pass** (kept for reference); the reviewed sections now hold the
+> artist's approved words.
+
 ## How this maps to the source
 
 Each artist-voice block in the codebase now carries an inline marker so nothing
@@ -56,24 +71,24 @@ ships unapproved:
 These carry placeholder values that are **wrong until the artist sets them** — they're
 the highest-priority rows:
 
-- 🟠 Reply time — `within 3 days` (`src/data/business.js:19`)
-- 🟠 All pricing + deposit figures (`services/index.html`, mirrored on `/enquire/`)
-- 🟠 Opening hours + "short walk from the station" / parking (`visit/index.html`)
-- 🟠 About-page stats — `6 yrs · 900+ · 1 · 100%` (`about/index.html:153`)
-- 🟠 Flash season label `Summer 2026` + all flash names/specs/prices (`src/data/flash.js`)
-- 🟠 Booking lead time `3–4 weeks` (`enquire/index.html:415`)
-- 🔵 Legal effective dates + ICO / tattoo-registration numbers (`privacy`, `terms`)
+- 🟠 Reply time — `within 3 days` (`src/data/business.js:19`) — **still open**
+- ✅ Pricing + deposit figures — **set** (#155): £80 / £120–£200 / £300 / £500, flat 50% deposit, 48h, one-year touch-up
+- 🟠 Opening hours + "short walk from the station" / parking (`visit/index.html`) — **still open**
+- ✅ About-page stats — **resolved** (#155): module switched off for go-live (8 yrs confirmed; rest TBC)
+- 🟠 Flash season label `Summer 2026` + all flash names/specs/prices (`src/data/flash.js`) — **still open** (flash day **26 July** is set on the homepage notice)
+- 🟠 Booking lead time `3–4 weeks` (`enquire/index.html`) — **still open**
+- 🔵 Legal: effective dates **approved** ("June 2026"); **ICO public ref** (ZA######) + **tattoo-reg** still needed (`privacy`, `terms`)
 
 ## Voice-consistency flags (for the artist to settle)
 
 A few blocks slip between **"I"** (the artist, used everywhere else) and **"we"/"us"**:
 
-- `enquiry-received/index.html:84` — *"We read through your idea…"* (the rest of
-  the site is "I read it" — see `enquire/index.html:125`).
-- `aftercare/index.html` — *"We recommend Palmer's…"*, *"ask us"*,
-  *"…studio with"* read more clinical/plural than the first-person voice elsewhere.
+- `enquiry-received/index.html` — *"We read through your idea…"* — **still open** (that page
+  wasn't in the Round-1 review).
+- ✅ `aftercare/index.html` — **resolved** (#155): "I recommend…", "ask me", first-person
+  throughout; the second-skin brand names (Saniderm/Dermalize) were also dropped.
 
-Decide on one voice (almost certainly first-person "I") and we'll align them.
+First-person "I" is the chosen voice; CONFIRM-01 is the one remaining slip.
 
 ---
 
@@ -307,18 +322,21 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 
 ## Sign-off checklist
 
-- [ ] SHARED-01..03 brand line + CTA approved
-- [ ] Homepage (HOME-01..10)
-- [ ] About (ABOUT-01..06) + real stats
-- [ ] Services (SERV-01..06) + real prices/deposits
-- [ ] FAQ (FAQ-01..05)
-- [ ] Aftercare (AFTER-01..06) + voice consistency settled
-- [ ] Enquire (ENQ-01..09) + booking lead time
+> Round-1 (#155): the reviewed sections below have the artist's approved words applied **and
+> their `ARTIST-COPY` markers flipped + stripped**; the open sub-items are noted inline.
+
+- [x] SHARED-01 brand line + SHARED-03 CTA — tagline now "Fine line, high detail and realism…"; markers stripped
+- [~] Homepage (HOME-01..07, 09 stripped); HOME-08 testimonials + HOME-10 video credit still off
+- [~] About (ABOUT-01..03, 05, 06 stripped); ABOUT-04 stats switched off (8 yrs confirmed, rest TBC)
+- [x] Services (SERV-01..06) + real prices/deposits; markers stripped
+- [x] FAQ (FAQ-01..05) — incl. a new "what to avoid after a tattoo" Q (now 16); markers stripped
+- [x] Aftercare (AFTER-01..06) + voice consistency settled; markers stripped
+- [~] Enquire (ENQ-01..05 stripped); ENQ-06 booking lead time + ENQ-07 consent wording still open
 - [ ] Visit (VISIT-01..05) + real hours/directions
-- [ ] Flash (FLASH-01..05) + real drop data
-- [ ] Portfolio (PORT-01..04) + piece names (PORT-D1)
+- [ ] Flash (FLASH-03/04/05 copy applied) — **real drop data/photos still open**
+- [~] Portfolio (PORT-01..04 + the 3 style categories); **piece names (PORT-D1) still to confirm**
 - [ ] Newsletter (NL-01..04, NLBAND-01)
-- [ ] Enquiry received (CONFIRM-01) + 404 (E404-01) + piece pages (PIECE-01)
-- [ ] Privacy + Terms — **legal review** + registration numbers + dates
+- [ ] Enquiry received (CONFIRM-01 voice) + 404 (E404-01) + piece pages (PIECE-01)
+- [ ] Privacy + Terms — **legal review** + ICO/tattoo-reg numbers (dates approved)
 - [ ] Reply time (BUS-01) + testimonials (DATA-TEST)
-- [ ] `grep -rn "pending approval" apps/web/` returns nothing
+- [ ] `grep -rn "pending approval" apps/web/` returns nothing (now **33** — reviewed-section markers flipped + stripped; the rest are the still-open sections)

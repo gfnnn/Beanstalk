@@ -186,22 +186,18 @@
 .approach-col.yes .marker { color: var(--moss); }
 .approach-col.no  .marker { color: var(--clay); }
 
-/* ── Credentials — 4 stat blocks ────────────────────────────────────────── */
+/* ── Credentials — 3 stat blocks ────────────────────────────────────────── */
 .credentials {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;          /* phones: one stat per row, full-width */
   gap: 0;
   border-bottom: 1px solid var(--line);
 }
 .credential {
-  padding: clamp(36px, 5vw, 64px) var(--pad-x) clamp(36px, 5vw, 64px) 0;
-  border-right: 1px solid var(--line);
+  padding: clamp(36px, 5vw, 64px) var(--pad-x);
   border-bottom: 1px solid var(--line);
 }
-.credential:first-child { padding-left: var(--pad-x); }
-.credential:nth-child(even) { border-right: none; }
-.credential:nth-child(3),
-.credential:nth-child(4) { border-bottom: none; }
+.credential:last-child { border-bottom: none; }
 
 .cred-number {
   font-family: var(--serif);
@@ -275,6 +271,17 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
   .studio-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+  /* Stats become a single divider-separated row; the first number aligns
+     to the page gutter, the rest are separated by vertical rules. */
+  .credentials { grid-template-columns: repeat(3, 1fr); }
+  .credential {
+    padding-left: 0;
+    border-bottom: none;
+    border-right: 1px solid var(--line);
+  }
+  .credential:first-child { padding-left: var(--pad-x); }
+  .credential:last-child { border-right: none; }
 }
 
 @media (min-width: 900px) {
@@ -283,10 +290,6 @@
     gap: clamp(40px, 5vw, 80px);
   }
   .approach-grid { grid-template-columns: 1fr 1fr; gap: clamp(32px, 4vw, 80px); }
-  .credentials { grid-template-columns: repeat(4, 1fr); }
-  .credential { border-bottom: none; }
-  .credential:nth-child(even) { border-right: 1px solid var(--line); }
-  .credential:last-child { border-right: none; }
 }
 
 @media (min-width: 640px) {

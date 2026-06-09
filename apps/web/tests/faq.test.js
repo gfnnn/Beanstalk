@@ -6,7 +6,15 @@
 // filter (exclusive active chip, show/hide by data-category), and the live search
 // (text match across the question + answer, which also resets the chips to "All").
 // The shared empty-state ("no results") visibility is asserted alongside.
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+
+// faq.js imports ./lenis.js for the mobile scroll-to-questions path, and lenis.js
+// runs gsap.registerPlugin at module load (which calls matchMedia, absent in
+// jsdom). Mock it to `{ lenis: null }` — the same approach aftercare.test.js uses
+// — so the import is cheap and scrollToQuestions takes the window.scrollTo
+// fallback we can spy on.
+vi.mock('../src/js/modules/lenis.js', () => ({ lenis: null }))
+
 import { initFaq } from '../src/js/modules/faq.js'
 
 const $  = sel => document.querySelector(sel)
@@ -97,6 +105,32 @@ describe('initFaq', () => {
       click($('.faq-cat[data-cat="all"]'))
       expect(visible()).toHaveLength(2)
     })
+
+    it('reveals a filtered-in item the scroll entrance had left hidden', () => {
+      setup(); initFaq()
+      // Simulate GSAP holding a below-the-fold .reveal item at opacity:0 until its
+      // ScrollTrigger fires — filtering to it must not leave it display:block-but-invisible.
+      const aftercare = $('.faq-item[data-category="aftercare"]')
+      aftercare.style.opacity = '0'
+      click($('.faq-cat[data-cat="aftercare"]'))
+      expect(aftercare.style.display).not.toBe('none')
+      expect(aftercare.style.opacity).toBe('') // hide-style cleared, so it's actually seen
+    })
+
+    it('picking a category clears a stale search query (box and list agree)', () => {
+      setup(); initFaq()
+      const search = $('#faq-search-input')
+      search.value = 'wash'
+      input(search) // search → 1 result, chips snap to "All"
+      expect(visible()).toHaveLength(1)
+
+      click($('.faq-cat[data-cat="booking"]'))
+      // The whole category shows (not the stale 1-item search subset)…
+      expect(visible()).toHaveLength(1)
+      expect(visible()[0].dataset.category).toBe('booking')
+      // …and the search field is cleared so it can't disagree with the list.
+      expect(search.value).toBe('')
+    })
   })
 
   describe('search', () => {
@@ -123,6 +157,53 @@ describe('initFaq', () => {
       input(search)
       expect(visible()).toHaveLength(2)
       expect($('#faq-empty').style.display).toBe('none')
+    })
+  })
+
+  // On mobile the topic chips stack ABOVE the accordion, so picking a topic must
+  // scroll the (now-filtered) questions into view; on the ≥900px sidebar layout
+  // the chips sit beside the list, so it must not. Lenis is absent in jsdom, so
+  // this exercises the native window.scrollTo fallback in scrollToQuestions().
+  describe('mobile scroll-to-questions', () => {
+    // The scroll target is the #faq-list wrapper, which the shared setup omits.
+    function setupWithList() {
+      document.body.innerHTML = `
+        <button class="faq-cat active" data-cat="all">All</button>
+        <button class="faq-cat" data-cat="booking">Booking</button>
+        <main id="faq-list">
+          <div class="faq-item" data-category="booking" data-question="how do i book a slot">
+            <button class="faq-item-trigger" aria-expanded="false">Booking Q</button>
+            <div class="faq-answer-inner">Use the enquiry form to request a date.</div>
+          </div>
+        </main>
+      `
+    }
+
+    let scrollSpy
+    const realMatchMedia = window.matchMedia
+    // Drive isStacked() off the (min-width: 900px) query — true ⇒ desktop sidebar.
+    const stubLayout = desktop => {
+      window.matchMedia = q => ({
+        matches: /min-width:\s*900px/.test(q) ? desktop : false,
+        media: q, addEventListener() {}, removeEventListener() {},
+      })
+    }
+
+    beforeEach(() => { scrollSpy = vi.fn(); window.scrollTo = scrollSpy })
+    afterEach(() => { window.matchMedia = realMatchMedia })
+
+    it('scrolls to the start of the questions when a topic is picked on mobile', () => {
+      stubLayout(false) // < 900px → chips stacked above the list
+      setupWithList(); initFaq()
+      click($('.faq-cat[data-cat="booking"]'))
+      expect(scrollSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not scroll on the desktop sidebar layout', () => {
+      stubLayout(true) // ≥ 900px → chips beside the list
+      setupWithList(); initFaq()
+      click($('.faq-cat[data-cat="booking"]'))
+      expect(scrollSpy).not.toHaveBeenCalled()
     })
   })
 })

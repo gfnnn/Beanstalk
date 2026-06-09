@@ -15,15 +15,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 vi.mock('../src/js/modules/lenis.js', () => ({ lenis: null }))
+// aftercare.js now pulls the shared `cascadeReveal` from animations.js to stagger
+// the step / rule lists in on the first pick. Importing it for real would drag the
+// whole GSAP toolchain into this unit run (the reason lenis is mocked above), so
+// mock it to a spy we can assert the call wiring against.
+vi.mock('../src/js/modules/animations.js', () => ({ cascadeReveal: vi.fn() }))
 
 let initAftercare
+// Re-grabbed fresh each test below — vi.resetModules() hands the dynamic
+// re-import (and aftercare's own import) a new spy, so we read the current one.
+let cascadeReveal
 
 beforeEach(async () => {
   window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} })
+  window.innerWidth = 1024   // default to desktop; the mobile case overrides it
   globalThis.requestAnimationFrame = cb => { cb(0); return 0 }
   window.scrollTo = vi.fn()
   location.hash = ''
   vi.resetModules()
+  ;({ cascadeReveal } = await import('../src/js/modules/animations.js'))
+  cascadeReveal.mockClear()   // the mocked spy persists across resetModules — reset its history
   ;({ initAftercare } = await import('../src/js/modules/aftercare.js'))
   document.body.innerHTML = ''
 })
@@ -102,10 +113,41 @@ describe('initAftercare', () => {
       click(card('cling-film'))
       expect(window.scrollTo).toHaveBeenCalledTimes(1)
     })
+
+    it('cascades the chosen route content in on the first pick (and drops the block slide)', () => {
+      setup()
+      initAftercare()
+      expect(cascadeReveal).not.toHaveBeenCalled()   // nothing until a route is picked
+
+      click(card('second-skin'))
+
+      // The shared homepage-style cascade fires for the revealed content…
+      expect(cascadeReveal).toHaveBeenCalled()
+      // …and the stage's own block slide is dropped so the two don't compound.
+      expect(document.getElementById('care-stage').style.transform).toBe('none')
+    })
   })
 
   describe('the slim switcher', () => {
-    it('flips routes without scrolling (keeps your reading position)', () => {
+    it('on desktop, flips routes without scrolling (keeps your reading position)', () => {
+      window.innerWidth = 1024            // two-column/sticky-aside layout
+      setup()
+      initAftercare()
+      click(card('second-skin'))      // reveal + the one initial scroll
+      window.scrollTo.mockClear()
+
+      cascadeReveal.mockClear()
+      click(tab('cling-film'))
+      expect(panel('cling-film').classList.contains('active')).toBe(true)
+      expect(panel('second-skin').classList.contains('active')).toBe(false)
+      expect(card('cling-film').classList.contains('selected')).toBe(true)
+      expect(window.scrollTo).not.toHaveBeenCalled()
+      // Switching routes keeps the quick CSS panel-fade — no repeat cascade.
+      expect(cascadeReveal).not.toHaveBeenCalled()
+    })
+
+    it('on mobile, flips routes AND scrolls down to the steps (like a card pick)', () => {
+      window.innerWidth = 480             // single-column stack
       setup()
       initAftercare()
       click(card('second-skin'))      // reveal + the one initial scroll
@@ -113,9 +155,8 @@ describe('initAftercare', () => {
 
       click(tab('cling-film'))
       expect(panel('cling-film').classList.contains('active')).toBe(true)
-      expect(panel('second-skin').classList.contains('active')).toBe(false)
       expect(card('cling-film').classList.contains('selected')).toBe(true)
-      expect(window.scrollTo).not.toHaveBeenCalled()
+      expect(window.scrollTo).toHaveBeenCalledTimes(1)
     })
 
     it('ArrowRight moves focus to the next route and selects it', () => {

@@ -47,21 +47,21 @@ export function initEnquire() {
   // from a stray character, and the message names exactly what's allowed (it isn't
   // "letters only" — hyphens, apostrophes, spaces and dots are all fine).
   function validateName(v) {
-    if (v.length > 49) return 'A touch long — could you shorten it?'
+    if (v.length > 49) return 'A touch long, could you shorten it?'
     return NAME_RE.test(v) ? '' : 'Letters, spaces, hyphens and apostrophes only.'
   }
   function validateEmail(v) {
-    return EMAIL_RE.test(v) ? '' : 'That doesn’t look quite right — try you@email.com.'
+    return EMAIL_RE.test(v) ? '' : 'That doesn’t look quite right. Try you@email.com.'
   }
   function validateDob(v) {
     const d = parseDate(v)
     if (!d) return 'That date doesn’t look right.'
     const today = midnight(new Date())
-    if (d > today) return 'That date’s in the future — check the year?'
+    if (d > today) return 'That date’s in the future, check the year?'
     let age = today.getFullYear() - d.getFullYear()
     const m = today.getMonth() - d.getMonth()
     if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--
-    if (age < 18)  return 'Sorry — I only tattoo over-18s.'
+    if (age < 18)  return 'Sorry, I only tattoo over-18s.'
     if (age > 120) return 'Could you double-check your date of birth?'
     return ''
   }
@@ -72,7 +72,7 @@ export function initEnquire() {
     const today = midnight(new Date())
     if (d < today) return 'Let’s pick a date that’s still to come.'
     const max = midnight(new Date()); max.setFullYear(max.getFullYear() + 2)
-    if (d > max) return 'That’s a fair way off — pick something within two years.'
+    if (d > max) return 'That’s a fair way off, pick something within two years.'
     return ''
   }
   function validateDateTo(v) {
@@ -182,7 +182,7 @@ export function initEnquire() {
     if (track2) track2.setAttribute('aria-valuenow', String(active))
     if (pct) {
       const name = stepNames[active - 1]
-      pct.textContent = `Step ${active} of ${TOTAL}${name ? ` — ${name}` : ''}`
+      pct.textContent = `Step ${active} of ${TOTAL}${name ? ` · ${name}` : ''}`
     }
     progSteps.forEach((ps, i) => {
       ps.classList.toggle('done',    i + 1 < active)
@@ -472,7 +472,7 @@ export function initEnquire() {
       out.push({ name, type: blob.type || 'image/jpeg', data })
     }
     if (total > MAX_TOTAL_BYTES)
-      throw new Error('Your images are too large even after compression — please remove some.')
+      throw new Error('Your images are too large even after compression. Please remove some.')
     return out
   }
 

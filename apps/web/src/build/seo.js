@@ -27,7 +27,7 @@ export const OG_IMAGE = `${SITE_URL}/images/og-image.jpg`
 // og:image:alt / twitter:image:alt (an SEO + accessibility overlap). Per-page
 // content that sets its own og:image (e.g. the per-piece pages) authors its own
 // matching alt; this is the default for everything that uses the brand image.
-export const OG_IMAGE_ALT = 'Beansprout — fine line, botanical and custom tattoo, Winchester.'
+export const OG_IMAGE_ALT = 'Beansprout: fine line, high detail and realism tattoo, Winchester.'
 
 // ── Staging vs apex: keep the pre-launch staging site out of search ──────────
 // The whole site lives on the GitHub Pages *.github.io URL until the apex

@@ -308,6 +308,52 @@ describe('initScrollAnimations', () => {
     expect(fromFor(document.querySelector('.eyebrow')).vars.x).toBe(-14)
   })
 
+  it('reveals a bespoke inner-page heading through the unified registry', async () => {
+    // The whole point of the registry: a page that names its header differently
+    // (.chooser-heading, not .section-title) still animates — no per-page wiring.
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML = '<h2 class="chooser-heading">x</h2>'
+    initScrollAnimations()
+    const reveal = fromFor(document.querySelector('.chooser-heading'))
+    expect(reveal).toBeTruthy()
+    expect(reveal.vars.filter).toContain('blur') // headings get the blur-to-sharp
+  })
+
+  it('does NOT double-animate a header already inside a .reveal wrapper (claim guard)', async () => {
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML = '<div class="reveal"><h2 class="section-title">x</h2></div>'
+    initScrollAnimations()
+    // The wrapper reveals as a block…
+    expect(fromFor(document.querySelector('.reveal'))).toBeTruthy()
+    // …and the registry skips the nested heading, so it never animates twice.
+    expect(fromFor(document.querySelector('.section-title'))).toBeUndefined()
+  })
+
+  it('skips registry headers inside a page module\'s dynamic [hidden] region', async () => {
+    // The aftercare stage / its rules are revealed by aftercare.js, not on load —
+    // a load-time trigger on display:none content can\'t measure it. The claim
+    // guard keeps the registry out of those regions.
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML =
+      '<div class="care-stage" hidden><h2 class="chooser-heading">x</h2><p class="contact-subhead">y</p></div>'
+    initScrollAnimations()
+    expect(fromFor(document.querySelector('.chooser-heading'))).toBeUndefined()
+    expect(fromFor(document.querySelector('.contact-subhead'))).toBeUndefined()
+  })
+
+  it('gives the enquiry form column a gentle, blur-free on-load entrance', async () => {
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML =
+      '<div class="progress-wrap"></div>' +
+      '<div class="form-steps"><div class="form-step active"></div></div>'
+    initScrollAnimations()
+    const reveal = fromFor(document.querySelector('.form-step.active'))
+    expect(reveal).toBeTruthy()
+    expect(reveal.vars.y).toBe(14)
+    expect(reveal.vars.filter).toBeUndefined() // keep the fields crisp — no blur
+    expect(reveal.vars.scrollTrigger).toBeUndefined() // plays on load
+  })
+
   it('toggles the mobile sticky CTA as the hero enters/leaves the viewport', async () => {
     const { initScrollAnimations } = await load()
     document.body.innerHTML = '<section class="hero"></section><div id="mobile-cta" aria-hidden="true"></div>'

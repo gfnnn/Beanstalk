@@ -75,10 +75,37 @@ compounding — this is the exact routine, in order:
    take it first, before it drifts further.
 4. **Re-target stragglers.** A feature PR accidentally aimed at `main` → switch its base to
    `develop` (or fold it into the next release PR). Feature work never lands on `main` directly.
-5. **Prune the branches.** Auto-delete clears *merged* heads automatically; the residue
-   (closed-but-unmerged, never-PR'd, re-pushed-after-merge) needs a **local** sweep — a web
-   session can't (the proxy 403s on remote-ref deletion). The ready-made commands live in
-   `CLAUDE.md` → *"Stop the tangle at the source"*.
+5. **Prune the branches** (from a **local** clone, `gh` authenticated — a web session can't: the
+   proxy 403s on remote-ref deletion). Auto-delete already clears *merged* heads; this sweeps the
+   residue. The authoritative "merged" test under squash-merge is the **PR state**, not
+   `git branch --merged`, so drive it off the PR list:
+   ```bash
+   # (a) merged PR heads that somehow survived auto-delete — safe to delete:
+   gh pr list --state merged --limit 200 --json headRefName -q '.[].headRefName' \
+     | sort -u > /tmp/merged-heads
+   git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+     | grep -vxE 'main|develop' | grep -xF -f /tmp/merged-heads \
+     | xargs -r -n1 git push origin --delete
+
+   # (b) closed-but-NOT-merged PR heads — delete only after confirming the work shipped elsewhere
+   #     (git diff origin/develop origin/<branch> -- <file> empty = superseded):
+   gh pr list --state closed --limit 300 --json headRefName,merged \
+     -q '.[] | select(.merged==false) | .headRefName' | sort -u > /tmp/closed-unmerged
+   git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+     | grep -vxE 'main|develop' | grep -xF -f /tmp/closed-unmerged \
+     | xargs -r -n1 git push origin --delete
+
+   # (c) leftovers with no open PR (never-PR'd, or re-pushed past a merged head) — REVIEW, don't bulk-delete:
+   gh pr list --state open --limit 300 --json headRefName -q '.[].headRefName' \
+     | sort -u > /tmp/open-heads
+   git ls-remote --heads origin | sed 's#.*refs/heads/##' \
+     | grep -vxE 'main|develop' | grep -vxF -f /tmp/open-heads
+   ```
+   The residue is three shapes: a PR **closed without merging** (auto-delete never fires on close —
+   the change usually shipped via another branch), a branch that **never opened a PR**, and a branch
+   **re-pushed after its PR merged** (its merged head was already deleted; the new commits are a
+   fresh un-PR'd ref). Delete (a)/(b) once confirmed superseded; *list* (c) for an eyeball rather
+   than bulk-deleting, since it can hold un-reviewed work.
 
 **Two cheap habits that stop the pile forming in the first place:**
 

@@ -8,10 +8,8 @@ function/secret setup in [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md),
 [`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the content-CMS plan in
 [`CMS.md`](./CMS.md); image/video media in [`MEDIA.md`](./MEDIA.md); the **payments**
-plan in [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) (the live plan — an integrated
-**Stripe** checkout; file-by-file build in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md),
-fee maths in [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md), and the **superseded** manual-links
-decision kept for the record in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md)); scheduling in
+plan — model, architecture, build spec, fees, and the operator runbook, in one doc — in
+[`PAYMENTS.md`](./PAYMENTS.md); scheduling in
 [`SCHEDULING.md`](./SCHEDULING.md); and engineering benchmarking takeaways in
 [`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md).
 
@@ -36,8 +34,8 @@ Shipped (audience-capture + early management layer):
   pre-framed by the artist before upload). The catalogue is the artist's **28 pre-edited
   pieces** — an earlier unedited batch, added to trial an automated subject-detection crop
   that has since been removed, was dropped along with that feature. The style taxonomy is
-  real execution styles (`fine-line · black-grey · colour · dotwork · script ·
-  cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though the clips
+  real execution styles (`fine-line · high-detail · realism · black-grey · colour ·
+  dotwork · script · cybersigilism`). A hero-video helper (`process-video.mjs`) is in too, though the clips
   themselves are deferred (Phase 4). Full guide: [`MEDIA.md`](./MEDIA.md).
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
@@ -59,6 +57,15 @@ Shipped (audience-capture + early management layer):
   `nosniff` / `default-src 'none'` / `no-referrer` on every Worker JSON response
   (`SECURITY_HEADERS` in `src/lib/http.js`). The clickjacking/HSTS gap that a `<meta>`
   CSP can't close on Pages is tracked under infrastructure consolidation (Tier 3).
+- **Artist copy pass — Round 1** (#155) — the artist's reviewed words + the global
+  tone/style/fact decisions applied site-wide: the three approved style categories
+  (**fine line · high detail · realism**) wired through the portfolio taxonomy + the homepage
+  "What I do" cards; confirmed **pricing** (£80 / £120–£200 / £300 / £500), a **flat 50%
+  deposit**, a **48h** reschedule window and a **one-year** touch-up; "custom"→"bespoke" and
+  the botanical/illustrative wording removed; em dashes stripped from visible copy; the About
+  **stats** + **"The space"** modules switched off for go-live. The reviewed-section
+  `ARTIST-COPY` markers have since been flipped + stripped (**33** remain for the still-open
+  sections) — see [`GO-LIVE.md`](./GO-LIVE.md).
 
 Deploys to **staging only** (GitHub Pages + the Cloudflare Worker). The apex
 `beansprout.ink` stays on **v1** until the go-live plan below clears — see the deploy
@@ -73,6 +80,11 @@ guardrail in `CLAUDE.md`.
 ---
 
 # Go-live plan (staging → apex)
+
+> **Working the launch?** [`GO-LIVE.md`](./GO-LIVE.md) is the short, **codebase-verified
+> tick-list of only the remaining actions** — the surface to work through, item by item.
+> The phases below are the *narrative* (why/how, the acceptance test, the rollback plan);
+> keep the two in sync when an item lands.
 
 A step-by-step path to take this repo from **staging** (GitHub Pages + the Cloudflare
 Worker) to **live on the apex `beansprout.ink`**, replacing the v1 site. The phases
@@ -109,20 +121,18 @@ These unblock later phases. None require code to decide.
       Worker secret (the artist's Gmail, kept out of the repo; where
       `@beansprout.ink` forwards). See `EMAIL-DOMAIN-SETUP.md`.
 - [x] **DNS access** — confirmed (GoDaddy, for `beansprout.ink`).
-- [ ] **Analytics vendor (optional for MVP)** — **decided: Plausible** (cookieless, no consent
+- [x] **Analytics — not live at launch** (decided) — **Plausible**, deferred to post-launch (cookieless, no consent
       banner; the read-only **shared link** is the non-technical "foolproof view" for the
-      artist), deferred to post-launch. GA4 is out (needs a banner + is unusable raw by a
+      artist). GA4 is out (needs a banner + is unusable raw by a
       non-tech artist). The `track()` scaffold (`src/js/modules/analytics.js`) no-ops until
       one is wired, so the site is launch-legal without it. Full rationale, wiring, and the
       Instagram-feed + retargeting calls in [`ANALYTICS.md`](./ANALYTICS.md).
-- [ ] **Online payments / deposits (integrated Stripe checkout)** — the enquire copy mentions
-      deposits. The **Worker backbone is now built and shipped dark** behind `PAYMENTS_ENABLED`
+- [x] **Online payments / deposits — not live at launch** (decided) — launch with the deposit
+      **requested by email**; the **Worker backbone stays dark** behind `PAYMENTS_ENABLED`
       (flash full-payment via an embedded Stripe **Payment Element** → Monzo Business payout,
-      Klarna via Stripe; custom = deposit only; PayPal timing TBD) — only the **step-4 frontend
-      + go-live config** remain (see [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)). Decide:
-      launch without payments live (deposit requested by email) or finish step 4 first.
-      *Recommend launch without; flip it on post-launch.* The load-bearing engine decision
-      (**Stripe → Monzo Business**) is effectively settled — it's what shipped.
+      Klarna via Stripe; custom = deposit only; PayPal timing TBD). The **step-4 frontend +
+      go-live config** are a **post-launch** item (see [`PAYMENTS.md`](./PAYMENTS.md)).
+      The load-bearing engine decision (**Stripe → Monzo Business**) is settled — it's what shipped.
 
 Two further decisions gate **post-launch** work only (not the launch itself) and live
 with their Backlog items below: the **Instagram-feed mechanism** (static snapshot /
@@ -257,18 +267,24 @@ drafted for them. The mechanism, end to end:
    review aid and ship into page source; clear them as part of this phase so the
    apex (Phase 6) carries none. See the convention note in `COPY-REVIEW.md`.
 
-- [ ] **Artist copy review** — the artist works through `docs/COPY-FOR-ARTIST.md`
-      against the staging site; 🛠 apply their words to source + flip/clear markers. This is
-      the umbrella task; the specific value-only items below are called out
-      separately because they also gate other things (legal, pricing parity).
+- [~] **Artist copy review** — **Round 1 done, applied + cleaned (#155):** the artist reviewed
+      the checklist **up to enquiries** plus the global tone/style/fact decisions; those words
+      are in source and **those sections' markers are flipped + stripped.** **Remaining:** the
+      still-pending sections (ABOUT-04 stats, visit hours/directions, reply time, flash
+      names/photos, portfolio piece names, newsletter, enquiry-received voice, privacy/terms
+      legal). `grep -rn "pending approval" apps/web/` = **33**. The specific value-only items
+      below are called out separately because they also gate other things (legal, pricing parity).
 
 ### Specific items (also tracked above)
 
-- [ ] **Services prices** — `apps/web/services/index.html` flags prices as
-      *placeholders from the design brief*. Confirm real prices/tiers. 🛠 apply.
-- [ ] **Terms & privacy effective date + legal review** — `terms/index.html` has a
-      placeholder effective date and a note to have wording reviewed against current
-      consumer law; deposit figures must match `/services/`. 👤 review → 🛠 apply.
+- [x] **Services prices** — ✅ confirmed + applied (#155): **£80 / £120–£200 / £300 / £500**
+      (min / small / half-day / full-day), a **flat 50% deposit**, **48h** reschedule and a
+      **one-year** touch-up; the deposit box was reworked and the `/enquire/` budget bands mirror them.
+- [~] **Terms & privacy effective date + legal review** — deposit figures now match `/services/`
+      (flat 50%) and the **effective date is approved** ("June 2026"). **Open:** the **ICO public
+      registration reference** (ZA###### — held until confirmed; the account/cert number must
+      never be published), the **tattoo-registration number** (TBC), and a professional review of
+      the wording. 👤 → 🛠 apply.
 - [ ] **`og-image.jpg` (1200×630)** — used site-wide for social cards, the default
       piece-page OG image, **and the homepage JSON-LD `image`**. A **branded placeholder**
       is now committed so link previews and the `Person` schema don't point at a 404;
@@ -437,8 +453,10 @@ Pages in Phase 5).
    and Gmail "Send mail as". Safe before cutover (MX/TXT only, no A/CNAME change).
 5. **Set the build-time Worker URLs** (Phase 5) — `VITE_*_FN_URL` as repo Actions
    Variables — then enable GitHub Pages and run the staging email test.
-6. Send me confirmed **service prices**, a signed-off **terms effective date**, and
-   the **og-image** (Phase 4) and I'll apply them.
+6. Prices + the terms effective date are in (#155). Still needed for Phase 4: the **ICO
+   public reference** (ZA######), the **og-image**, **flash photos/copy**, **hours/directions**,
+   **reply time**, the **logo/icon**, and the marker flip/strip for the Round-1 copy — send
+   each and I'll apply it.
 
 **Post-launch (Phase 7) is the [Backlog](#backlog-post-launch--extends-past-go-live)
 below** — the same items, in rough priority order. Launch first; pick those up once
@@ -453,8 +471,8 @@ up after the site is live, in rough priority order.
 
 ## Post-launch delivery sequence (the path to delivery for every in-flight feature)
 
-The detailed plans live in the per-feature stubs ([`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)
-+ [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md), [`SCHEDULING.md`](./SCHEDULING.md),
+The detailed plans live in the per-feature stubs ([`PAYMENTS.md`](./PAYMENTS.md),
+[`SCHEDULING.md`](./SCHEDULING.md),
 [`CMS.md`](./CMS.md), [`ENGINEERING-LEARNINGS.md`](./ENGINEERING-LEARNINGS.md)); this is the
 **ordering and the dependencies between them** so nothing stalls for lack of a prerequisite.
 Each item below carries its own delivery detail; the sequence is what makes them shippable in
@@ -515,36 +533,16 @@ detailed, ordered build steps for each are in the items below and their stubs.
 
 - **Online payments — integrated Stripe checkout** _(backbone **shipped dark**; embedded
   frontend + go-live config remain)._ The no-show defence the copy already promises — an
-  **integrated checkout**, not hand-reconciled links. The studio asked for "the safest
-  integration with the highest functionality and control," plus **Klarna**, which manual links
-  can't give, so the direction moved on from the original PayPal.Me/Monzo.me plan.
-  - **Model:** **flash = full payment online** (the `price` is known at build time, so paying
-    *is* the claim); **custom enquiry = deposit only** — never auto-price a custom tattoo, the
-    balance is quoted and paid in person on the day. The deposit is the shared primitive and
-    the booking-confirmation trigger for scheduling.
-  - **Architecture:** **Stripe is the engine** — one integration carries **card + Klarna** via
-    the embedded **Payment Element** (card fields are Stripe iframes → PCI **SAQ-A**), funds pay
-    out to the **Monzo Business** account (which also gives the free bank-transfer route);
-    **PayPal** is a parallel method whose timing is an open decision.
-  - **Status — backbone shipped, dark behind `PAYMENTS_ENABLED`:** migration `0002`, server-side
-    price authority (synced `flash-prices.json`), `db.js` helpers, `POST /checkout`
-    (PaymentIntent → `client_secret`, REST/no-SDK), `POST /webhooks/stripe` (Web-Crypto
-    signature verify → promote `pending→claimed` → customer + artist emails, idempotent), and
-    lazy stale-release — all unit-tested. **Remaining:** ④ the embedded **Payment Element**
-    frontend (flash modal + CSP + `VITE_PAYMENTS_ENABLED` + web/E2E tests), the studio's
-    Stripe/Monzo/Klarna account setup, and a staging **test-mode** run before live keys. The
-    step-by-step build log lives in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md) §10
-    (not duplicated here).
-  - **Closed a known durability gap:** the `expires_at` + stale-release also resolves the narrow
-    case (June 2026 review) where a flash `pending` row could be stranded if the Worker is
-    evicted between the atomic reserve and the send — the webhook/TTL model removes the
-    manual-release dependency entirely.
-  - **Then:** **Phase 2** = custom deposits (tokenised "pay your deposit" magic link + a
-    `/studio` reconciliation surface); **Phase 3** = PayPal + refunds/cancellation polish.
-    Live plan: [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md); build spec:
-    [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md); fee maths:
-    [`PAYMENTS-FEES.md`](./PAYMENTS-FEES.md); superseded manual-links decision:
-    [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md).
+  **integrated checkout**, not hand-reconciled links. **Flash = full payment, custom = deposit
+  only**; one Stripe engine carries card + Klarna + PayPal (PayPal native to Stripe in the UK),
+  paying out to **Monzo Business**, embedded on-site (PCI SAQ-A), REST/no-SDK. The **Worker
+  backbone is shipped dark** behind `PAYMENTS_ENABLED` (migration `0002`, server-side price
+  authority, `/checkout`, `/webhooks/stripe`, lazy stale-release — all unit-tested; the
+  `expires_at` + stale-release also closed the narrow stranded-`pending` durability gap from the
+  June 2026 review). **Remaining:** ④ the embedded Payment Element frontend, the studio's account
+  setup, and a staging test-mode run. **Then** Phase 2 = custom deposits (tokenised link +
+  `/studio` reconciliation), Phase 3 = refunds/cancellation polish. Full detail — model,
+  architecture, build spec, fees, operator runbook — in [`PAYMENTS.md`](./PAYMENTS.md).
 
 - **Scheduling / appointment booking** _(planned — post-go-live, several decisions parked
   for the artist)._ A calendar layer over the flash claim (and later the custom enquiry) so a

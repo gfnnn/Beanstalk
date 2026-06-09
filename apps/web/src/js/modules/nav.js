@@ -19,8 +19,14 @@ export function initNav() {
   }, { passive: true })
 
   // ── Active link ─────────────────────────────────────────
+  // The mobile drawer is a SIBLING of #main-nav, not a descendant, so a query
+  // scoped to `nav` would never reach its links — that's why the current-page
+  // styling silently failed in the burger menu on any page lacking a hardcoded
+  // `class="active"`. Select the inline nav links and the drawer links by id so
+  // both light up regardless of DOM nesting; the CTA buttons (.btn) are skipped
+  // so only real nav links pick up the current-page styling.
   const currentPath = window.location.pathname
-  nav.querySelectorAll('.nav-links a, .nav-drawer a').forEach(link => {
+  document.querySelectorAll('#main-nav .nav-links a, #nav-drawer a:not(.btn)').forEach(link => {
     const href = link.getAttribute('href')
     if (href && href !== '/' && currentPath.startsWith(href)) {
       link.classList.add('active')

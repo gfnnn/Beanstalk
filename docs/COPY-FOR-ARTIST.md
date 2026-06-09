@@ -27,6 +27,11 @@ A few notes:
 > **Quick wins first?** If you only have ten minutes, do the 🔒 facts in the
 > ["Facts I need from you"](#facts-i-need-from-you) box below — those unblock the most.
 
+> **Update (2026-06-08):** thank you — we went through this together up to the enquiry form,
+> and your words + facts are now live on the site. The table below is filled in with what
+> you confirmed (✅); the blanks are the few bits still to come — reply time, hours / getting
+> there, booking lead time, the flash list, and your ICO + tattoo-registration numbers. No rush.
+
 ---
 
 ## Facts I need from you
@@ -36,19 +41,20 @@ page section below.)
 
 | 🔒 | What | Currently on the site (placeholder) | The real value |
 |----|------|--------------------------------------|----------------|
-| Reply time | How long you take to reply to an enquiry | "within 3 days" | |
-| Prices | Min charge / small / half-day / full-day | £120 / £180–280 / £420 / £680 | |
-| Deposits | Standard / half-day / full-day | £60 / £120 / £200 | |
-| Touch-up window | Free touch-up valid for… | 6 months | |
-| Reschedule notice | Notice needed to move a booking | 72 hours | |
-| Hours | Days + times you work | "Tue–Sat · 11am–6pm" | |
-| Getting there | Walk from station / parking | "short walk… paid parking nearby" | |
-| Booking lead time | How far ahead you're usually booking | "3–4 weeks" | |
-| Your stats | Years tattooing / pieces healed | "6 yrs / 900+" | |
-| Flash drop | Season label + the 12 flash names/sizes/prices | "Summer 2026" + placeholders | |
-| Legal dates | Effective date for Privacy + Terms | "June 2026" | |
-| ⚖️ ICO number | Your ICO registration reference (ZA######) | blank | |
-| ⚖️ Tattoo reg | Winchester City Council registration number | blank | |
+| Reply time | How long you take to reply to an enquiry | "within 3 days" | _still to confirm_ |
+| Prices | Min / small / half-day / full-day | £120 / £180–280 / £420 / £680 | ✅ **£80 / £120–£200 / £300 / £500** |
+| Deposit | (was Standard / half-day / full-day) | £60 / £120 / £200 | ✅ **Flat 50% of the price** |
+| Touch-up window | Free touch-up valid for… | 6 months | ✅ **1 year** |
+| Reschedule notice | Notice needed to move a booking | 72 hours | ✅ **48 hours** |
+| Hours | Days + times you work | "Tue–Sat · 11am–6pm" | _still to confirm_ |
+| Getting there | Walk from station / parking | "short walk… paid parking nearby" | _still to confirm_ |
+| Booking lead time | How far ahead you're usually booking | "3–4 weeks" | _still to confirm_ |
+| Your stats | Years tattooing / pieces healed | "6 yrs / 900+" | ✅ **8 yrs** confirmed (rest TBC; the stats block is **switched off** for go-live) |
+| Style categories | The three styles you lead with | (was fine line / black & grey / colour) | ✅ **Fine line · High detail · Realism** |
+| Flash | Next flash day + the season + 12 names/sizes/prices | "Summer 2026" + placeholders | ⏳ **Next flash day 26 July** set; season label + the 12 pieces still to confirm |
+| Legal dates | Effective date for Privacy + Terms | "June 2026" | ✅ **Approved (June 2026)** |
+| ⚖️ ICO number | Your ICO registration reference (**ZA######**) | blank | ⏳ held — need the **public ZA###### reference** (not the account/certificate number) |
+| ⚖️ Tattoo reg | Winchester City Council registration number | blank | _still to confirm_ |
 
 ---
 

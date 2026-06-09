@@ -5,6 +5,7 @@
 // reorders the tiles. The returned `applyFilters` is handed back to load-more so
 // newly-revealed tiles get filtered too (see main.js).
 import { initStickyShadow } from './sticky.js'
+import { initScrollHide } from './scroll-hide.js'
 import { initChipOverflow } from './chip-overflow.js'
 
 export function initFilter({ resetWindow } = {}) {
@@ -31,6 +32,12 @@ export function initFilter({ resetWindow } = {}) {
 
   // ── Sticky detection (shadow when filter bar is pinned) ──────────────────
   initStickyShadow(filterBar)
+
+  // ── Auto-hide on scroll (mobile) ─────────────────────────────────────────
+  // On a narrow screen the bar covers a big slice of the grid, so hide it as the
+  // customer scrolls down into the photos and reveal it on scroll-up. No-op on
+  // desktop (gated to the mobile breakpoint inside the helper). See scroll-hide.js.
+  initScrollHide(filterBar)
 
   // ── Chip counts — from the full catalogue, not the loaded window ──────────
   function updateCounts() {

@@ -6,9 +6,8 @@ not blocking the apex cutover.** This doc is the durable plan: the model, the bu
 call against the artist's "Google-Calendar-level control" requirement, the recommendation, an
 implementation sketch for the recommended path, and the questions left for the artist.
 
-> Co-ships with the payments track ([`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) — the live
-> **Stripe** plan; build spec [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md);
-> superseded manual-links decision in [`PAYMENTS-PLAN.md`](./PAYMENTS-PLAN.md)). **A paid
+> Co-ships with the payments track ([`PAYMENTS.md`](./PAYMENTS.md) — the live **Stripe** plan,
+> build spec, fees, and the superseded manual-links decision, all in one doc). **A paid
 > deposit is the booking-confirmation trigger**, and scheduling reuses primitives the shipped
 > payments backbone already provides: the atomic one-of-a-kind reserve, the 48h hold
 > `expires_at` + lazy stale-release, the `pending → claimed` promotion, and the webhook
@@ -34,7 +33,7 @@ mirroring `pending → (artist confirms) → claimed`:
 - **Flash goes first** (fixed scope → a slot can be offered at claim time).
 - **Custom enquiries are propose-after-triage** — the quote comes first, then a tokenised
   "choose your time" magic link (no full price is ever auto-generated; see
-  [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)).
+  [`PAYMENTS.md`](./PAYMENTS.md) §11).
 
 This model is **the same whether we build or buy** — it's a product constraint, not a tech
 choice. The build-vs-buy question below is purely *how* to deliver request/hold + manual
@@ -223,7 +222,7 @@ UI use. It lists `requested`/`held` bookings and offers two buttons:
   confirmation + `.ics` (step 1) / write the `confirmed` calendar event (step 2), email the
   artist a copy.
 - **Decline** → `cancelled`, release the hold (`releaseFlashPiece` analogue), refund the deposit
-  if taken (Stripe refund — Phase 3 polish in [`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md)),
+  if taken (Stripe refund — Phase 3 polish, [`PAYMENTS.md`](./PAYMENTS.md) §12),
   email the customer.
 
 For **custom**, the artist quotes first (offline), which issues the tokenised "pay your deposit"
@@ -258,7 +257,7 @@ full price, and the dashboard confirm is a quick date-OK against the chair sched
 Reuse the Resend pattern (`apps/functions/src/handlers/enquiry.js`, the webhook receipt). A
 booking reminder needs a **time trigger** — a Cloudflare **Cron Trigger** (`scheduled()` export,
 already mooted as the belt-and-braces stale-sweep in
-[`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md) §5) scans for `confirmed` bookings ~24–48h
+[`PAYMENTS.md`](./PAYMENTS.md) §6.4) scans for `confirmed` bookings ~24–48h
 out and emails the customer. **Email-only first**; SMS is paid and deferred. Keep it cheap and
 fail-safe.
 
@@ -270,13 +269,13 @@ fail-safe.
   cancel sets `cancelled` + frees the slot + (step 2) deletes the calendar event.
 - **Cut-off** must match the **cancellation/deposit terms in the site copy** (deposit
   forfeit/refund window — see [`COPY-REVIEW.md`](./COPY-REVIEW.md) and the deposit rule in
-  [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md)). Refund handling = the Phase 3 Stripe refund flow.
+  [`PAYMENTS.md`](./PAYMENTS.md) §13). Refund handling = the Phase 3 Stripe refund flow.
 
 ### Isolation / rollout
 
 Mirror the payments backbone discipline: **additive Worker routes, flagged off, fail-safe**, no
 `apps/web` change until a build flag flips the UI (see
-[`PAYMENTS-STRIPE-BUILD.md`](./PAYMENTS-STRIPE-BUILD.md) "Isolation"). Step 2's Google OAuth is its
+[`PAYMENTS.md`](./PAYMENTS.md) §3, the isolation contract). Step 2's Google OAuth is its
 own flag on top of step 1. **Ships to staging only** until the apex cutover — no
 `apps/web/public/CNAME` (deploy guardrail in `CLAUDE.md`).
 
@@ -293,7 +292,7 @@ own flag on top of step 1. **Ships to staging only** until the apex cutover — 
 - **Self-serve depth:** customers *request* (our recommendation) vs *instant* for flash; flash-
   first vs enquiries too.
 - **Session shape:** consultation vs session; multi-session pieces; session length + buffer;
-  flash full-payment vs deposit-to-hold (see [`PAYMENTS-ROADMAP.md`](./PAYMENTS-ROADMAP.md) open
+  flash full-payment vs deposit-to-hold (see [`PAYMENTS.md`](./PAYMENTS.md) §13 open
   decisions).
 - **Tiny Knives chair-time:** which days/hours can be offered, and how the artist keeps that
   current (this is *why* a human confirm exists).
