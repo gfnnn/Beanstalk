@@ -65,7 +65,11 @@
     .chooser-sub,
     .contact-heading,
     .contact-subhead,
-    /* Enquiry form column — gentle on-load entrance (progress bar + active step) */
+    /* Enquiry form column — gentle on-load entrance (progress bar + active step).
+       This guard + the 2s failsafe below are the SOLE owners of the form's
+       visibility: its entrance (animations.js) animates transform only, never
+       opacity, so a never-finished tween can't strand the form invisible once
+       `.motion-ready` removes this rule. */
     .progress-wrap,
     .form-step.active,
     /* Grid tiles / cards that enter on first scroll (top rows can be on-screen) */
