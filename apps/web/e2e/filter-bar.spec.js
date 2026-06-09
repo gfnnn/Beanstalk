@@ -36,9 +36,10 @@ test.describe('mobile — hides on scroll-down into the grid, reveals on scroll-
       // Scroll down to the bottom (well past the bar's pin point) → it tucks away.
       await scrollWindow(page, 100000)
       await expect(bar).toHaveClass(/bar-hidden/)
-      // …and the CSS transform really slid it clear of the viewport (bottom edge ≤ top).
-      const box = await bar.boundingBox()
-      expect(box.y + box.height).toBeLessThanOrEqual(1)
+      // …and the CSS transform actually pulls the bar up out of view: its top edge
+      // ends above the viewport (it sat at +nav-height when pinned/shown). Polled so
+      // we don't race the slide — the transform settles the top to roughly -height.
+      await expect.poll(async () => (await bar.boundingBox())?.y ?? 0).toBeLessThan(0)
 
       // Scroll back up → it comes straight back, re-anchored under the nav.
       await scrollWindow(page, 150)
