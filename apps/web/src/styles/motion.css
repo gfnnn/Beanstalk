@@ -59,7 +59,8 @@
     .serif-note,
     .reveal,
     /* Bespoke inner-page section headers the unified registry reveals (those that
-       can sit above the fold — aftercare chooser, visit contact) */
+       can sit above the fold — services pricing, aftercare chooser, visit contact) */
+    .section-eyebrow,
     .chooser-eyebrow,
     .chooser-heading,
     .chooser-sub,
