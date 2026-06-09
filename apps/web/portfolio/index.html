@@ -124,6 +124,15 @@
 <div class="filter-bar" id="filter-bar"
      role="search" aria-label="Filter portfolio">
 
+  <!-- Mobile-only collapse trigger. On a narrow screen the bar starts COLLAPSED
+       (CSS) so the chips + selects don't cover the grid; tapping reveals them.
+       Hidden on desktop, where the full bar always shows. Wired in
+       modules/filter-collapse.js (no-op without it; bar just stays open). -->
+  <button class="filter-toggle" id="filter-toggle" type="button" aria-expanded="false">
+    <span class="filter-toggle-label">Filters</span>
+    <span class="filter-toggle-chevron" aria-hidden="true"></span>
+  </button>
+
   <!-- Style chips — update chip labels and data-filter values to match real categories -->
   <!-- COPY: chip labels are the style category display names -->
   <!--
