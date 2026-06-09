@@ -136,11 +136,27 @@ describe('initNav', () => {
       expect(document.body.style.overflow).toBe('')
     })
 
-    it('closes when a drawer link is followed', () => {
+    it('stays open when a drawer link is followed, so the page transition carries it', () => {
       setup(); initNav()
       click($('nav-hamburger'))                       // open
       click(document.querySelector('#nav-drawer a'))  // navigate
+      // The drawer is intentionally NOT closed here: animating it shut before the
+      // route change read as two steps (menu collapses, THEN the page transitions).
+      // Leaving it open lets the cross-document View Transition snapshot it and
+      // cross-fade the whole page — menu included — in one motion.
+      expect($('nav-drawer').classList.contains('open')).toBe(true)
+    })
+
+    it('resets a left-open drawer on a bfcache restore (pageshow.persisted)', () => {
+      setup(); initNav()
+      click($('nav-hamburger'))                       // open, then "navigate" away
+      // Back/forward can restore the page from bfcache exactly as it was left —
+      // open drawer, body still scroll-locked. The persisted pageshow resets it.
+      const restore = new window.Event('pageshow')
+      Object.defineProperty(restore, 'persisted', { value: true })
+      window.dispatchEvent(restore)
       expect($('nav-drawer').classList.contains('open')).toBe(false)
+      expect(document.body.style.overflow).toBe('')
     })
 
     it('closes on Escape', () => {
