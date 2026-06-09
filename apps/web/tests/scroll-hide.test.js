@@ -70,16 +70,25 @@ describe('initScrollHide', () => {
     expect(hidden(el)).toBe(false)
   })
 
-  it('keeps the bar shown above its resting position (top of the page)', async () => {
+  it('keeps the bar shown while it has not pinned yet (below the pin point), even scrolling down', async () => {
     mockMatchMedia(true)
-    const el = bar(100)
+    const el = bar(300) // pins at offsetTop − nav ≈ 235 (65px nav fallback in jsdom)
     initScrollHide(el)
 
-    await scrollTo(400)
-    expect(hidden(el)).toBe(true)
-
-    await scrollTo(40) // back above offsetTop → always shown, regardless of delta
+    await scrollTo(150) // scrolled DOWN, but the bar is still in flow (not pinned)
     expect(hidden(el)).toBe(false)
+  })
+
+  // Regression guard for the nav-height dead band: with the threshold at the bar's
+  // full offsetTop, the bar would pin under the nav (cover the grid) yet refuse to
+  // hide until scrolled a further nav-height down. It must hide as soon as it pins.
+  it('hides as soon as the bar is pinned (no nav-height dead band)', async () => {
+    mockMatchMedia(true)
+    const el = bar(300) // pin point ≈ 235; full offsetTop is 300
+    initScrollHide(el)
+
+    await scrollTo(240) // just past the pin point, scrolling down — between 235 and 300
+    expect(hidden(el)).toBe(true)
   })
 
   it('ignores a tiny scroll delta (no flicker from momentum/sub-pixel jitter)', async () => {

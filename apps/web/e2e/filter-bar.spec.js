@@ -7,17 +7,20 @@
 // mobile, or hides it on desktop where it shouldn't — and that the pages stay uniform.
 //
 // We run under `reducedMotion: 'reduce'` on purpose: that disables Lenis smooth
-// scroll (lenis.js bails on that query), so we can drive native `window.scrollTo`
-// deterministically instead of fighting Lenis's rAF-animated virtual scroll, which
-// a synthetic wheel can't move reliably in headless Chromium. The behaviour under
-// test — toggling `.bar-hidden` from `window.scrollY` — is motion-independent; only
-// the slide's animation (not whether it happens) is governed by reduced-motion.
+// scroll (lenis.js bails on that query), so the native scroll position we set with
+// `window.scrollTo` sticks instead of being animated back by Lenis's rAF loop. We
+// also dispatch the scroll event explicitly: the helper is rAF-latched and reads
+// window.scrollY, so this drives it deterministically without depending on how a
+// synthetic wheel propagates through headless Chromium. The behaviour under test —
+// toggling `.bar-hidden` from the real scroll position — is motion-independent.
 import { test, expect } from '@playwright/test'
 import { stubWorker } from './helpers.js'
 
 const PAGES = ['/portfolio/', '/flash/']
 
-const scrollTo = (page, y) => page.evaluate(n => window.scrollTo(0, n), y)
+// Set the real scroll position and notify listeners (Lenis is off under reduced motion).
+const scrollWindow = (page, y) =>
+  page.evaluate(n => { window.scrollTo(0, n); window.dispatchEvent(new Event('scroll')) }, y)
 
 test.describe('mobile — hides on scroll-down into the grid, reveals on scroll-up', () => {
   test.use({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' }) // iPhone-ish portrait
@@ -30,15 +33,15 @@ test.describe('mobile — hides on scroll-down into the grid, reveals on scroll-
       const bar = page.locator('#filter-bar')
       await expect(bar).not.toHaveClass(/bar-hidden/)
 
-      // Scroll down to the bottom, well past the bar's resting position → it tucks away.
-      await scrollTo(page, await page.evaluate(() => document.body.scrollHeight))
+      // Scroll down to the bottom (well past the bar's pin point) → it tucks away.
+      await scrollWindow(page, 100000)
       await expect(bar).toHaveClass(/bar-hidden/)
       // …and the CSS transform really slid it clear of the viewport (bottom edge ≤ top).
       const box = await bar.boundingBox()
       expect(box.y + box.height).toBeLessThanOrEqual(1)
 
       // Scroll back up → it comes straight back, re-anchored under the nav.
-      await scrollTo(page, 150)
+      await scrollWindow(page, 150)
       await expect(bar).not.toHaveClass(/bar-hidden/)
     })
   }
@@ -53,7 +56,7 @@ test.describe('desktop — never hides, even after a long scroll', () => {
       await page.goto(path)
 
       const bar = page.locator('#filter-bar')
-      await scrollTo(page, await page.evaluate(() => document.body.scrollHeight))
+      await scrollWindow(page, 100000)
       // Give the rAF-latched handler room to run, then assert it stayed put.
       await page.waitForTimeout(200)
       await expect(bar).not.toHaveClass(/bar-hidden/)
