@@ -137,27 +137,31 @@ describe('initScrollHide', () => {
     expect(hidden(el)).toBe(false)
   })
 
-  // Regression guard for the bottom-of-page bounce: iOS rubber-band carries scrollY
-  // past the maximum and back. Clamping to [0, maxScroll] means the over-the-end
-  // excursion registers no movement, so the bounce can't reveal a hidden bar (which
-  // is why momentum settling at the bottom used to leave the filters showing).
-  it('ignores rubber-band overscroll past the page bottom', async () => {
+  // Regression guard for the REPORTED bug (Android/iOS): a single flick retracts the
+  // browser toolbar, which changes the viewport height AND perturbs scrollY for a few
+  // frames. Those frames must not toggle the bar — only deltas against a STABLE
+  // viewport count. jsdom has no visualViewport, so the helper falls back to
+  // window.innerHeight; we move it to simulate the toolbar sliding away mid-scroll.
+  it('does not flip the bar while the viewport height is changing (toolbar in motion)', async () => {
     mockMatchMedia(true)
     const el = bar(100)
-    // Give jsdom a real scroll range so the clamp engages (maxScroll = 1000 − 600).
-    Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1000, configurable: true })
     const realInnerHeight = window.innerHeight
-    Object.defineProperty(window, 'innerHeight', { value: 600, configurable: true })
+    const setVH = h => Object.defineProperty(window, 'innerHeight', { value: h, configurable: true })
     initScrollHide(el)
 
     try {
-      await scrollTo(400)      // at the bottom → hidden
+      await scrollTo(400)             // clean scroll-down (stable viewport) → hidden
       expect(hidden(el)).toBe(true)
-      await scrollTo(450)      // overscroll past max (clamps to 400) → no movement
-      await scrollTo(420)      // bouncing back (still past max → clamps to 400)
+
+      // Toolbar retracts: viewport grows by ~56px AND scrollY blips back up. A naive
+      // delta would read −50 as a scroll-up and reveal the bar; the resize gate
+      // swallows it (and the settle window covers the frames just after).
+      setVH(realInnerHeight + 56)
+      await scrollTo(350)
+      expect(hidden(el)).toBe(true)
+      await scrollTo(360)             // settling artifact, still gated → stay hidden
       expect(hidden(el)).toBe(true)
     } finally {
-      delete document.documentElement.scrollHeight
       Object.defineProperty(window, 'innerHeight', { value: realInnerHeight, configurable: true })
     }
   })
