@@ -247,6 +247,49 @@ describe('initFlash', () => {
     })
   })
 
+  describe('modal focus trap', () => {
+    const tab = (shiftKey = false) =>
+      new window.KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true })
+    const focusablesOf = overlay =>
+      [...overlay.querySelectorAll('button, input, textarea, select, [tabindex]:not([tabindex="-1"])')]
+
+    it('wraps Tab from the last focusable back to the first while the modal is open', () => {
+      setup(); initFlash()
+      click(cardById('p1').querySelector('.claim-btn'))
+      const overlay = byId('claim-modal')
+      const focusable = focusablesOf(overlay)
+      const first = focusable[0]
+      const last  = focusable[focusable.length - 1]
+
+      last.focus()
+      const ev = tab()
+      overlay.dispatchEvent(ev)
+      expect(document.activeElement).toBe(first) // wrapped round
+      expect(ev.defaultPrevented).toBe(true)
+    })
+
+    it('wraps shift+Tab from the first focusable to the last', () => {
+      setup(); initFlash()
+      click(cardById('p1').querySelector('.claim-btn'))
+      const overlay = byId('claim-modal')
+      const focusable = focusablesOf(overlay)
+      const first = focusable[0]
+      const last  = focusable[focusable.length - 1]
+
+      first.focus()
+      overlay.dispatchEvent(tab(true))
+      expect(document.activeElement).toBe(last)
+    })
+
+    it('ignores the trap when the modal is closed (overlay hidden)', () => {
+      setup(); initFlash()
+      const overlay = byId('claim-modal') // never opened → hidden
+      const ev = tab()
+      overlay.dispatchEvent(ev)
+      expect(ev.defaultPrevented).toBe(false) // bailed before touching focus
+    })
+  })
+
   describe('claim submit', () => {
     // Open the modal and let its rAF add `.open` before submitting, so the
     // post-submit open/closed assertion isn't racing the open animation frame.
