@@ -23,6 +23,10 @@ export function initAftercare() {
     parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'), 10)
     || (nav ? nav.offsetHeight : 0)
 
+  // Mobile = the single-column stack (below the 900px two-column/sticky-aside
+  // layout). Matches the breakpoint enquire.js uses for its scroll-on-advance.
+  const isMobile = () => window.innerWidth < 900
+
   // ── Reflect the chosen route across cards, switch tabs, and panels ────────
   function setSelection(method) {
     cards.forEach(c => {
@@ -90,9 +94,12 @@ export function initAftercare() {
     card.addEventListener('click', () => choose(card.dataset.method, { scroll: true }))
   })
 
-  // Slim switcher — flip routes without losing your reading position
+  // Slim switcher — on desktop, flip routes without losing your reading position
+  // (the aside is sticky alongside the steps). On mobile the steps stack in one
+  // column, so switching in place can leave the new route's steps below the fold
+  // under the sticky bar — scroll down to them the way a choice card does.
   switchTabs.forEach(tab => {
-    tab.addEventListener('click', () => choose(tab.dataset.method, { scroll: false }))
+    tab.addEventListener('click', () => choose(tab.dataset.method, { scroll: isMobile() }))
     tab.addEventListener('keydown', e => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
       e.preventDefault()
