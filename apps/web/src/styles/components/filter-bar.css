@@ -31,6 +31,25 @@
   box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06);
 }
 
+/* ── Mobile: auto-hide on scroll-down, reveal on scroll-up ────────────────────
+   The two-row bar covers a big slice of the grid on a narrow screen, so
+   scroll-hide.js (modules/scroll-hide.js) adds `.bar-hidden` as the customer
+   scrolls DOWN into the photos and removes it when they scroll UP — the bar
+   re-pins under the nav. It stays `position: sticky`; we only slide it fully
+   clear of the viewport (above the nav, which sits at a higher z-index, so it's
+   tucked behind it). The JS is gated to this same breakpoint, so the desktop
+   single row never hides; the global reduced-motion guard (reset.css) makes the
+   slide instant, not animated, when the customer asks for that. */
+@media (max-width: 639px) {
+  .filter-bar {
+    transition: transform var(--dur) var(--ease),
+                box-shadow var(--dur) var(--ease);
+  }
+  .filter-bar.bar-hidden {
+    transform: translateY(calc(-100% - var(--nav-h)));
+  }
+}
+
 /* ── Style chips ─────────────────────────────────────────────────────────── */
 /* Mobile-first: chips WRAP onto as many rows as needed (no hidden horizontal
    scroll — that left most filters off-screen with no affordance). The secondary
