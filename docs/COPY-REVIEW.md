@@ -238,8 +238,8 @@ Health-critical instructions **and** artist-voice — worth a careful read.
 | PORT-D1 | 🟡 Voice | `pieces.js:56–115` | 56 piece **titles** (the artist's naming — "Good dog", "God's timing", "Storyteller", "The Lovers"…). Confirm the artist is happy with each. |
 | PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | feeds alt text ("a koi carp", "a barn owl and chrysanthemums"); SEO/a11y, but the artist's descriptions — skim for accuracy |
 
-> Per-piece pages (`/portfolio/<slug>/`) render a note from the subject + a CTA —
-> see PIECE-01.
+> Per-piece pages (`/portfolio/<slug>/`) render the style/placement tags + CTAs
+> (no descriptive caption) — see PIECE-01.
 
 ---
 
@@ -306,7 +306,7 @@ artist-voice ("I collect…") **and** legally operative. Confirm the wording is 
 
 | Ref | Type | Location | Current text |
 |-----|------|----------|--------------|
-| PIECE-01 | 🟡 Voice | `:173–177` | piece note (from subject) + "A design ready to make yours — enquire to book." + CTA "Enquire about a piece like this →" / "See more work" |
+| PIECE-01 | 🟡 Voice | `:180–183` | per-piece CTAs "Enquire about a piece like this →" / "See more work" |
 
 ---
 

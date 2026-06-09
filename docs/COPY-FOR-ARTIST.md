@@ -446,13 +446,6 @@ within [reply time]."
 **Your words:**
 >
 
-### PIECE-01 — Individual portfolio piece pages
-**What it's for:** each piece's own page has a one-line caption. Right now it's
-auto-generated from the description — you can give specific pieces a real sentence
-(the story/brief) if you'd like.
-**Your words (optional, per piece):**
->
-
 ---
 
 # Legal pages ⚖️
