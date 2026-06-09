@@ -31,6 +31,58 @@
   box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06);
 }
 
+/* ── Mobile: collapse the bar behind a "Filters" toggle ───────────────────────
+   On a narrow screen the two-row bar (chips + selects) covers a big slice of the
+   grid, so it starts COLLAPSED: only the full-width "Filters" trigger shows (with
+   the active-filter summary, if any, so applied filters stay visible). Tapping it
+   adds `.filters-open` (modules/filter-collapse.js) to reveal the chips + selects.
+   The trigger is hidden on desktop, where the full bar always shows. Deterministic
+   — a tap, not inferred from scroll — so it's robust on mobile browsers whose
+   dynamic toolbar would make a scroll-driven hide flicker. */
+.filter-toggle { display: none; } /* desktop: never shown */
+
+@media (max-width: 639px) {
+  .filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px; /* touch target */
+    padding: 9px 16px;
+    font-family: var(--sans);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    background: var(--cream);
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color var(--dur), color var(--dur);
+  }
+  .filter-toggle:hover { border-color: var(--ink); }
+
+  .filter-toggle-chevron {
+    width: 7px;
+    height: 7px;
+    margin-bottom: 2px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg); /* points down — collapsed */
+    transition: transform var(--dur) var(--ease);
+  }
+  .filter-bar.filters-open .filter-toggle-chevron { transform: rotate(-135deg); } /* up — open */
+
+  /* Collapsed: hide the chips + the selects. `display: contents` dissolves the
+     right cluster's box so an empty one adds no phantom row; its active-filter
+     summary keeps its own `.visible` state (so an applied filter — e.g. a
+     `?style=…` deep link — and its "Clear" still show), ordered under the trigger. */
+  .filter-bar:not(.filters-open) .filter-chips   { display: none; }
+  .filter-bar:not(.filters-open) .filter-right   { display: contents; }
+  .filter-bar:not(.filters-open) .filter-select  { display: none; }
+  .filter-bar:not(.filters-open) .filter-summary { order: 1; }
+}
+
 /* ── Style chips ─────────────────────────────────────────────────────────── */
 /* Mobile-first: chips WRAP onto as many rows as needed (no hidden horizontal
    scroll — that left most filters off-screen with no affordance). The secondary

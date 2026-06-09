@@ -2,6 +2,7 @@ import { pauseScroll, resumeScroll } from './lenis.js'
 import { ENQUIRY_FN_URL, FLASH_STATUS_FN_URL } from './config.js'
 import { track } from './analytics.js'
 import { initStickyShadow } from './sticky.js'
+import { initFilterCollapse } from './filter-collapse.js'
 import { initChipOverflow } from './chip-overflow.js'
 import { setButtonLoading, clearButtonLoading } from './spinner.js'
 
@@ -59,6 +60,10 @@ export function initFlash() {
   // bar stays pinned under the nav (position: sticky) — no scroll-driven hide.
   initStickyShadow(filterBar)
   initChipOverflow(filterBar)
+  // Mobile collapse: the bar starts collapsed behind a "Filters" toggle so it
+  // doesn't cover the grid; a tap reveals it. No-op on desktop. (Same helper as
+  // the portfolio bar — see modules/filter-collapse.js.)
+  initFilterCollapse(filterBar)
 
   // ── Filter + sort ────────────────────────────────────────────────────────
   let activeFilter = 'all'
