@@ -97,6 +97,67 @@ describe('initLoadMore', () => {
     expect(document.getElementById('showing-count').textContent).toBe('16')
   })
 
+  it('drops the inline fade styles once a revealed tile finishes transitioning', () => {
+    setup(20)
+    initLoadMore()
+    click(document.getElementById('load-more-btn'))
+    // The first tile of the freshly-revealed batch is mid-fade (rAF ran inline).
+    const revealed = tiles()[PAGE_SIZE]
+    expect(revealed.style.opacity).toBe('1')
+    expect(revealed.style.transition).not.toBe('')
+    // transitionend cleans the leftover inline styles so they don't linger.
+    revealed.dispatchEvent(new window.Event('transitionend'))
+    expect(revealed.style.transition).toBe('')
+    expect(revealed.style.opacity).toBe('')
+  })
+
+  it('holds the loading state until the revealed batch images load, then restores', async () => {
+    vi.useFakeTimers()
+    setup(20)
+    // Give the second-page tiles a still-loading image so settleBatch must wait on
+    // them (jsdom never fires load on its own — we control it).
+    tiles().slice(PAGE_SIZE).forEach(t => {
+      const img = document.createElement('img')
+      Object.defineProperty(img, 'complete', { value: false })
+      t.appendChild(img)
+    })
+    initLoadMore()
+    const btn = document.getElementById('load-more-btn')
+    btn.innerHTML = 'Load more work →'
+
+    click(btn)
+    expect(btn.disabled).toBe(true) // pinned open while the images are pending
+
+    // Settle the pending images → the race resolves and (after the floor) restores.
+    document.querySelectorAll('.masonry-tile img').forEach(img =>
+      img.dispatchEvent(new window.Event('load')),
+    )
+    await vi.runAllTimersAsync()
+
+    expect(btn.disabled).toBe(false)
+    expect(btn.innerHTML).toBe('Load more work →')
+    vi.useRealTimers()
+  })
+
+  it('restores even if a pending image errors rather than loads', async () => {
+    vi.useFakeTimers()
+    setup(20)
+    tiles().slice(PAGE_SIZE).forEach(t => {
+      const img = document.createElement('img')
+      Object.defineProperty(img, 'complete', { value: false })
+      t.appendChild(img)
+    })
+    initLoadMore()
+    const btn = document.getElementById('load-more-btn')
+    click(btn)
+    document.querySelectorAll('.masonry-tile img').forEach(img =>
+      img.dispatchEvent(new window.Event('error')),
+    )
+    await vi.runAllTimersAsync()
+    expect(btn.disabled).toBe(false)
+    vi.useRealTimers()
+  })
+
   it('puts the button into a spinner/aria-busy loading state on click, then restores it', async () => {
     vi.useFakeTimers()
     setup(20)
