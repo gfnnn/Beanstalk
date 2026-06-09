@@ -1,3 +1,5 @@
+import { lenis } from './lenis.js'
+
 export function initFaq() {
   const items = [...document.querySelectorAll('.faq-item')]
   if (!items.length) return
@@ -5,6 +7,29 @@ export function initFaq() {
   const cats        = [...document.querySelectorAll('.faq-cat')]
   const searchInput = document.getElementById('faq-search-input')
   const empty       = document.getElementById('faq-empty')
+  const faqList     = document.getElementById('faq-list')
+
+  const navH = () =>
+    parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'), 10) || 0
+
+  // The topic list sits above the accordion only on the single-column mobile
+  // layout; from 900px up it's a sticky sidebar beside the questions, so there's
+  // nothing to scroll to. Mirrors the .faq-shell grid breakpoint in faq.css.
+  const isStacked = () => !window.matchMedia('(min-width: 900px)').matches
+
+  // On mobile, picking a topic should bring the (now-filtered) questions into
+  // view — otherwise the list updates below the fold, under the chips, with no
+  // visible feedback. Lands the first question just below the sticky nav.
+  function scrollToQuestions() {
+    if (!faqList || !isStacked()) return
+    const top = faqList.getBoundingClientRect().top + window.scrollY - navH() - 12
+    if (lenis) {
+      lenis.scrollTo(top, { duration: 0.7 })
+    } else {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
+    }
+  }
 
   // Single source of truth for what's shown. The category chips and the search box
   // are two filters over the same list, so they're tracked here and applied
@@ -54,6 +79,9 @@ export function initFaq() {
       if (searchInput) searchInput.value = ''
       query = ''
       apply()
+      // Mobile only: bring the filtered list into view (no-op on the desktop
+      // sidebar layout — see scrollToQuestions).
+      scrollToQuestions()
     })
   })
 
