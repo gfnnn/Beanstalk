@@ -14,22 +14,31 @@ const $ = id => document.getElementById(id)
 const click = el => el.dispatchEvent(new window.Event('click', { bubbles: true }))
 const keydown = k => document.dispatchEvent(new window.KeyboardEvent('keydown', { key: k, bubbles: true }))
 
+// Mirror the PRODUCTION structure: the drawer is a SIBLING of #main-nav, not a
+// descendant. (A previous version nested it inside #main-nav, which masked the
+// bug where drawer links never picked up the current-page styling.) The drawer
+// carries the full link set plus the enquiry CTA button, which must NOT be lit.
 function setup() {
   document.body.innerHTML = `
     <nav id="main-nav">
       <div class="nav-links">
         <a href="/">Home</a>
         <a href="/portfolio/">Portfolio</a>
+        <a href="/flash/">Flash</a>
         <div class="nav-dropdown" id="nav-more">
           <button id="nav-more-btn" aria-expanded="false">More</button>
           <a href="/faq/">FAQ</a>
         </div>
       </div>
       <button id="nav-hamburger" aria-expanded="false"></button>
-      <div id="nav-drawer" class="nav-drawer" aria-hidden="true">
-        <a href="/about/">About</a>
-      </div>
     </nav>
+    <div id="nav-drawer" class="nav-drawer" aria-hidden="true">
+      <a href="/">Home</a>
+      <a href="/portfolio/">Portfolio</a>
+      <a href="/flash/">Flash</a>
+      <a href="/about/">About</a>
+      <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+    </div>
   `
 }
 
@@ -59,8 +68,28 @@ describe('initNav', () => {
     it('also lights the More trigger when the active link is inside the dropdown', () => {
       setPath('/faq/')
       setup(); initNav()
-      expect(document.querySelector('a[href="/faq/"]').classList.contains('active')).toBe(true)
+      expect(document.querySelector('.nav-links a[href="/faq/"]').classList.contains('active')).toBe(true)
       expect($('nav-more-btn').classList.contains('active')).toBe(true)
+    })
+
+    it('lights the matching DRAWER link too, though the drawer sits outside #main-nav', () => {
+      setPath('/flash/')
+      setup(); initNav()
+      // Regression: the burger-menu link for the current page must get the
+      // current-page styling, not just the inline desktop link.
+      const drawerLink = document.querySelector('#nav-drawer a[href="/flash/"]')
+      expect(drawerLink.classList.contains('active')).toBe(true)
+      expect(drawerLink.getAttribute('aria-current')).toBe('page')
+    })
+
+    it('never lights the drawer CTA button or the home link', () => {
+      setPath('/enquire/')
+      setup(); initNav()
+      // The "Start an enquiry" CTA is a .btn, not a nav link — it must stay unlit
+      // even when the path matches its href.
+      expect(document.querySelector('#nav-drawer a.btn').classList.contains('active')).toBe(false)
+      // "/" must not light up just because every path startsWith "/".
+      expect(document.querySelector('#nav-drawer a[href="/"]').classList.contains('active')).toBe(false)
     })
   })
 
