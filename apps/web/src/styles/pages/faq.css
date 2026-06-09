@@ -33,7 +33,7 @@
   transition: border-color var(--dur);
 }
 .faq-search input:focus { outline: none; border-color: var(--moss); }
-.faq-search input::placeholder { color: var(--ink-faint); }
+.faq-search input::placeholder { color: rgba(var(--ink-faint-rgb), 0.6); }
 .faq-search::before {
   content: '';
   position: absolute;

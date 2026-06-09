@@ -291,7 +291,7 @@
   box-shadow: 0 0 0 3px rgba(var(--moss-rgb), 0.1);
 }
 .form-shell input::placeholder,
-.form-shell textarea::placeholder { color: var(--ink-faint); }
+.form-shell textarea::placeholder { color: rgba(var(--ink-faint-rgb), 0.6); }
 .form-shell textarea { resize: vertical; min-height: 96px; font-family: var(--sans); }
 .form-shell select {
   appearance: none;
