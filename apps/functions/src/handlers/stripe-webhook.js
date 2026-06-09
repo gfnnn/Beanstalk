@@ -5,12 +5,16 @@
 // not the browser returning from checkout (which a user can abandon mid-redirect).
 //
 //   verify the Stripe signature (no SDK — see ../lib/stripe.js)
-//     → dedupe by event id (recordWebhookEvent; replays just 200)
-//     → on payment_intent.succeeded:  promote piece pending→claimed,
-//                                      mark the payment 'paid',
+//     → skip an event id already fully processed (hasWebhookEvent; replays 200)
+//     → on payment_intent.succeeded:  mark the payment 'paid',
+//                                      promote the piece (upsert → claimed),
 //                                      email the customer receipt + artist notice
-//     → on payment_intent.canceled:   mark 'expired' + release the hold
+//     → on payment_intent.canceled:   mark 'expired' + release ITS OWN hold
 //     → any other event: acknowledge (200) and ignore
+//     → record the event id only AFTER the work made durable progress; if a DB
+//       outage meant nothing stuck, reply 500 so Stripe redelivers — the steps
+//       are idempotent, so reprocessing is safe and a real payment confirmation
+//       is never silently dropped.
 //
 // Required env:
 //   STRIPE_WEBHOOK_SECRET   whsec_… (Worker secret; the endpoint's signing secret)
@@ -18,14 +22,12 @@
 //   DB                      D1 binding
 //
 // Every sub-step is idempotent / fail-safe, so Stripe's at-least-once redelivery
-// can't double-promote or double-charge, and a DB/Resend hiccup never throws back
-// a 500 that traps the event in a retry loop. Always acks 200 once the signature
-// checks out (except a hard bad-signature 400).
+// can't double-promote or double-charge.
 // ─────────────────────────────────────────────────────────────────────────────
 import { corsFor, replyWith } from '../lib/http.js'
 import { verifyStripeSignature } from '../lib/stripe.js'
 import {
-  recordWebhookEvent, getPayment, markPaymentStatus,
+  hasWebhookEvent, recordWebhookEvent, getPayment, markPaymentStatus,
   promoteFlashClaim, releaseFlashPiece,
 } from '../lib/db.js'
 
@@ -55,58 +57,79 @@ export async function handler(event, env = {}) {
   let evt
   try { evt = JSON.parse(raw || '{}') } catch { return reply(400, { error: 'Invalid payload.' }) }
 
-  // Idempotency — process each event id exactly once; a replay just acks.
-  const { fresh } = await recordWebhookEvent(env, evt.id, evt.type)
-  if (!fresh) return reply(200, { received: true, duplicate: true })
+  // Idempotency, read side — a fully-processed event id just acks.
+  if (await hasWebhookEvent(env, evt.id)) return reply(200, { received: true, duplicate: true })
 
-  // Past this point we always ack 200 (the event is recorded as seen); the work is
-  // idempotent and fail-safe, so there's nothing a Stripe retry would usefully redo.
+  // Do the work FIRST, record the event as seen only once it has made durable
+  // progress. A run where nothing stuck (a transient D1 outage) replies 500 so
+  // Stripe redelivers; the steps are idempotent, so a retry — or a concurrent
+  // double-delivery racing the read check — can't double-promote.
   try {
+    let ok = true
     if (evt.type === 'payment_intent.succeeded') {
-      await onSucceeded(env, evt.data?.object || {})
+      ok = await onSucceeded(env, evt.data?.object || {})
     } else if (evt.type === 'payment_intent.canceled') {
       await onCanceled(env, evt.data?.object || {})
     }
+    if (!ok) {
+      console.error('stripe-webhook: no durable progress — asking Stripe to redeliver', evt.id)
+      return reply(500, { error: 'Processing failed — retry.' })
+    }
+    await recordWebhookEvent(env, evt.id, evt.type)
     return reply(200, { received: true })
   } catch (err) {
-    console.error('stripe-webhook: handler error (acked):', err?.message || err)
-    return reply(200, { received: true, error: true })
+    // Unexpected throw: same contract — not recorded as seen, Stripe redelivers.
+    console.error('stripe-webhook: handler error (will be redelivered):', err?.message || err)
+    return reply(500, { error: 'Processing failed — retry.' })
   }
 }
 
-// A PaymentIntent succeeded → confirm the sale.
+// A PaymentIntent succeeded → confirm the sale. Returns true when the event is
+// settled (durable progress was made, or there is deliberately nothing to do);
+// false only when BOTH ledger and inventory writes failed (D1 down) and a Stripe
+// redelivery is the recovery path.
 async function onSucceeded(env, pi) {
   const reference = pi.metadata?.reference
   const pieceId   = pi.metadata?.piece_id
-  if (!reference) { console.warn('stripe-webhook: succeeded without our reference', pi.id); return }
+  if (!reference) { console.warn('stripe-webhook: succeeded without our reference', pi.id); return true }
 
   // Defence in depth: only honour the amount we recorded at checkout. A mismatch
-  // (a tampered/replayed intent) is logged and NOT promoted.
+  // (a tampered/replayed intent) is logged and NOT promoted — and not retried.
   const payment = await getPayment(env, reference)
   if (payment && Number(pi.amount) !== Number(payment.amount_pence)) {
     console.error('stripe-webhook: amount mismatch — not promoting', reference, pi.amount, payment.amount_pence)
-    return
+    return true
   }
 
-  await markPaymentStatus(env, reference, 'paid', { providerRef: pi.id, paidAt: nowIso() })
+  const marked = await markPaymentStatus(env, reference, 'paid', { providerRef: pi.id, paidAt: nowIso() })
+  let promoted = false
   if (pieceId) {
-    const promoted = await promoteFlashClaim(env, pieceId)
-    // A paid piece that didn't end up 'claimed' (it was already claimed another
-    // way, or D1 failed) needs the artist's eyes — log loudly, never silently.
+    promoted = await promoteFlashClaim(env, pieceId, reference)
+    // A paid piece that didn't end up newly 'claimed' (it was already claimed
+    // another way) needs the artist's eyes — log loudly, never silently.
     if (!promoted) console.error('stripe-webhook: paid but piece not newly promoted — check inventory', reference, pieceId)
   }
+
+  // `marked` false + `promoted` false means neither write stuck. When the
+  // payment row never existed (fail-open checkout), `promoted` alone carries it.
+  const settled = marked || promoted
+  if (!settled) return false
 
   // Best-effort notifications — never let an email failure throw out of the webhook.
   await sendEmails(env, { pi, reference, pieceId, payment })
     .catch(e => console.error('stripe-webhook: email failed (continuing):', e?.message || e))
+  return true
 }
 
 // A PaymentIntent was canceled (gave up) → free the hold so the piece returns.
+// Scoped by the payment's own reference: a delayed cancel from an old checkout
+// can never release a NEWER customer's live hold on the same piece. Best-effort
+// (a missed release is cleaned up by the lazy hold-expiry sweep).
 async function onCanceled(env, pi) {
   const reference = pi.metadata?.reference
   const pieceId   = pi.metadata?.piece_id
   if (reference) await markPaymentStatus(env, reference, 'expired')
-  if (pieceId)   await releaseFlashPiece(env, pieceId)
+  if (pieceId && reference) await releaseFlashPiece(env, pieceId, reference)
 }
 
 // ── Emails (Resend) ───────────────────────────────────────────────────────────

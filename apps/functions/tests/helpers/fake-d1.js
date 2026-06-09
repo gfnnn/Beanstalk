@@ -33,25 +33,26 @@ export function makeD1() {
       return { results: [...data.flash.entries()].map(([piece_id, v]) => ({ piece_id, status: v.status })) }
     }
     // promoteFlashClaim — UPSERT to 'claimed': missing row → inserted claimed,
-    // pending → flipped, already-claimed → no-op. (Must match before the
-    // reserve INSERT below, which shares the prefix.)
+    // pending → flipped (stamping the claiming payment_ref), already-claimed →
+    // no-op. (Must match before the reserve INSERT below — shared prefix.)
     if (s.startsWith('INSERT INTO flash_claims') && s.includes("'claimed'")) {
-      const [piece_id, updated_at] = args
+      const [piece_id, updated_at, payment_ref = null] = args
       const row = data.flash.get(piece_id)
       if (!row) {
-        data.flash.set(piece_id, { status: 'claimed', updated_at, expires_at: null })
+        data.flash.set(piece_id, { status: 'claimed', updated_at, expires_at: null, payment_ref })
         return { meta: { changes: 1 } }
       }
       if (row.status === 'pending') {
         row.status = 'claimed'; row.updated_at = updated_at; row.expires_at = null
+        if (payment_ref != null) row.payment_ref = payment_ref   // COALESCE
         return { meta: { changes: 1 } }
       }
       return { meta: { changes: 0 } }
     }
     if (s.startsWith('INSERT INTO flash_claims')) {
-      const [piece_id, updated_at, expires_at = null] = args
+      const [piece_id, updated_at, expires_at = null, payment_ref = null] = args
       if (data.flash.has(piece_id)) return { meta: { changes: 0 } }   // ON CONFLICT DO NOTHING
-      data.flash.set(piece_id, { status: 'pending', updated_at, expires_at })
+      data.flash.set(piece_id, { status: 'pending', updated_at, expires_at, payment_ref })
       return { meta: { changes: 1 } }
     }
     if (s.startsWith('SELECT status FROM flash_claims WHERE piece_id')) {
@@ -69,6 +70,16 @@ export function makeD1() {
         }
       }
       return { meta: { changes } }
+    }
+    // releaseFlashPiece — ref-scoped variant first (only that payment's hold).
+    if (s.startsWith('DELETE FROM flash_claims') && s.includes('payment_ref')) {
+      const [piece_id, payment_ref] = args
+      const row = data.flash.get(piece_id)
+      if (row && row.status === 'pending' && row.payment_ref === payment_ref) {
+        data.flash.delete(piece_id)
+        return { meta: { changes: 1 } }
+      }
+      return { meta: { changes: 0 } }
     }
     if (s.startsWith('DELETE FROM flash_claims')) {
       const row = data.flash.get(args[0])
@@ -118,6 +129,9 @@ export function makeD1() {
       if (provider_ref != null) row.provider_ref = provider_ref
       if (paid_at != null) row.paid_at = paid_at
       return { meta: { changes: 1 } }
+    }
+    if (s.startsWith('SELECT 1 AS seen FROM webhook_events')) {
+      return data.webhooks.has(args[0]) ? { seen: 1 } : null
     }
     if (s.startsWith('INSERT INTO webhook_events')) {
       const [id, type, received_at] = args

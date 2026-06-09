@@ -231,7 +231,7 @@ export function initScrollAnimations() {
   ]
   const claimed =
     '.reveal, .hero, .page-header, .filter-bar, [hidden], .care-stage, .form-steps, ' +
-    '.portfolio-grid, .masonry, .gallery--masonry, .specialism-grid, .process-grid, ' +
+    '.portfolio-grid, .masonry, .specialism-grid, .process-grid, ' +
     '.testimonials-grid, .flash-grid'
   roles.forEach(([sel, base, vars]) => {
     document.querySelectorAll(sel).forEach(el => {
@@ -252,7 +252,7 @@ export function initScrollAnimations() {
   document.querySelectorAll('.portfolio-grid').forEach(grid =>
     revealGroup(grid.querySelectorAll('.tile'), { trigger: grid, y: 24 }))
 
-  document.querySelectorAll('.masonry, .gallery--masonry').forEach(grid =>
+  document.querySelectorAll('.masonry').forEach(grid =>
     revealGroup(grid.querySelectorAll('.masonry-tile, .tile'), { trigger: grid, y: 20 }))
 
   const specGrid = document.querySelector('.specialism-grid')

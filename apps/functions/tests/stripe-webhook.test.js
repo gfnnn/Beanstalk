@@ -34,9 +34,10 @@ const succeeded = (over = {}, metaOver = {}) => ({
 let d1, env, fetchMock
 const H = (event, e = env) => handler(event, e)
 
-// Seed the state a prior /checkout would have left: a pending hold + awaiting payment.
+// Seed the state a prior /checkout would have left: a pending hold (tied to the
+// payment's reference, as checkout reserves it) + an awaiting payment row.
 async function seedCheckout() {
-  await reserveFlashPiece(env, PIECE, new Date(Date.now() + 3600e3).toISOString())
+  await reserveFlashPiece(env, PIECE, new Date(Date.now() + 3600e3).toISOString(), REF)
   await recordPayment(env, { id: REF, kind: 'flash', status: 'awaiting', provider: 'stripe', amountPence: PRICE, email: 'ada@example.com', pieceId: PIECE })
 }
 
@@ -160,6 +161,41 @@ describe('stripe-webhook — other events', () => {
     expect(res.statusCode).toBe(200)
     expect(flashMap(d1.data)).toEqual({})                       // hold freed
     expect(d1.data.payments.get(REF).status).toBe('expired')
+  })
+
+  it('a delayed cancel never releases a NEWER customer’s hold on the same piece', async () => {
+    // Checkout A's hold lapsed and was swept; customer B then reserved the piece
+    // under their own reference. A's late `canceled` event must not free B's hold.
+    await recordPayment(env, { id: REF, kind: 'flash', status: 'awaiting', provider: 'stripe', amountPence: PRICE, email: 'ada@example.com', pieceId: PIECE })
+    await reserveFlashPiece(env, PIECE, new Date(Date.now() + 3600e3).toISOString(), 'BSF-flash-01-newcust1')
+    const evt = { id: 'evt_late', type: 'payment_intent.canceled', data: { object: { id: 'pi_123', metadata: { reference: REF, piece_id: PIECE } } } }
+    const { raw, header } = await sign(evt)
+    const res = await H(post(raw, header))
+    expect(res.statusCode).toBe(200)
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'pending' })   // B's hold survives
+    expect(d1.data.payments.get(REF).status).toBe('expired')    // A's ledger row still settles
+  })
+
+  it('replies 500 (so Stripe redelivers) when nothing durable could be written, and recovers on retry', async () => {
+    await seedCheckout()
+    const { raw, header } = await sign(succeeded())
+
+    // Simulate a transient D1 outage for the processing run: every statement
+    // throws. The handler must NOT record the event as seen, and must surface a
+    // 5xx so Stripe's at-least-once redelivery becomes the recovery path.
+    const realPrepare = d1.DB.prepare.bind(d1.DB)
+    d1.DB.prepare = () => { throw new Error('D1 down') }
+    const failed = await H(post(raw, header))
+    expect(failed.statusCode).toBe(500)
+    expect(fetchMock).not.toHaveBeenCalled()                    // no premature emails
+
+    // D1 recovers; the redelivered event processes cleanly (not deduped away).
+    d1.DB.prepare = realPrepare
+    const retried = await H(post(raw, header))
+    expect(retried.statusCode).toBe(200)
+    expect(JSON.parse(retried.body)).toEqual({ received: true })
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'claimed' })
+    expect(d1.data.payments.get(REF).status).toBe('paid')
   })
 
   it('acknowledges an unrelated event type without side effects', async () => {

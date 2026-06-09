@@ -112,7 +112,7 @@ Abandoned/unpaid → payment_intent.canceled + 48h stale-release frees the piece
 The executable plan. Steps 1–3 & 5 are **shipped dark**; step 4 (frontend) is the one remaining
 slice. Decisions locked with the studio (2026-06): in-flow embedded on-site, flash-only for now,
 flash = full payment, one Stripe integration carries every method, server-side amount authority,
-reference format `BSF-<piece-id>-<4char>`, stale-pending window 48h (PaymentIntent expires ~30
+reference format `BSF-<piece-id>-<8char>`, stale-pending window 48h (PaymentIntent expires ~30
 min), staging-only until the apex cutover (no `apps/web/public/CNAME` — guardrail in `CLAUDE.md`),
 test-mode keys first behind `PAYMENTS_ENABLED`.
 
@@ -245,28 +245,19 @@ hold-expiry.
   (`[triggers] crons = ["*/30 * * * *"]` + a `scheduled()` export) calling the same function. Add
   when convenient; the lazy path covers the common case.
 
-### 6.4a Known gaps to close (or accept) before `PAYMENTS_ENABLED` flips
+### 6.4a Review hardening (June 2026 — shipped) + one operational note
 
-From the June 2026 code review — all narrow, none reachable while the flag is off. The first
-two share one root cause (the claim row isn't tied to the payment that created it) and would be
-closed together by storing the payment reference on `flash_claims` (a small `0003` migration):
+The June 2026 review's webhook/hold gaps are **closed in code** (all unit-tested):
+migration **`0003_claim_refs.sql`** ties each hold to the payment that created it, so a
+delayed `canceled` can only release **its own** hold; the webhook **records the event id
+only after durable progress** (a transient D1 outage gets a `500` → Stripe redelivers; the
+idempotent steps make reprocessing safe); `promoteFlashClaim` is an **upsert** (a payment
+completed after the hold was swept still ends `claimed`); and the reference is 8 chars
+(36⁸ — collisions out of the picture, and `recordPayment` reports a real write).
 
-1. **Webhook dedupe-before-work.** `recordWebhookEvent` marks the event seen *before* the
-   processing runs, and the sub-steps swallow DB errors — so a transient D1 failure mid-event
-   is acked `200` and Stripe's redelivery is then treated as a duplicate. Mitigated: the
-   promote is now an upsert and a paid-but-unpromoted piece logs loudly; the full fix is
-   recording the event id only after the sub-steps report success (they're idempotent, so
-   re-processing is safe).
-2. **`payment_intent.canceled` releases by piece id alone.** A delayed cancel from checkout A
-   (whose hold already lapsed) can release customer B's *live* hold on the same piece. Needs
-   the reference-on-claim tie above to release only its own hold.
-3. **`makeRef` collisions are silent.** 36⁴ ≈ 1.7M combinations per piece; on a collision
-   `recordPayment`'s `ON CONFLICT DO NOTHING` no-ops but still returns `true`, and the old
-   row's `provider_ref` gets overwritten. Return `meta.changes > 0` and retry the ref.
-4. **Toggling the flag *off* strands live holds.** The lazy sweep in `getFlashClaims` is gated
-   on `PAYMENTS_ENABLED`, so any 48h holds open when it's switched off never expire. Either
-   leave the flag on ~48h after the last checkout, or clear lapsed `pending` rows manually
-   (`DATA-COMPLIANCE.md` has the D1 console pattern).
+**Operational note (still true):** toggling `PAYMENTS_ENABLED` *off* strands any live 48h
+holds — the lazy sweep in `getFlashClaims` is gated on the flag. Leave the flag on ~48h
+after the last checkout, or clear lapsed `pending` rows manually in the D1 console.
 
 ### 6.5 Emails (Resend) — reuse the enquiry pattern
 
@@ -520,7 +511,7 @@ not a later swap.)*
 4. **Klarna on flash from day one** (cheap via Stripe), or hold it back?
 
 Resolved (no longer open): PayPal scope (ships with step 4 as a native Stripe method, no separate
-integration — June 2026); reference format & stale window (`BSF-<piece>-<4char>` / 48h, as built).
+integration — June 2026); reference format & stale window (`BSF-<piece>-<8char>` / 48h, as built).
 None of the open items block step 4.
 
 ## 14. Superseded — the original manual-links plan

@@ -89,9 +89,12 @@ export async function handler(event, env = {}) {
     return reply(429, { error: 'You’ve started a few checkouts already. Please email hello@beansprout.ink and we’ll help.' })
   }
 
-  // ── Reserve the piece (48h hold) — 409 if already taken ──────────────────────
+  // ── Reserve the piece (48h hold, tied to this payment) — 409 if taken ────────
+  // The reference is minted first so the hold row records which payment created
+  // it; that payment's webhook can then only ever release/promote its OWN hold.
+  const reference   = makeRef(pieceId)
   const expiresAt   = new Date(Date.now() + HOLD_MS).toISOString()
-  const reservation = await reserveFlashPiece(env, pieceId, expiresAt)
+  const reservation = await reserveFlashPiece(env, pieceId, expiresAt, reference)
   if (!reservation.ok) {
     return reply(409, {
       error: 'Sorry — that piece was just claimed by someone else. Have a look at what’s still available.',
@@ -101,11 +104,13 @@ export async function handler(event, env = {}) {
   const reservedHere = reservation.reserved === true
 
   // ── Persist 'awaiting' BEFORE charging, so the payment is durable from t0 ─────
-  const reference = makeRef(pieceId)
-  await recordPayment(env, {
+  // Fail-open on a false return (DB outage): the checkout proceeds — Stripe is
+  // the recoverable record and the webhook re-creates state — but log loudly.
+  const recorded = await recordPayment(env, {
     id: reference, kind: 'flash', status: 'awaiting', provider: 'stripe',
     amountPence, currency: CURRENCY, email, pieceId,
   })
+  if (!recorded) console.error('checkout: payment row not written (continuing fail-open)', reference)
 
   // ── Create the Stripe PaymentIntent (embedded Payment Element) ───────────────
   try {
@@ -136,7 +141,7 @@ export async function handler(event, env = {}) {
     if (!res.ok || !intent.client_secret) {
       console.error('Stripe PaymentIntent error', res.status, intent?.error?.message || '')
       await markPaymentStatus(env, reference, 'failed')
-      if (reservedHere) await releaseFlashPiece(env, pieceId)   // don't strand the piece
+      if (reservedHere) await releaseFlashPiece(env, pieceId, reference)   // don't strand the piece
       return reply(502, { error: 'We couldn’t start the payment just now. Please try again shortly.' })
     }
     // Save the provider id (status stays 'awaiting' until the webhook confirms paid).
@@ -146,15 +151,17 @@ export async function handler(event, env = {}) {
   } catch (err) {
     console.error('checkout: Stripe call failed', err)
     await markPaymentStatus(env, reference, 'failed')
-    if (reservedHere) await releaseFlashPiece(env, pieceId)
+    if (reservedHere) await releaseFlashPiece(env, pieceId, reference)
     return reply(502, { error: 'We couldn’t start the payment just now. Please try again shortly.' })
   }
 }
 
-// Our payment reference: BSF-<piece-id>-<4 lowercase base36 chars>. A stable id WE
+// Our payment reference: BSF-<piece-id>-<8 lowercase base36 chars>. A stable id WE
 // own (the Stripe pi_… is stored alongside as provider_ref); it's the metadata key
-// the webhook reconciles on and the Stripe idempotency key.
+// the webhook reconciles on, the Stripe idempotency key, and the tie on the claim
+// row. 36⁸ ≈ 2.8 × 10¹² per piece, so collisions are out of the picture (a 4-char
+// suffix was ~1.7M — close enough to worry about silently corrupting the ledger).
 function makeRef(pieceId) {
-  const rand = Math.random().toString(36).slice(2, 6).padEnd(4, '0')
+  const rand = Math.random().toString(36).slice(2, 10).padEnd(8, '0')
   return `BSF-${pieceId}-${rand}`
 }
