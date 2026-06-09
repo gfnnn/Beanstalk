@@ -351,7 +351,7 @@
   box-shadow: 0 0 0 3px rgba(var(--moss-rgb), 0.1);
 }
 .modal-field input::placeholder,
-.modal-field textarea::placeholder { color: var(--ink-faint); }
+.modal-field textarea::placeholder { color: rgba(var(--ink-faint-rgb), 0.6); }
 .modal-field textarea {
   resize: vertical;
   min-height: 80px;
