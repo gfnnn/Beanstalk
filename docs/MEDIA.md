@@ -17,17 +17,38 @@ does, offline, and you commit the output. One master photo →
 | portfolio | `-400 / -800 / -1200` | 3:4 portrait, centre cover-crop | `-800.jpg` | `apps/web/public/images/tattoos/` |
 | flash | `-300 / -600 / -900` | 1:1 centre square | `-600.jpg` | `apps/web/public/images/flash/` |
 
-each in **AVIF + WebP + JPG** (9 files/piece portfolio, 9 flash). The widths MUST
-match the renderer srcset (`portfolio-tiles.js` / `flash-cards.js`) — change them
-together. Every still is auto-rotated from EXIF, **stripped of metadata** (privacy:
-removes GPS/camera), sharpened on downscale, and the script prints each output's
-`w,h` + byte size to paste into the data file.
+Portfolio emits **AVIF + WebP + JPG** at every width (9 files/piece); flash emits
+AVIF + WebP at every width but **JPG only at the -600 base** (7 files/piece — its
+renderer never references the other JPGs). The widths MUST match the renderer
+srcset (`portfolio-tiles.js` / `flash-cards.js`) — change them together (a
+data-integrity test cross-checks every rendered image URL against the files on
+disk, both directions). Every still is auto-rotated from EXIF, **stripped of
+metadata** (privacy: removes GPS/camera), sharpened on downscale, and transparent
+PNGs are flattened onto the palette background for the JPG tier. Encoding is
+**deterministic** (the sharp thread pool is pinned), so re-processing an unchanged
+master re-emits byte-identical files on any machine — no git churn.
 
 > **Masters are pre-framed by the artist.** Every photo is edited and composed for
 > the website *before* it reaches Dropbox — the artist's eye is the final framing
 > step — so the pipeline does **no** automated subject detection or re-centring on
 > the tattoo. The crop is a plain **centre cover-crop** to the lane aspect: it trims
 > a master to 3:4 / 1:1 around the centre and never hunts for the ink.
+
+**Export guidance (for the artist):**
+
+- **Aspect + size.** Export portfolio shots at **3:4 portrait, ≥ 1200×1600 px**
+  (1600×2133+ is ideal); flash at **1:1, ≥ 900×900** (1200×1200+ ideal). The
+  pipeline **refuses to upscale** a smaller master (the tier would ship blurry) —
+  it reports the needed size instead — and **warns when the aspect is off** (the
+  centre crop would shave edges). `--allow-upscale` overrides the size guard for
+  deliberate exceptions.
+- **Spacing.** Keep the tattoo's full extent inside the **central ~75–80%** of the
+  frame — roughly 10–15% clear margin each side, with a little extra at the
+  **bottom on portfolio shots** (the tile's title overlay sits there). Centre the
+  ink to taste within that safe area; the pipeline preserves the framing exactly.
+- **Format: JPG (or PNG).** **Not HEIC** — the prebuilt encoder can't decode
+  iPhone HEICs, so the sync rejects them with a pointer (iPhone: Settings →
+  Camera → Formats → "Most Compatible", or share/export as JPEG).
 
 ```bash
 # one image
@@ -43,20 +64,63 @@ node apps/web/scripts/process-media.mjs --lane portfolio \
 again, e.g. the artist's original 28 portfolio webps that were migrated to tiers
 without re-framing.
 
+## Metadata rides in the filename (the " -- " grammar)
+
+The filter metadata (styles, placement, …) is the artist's call, never inferred
+from the image — the same principle as the framing note above (an earlier
+automated subject-detection crop was removed for exactly this reason: approximate
+isn't acceptable). So a **new** piece declares its metadata **in the master's
+filename**, segments separated by `" -- "`, and the sync validates every token
+**exactly** against the canonical vocabulary in `src/data/taxonomy.js`:
+
+```
+portfolio/        Title -- placement -- style[+style…] -- YYYY-MM-DD [-- subject]
+                  Peacock butterfly -- forearm -- colour+realism -- 2026-05-15.jpg
+
+flash/drop-N/     Title -- <size>in -- £<price> -- <placement options> -- style
+                  Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
+```
+
+- **Validated exactly (the artist's facts):** placement + style tokens (unknown →
+  the file is **rejected** with the valid list spelled out — no fuzzy matching),
+  the date (drives the grid order), flash size/price (price also feeds the
+  Worker's server-side price authority), and the flash **drop number — declared
+  by the `drop-N` folder** the master sits in (a new flash master loose in
+  `flash/` is rejected).
+- **Defaulted (decorative/copy only, all reviewable in the PR):** `tone`/`glyph`
+  (placeholder swatch, invisible once the photo is in), the flash `status`
+  (`available`), and the portfolio `subject` (alt-text copy — defaults to the
+  title; add the optional 5th segment to write it properly, e.g.
+  `… -- 2026-05-15 -- a peacock butterfly and carnations.jpg`).
+- **A rejected file never aborts the run** — the rest sync normally and every
+  reject is listed (in the console / the workflow summary / the PR body) with the
+  exact fix to make in Dropbox. `--dry-run` parses and validates names without
+  touching anything — the cheap way to check a batch before syncing.
+- The **title** becomes the slug/id (`"Peacock butterfly"` → `peacock-butterfly`)
+  and must be unique; a master whose slug **already has a data entry** just
+  refreshes its tiers (its filename needs no metadata; the data file is the
+  source of truth once the entry exists — retune styles/copy there).
+
 ## Collecting masters from Dropbox (automated)
 
 The masters live off-repo in **Dropbox** (only the generated tiers are committed —
 re-deriving them needs the masters, kept in Dropbox and fetched by this script).
 **`apps/web/scripts/sync-dropbox-media.mjs`** (`npm run media:dropbox`) automates the
-*fetch* half of the workflow: it lists a Dropbox folder, downloads the masters
-(incrementally — it skips anything whose content hash hasn't changed), and runs each
-one through **the exact same `process-media.mjs` pipeline** (centre cover-crop,
-encode, report). So the artist just drops new (already-framed) photos into the shared
-Dropbox folder and a single command turns them into committable tiers.
+whole journey: it lists a Dropbox folder, downloads the masters (incrementally — it
+skips anything whose content hash hasn't changed, retries transient 429/5xx with
+backoff), **parses + validates each new master's filename metadata** (the grammar
+above; invalid files are rejected and reported, never aborting the run), and runs
+each one through **the exact same `process-media.mjs` pipeline** (centre cover-crop,
+encode, report). With **`--write-data`** it also inserts the new pieces' complete
+entries into `src/data/pieces.js` / `flash.js` (keeping pieces.js newest-first);
+without it, it prints the ready-to-paste entry lines. `--summary <file>` writes a
+markdown run summary (new / refreshed / rejected) — what the workflow uses as the
+PR body. So the artist drops named, framed photos into Dropbox and one command (or
+one button) turns them into a complete, test-gated commit.
 
 It is **offline dev/CI tooling**, like `process-media.mjs` itself: the live static
-site and the Worker never call Dropbox. You still review the emitted tiers, paste the
-printed `w,h` into `src/data/{pieces,flash}.js`, and commit the data + image files.
+site and the Worker never call Dropbox. You still review the result — `npm test`
+gates the tokens/order/tier-files, and the photos get eyeballed on staging.
 
 > **A Claude-web session can't run it.** The Dropbox API hosts
 > (`api.dropboxapi.com` / `content.dropboxapi.com`) are blocked by the sandbox
@@ -69,14 +133,18 @@ override with `DROPBOX_MEDIA_PATH` or `--remote-base`), keep a subfolder per lan
 
 ```
 /Beansprout/masters/
-  portfolio/   Koi Sleeve.jpg     → slug "koi-sleeve"  → public/images/tattoos/
-  flash/       Moth.jpg           → slug "moth"        → public/images/flash/
+  portfolio/   Koi -- forearm -- colour+realism -- 2025-09-11.jpg
+                          → slug "koi" → public/images/tattoos/ + a pieces.js entry
+  flash/
+    drop-13/   Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
+                          → id "luna-moth", drop 13 → public/images/flash/ + a flash.js entry
 ```
 
-The **filename (minus extension) becomes the piece `slug`** (de-accented, lowercased,
-hyphenated) — so name the files deliberately; a collision (two files → the same slug)
-is a hard error. `.jpg/.jpeg/.png/.webp/.tif/.tiff/.heic/.heif/.avif` are picked up;
-anything else in the folder is ignored.
+The **title segment becomes the piece `slug`/`id`** (de-accented, lowercased,
+hyphenated) — name deliberately; a collision (two files → the same slug) rejects the
+second file. `.jpg/.jpeg/.png/.webp/.tif/.tiff/.avif` are picked up; `.heic/.heif`
+are **rejected with guidance** (sharp's prebuilt binary can't decode HEVC); anything
+else in the folder is ignored.
 
 **One-time Dropbox setup** (the artist or you, once):
 
@@ -96,23 +164,28 @@ anything else in the folder is ignored.
 **Run it** (from the repo root so `.env` is picked up automatically):
 
 ```bash
-npm run media:dropbox -- --lane portfolio      # one lane
-npm run media:dropbox -- --all                 # both lanes
-npm run media:dropbox -- --lane flash --dry-run # preview the fetch+slug mapping, touch nothing
+npm run media:dropbox -- --lane portfolio --write-data  # one lane, entries written for you
+npm run media:dropbox -- --all --write-data             # both lanes
+npm run media:dropbox -- --lane flash --dry-run         # validate names + preview the fetch, touch nothing
 ```
 
 Downloads are cached under `apps/web/.dropbox-cache/` (gitignored) so re-runs only pull
 changed masters; `--force` re-downloads everything.
 
-**Or run it hosted — the "Run sync" button (no laptop needed).** The same fetch +
-process runs in GitHub Actions via **`.github/workflows/media-sync.yml`** (*Dropbox media
-sync*): **Actions → Dropbox media sync → Run workflow**, pick a lane
+**Or run it hosted — the "Run sync" button (no laptop needed).** The full journey runs
+in GitHub Actions via **`.github/workflows/media-sync.yml`** (*Dropbox media sync*):
+**Actions → Dropbox media sync → Run workflow**, pick a lane
 (`all` / `portfolio` / `flash`) and optionally `dry_run` / `force`. It runs
-`npm run media:dropbox`, commits any new tiers under `apps/web/public/images`, and opens a
-PR against `develop` with the `w`/`h` report to paste into `pieces.js` / `flash.js` (the
-same manual data step as the local run). It's **`workflow_dispatch`-only** — a collaborator
-clicks the button, never an automatic trigger. One-time setup, in **repo → Settings →
-Secrets and variables → Actions**, is the durable refresh-token flow above as secrets:
+`npm run media:dropbox -- --write-data`, regenerates the Worker's flash price authority
+(`sync:prices`), runs the **full gate itself** — `npm test` + `npm run lint` +
+`npm run build` — because a bot-opened PR triggers no CI of its own, then commits the
+tiers **and** the data files and opens a PR against `develop` whose body is the run
+summary (new pieces with their written entries, refreshed tiers, and any **rejected
+filenames with the exact fix**). Nothing left to paste — review the diff, merge, check
+the photos on staging. It's **`workflow_dispatch`-only** — a collaborator clicks the
+button, never an automatic trigger — and it refuses to run while a previous sync PR is
+still open (no duplicate-PR churn). One-time setup, in **repo → Settings → Secrets and
+variables → Actions**, is the durable refresh-token flow above as secrets:
 `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` (omit only for a PKCE app), `DROPBOX_REFRESH_TOKEN`,
 plus the optional `DROPBOX_MEDIA_PATH` **variable** (defaults to `/Beansprout/masters`).
 
@@ -125,14 +198,18 @@ before upload** rather than relying on the pipeline to find the subject — it w
 
 ## Adding / re-cropping a portfolio piece
 
+The Dropbox sync does all of this from a named master (tiers + the data entry) —
+the steps below are the same thing done by hand, for a one-off without Dropbox:
+
 1. Process the master → 9 tier files land in `public/images/tattoos/`.
 2. Add/extend the `src/data/pieces.js` entry: `img` = the no-extension base path
    (`/images/tattoos/<slug>`), `w`/`h` from the script's printout (3:4 → 800×1067),
    plus `slug` (unique), `title`, `subject`, `styles[]`, `placement`, `date`, `tone`,
    `glyph`. Keep the array **newest-first by `date`** (a data-integrity test enforces
-   it) and tokens valid (styles: `fine-line · high-detail · realism · black-grey ·
-   colour · dotwork · cybersigilism · script` — real execution styles, not subjects;
-   the header comment in `pieces.js` is the canonical list).
+   it) and tokens valid against **`src/data/taxonomy.js`** (the canonical style/
+   placement vocabulary — real execution styles, not subjects). The same test suite
+   verifies every referenced tier file exists on disk and that no tier file is
+   orphaned, so a typo'd path can't ship a silent 404.
 3. `npm run build`, eyeball the portfolio, commit the data file + the tier files.
 
 To **re-frame** an existing piece, re-edit the master, re-run the processor, and

@@ -18,7 +18,7 @@
 // filterable on the page (a labelled-but-chipless token would render fine and be
 // silently unreachable through the filter bar — the drift CLAUDE.md warns about).
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
@@ -26,8 +26,11 @@ import {
   GLYPHS as PORTFOLIO_GLYPHS_MAP,
   STYLE_LABELS,
   PLACEMENT_LABELS,
+  renderPortfolioTiles,
 } from '../src/build/portfolio-tiles.js'
-import { GLYPHS as FLASH_GLYPHS_MAP, STATUS } from '../src/build/flash-cards.js'
+import { GLYPHS as FLASH_GLYPHS_MAP, STATUS, renderFlashCards } from '../src/build/flash-cards.js'
+import { renderPiecePage, piecePagesData } from '../src/build/piece-page.js'
+import { renderSpecialisms } from '../src/build/specialisms.js'
 import { homepage } from '../src/data/homepage.js'
 
 // Mirrors the tone tokens with CSS rules: .status-pill.{moss|clay|faint} in
@@ -122,6 +125,77 @@ describe('flash data (flash.js)', () => {
     if (f.img) {
       expect(typeof f.w, 'width').toBe('number')
       expect(typeof f.h, 'height').toBe('number')
+    }
+  })
+})
+
+// Slugs/ids become URL segments, sitemap <loc>s and tier-file basenames — all
+// contexts that nothing escapes (deliberately: the sync derives them via
+// slugify(), which can only emit this shape). Guard hand-edits to the same shape.
+describe('slug / id format', () => {
+  it.each(pieces)('piece $slug slug is url-safe', (p) => {
+    expect(p.slug).toMatch(/^[a-z0-9-]+$/)
+  })
+  it.each(flash)('flash $id id is url-safe', (f) => {
+    expect(f.id).toMatch(/^[a-z0-9-]+$/)
+  })
+})
+
+// The image contract, both directions. A data entry whose img points at missing
+// tier files ships silent production 404s (the build can't catch it — tiers are
+// plain public/ strings — and the E2E console sweep deliberately tolerates
+// failed image loads); a tier set on disk with no data entry is invisible dead
+// weight (a synced master whose entry was never added). Either way THIS is the
+// net that catches it, in CI, before a merge.
+describe('image tiers ↔ data files', () => {
+  const publicDir = sub => fileURLToPath(new URL(`../public/images/${sub}`, import.meta.url))
+
+  // Every /images/… URL the renderers actually emit for the current data —
+  // src/srcset/data-full attributes plus og:image content — must exist on disk.
+  // Derived from the real rendered markup, so a renderer tier change (e.g. new
+  // widths) is covered automatically without a second list to maintain.
+  const referencedPaths = () => {
+    const html = [
+      renderPortfolioTiles(pieces),
+      renderFlashCards(flash),
+      renderSpecialisms(pieces, homepage.specialisms),
+      ...piecePagesData(pieces).map(({ piece, prev, next }) => renderPiecePage(piece, { prev, next })),
+    ].join('\n')
+    const urls = new Set()
+    for (const [, v] of html.matchAll(/(?:src|data-full)="([^"]+)"/g)) {
+      if (v.startsWith('/images/')) urls.add(v)
+    }
+    for (const [, set] of html.matchAll(/srcset="([^"]+)"/g)) {
+      set.split(',').forEach(part => {
+        const url = part.trim().split(/\s+/)[0]
+        if (url.startsWith('/images/')) urls.add(url)
+      })
+    }
+    for (const [, v] of html.matchAll(/content="[^"]*?(\/images\/[^"]+)"/g)) urls.add(v)
+    return urls
+  }
+
+  it('every image URL the renderers emit resolves to a committed file', () => {
+    const urls = referencedPaths()
+    expect(urls.size).toBeGreaterThan(0) // the extraction itself works
+    const missing = [...urls].filter(u =>
+      !existsSync(fileURLToPath(new URL(`../public${u}`, import.meta.url))))
+    expect(missing, `data references image files that don't exist:\n  ${missing.join('\n  ')}`).toEqual([])
+  })
+
+  it('no orphaned tier files (every committed tier belongs to a data entry)', () => {
+    const referencedBases = {
+      tattoos: new Set(pieces.filter(p => p.img).map(p => p.img.split('/').pop())),
+      flash:   new Set(flash.filter(f => f.img).map(f => f.img.split('/').pop())),
+    }
+    for (const [sub, bases] of Object.entries(referencedBases)) {
+      const files = readdirSync(publicDir(sub)).filter(f => !f.startsWith('.'))
+      const orphans = files.filter(f => {
+        const m = f.match(/^(.+)-\d+\.(?:avif|webp|jpg)$/)
+        const base = m ? m[1] : f.replace(/\.[^.]+$/, '') // tier file vs single export
+        return !bases.has(base) && !bases.has(f) // single exports are referenced with extension
+      })
+      expect(orphans, `public/images/${sub} has files no data entry references:\n  ${orphans.join('\n  ')}`).toEqual([])
     }
   })
 })
