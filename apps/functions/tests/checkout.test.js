@@ -117,7 +117,7 @@ describe('checkout handler — happy path', () => {
     expect(res.statusCode).toBe(200)
     const out = json(res)
     expect(out.clientSecret).toBe('pi_123_secret_abc')
-    expect(out.reference).toMatch(/^BSF-flash-01-[a-z0-9]{4}$/)
+    expect(out.reference).toMatch(/^BSF-flash-01-[a-z0-9]{8}$/)
     expect(out.amount).toBe(PRICE)
 
     // Piece reserved as pending, with a hold expiry in the future.

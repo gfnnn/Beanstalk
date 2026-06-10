@@ -492,6 +492,22 @@ describe('renderPiecePage', () => {
     expect(html).toContain('href="/portfolio/luna-moth/"')      // prev link
     expect(html).toContain('piece-pager-link is-empty')          // empty next slot
   })
+
+  it('escapes "<" in the JSON-LD block (a title cannot terminate the script element)', () => {
+    const hostile = { ...withImage, title: 'Fine line </script><img src=x onerror=alert(1)> study' }
+    const html = renderPiecePage(hostile)
+    const ld = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]
+    expect(ld).not.toContain('</script>')                 // can't break out of the element
+    expect(ld).toContain('\\u003c/script>')               // <-escaped instead
+    expect(JSON.parse(ld).itemListElement[2].name).toBe(hostile.title) // still valid JSON, value intact
+  })
+
+  it('escapes the img base path in srcset like the src attribute (no half-escaped output)', () => {
+    const odd = { ...withImage, img: '/images/tattoos/mouse&hare' }
+    const html = renderPiecePage(odd)
+    expect(html).toContain('srcset="/images/tattoos/mouse&amp;hare-400.avif 400w')
+    expect(html).not.toMatch(/srcset="[^"]*mouse&hare/) // raw & never reaches an attribute
+  })
 })
 
 describe('renderTestimonials', () => {

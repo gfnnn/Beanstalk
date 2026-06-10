@@ -311,9 +311,11 @@ export function initFlash() {
   // Recomputes the focusable bounds each Tab so it tracks the modal's live contents.
   overlay.addEventListener('keydown', e => {
     if (overlay.hidden || e.key !== 'Tab') return
-    const focusable = overlay.querySelectorAll(
+    // Disabled controls can't take focus — including them in the trap's bounds
+    // would let Tab escape the modal when a wrap lands on one.
+    const focusable = [...overlay.querySelectorAll(
       'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
-    )
+    )].filter(el => !el.disabled)
     if (!focusable.length) return
     const first = focusable[0]
     const last  = focusable[focusable.length - 1]

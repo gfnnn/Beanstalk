@@ -27,6 +27,9 @@ const AUDIENCE_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 // CONSENT_VERSION whenever this wording (or the privacy policy it points at)
 // changes — keep it in step with the label in apps/web/newsletter/index.html and
 // src/build/newsletter-inline.js.
+// No images here — a signup body is tiny. Same guard shape as checkout's.
+const MAX_BODY_BYTES = 64 * 1024
+
 const CONSENT_VERSION   = '2026-06'
 const CONSENT_STATEMENT =
   'I’d like to receive emails from Beansprout and agree to the privacy policy.'
@@ -45,6 +48,12 @@ export async function handler(event, env = {}) {
       RESEND_AUDIENCE_ID: !RESEND_AUDIENCE_ID ? 'missing' : (AUDIENCE_ID_RE.test(RESEND_AUDIENCE_ID) ? 'ok' : 'malformed'),
     })
     return reply(500, { error: 'Signups aren’t configured yet. Please email us to be added in the meantime.' })
+  }
+
+  // Reject an oversized body before parsing it — consistency with the other
+  // POST handlers (enquiry 6 MB, checkout 64 KB); a cheap parse-bomb guard.
+  if (typeof event.body === 'string' && event.body.length > MAX_BODY_BYTES) {
+    return reply(413, { error: 'Your request is too large.' })
   }
 
   let payload

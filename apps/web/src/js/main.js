@@ -12,6 +12,7 @@ import { initNewsletter } from './modules/newsletter.js'
 import { initMedia } from './modules/media.js'
 import { initAnalytics } from './modules/analytics.js'
 import { initPageLoader, pageReady } from './modules/loader.js'
+import { initMobileCta } from './modules/cta.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 0a. Manage the full-page preloader (#page-loader): cover the cold first load
@@ -70,11 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
   //      inline from their own modules). No-op until a provider is configured.
   initAnalytics()
 
-  // 11. Mobile sticky CTA — shown on inner pages on small screens
-  const mobileCta = document.getElementById('mobile-cta')
-  const hero      = document.querySelector('.hero')
-  if (mobileCta && !hero && window.innerWidth < 640) {
-    mobileCta.classList.add('visible')
-    mobileCta.setAttribute('aria-hidden', 'false')
-  }
+  // 11. Mobile sticky CTA — homepage: appears after the hero scrolls out;
+  //     inner pages: shown immediately on small screens. A functional control,
+  //     not motion — see modules/cta.js (never reduced-motion gated).
+  initMobileCta()
 })

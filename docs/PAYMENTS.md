@@ -112,7 +112,7 @@ Abandoned/unpaid → payment_intent.canceled + 48h stale-release frees the piece
 The executable plan. Steps 1–3 & 5 are **shipped dark**; step 4 (frontend) is the one remaining
 slice. Decisions locked with the studio (2026-06): in-flow embedded on-site, flash-only for now,
 flash = full payment, one Stripe integration carries every method, server-side amount authority,
-reference format `BSF-<piece-id>-<4char>`, stale-pending window 48h (PaymentIntent expires ~30
+reference format `BSF-<piece-id>-<8char>`, stale-pending window 48h (PaymentIntent expires ~30
 min), staging-only until the apex cutover (no `apps/web/public/CNAME` — guardrail in `CLAUDE.md`),
 test-mode keys first behind `PAYMENTS_ENABLED`.
 
@@ -128,42 +128,16 @@ test-mode keys first behind `PAYMENTS_ENABLED`.
 
 ## 6. Server side (shipped)
 
-### 6.1 Data model — migration `0002_payments.sql`
+### 6.1 Data model — migrations `0002_payments.sql` + `0003_claim_refs.sql`
 
-Same numbered-SQL pattern as `0001_init.sql`; **purely additive**, only needed when payments go on.
-
-```sql
--- Payments ledger — one row per checkout attempt; the system of record for money.
-CREATE TABLE IF NOT EXISTS payments (
-  id            TEXT PRIMARY KEY,          -- our ref, e.g. BSF-flash-01-a1b2
-  kind          TEXT NOT NULL,             -- 'flash' | 'deposit'
-  status        TEXT NOT NULL,             -- 'awaiting' | 'paid' | 'failed' | 'expired' | 'refunded'
-  provider      TEXT NOT NULL DEFAULT 'stripe',
-  provider_ref  TEXT,                      -- stripe session id (cs_…), then payment_intent (pi_…)
-  amount_pence  INTEGER NOT NULL,
-  currency      TEXT NOT NULL DEFAULT 'gbp',
-  email         TEXT,
-  piece_id      TEXT,                      -- flash piece (NULL for a custom deposit)
-  submission_id TEXT,                      -- links to submissions.id
-  created_at    TEXT NOT NULL,
-  paid_at       TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_payments_provider_ref ON payments(provider_ref);
-CREATE INDEX IF NOT EXISTS idx_payments_status       ON payments(status);
-
--- Webhook idempotency — Stripe re-delivers; process each event id once.
-CREATE TABLE IF NOT EXISTS webhook_events (
-  id          TEXT PRIMARY KEY,            -- stripe event id (evt_…)
-  type        TEXT,
-  received_at TEXT NOT NULL
-);
-
--- Stale-pending release: when an unpaid reserve should auto-free.
-ALTER TABLE flash_claims ADD COLUMN expires_at TEXT;
-```
-
-Apply with `wrangler d1 migrations apply beansprout`. `flash_claims` keeps its `pending`/`claimed`
-semantics; payment detail lives in `payments`, joined on `piece_id`/`submission_id`.
+See the migration files — their comments document every column. Both are **purely additive**
+(same numbered-SQL pattern as `0001_init.sql`), only needed when payments go on; apply with
+`wrangler d1 migrations apply beansprout`. **`0002`** adds the `payments` ledger (one row per
+checkout attempt — the system of record for money), the `webhook_events` idempotency table, and
+`flash_claims.expires_at` for the 48h stale-pending release. **`0003`** adds
+`flash_claims.payment_ref`, tying each hold to the payment that created it (the §6.4a fix).
+`flash_claims` keeps its `pending`/`claimed` semantics; payment detail lives in `payments`,
+joined on `piece_id`/`submission_id`.
 
 ### 6.2 Server-side price authority (must-not-skip)
 
@@ -172,80 +146,72 @@ truth, but the Worker can't import across workspaces without coupling the two de
 `apps/functions/scripts/sync-flash-prices.mjs` reads `apps/web/src/data/flash.js` (pure data) and
 writes a committed `apps/functions/src/data/flash-prices.json` (`{ "flash-01": 18000, … }`,
 **pence**). The Worker imports that JSON and looks the price up by `piece_id`; an unknown id →
-`400`. Run `npm run sync:prices` whenever a drop's prices change and **commit** the regenerated
+`404`. Run `npm run sync:prices` whenever a drop's prices change and **commit** the regenerated
 JSON; a CI drift guard fails if the manifest and `flash.js` disagree.
 
 ### 6.3 Worker routes & handlers
 
-`src/index.js` `ROUTES` adds:
-```js
-'/checkout':        checkout,        // POST  create a PaymentIntent (returns client_secret)
-'/webhooks/stripe': stripeWebhook,   // POST  Stripe → us (no CORS, raw body)
-```
+`src/index.js` routes `/checkout` and `/webhooks/stripe` to two shipped handlers. **The header
+comment in each file is the contract** — this section keeps only the cross-route invariants
+neither file can state alone.
 
-**`src/handlers/checkout.js`** (mirrors `enquiry.js`): OPTIONS/POST + `corsFor`/`replyWith`;
-env-guard `STRIPE_SECRET_KEY`; `PAYMENTS_ENABLED` guard → 503; parse
-`{ kind:'flash', piece_id, fields:{ name, email, placement } }`; `clampFields`; honeypot;
-validate required + `EMAIL_RE`; **rate-limit** (`storeName:'checkout-rate'`) before any Stripe
-call; price lookup from the manifest (§6.2, reject unknown/zero); `reserveFlashPiece` → `409` if
-taken, set `expires_at = now + 48h`; `persistSubmission` + insert a `payments` row
-(`status:'awaiting'`, the `BSF-…` ref as id); create the PaymentIntent (REST, **idempotency-keyed
-on our reference**):
+- **`src/handlers/checkout.js`** — POST opens a flash payment: validate → rate-limit →
+  server-side price lookup (§6.2) → reserve the piece (48h hold) → write an `awaiting`
+  `payments` row → create the Stripe PaymentIntent (REST, no SDK) → return
+  `{ clientSecret, reference, amount, currency }`; rolls back on a Stripe failure so an error
+  never strands a one-of-a-kind piece.
+- **`src/handlers/stripe-webhook.js`** — POST is Stripe's out-of-band confirmation and the
+  **source of truth for "did they pay"** (not the browser's return): verify the signature
+  (Web-Crypto HMAC, `src/lib/stripe.js`), dedupe by event id, then promote/mark/email on
+  `succeeded`, or expire/release on `canceled`.
 
-```js
-const body = new URLSearchParams()
-body.set('amount', String(pricePence))                  // server-side authority (§6.2)
-body.set('currency', 'gbp')
-body.set('automatic_payment_methods[enabled]', 'true')  // card + Klarna + PayPal (per dashboard)
-body.set('receipt_email', email)
-body.set('metadata[kind]', 'flash')
-body.set('metadata[piece_id]', piece_id)
-body.set('metadata[payment_ref]', paymentRef)
-const res = await fetch('https://api.stripe.com/v1/payment_intents', {
-  method: 'POST',
-  headers: {
-    Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Idempotency-Key': paymentRef,
-  },
-  body,
-})
-```
+The cross-route invariants:
 
-Store `intent.id` (`pi_…`) on the payment row; reply
-`{ clientSecret, reference, amount, currency:'gbp' }`. **Failure rollback** mirrors `enquiry.js`:
-on `!res.ok`/no `client_secret`, `releaseFlashPiece` + mark the payment `failed`, return `502`.
+- **The `BSF-<piece-id>-<8char>` reference is the spine.** Minted by checkout, it is the
+  `payments` row id, the Stripe idempotency key, the `metadata[reference]` the webhook
+  reconciles on, **and the tie on the claim row** (`0003`) — so the webhook can only ever
+  release/promote *its own* hold, never a newer customer's hold on the same piece.
+- **Amounts flow one way.** Checkout sets the amount from the manifest (§6.2); the webhook
+  re-checks the intent's amount against the recorded row before promoting.
+- **Record-after-processing → Stripe redelivers.** The webhook records the event id only after
+  durable progress; if nothing stuck it replies 500 and Stripe's at-least-once redelivery is
+  the recovery path (every step is idempotent, so reprocessing can't double-promote).
+- **`promoteFlashClaim` is an upsert**, so a payment completed after the 48h hold was swept
+  still ends `claimed` — a verified payment can never leave the piece silently relisted.
+- Phase 1 writes no `submissions` row, so `payments.submission_id` stays NULL until the
+  custom-deposit phase needs the join.
 
-**`src/handlers/stripe-webhook.js`**: POST only; use the **raw** `event.body` (the `toEvent`
-adapter hands us the untouched string — do **not** re-`JSON.stringify`) + the `stripe-signature`
-header. **Verify with Web Crypto** (`src/lib/stripe.js`): split `t=`/`v1=`, recompute
-`HMAC-SHA256(secret, "${t}.${rawBody}")`, compare, reject a stale timestamp → bad signature
-`400`. **Idempotency:** `INSERT … ON CONFLICT DO NOTHING` into `webhook_events`; no row changed =
-replay → `200` stop. On **`payment_intent.succeeded`**: read metadata, **re-check the amount**,
-`promoteFlashClaim` (pending→claimed, idempotent), mark `payments` `paid` + `paid_at` + the
-`pi_…`, send the two emails (§6.5). On **`payment_intent.canceled`**: mark `expired` +
-`releaseFlashPiece`. Other types → `200` ignore. Return `200` quickly, never throw to Stripe; no
-CORS (server-to-server) — just `SECURITY_HEADERS`.
-
-**`src/lib/db.js`** helpers (all fail-safe): `recordPayment`, `getPayment`, `markPaymentStatus`,
-`promoteFlashClaim`, `expirePendingClaims(now)`, `recordWebhookEvent`, plus `reserveFlashPiece`
-hold-expiry.
+The D1 helpers behind both (payments ledger, flash inventory + hold expiry, webhook
+idempotency, rate limit) live in **`src/lib/db.js`** — all fail-safe, each documented at its
+definition.
 
 ### 6.4 Stale-pending release (shipped)
 
 - **Lazy (shipped):** `expirePendingClaims(now)` runs at the top of `getFlashClaims` (the
   `flash-status` read on every grid load), so an abandoned reserve frees itself the next time
   anyone views `/flash/` — no cron.
-- **Belt-and-braces (optional):** a Cloudflare **Cron Trigger**
-  (`[triggers] crons = ["*/30 * * * *"]` + a `scheduled()` export) calling the same function. Add
+- **Belt-and-braces (optional):** a Cloudflare **Cron Trigger** calling the same function. Add
   when convenient; the lazy path covers the common case.
 
-### 6.5 Emails (Resend) — reuse the enquiry pattern
+### 6.4a Review hardening (June 2026 — shipped) + one operational note
 
-Same `fetch('https://api.resend.com/emails', …)` call as `enquiry.js`. **Customer receipt** —
-"Your flash piece is booked", piece + amount + reference + what happens next (the in-person
-session). **Artist notification** — "Flash <piece> PAID by <name>", contact + placement +
-reference. Best-effort; the Resend secrets are the existing ones.
+The June 2026 review's webhook/hold gaps are **closed in code** (all unit-tested):
+migration **`0003_claim_refs.sql`** ties each hold to the payment that created it, so a
+delayed `canceled` can only release **its own** hold; the webhook **records the event id
+only after durable progress** (a transient D1 outage gets a `500` → Stripe redelivers; the
+idempotent steps make reprocessing safe); `promoteFlashClaim` is an **upsert** (a payment
+completed after the hold was swept still ends `claimed`); and the reference is 8 chars
+(36⁸ — collisions out of the picture, and `recordPayment` reports a real write).
+
+**Operational note (still true):** toggling `PAYMENTS_ENABLED` *off* strands any live 48h
+holds — the lazy sweep in `getFlashClaims` is gated on the flag. Leave the flag on ~48h
+after the last checkout, or clear lapsed `pending` rows manually in the D1 console.
+
+### 6.5 Emails (Resend) — shipped
+
+Sent best-effort from the webhook on `succeeded` — a customer receipt and an artist
+"Flash paid" notice, same Resend call and secrets as `enquiry.js`. See
+`src/handlers/stripe-webhook.js` (the email templates live there).
 
 ## 7. Frontend — the embedded Payment Element (step 4, the one remaining slice)
 
@@ -299,11 +265,10 @@ optimistic-but-honest and the grid catches up via the `flash-status` overlay.
 
 ## 8. Tests & build sequence
 
-**Tests.** *Functions* (Vitest + `fake-d1`, mock `fetch` to Stripe/Resend): `checkout`
-(validation, unknown-piece `400`, reserve `409`, happy path writes an `awaiting` payment + returns
-a `client_secret`, rollback on Stripe failure); `stripe-webhook` (valid vs **bad signature** `400`,
-**replay** dedupe, promotion pending→claimed + payment `paid` + emails fired, unknown event
-ignored, fail-safe on DB error). *Web (jsdom)*: flash submit — **payments off** unchanged; **on**
+**Tests.** *Functions* — the shipped backbone is unit-tested (Vitest + `fake-d1`, `fetch` to
+Stripe/Resend mocked): see `apps/functions/tests/checkout.test.js`, `stripe-webhook.test.js`
+and `payments.test.js`. Still to write with step 4 —
+*Web (jsdom)*: flash submit — **payments off** unchanged; **on**
 POST `/checkout` with `piece_id`, **stub `window.Stripe`**, assert the Element mounts + the
 confirmation panel; `409`/`503` branches. *E2E (Playwright — the real gate)*: a payments-on build
 that **stubs both** `**/checkout` and `js.stripe.com` (never hit real Stripe) — open modal →
@@ -492,7 +457,7 @@ not a later swap.)*
 4. **Klarna on flash from day one** (cheap via Stripe), or hold it back?
 
 Resolved (no longer open): PayPal scope (ships with step 4 as a native Stripe method, no separate
-integration — June 2026); reference format & stale window (`BSF-<piece>-<4char>` / 48h, as built).
+integration — June 2026); reference format & stale window (`BSF-<piece>-<8char>` / 48h, as built).
 None of the open items block step 4.
 
 ## 14. Superseded — the original manual-links plan

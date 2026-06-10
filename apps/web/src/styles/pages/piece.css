@@ -72,13 +72,6 @@
   border-radius: 999px;
   padding: 5px 12px;
 }
-.piece-note {
-  font-size: clamp(15px, 1.7vw, 17px);
-  line-height: 1.65;
-  color: var(--ink-soft);
-  max-width: 460px;
-  margin-bottom: 28px;
-}
 .piece-actions {
   display: flex;
   flex-wrap: wrap;

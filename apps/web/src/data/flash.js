@@ -7,8 +7,12 @@
 // flash/index.html. Mirrors the portfolio's src/data/pieces.js setup.
 //
 // PER-CARD FIELDS
-//   id          Stable identifier (also the slug for a future detail page)
-//   title       Piece name shown on the card + used as the claim key      (COPY)
+//   id          Stable identifier (also the slug for a future detail page). THE
+//               CLAIM KEY: the Worker reserves a piece by this id (D1 keys on it,
+//               and sold claims outlive this file) — NEVER reuse an id from any
+//               past drop, or the old claim resurrects onto the new piece. The
+//               Dropbox sync derives it from the master's title (slugified).
+//   title       Piece name shown on the card                              (COPY)
 //   specs       "<size> · <placement options> · <style>" caption line      (COPY)
 //   price       Number (pounds). Renders as £<price>; also the data-price
 //               sort key and the claim button's £<price>.

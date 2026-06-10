@@ -196,6 +196,24 @@ describe('initFilter', () => {
     ).toBe(true)
   })
 
+  it('clears via the keyboard (Enter / Space) on the clear control', () => {
+    setup([
+      { style: 'fine-line', placement: 'forearm', shown: 'true' },
+      { style: 'blackwork', placement: 'wrist', shown: 'true' },
+    ])
+    initFilter()
+    click(document.querySelector('.chip[data-filter="blackwork"]'))
+    expect(visible()).toHaveLength(1)
+    const clear = document.getElementById('filter-clear')
+    clear.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    expect(visible()).toHaveLength(2)
+    clear.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'x', bubbles: true })) // ignored
+    expect(visible()).toHaveLength(2)
+    expect(
+      document.querySelector('.chip[data-filter="all"]').classList.contains('active'),
+    ).toBe(true)
+  })
+
   it('exposes applyFilters so load-more can re-filter newly revealed tiles', () => {
     setup([{ style: 'fine-line', placement: 'forearm' }])
     const api = initFilter()

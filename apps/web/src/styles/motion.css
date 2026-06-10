@@ -75,7 +75,6 @@
     /* Grid tiles / cards that enter on first scroll (top rows can be on-screen) */
     .portfolio-grid .tile,
     .masonry-tile,
-    .gallery--masonry .tile,
     .specialism-card,
     .process-step,
     .testimonial,

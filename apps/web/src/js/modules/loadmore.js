@@ -34,7 +34,16 @@ export function initLoadMore() {
   function updateUI() {
     if (showingCount) showingCount.textContent = shownCount
     if (totalCount)   totalCount.textContent   = total
-    if (progressFill) progressFill.style.width = `${total ? (shownCount / total) * 100 : 0}%`
+    if (progressFill) {
+      progressFill.style.width = `${total ? (shownCount / total) * 100 : 0}%`
+      // Keep the progressbar's ARIA in step with the visual fill (the markup
+      // ships placeholder values; the catalogue size is only known here).
+      const bar = progressFill.closest('[role="progressbar"]')
+      if (bar) {
+        bar.setAttribute('aria-valuenow', shownCount)
+        bar.setAttribute('aria-valuemax', total)
+      }
+    }
     if (loadMoreSection) {
       loadMoreSection.style.display = shownCount >= total ? 'none' : ''
     }
