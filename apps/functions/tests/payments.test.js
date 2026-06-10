@@ -87,8 +87,13 @@ describe('promoteFlashClaim', () => {
     expect(await promoteFlashClaim(e, 'flash-01')).toBe(false)     // re-delivered webhook = no-op
   })
 
-  it('is a no-op on a piece that was never reserved', async () => {
-    expect(await promoteFlashClaim({ DB: makeD1().DB }, 'ghost')).toBe(false)
+  it('claims a piece even when its hold was already swept (paid is paid)', async () => {
+    // A customer can complete a PaymentIntent after the 48h hold lapsed and the
+    // sweep deleted the pending row; the verified payment must still end with
+    // the piece marked claimed, never silently back on sale.
+    const d1 = makeD1()
+    expect(await promoteFlashClaim({ DB: d1.DB }, 'ghost')).toBe(true)
+    expect(flashMap(d1.data)).toEqual({ ghost: 'claimed' })
   })
 
   it('fails safe when the DB is down', async () => {

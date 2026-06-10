@@ -1,0 +1,11 @@
+-- 0003_claim_refs.sql — tie a flash hold to the payment that created it.
+--
+-- Closes the cross-customer release gap (PAYMENTS.md §6.4a): a delayed
+-- payment_intent.canceled from checkout A could previously release customer B's
+-- live hold on the same piece, because releaseFlashPiece matched on piece_id
+-- alone. With the creating payment's reference stored on the claim row, a
+-- webhook release only ever touches its own hold, and a promoted (sold) row
+-- records which payment claimed it — useful for the artist dashboard later.
+--
+-- NULL for holds that no payment created (the legacy claim-by-enquiry path).
+ALTER TABLE flash_claims ADD COLUMN payment_ref TEXT;

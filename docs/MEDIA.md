@@ -130,8 +130,9 @@ before upload** rather than relying on the pipeline to find the subject — it w
    (`/images/tattoos/<slug>`), `w`/`h` from the script's printout (3:4 → 800×1067),
    plus `slug` (unique), `title`, `subject`, `styles[]`, `placement`, `date`, `tone`,
    `glyph`. Keep the array **newest-first by `date`** (a data-integrity test enforces
-   it) and tokens valid (styles: `fine-line · black-grey · colour · dotwork ·
-   cybersigilism · script` — real execution styles, not subjects).
+   it) and tokens valid (styles: `fine-line · high-detail · realism · black-grey ·
+   colour · dotwork · cybersigilism · script` — real execution styles, not subjects;
+   the header comment in `pieces.js` is the canonical list).
 3. `npm run build`, eyeball the portfolio, commit the data file + the tier files.
 
 To **re-frame** an existing piece, re-edit the master, re-run the processor, and

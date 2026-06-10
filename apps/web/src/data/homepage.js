@@ -41,7 +41,8 @@
 //   (the newest pieces with a photo carrying that style — see
 //   src/build/specialisms.js). You only choose the style + the copy here:
 //     style  a portfolio style TOKEN — must match the chips / STYLE_LABELS:
-//            fine-line · black-grey · colour · dotwork · cybersigilism · script
+//            fine-line · high-detail · realism · black-grey · colour · dotwork ·
+//            cybersigilism · script
 //            The card title + "Browse … work" link + previews all derive from it.
 //     em     the italic adjective after the style name in the <h3>          (COPY)
 //     body   2–3 sentences describing the style — what it is, who it suits  (COPY)

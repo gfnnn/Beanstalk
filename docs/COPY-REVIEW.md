@@ -1,342 +1,383 @@
-# Copy review — pre-launch sign-off
+# Copy review — the one copy doc (artist worksheet + internal tracker)
 
 **Purpose.** Every word on the public site that reads as **the artist speaking to a
 visitor** must be confirmed as *their* words before go-live — not placeholder copy
-written for them. This document is the working list for that pass: go through it,
-edit the copy in place (or in the source), and tick each row off once the artist has
-approved the wording.
+written for them. This is the **single** copy doc: the artist-facing worksheet
+(Part 2) and the internal tracker (Part 3) live together here, sharing one set of
+refs (`HOME-03`, `VISIT-04`, …) and **one facts table** (Part 1) so the two halves
+can never drift apart again.
 
 > The aim is simple: **every sentence that sounds like the artist should actually
 > be theirs.** Factual labels (nav, form field names, status chips, the address)
-> don't need their sign-off and are listed separately so you can see they were
+> don't need their sign-off and are listed in the tracker so you can see they were
 > considered, not missed.
 
-> **This file is the internal tracker.** The **artist-facing** companion is
-> [`COPY-FOR-ARTIST.md`](./COPY-FOR-ARTIST.md) — the same slots, but written as a
-> plain "what it's for + a simple example + your words" worksheet the artist fills in
-> against the staging site. The review loop is baked into the go-live plan
-> (`ROADMAP.md` → Phase 4 → *Copy sign-off — the review loop*). Refs match across
-> all three (e.g. `HOME-03`).
+**The workflow:**
 
-> **Update — Round-1 copy pass landed (2026-06-08, #155).** The artist reviewed the
-> checklist **up to enquiries** and gave the global tone/style/fact decisions; those words
-> are now in source. **Confirmed facts:** pricing **£80 / £120–£200 / £300 / £500**, a
-> **flat 50% deposit**, **48h** reschedule, a **one-year** touch-up, flash day **26 July**,
-> and the three style categories **fine line · high detail · realism** (replacing botanical/
-> illustrative/custom). **Applied globally:** "custom"→"bespoke", "tattooer"→"tattoo artist",
-> and em dashes stripped from visible copy (incl. JS UI strings). **Switched off for go-live:**
-> the About **stats** (ABOUT-04) and **"The space"** (ABOUT-05). **Held:** the ICO number
-> (need the public **ZA######** reference) + tattoo-reg (TBC); a legal review of privacy/terms
-> is still due (effective dates "June 2026" are approved). **Markers:** the reviewed-section
-> markers have been **flipped + stripped**; **33** remain for the still-open sections (stats,
-> flash, visit, newsletter, legal, reply time, small pages). The per-row "Current text"
-> snapshots below are **pre-pass** (kept for reference); the reviewed sections now hold the
-> artist's approved words.
+1. **The artist reads the staging site** like a visitor would — the draft wording
+   is there so they have something to react to.
+2. **They fill in their words in Part 2 below** (plain English, keyed by ref). 🔒
+   facts go straight into the Part 1 table.
+3. **The dev applies their words to source** (HTML page or `src/data/*.js` file —
+   see the marker conventions below).
+4. **The marker is flipped** (`pending approval` → `approved`), then **stripped**
+   before the apex cutover.
 
-## How this maps to the source
+**The gate:** the copy pass is done when
 
-Each artist-voice block in the codebase now carries an inline marker so nothing
-ships unapproved:
+```bash
+grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules
+```
+
+returns **nothing**. (32 markers remain as of 2026-06-09 — the still-open sections
+listed under "Where things stand".)
+
+## Where things stand
+
+- **Round 1 landed (2026-06-08, #155).** The artist reviewed everything **up to the
+  enquiry form** and gave the global tone/style/fact decisions; those words are in
+  source and the reviewed sections' markers are flipped + stripped. Applied
+  globally: "custom"→"bespoke", "tattooer"→"tattoo artist", em dashes stripped from
+  visible copy (incl. JS UI strings). Switched off for go-live: the About **stats**
+  (ABOUT-04) and **"The space"** (ABOUT-05).
+- **Round 1.5 (#179):** hours, getting-there and booking lead time confirmed.
+- All confirmed **values** live in [the facts table](#part-1--facts-i-need-from-you) — the
+  only place they're written down here.
+- **Still open:** reply time (BUS-01) · flash season + the 12 pieces (FLASH-D1/D2)
+  · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent
+  wording (ENQ-07) · visit voice (VISIT-01..03, 05) · portfolio piece names
+  (PORT-D1) · newsletter (NL, NLBAND-01) · enquiry-received voice (CONFIRM-01) ·
+  404 (E404-01) · piece-page CTAs (PIECE-01) · testimonials (DATA-TEST, HOME-08).
+
+## How the refs map to source (conventions)
+
+Each artist-voice block in the codebase carries an inline marker tying it to a ref
+in this document:
 
 ```html
 <!-- ARTIST-COPY · HOME-03 · pending approval — see docs/COPY-REVIEW.md -->
 ```
 
 - **Grep the gate:** `grep -rn "ARTIST-COPY" apps/web/` lists every block still
-  flagged. The ref (e.g. `HOME-03`) ties the marker to a row in this document.
-- As wording is approved, change `pending approval` → `approved` on that marker
-  (and tick the row here). When `grep -rn "pending approval" apps/web/` returns
-  nothing, the copy pass is done.
-- **These markers are HTML/JS comments and ship into the built page source**
-  (they're a *staging* review aid — staging is `noindex`). Clear them as part of
-  sign-off: flip `pending approval` → `approved` as copy lands, and strip the
-  comments entirely before the apex go-live (Phase 6 — see `docs/ROADMAP.md`).
+  flagged; the ref ties the marker to this doc.
+- As wording is approved, flip `pending approval` → `approved` on the marker and
+  tick the row in the sign-off checklist (Part 3).
+- **These markers are HTML/JS comments and ship into the built page source** —
+  they're a *staging* review aid (staging is `noindex`). **Strip them entirely
+  before the apex go-live** (see `docs/ROADMAP.md`).
 - **Generated copy lives in data files, not the HTML.** The homepage hero,
   specialism cards, flash cards, testimonials and portfolio tiles are built from
-  `apps/web/src/data/*.js`. Edit the data file — never the rendered markup. Those
-  rows point at the data file.
+  `apps/web/src/data/*.js`. Edit the data file — never the rendered markup. Tracker
+  rows point at the data file where that applies.
 
-## Status legend
+---
+
+# Part 1 — Facts I need from you
+
+🔒 facts aren't writing — just the real numbers/details. **This table is the only
+place fact values are recorded in this doc**; the worksheet and tracker link here
+instead of repeating them, so a value can never drift.
+
+| 🔒 | What | Was on the site (placeholder) | The real value |
+|----|------|-------------------------------|----------------|
+| Reply time | How long you take to reply to an enquiry | "within 3 days" | _still to confirm_ |
+| Prices | Min / small / half-day / full-day | £120 / £180–280 / £420 / £680 | ✅ **£80 / £120–£200 / £300 / £500** |
+| Deposit | (was Standard / half-day / full-day) | £60 / £120 / £200 | ✅ **Flat 50% of the price** |
+| Touch-up window | Free touch-up valid for… | 6 months | ✅ **1 year** |
+| Reschedule notice | Notice needed to move a booking | 72 hours | ✅ **48 hours** |
+| Hours | Days + times you work | "Tue–Sat · 11am–6pm" | ✅ **Tue–Sat · 11am–6pm** confirmed (#179) |
+| Getting there | Walk from station / parking | "short walk… paid parking nearby" | ✅ **confirmed** (#179) |
+| Booking lead time | How far ahead you're usually booking | "3–4 weeks" | ✅ **~3–4 weeks** confirmed (#179) |
+| Your stats | Years tattooing / pieces healed | "6 yrs / 900+" | ✅ **8 yrs** confirmed (rest TBC; the stats block is **switched off** for go-live) |
+| Style categories | The three styles you lead with | (was fine line / black & grey / colour) | ✅ **Fine line · High detail · Realism** |
+| Flash | Next flash day + the season + 12 names/sizes/prices | "Summer 2026" + placeholders | ⏳ **Next flash day 26 July** set; season label + the 12 pieces still to confirm |
+| Legal dates | Effective date for Privacy + Terms | "June 2026" | ✅ **Approved (June 2026)** |
+| Trading name + insurance | Legal pages' "who I am" / liability | blanks | ✅ **"Beansprout Tattoo"** + **public liability insurance** confirmed |
+| ⚖️ ICO number | Your ICO registration reference (**ZA######**) | blank | ⏳ held — need the **public ZA###### reference** (not the account/certificate number) |
+| ⚖️ Tattoo reg | Winchester City Council registration number | blank | _still to confirm_ |
+
+---
+
+# Part 2 — Your words, please (the artist's worksheet)
+
+Hi 👋 This part is for **the artist** behind Beansprout. Making sure every sentence
+on the site that sounds like *you* is actually in *your* words, not a stand-in
+written to fill the space, is the one job only you can do.
+
+You don't need to touch any code. Here's the whole process:
+
+1. **Open the site in your browser** (I'll send you the link). Read it like a
+   visitor would — the draft wording is there so you've got something to react to.
+2. **Go through this list.** For each item you'll see three things:
+   - **What it's for** — what that bit of text is doing on the page.
+   - **Example** — a plain, simple version, just to show the *kind* of thing that
+     goes there (not a suggestion to copy — yours will be better).
+   - **Your words** — write your version on the blank line. If the wording on the
+     site is already spot-on, just write **"keep"**.
+3. **Send it back to me** and I'll put your words into the site.
+
+A few notes:
+- Write however you'd actually talk to someone in the studio. Plain is good.
+- Don't worry about length, spelling or formatting — I'll tidy the layout.
+- **🔒 = a fact, not writing.** Prices, hours, dates — those go in
+  [the facts table above](#part-1--facts-i-need-from-you); each section just points there.
+- **⚖️ = legal wording.** Write it however you like, but I'll also get these
+  checked properly before launch — don't stress the exact phrasing.
+
+> **Quick wins first?** If you only have ten minutes, do the 🔒 blanks in
+> [the facts table](#part-1--facts-i-need-from-you) — those unblock the most.
+
+## Already done — thank you (Round 1, 2026-06-08 + the #179 follow-up)
+
+We went through everything **up to the enquiry form** together; your words and
+facts from that session are live on the site. Nothing more needed for these unless
+you want to tweak something later — just name the ref:
+
+- **Home:** HOME-01 status pill · HOME-02 notices · HOME-03 hero · HOME-04 style
+  cards (your three categories — see facts table) · HOME-05 "Recent work" ·
+  HOME-06 "Three things I love" · HOME-07 the 4 "how it works" steps · HOME-09
+  buttons. (HOME-08 "Kind words" stays hidden until there are real quotes — see
+  CONFIRM/testimonials below.)
+- **About:** ABOUT-01 intro · ABOUT-02 your story · ABOUT-03 happiest / not-my-thing
+  lists · ABOUT-06 closing nudge. ABOUT-04 stats and ABOUT-05 "The space" are
+  **switched off** for launch (stats → facts table).
+- **Services:** SERV-01 intro · SERV-02 pricing cards · SERV-03 deposits box ·
+  SERV-04 what's included · SERV-05 cover-ups & touch-ups · SERV-06 closing line
+  (all £ figures → facts table).
+- **FAQ:** FAQ-01 intro · FAQ-03 all 17 Q&As (two added: "what should I avoid
+  after a tattoo?" and "are you registered and insured?") · FAQ-05 closing line.
+- **Aftercare:** AFTER-01 intro · AFTER-02 wrap chooser · AFTER-03/AFTER-04 the
+  step-by-steps · AFTER-05 "keep in mind" rules · AFTER-06 closing line — all in
+  first person now, brand names dropped. ⚠️ These are health instructions; if how
+  you wrap or what you recommend ever changes, tell me and I'll update them.
+- **Enquiry form:** ENQ-01 intro · ENQ-03 "my promise" + what-happens-next ·
+  ENQ-04/ENQ-05 field prompts · ENQ-06 booking lead time (→ facts table) · ENQ-08
+  buttons. (ENQ-07 consent wording is still open — below.)
+- **Sitewide:** SHARED-01 footer brand line · SHARED-03 the main button.
+
+## Still to do — your words needed
+
+Everything from here down is still open.
+
+## Enquiry form (one bit left)
+
+### ENQ-07 — Consent checkboxes ⚖️
+**What it's for:** the three tick-boxes at the end of the enquiry form (health
+declaration, deposit/cancellation agreement, photo permission). The
+deposit/cancellation wording needs your OK — figures → facts table.
+**Your words (or "keep"):**
+>
+
+## Contact & visit
+
+### VISIT-01 / VISIT-02 — Intro + heading
+**Example:** "I tattoo from Tiny Knives in Winchester — here's where to find it."
+**Your words:**
+>
+
+### VISIT-04 — Hours & getting there 🔒 + words
+**Hours / getting-there** → [facts table](#part-1--facts-i-need-from-you).
+**Bookings note (words):** "Bookings are by enquiry only…" — keep / change:
+>
+
+### VISIT-05 — "What to expect on the day"
+**What it's for:** 5–6 practical points about visiting (stairs/access, ID, breaks,
+deposit). **Make these match how you actually run a session.**
+**Your words (corrections):**
+>
+
+## Flash page
+
+### FLASH-01 — Intro 🔒 + words
+**Example:** title "Flash, ready to claim." + "Pre-drawn designs, each tattooed
+only once." **Season label** → [facts table](#part-1--facts-i-need-from-you) ("Flash" row).
+**Your words (intro):**
+>
+
+### FLASH-D2 — The flash pieces 🔒
+**What it's for:** each flash card needs a name, size, placements and price. The 12
+on the site now are placeholders (status → facts table, "Flash" row).
+**Your real flash list** (name · size · placements · price), one per line:
+>
+
+### FLASH-03 / FLASH-04 / FLASH-05 — Empty state, CTA, claim form
+**What it's for:** the "all claimed" message, the "nothing right? go custom" line,
+and the prompts in the claim pop-up.
+**Your words (any to change):**
+>
+
+## Portfolio
+
+### PORT-01 — Intro
+**Example:** title "Things I've made." + "A selection of healed and fresh work."
+**Your words:**
+>
+
+### PORT-D1 — Piece names
+**What it's for:** every portfolio piece has a short name (shown on hover and as
+its page title). I named them from what they show — check you're happy with them.
+**Your words:** review on the site; list any names to change here:
+>
+
+### PORT-03 — "No results" message
+**Example:** "No pieces match those filters. Try a different style or placement."
+**Your words:** _______________
+
+## Newsletter
+
+### NL-01 / NL-02 — Intro + pitch
+**What it's for:** title + what people get by signing up (3 short points) +
+frequency reassurance.
+**Example:** "First look at flash drops, a heads-up when books open, and the odd
+note from me. A few times a month at most."
+**Your words:**
+>
+
+### NL-03 / NL-04 — Signup card + success message
+**Example:** "Join the list — pop your email in below." / "You're on the list —
+thanks for signing up."
+**Your words:**
+>
+
+### NLBAND-01 — The newsletter strip (home / flash / after enquiring)
+**What it's for:** the small signup band that repeats on a few pages.
+**Example:** "New work & flash, before anywhere else."
+**Your words:**
+>
+
+## Smaller pages
+
+### CONFIRM-01 — "Enquiry received" page
+**What it's for:** the thank-you page after someone sends an enquiry.
+**Example:** "Thanks — your enquiry's on its way. I'll reply by email, usually
+within [reply time]."
+**Note from me:** the steps here currently say *"We"* — everywhere else you say
+*"I"*. I'll switch these to "I" unless you'd rather it read as "we".
+**Your words:**
+>
+
+### E404-01 — "Page not found" page
+**What it's for:** the friendly message when a link is broken.
+**Example:** "This page has gone to seed. Try one of these instead."
+**Your words:**
+>
+
+## Legal pages ⚖️
+
+Write these however you like — I'll get the final wording checked against UK law
+before launch, so don't worry about getting it legally perfect. The 🔒 bits I need
+(ICO ZA###### reference, tattoo-reg number, effective dates) →
+[facts table](#part-1--facts-i-need-from-you).
+
+### PRIV — Privacy policy ⚖️
+**What it's for:** what data you collect and how you handle it.
+**Words — anything in the plain-English summary you'd phrase differently?**
+>
+
+### TERMS — Terms of service ⚖️
+**What it's for:** the booking agreement (deposits, cancellations, age/ID, health,
+photos, liability). Deposit figures will match your Services prices.
+**Words — anything to change?**
+>
+
+## The brand line (appears in the footer of every page)
+
+### SHARED-01
+**What it's for:** the one-line description under your name in the footer, sitewide.
+**Example:** "Fine line, botanical and custom tattoo at Tiny Knives, Winchester."
+**Your words:** _______________
+
+*That's everything. Send this back however's easiest — typed here, scribbled,
+voice note, whatever works — and I'll get it all into the site. Thank you!*
+
+---
+
+# Part 3 — Internal tracker
+
+### Status legend
 
 | Tag | Meaning |
 |-----|---------|
 | 🟡 **Voice** | Reads as the artist. Needs them to confirm/rewrite in their own words. |
-| 🟠 **Placeholder** | A sensible default written *for* the artist (price, date, reply time, stats). Must be replaced with real figures, then approved. Already carries a `TODO(artist)` / `COPY:` note in source. |
-| 🔵 **Legal** | artist-voice *and* legally operative. Needs the artist's words **and** a professional/legal review before launch. |
+| 🟠 **Placeholder** | A sensible default written *for* the artist (price, date, reply time, stats). Real value → [facts table](#part-1--facts-i-need-from-you). Carries a `TODO(artist)` / `COPY:` note in source. |
+| 🔵 **Legal** | Artist-voice *and* legally operative. Needs the artist's words **and** a professional/legal review before launch. |
 | 🟣 **Testimonial** | A client's words, not the artist's. Must be a real, approved quote — never fabricated. |
 | ⚪ **Factual** | Label/UI/contact fact. No sign-off needed (listed for completeness). |
-
-## At-a-glance: the hard blockers
-
-These carry placeholder values that are **wrong until the artist sets them** — they're
-the highest-priority rows:
-
-- 🟠 Reply time — `within 3 days` (`src/data/business.js:19`) — **still open**
-- ✅ Pricing + deposit figures — **set** (#155): £80 / £120–£200 / £300 / £500, flat 50% deposit, 48h, one-year touch-up
-- ✅ Opening hours (**Tue–Sat · 11am–6pm**) + getting here (**short walk from station / paid parking nearby**) — **confirmed** (placeholders locked in; `visit/index.html`)
-- ✅ About-page stats — **resolved** (#155): module switched off for go-live (8 yrs confirmed; rest TBC)
-- 🟠 Flash season label `Summer 2026` + all flash names/specs/prices (`src/data/flash.js`) — **still open** (flash day **26 July** is set on the homepage notice)
-- ✅ Booking lead time (**~3–4 weeks ahead**) — **confirmed** (placeholder locked in; `enquire/index.html`)
-- 🔵 Legal: effective dates **approved** ("June 2026"); trading name **"Beansprout Tattoo"** + **public liability insurance** now **confirmed** (in `privacy`/`terms`); **ICO public ref** (ZA######) + **tattoo-reg** still needed (`privacy`, `terms`)
-
-## Voice-consistency flags (for the artist to settle)
-
-A few blocks slip between **"I"** (the artist, used everywhere else) and **"we"/"us"**:
-
-- `enquiry-received/index.html` — *"We read through your idea…"* — **still open** (that page
-  wasn't in the Round-1 review).
-- ✅ `aftercare/index.html` — **resolved** (#155): "I recommend…", "ask me", first-person
-  throughout; the second-skin brand names (Saniderm/Dermalize) were also dropped.
-
-First-person "I" is the chosen voice; CONFIRM-01 is the one remaining slip.
-
----
-
-# Shared components (appear on most/every page)
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| SHARED-01 | 🟡 Voice | footer `.tagline`, every page (e.g. `index.html:541`) | "Fine line, botanical and custom tattoo at Tiny Knives, Winchester." |
-| SHARED-02 | 🟡 Voice | footer link label "Find me" (`Visit` column) | "Find me" → `/visit/` |
-| SHARED-03 | 🟡 Voice | primary CTA, repeated sitewide | "Start an enquiry →" (hero, drawer, mobile sticky CTA) |
-| SHARED-04 | ⚪ Factual | nav links | Home · Portfolio · Flash · About · Services · FAQ · More · Aftercare · Contact & visit · Newsletter · Enquire |
-| SHARED-05 | ⚪ Factual | footer headings + contact | Explore / Visit / Follow · Instagram · `hello@beansprout.ink` · "© Beansprout 2026 · Winchester, UK" |
-| SHARED-06 | 🟡 Voice | newsletter band (`src/build/newsletter-inline.js`) — see NLBAND-01 | shared across home / flash / enquiry-received |
-
-> SHARED-01..03 are written once and repeat on ~14 pages. Approve the wording
-> once and it's settled everywhere.
-
----
-
-# Homepage — `index.html` + `src/data/homepage.js`
-
-**Generated copy → edit `src/data/homepage.js`, not `index.html`.**
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| HOME-01 | 🟠 Voice | `homepage.js:67` `status.label` | "Books open" (nav status pill, every page) |
-| HOME-02 | 🟡 Voice | `homepage.js:72–73` `notices[].html` | "Books are open for summer. Request a slot" · "New flash dropping soon. Preview the sheet" |
-| HOME-03 | 🟡 Voice | `homepage.js:78–82` `hero` | eyebrow "Winchester · Fine line & botanical"; H1 "Quietly considered / *custom tattoo.*"; body (the first-person artist intro — "…the fine line, botanical and illustrative tattooer behind Beansprout, working out of Tiny Knives in Winchester. Custom pieces, drawn for one person, at a pace that never feels rushed."); media tag "Tiny Knives · Winchester" |
-| HOME-04 | 🟡 Voice | `homepage.js:86–91` `specialisms` | fine-line "*precise*" + body; black-grey "*soft*" + body; colour "*vivid*" + body; dotwork(fill) "*textured*" + body |
-| HOME-05 | 🟡 Voice | `index.html:332–333` | eyebrow "Recent work" + H2 "Fresh from the *chair.*" |
-| HOME-06 | 🟡 Voice | `index.html:444–449` | eyebrow "What I do" + H2 "Three things I *love.*" + note "I keep my range tight on purpose. These are the styles I draw best and enjoy most." |
-| HOME-07 | 🟡 Voice | `index.html:467–493` (process) | eyebrow "How it works" + H2 "From idea to *healed.*" + note "From your first message to your two-week check-in…" + 4 steps (Enquire / Design / Your session / Aftercare) with bodies |
-| HOME-08 | 🟡 Voice | `index.html:511–512` (hidden) | "Kind words" + "What people *say.*" — section is `hidden` until testimonials exist |
-| HOME-09 | 🟡 Voice | `index.html:173–174, 307` | CTA "View the portfolio" + "Scroll" hint |
-| HOME-10 | 🟠 Placeholder | `homepage.js:94–99` `videoCredit` | `@handle` film credit — off until a real video + credit are confirmed |
-| — | ⚪ Factual | `index.html:354–419` tile captions | piece names + "Fine line · Forearm" etc. — pulled from `pieces.js` (see PORT data) |
-
----
-
-# About — `about/index.html`
-
-The most voice-heavy page on the site. Every paragraph here is the artist's voice.
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| ABOUT-01 | 🟡 Voice | `:81–84` page header | eyebrow "The artist · Winchester" + H1 "Hi, I'm *[name].*" (the artist's first-name intro) + descriptor "I'm the hands and the name behind Beansprout…" |
-| ABOUT-02 | 🟡 Voice | `:102–108` intro | eyebrow "Nice to meet you" + H2 "Tattoos that feel *like yours.*" + 3 bio paragraphs ("I've always been the person friends came to…" / "My work leans fine line and botanical…" / "Mostly, I want the chair to feel calm…") |
-| ABOUT-03 | 🟡 Voice | `:118–146` approach | eyebrow "How I work" + H2 "What I take on, and what I *don't.*" + "Where I'm happiest" (6 items) + "Not really my thing" (6 items, incl. "A new partner's name (trust me on this one)") |
-| ABOUT-04 | 🟠 Placeholder | `:153–169` credentials | "6 yrs / Tattooing", "900+ / Pieces healed", "1 / Client a day", "100% / Custom designs" — **confirm real figures** |
-| ABOUT-05 | 🟡 Voice | `:176–181` studio | eyebrow "The space" + H2 "Where it *happens.*" + note "I work from a private room at Tiny Knives on Southgate Street — a calm, clean, daylit studio…" |
-| ABOUT-06 | 🟡 Voice | `:215–217` CTA | H2 "Got something in *mind?*" + "Tell me the idea, however half-formed…" |
-
----
-
-# Services — `services/index.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| SERV-01 | 🟡 Voice | `:98–104` header | eyebrow "Honest, in advance" + H1 "Pricing, *no surprises.*" + descriptor "I'd rather you knew the numbers before you enquired…" |
-| SERV-02 | 🟠 Placeholder | `:114–177` pricing cards | "What it costs" / "Rates & *sessions.*" + 5 cards — **all £ figures are placeholders** (£120 min, £180–£280 small, £420 half-day, £680 full-day, free touch-up). Card titles, qualifiers + bodies are 🟡 Voice. |
-| SERV-03 | 🟠 Placeholder | `:184–228` deposit aside | "Deposits & cancellations" / "Booking *& deposits.*" + rows (£60/£120/£200, 72h+, deposit forfeit, card or bank) + note "Your deposit secures the date…" — **figures placeholder; note is 🟡 Voice** |
-| SERV-04 | 🟡 Voice | `:243–305` what's included | "Every booking" / "What's *included.*" + descriptor + 4 items (Consultation / Hand-drawn design / Aftercare pack / Two-week check-in) |
-| SERV-05 | 🟡 Voice | `:315–342` policies | "The detail" / "Cover-ups & *touch-ups.*" + cover-ups card ("…some of my favourite jobs…") + touch-ups card ("One free touch-up… within six months…") |
-| SERV-06 | 🟡 Voice | `:352–353` CTA | H2 "Know the numbers? *Let's talk.*" + "If the pricing works for you, send your idea over…" |
-
----
-
-# FAQ — `faq/index.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| FAQ-01 | 🟡 Voice | `:79–82` header | eyebrow "FAQ" + H1 "Good *questions.*" + descriptor "The things I get asked most…" |
-| FAQ-02 | ⚪ Factual | `:103–126` category labels | All questions / Before you book / On the day / Aftercare & healing / Pricing & deposits / Policies (+ counts) |
-| FAQ-03 | 🟡 Voice | `:146–360` — **all 17 Q&As** | Questions + answers, e.g. "How far in advance do I need to book?", "Will it hurt?…", "I'm pregnant / breastfeeding / on medication…", "Are you registered and insured?", "Do you offer touch-ups?" — every answer is the artist's voice |
-| FAQ-04 | 🟡 Voice | `:333–335` empty state | "No matches" + "Nothing here answers it. Try another word, or just ask me directly." |
-| FAQ-05 | 🟡 Voice | `:345–346` CTA | H2 "Still *wondering?*" + "If your question isn't here, send it over…" |
-
----
-
-# Aftercare — `aftercare/index.html`
-
-Health-critical instructions **and** artist-voice — worth a careful read.
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| AFTER-01 | 🟡 Voice | `:102–109` header | eyebrow "Post-session" + H1 "After*care.*" + descriptor "How you look after your tattoo… shapes how it heals for the rest of your life. Start by telling us how it was wrapped." |
-| AFTER-02 | 🟡 Voice | `:120–191` chooser | "Step one" + "How was your tattoo *wrapped?*" + sub + the two dressing cards (Second skin / Cling film, hints + descriptions) + "Not sure which you have?… ask us" |
-| AFTER-03 | 🟡 Voice / Health | `:227–296` second-skin steps | aside note + 8 numbered steps (incl. "We recommend Palmer's Cocoa Butter") |
-| AFTER-04 | 🟡 Voice / Health | `:312–369` cling-film steps | aside note + 7 numbered steps |
-| AFTER-05 | 🟡 Voice / Health | `:384–420` general rules | "Both methods" + "Keep in *mind.*" + No soaking / Don't pick or scratch / Avoid direct sunlight |
-| AFTER-06 | 🟡 Voice | `:433–434` CTA | H2 "Got a *question?*" + "…I check in at two weeks for exactly this reason." |
-
-> ⚠️ "we recommend" / "ask us" here vs "I" elsewhere — see voice-consistency flag.
-
----
-
-# Enquire — `enquire/index.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| ENQ-01 | 🟡 Voice | `:78–80` header | eyebrow "Bookings · By enquiry" + H1 "Let's make *something.*" + descriptor "Tell me what you have in mind and I'll get back to you personally…" |
-| ENQ-02 | 🟡 Voice | `:92` progress intro | "Four short steps · about 2 minutes" |
-| ENQ-03 | 🟡 Voice | `:115–129` aside | "My promise" + "Every enquiry comes straight to me. Never an agency, never a bot…" + "What happens next" 5-step timeline (incl. reply-time marker → BUS-01) |
-| ENQ-04 | 🟡 Voice | `:170, 203, 211` step 1 | "First, a little *about you.*" + hint "I only tattoo over-18s. This just confirms it." + "How did you find me?" |
-| ENQ-05 | 🟡 Voice | `:240, 260–274` step 2 | "Now, the *fun part.*" + radio hints ("Designed for you from scratch" / "One of my ready-to-go pieces" / "Help me figure it out") + "Tell me your idea" + hint + placeholder "I've been wanting a small botanical piece, maybe foxgloves and ferns…" |
-| ENQ-06 | 🟡 Voice | `:365, 376, 399, 415` step 3 | "References *& timing.*" + image hint + cover-up hint + ✅ booking-lead hint "I'm usually booking about 3–4 weeks ahead…" **confirmed** |
-| ENQ-07 | 🔵 Legal + 🟡 | `:455, 465–521` step 4 | "Health, consent *& the legal bit.*" + allergies/notes hints ("This stays private between us.") + photo-permission copy ("I love showing healed work, but only with your blessing…") + 3 consent checkboxes (`TODO(artist)` confirm deposit/cancellation wording) |
-| ENQ-08 | 🟡 Voice | `:229, 354, 444, 532` | step buttons "Continue →" / "Send my enquiry" |
-| ENQ-09 | ⚪ Factual | various | input placeholders "Jane" / "Smith" / "you@email.com" — but the *idea*/notes placeholders (ENQ-05, and `:477`) are 🟡 Voice |
-
----
-
-# Contact & visit — `visit/index.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| VISIT-01 | 🟡 Voice | `:79–81` header | eyebrow "The studio" + H1 "Find me at *Tiny Knives.*" + descriptor "I tattoo from Tiny Knives, a studio in Winchester…" |
-| VISIT-02 | 🟡 Voice | `:90–91` | H2 "Where to *find me.*" + "All my work happens at Tiny Knives in Winchester." |
-| VISIT-03 | ⚪ Factual | `:93–103` | address (41 Southgate Street, SO23 9EH) + studio tags "Women-owned studio" / "LGBTQ+ friendly" (genuine Tiny Knives attributes — confirm still accurate) |
-| VISIT-04 | 🟡 Voice | `:109–146` contact rows | ✅ Hours "Tue–Sat · 11am–6pm" **confirmed** · ✅ "A short walk from Winchester station / Paid parking nearby" **confirmed** · Email/Instagram ⚪ · 🟡 "Bookings are by enquiry only…" (still voice) |
-| VISIT-05 | 🟠 Placeholder + 🟡 | `:180–189` access | "What to expect on the day" — 6 access/prep points (`TODO(artist)`: "tweak these so they match how you actually run a session"), incl. "The studio is up a flight of stairs and isn't step-free." |
-
----
-
-# Flash — `flash/index.html` + `src/data/flash.js`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| FLASH-01 | 🟠 Placeholder + 🟡 | `:77–80` header | eyebrow "Drop N · *Season*" (number auto-derived; 🟠 season label from data) + H1 "Flash, ready *to claim.*" + descriptor "Pre-drawn designs, each one tattooed only once…" |
-| FLASH-02 | ⚪ Factual | `:86–118` filter bar | All / Available / Claimed / Past drops + sort options |
-| FLASH-03 | 🟡 Voice | `:150–151` empty state | "Nothing here right now" + "Every piece in this drop has found a home…" |
-| FLASH-04 | 🟡 Voice | `:160` CTA | "Nothing quite right? *Custom is what I do most*. Tell me your idea and we'll draw something just for you." |
-| FLASH-05 | 🟡 Voice | `:213, 245–255` claim modal | "Reserve this *piece.*" + "Where would it go?" + "When suits you?" ("I'll follow up with exact dates.") + placeholders + "Send my claim →" |
-| FLASH-D1 | 🟠 Placeholder | `flash.js:41` | `season = 'Summer 2026'` (`TODO(artist)`) |
-| FLASH-D2 | 🟠 Placeholder | `flash.js:47–58` | 12 flash names + specs + prices ("Wildflower sprig", "Luna moth"…) — placeholder set until a real drop |
-
----
-
-# Portfolio — `portfolio/index.html` + `src/data/pieces.js`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| PORT-01 | 🟡 Voice | `:107–113` header | eyebrow "Selected work · Winchester" + H1 "Things I've *made.*" + descriptor "A selection of healed and fresh work… Tap any piece to see it larger." |
-| PORT-02 | ⚪ Factual | `:138–201` filter bar | style chips + placement select + sort + "Clear" |
-| PORT-03 | 🟡 Voice | `:245–246` empty state | "No work found" + "No pieces match those filters…" |
-| PORT-04 | ⚪ Factual | `:259–273` | "Showing X of Y pieces" + "Load more work →" |
-| PORT-D1 | 🟡 Voice | `pieces.js:56–115` | 56 piece **titles** (the artist's naming — "Good dog", "God's timing", "Storyteller", "The Lovers"…). Confirm the artist is happy with each. |
-| PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | feeds alt text ("a koi carp", "a barn owl and chrysanthemums"); SEO/a11y, but the artist's descriptions — skim for accuracy |
-
-> Per-piece pages (`/portfolio/<slug>/`) render the style/placement tags + CTAs
-> (no descriptive caption) — see PIECE-01.
-
----
-
-# Newsletter — `newsletter/index.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| NL-01 | 🟡 Voice | `:84–91` header | eyebrow "Newsletter" + H1 "The Beansprout *list.*" + descriptor "An occasional email. Never spam…" |
-| NL-02 | 🟡 Voice | `:102–146` pitch | lead "Sign up and you'll be *first to know*…" + 3 points (Flash drops first / Books-open dates / Notes from me) + reassurance "A few times a month at most. Unsubscribe in one click…" |
-| NL-03 | 🟡 Voice | `:153–188` signup card | "Join the *list.*" + "Pop your email in below. That's all it takes." + consent line + "We use your email only to send the newsletter. No sharing, no spam." |
-| NL-04 | 🟡 Voice | `:199–200` success | "You're *on the list.*" + "Thanks for signing up. Keep an eye on your inbox." |
-
----
-
-# Newsletter band (shared) — `src/build/newsletter-inline.js`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| NLBAND-01 | 🟡 Voice | `:19–22, 44, 55–56` | "The newsletter" + "New work & flash, *before anywhere else.*" + sub "Drops, fresh flash and the occasional studio note…" + consent + success "You're *on the list.*" |
-
----
-
-# Enquiry received — `enquiry-received/index.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| CONFIRM-01 | 🟡 Voice | `:8, 73–96` | meta desc + eyebrow "Enquiry received" + H1 "Thank you, your enquiry's *on its way.*" + body "It's landed in my inbox… usually [reply-time]…" + timeline (3 steps — **"We read through…"**, see voice flag) + fallback "Didn't mean to send that…" |
-
----
-
-# 404 — `404.html`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| E404-01 | 🟡 Voice | `:71–80` | eyebrow "Error 404" + H1 "This page has *gone to seed.*" + "The link's broken or the page has moved. Nothing's lost…" + "Looking for something specific? Email…" |
-
----
-
-# Privacy — `privacy/index.html`  🔵 needs legal review
-
-artist-voice ("I collect…") **and** legally operative. Confirm the wording is the artist's
-*and* have a professional check it against UK GDPR before launch.
-
-| Ref | Type | Location | Notes |
-|-----|------|----------|-------|
-| PRIV-01 | 🔵 Legal | `:84–91` header | eyebrow "Legal" + H1 "Privacy *policy.*" + plain-English descriptor |
-| PRIV-02 | 🟠 Placeholder | `:105` | "Last updated: June 2026" — set real effective date on sign-off |
-| PRIV-03 | 🔵 Legal | `:108–124` Who I am | Trading name **"Beansprout Tattoo"** **confirmed**; **[ICO REGISTRATION REFERENCE]** + **[TATTOO REGISTRATION NUMBER]** still to be filled (see in-source COPY notes) |
-| PRIV-04 | 🔵 Legal | `:128–182` | What I collect / How I use it / Lawful basis / Retention / Sharing / Cookies & analytics / Your rights / Changes & contact |
-
----
-
-# Terms — `terms/index.html`  🔵 needs legal review
-
-| Ref | Type | Location | Notes |
-|-----|------|----------|-------|
-| TERMS-01 | 🔵 Legal | `:84–91` header | eyebrow "Legal" + H1 "Terms of *service.*" + descriptor |
-| TERMS-02 | 🟠 Placeholder | `:105` | "Last updated: June 2026" |
-| TERMS-03 | 🔵 Legal | `:108–160` | Booking & enquiries / Deposits / Cancellations / Age & ID / Health & suitability / Aftercare & touch-ups / Designs & copyright / Photography / Liability / Changes & contact — keep deposit figures aligned with SERV-03. Trading name **"Beansprout Tattoo"** + **public liability insurance** (Liability §) now **confirmed** |
-
----
-
-# Per-piece pages (generated) — `src/build/piece-page.js`
-
-| Ref | Type | Location | Current text |
-|-----|------|----------|--------------|
-| PIECE-01 | 🟡 Voice | `:180–183` | per-piece CTAs "Enquire about a piece like this →" / "See more work" |
-
----
-
-# Data-file placeholders (consolidated 🟠)
-
-| Ref | Location | Current value | Action |
-|-----|----------|---------------|--------|
-| BUS-01 | `src/data/business.js:19` | `replyTime = 'within 3 days'` | Set real reply turnaround (updates `/enquire/` + `/enquiry-received/` together) |
-| DATA-TEST | `src/data/testimonials.js:20–23` | empty array | 🟣 Add **real, approved** client quotes, then remove `hidden` on the homepage section (HOME-08). Never fabricate. |
-| DATA-MEDIA | `src/data/media.js:44, 60` | `alt` text for hero clips | Confirm alt descriptions once real video lands |
-
----
-
-## Sign-off checklist
-
-> Round-1 (#155): the reviewed sections below have the artist's approved words applied **and
-> their `ARTIST-COPY` markers flipped + stripped**; the open sub-items are noted inline.
-
-- [x] SHARED-01 brand line + SHARED-03 CTA — tagline now "Fine line, high detail and realism…"; markers stripped
+| ✅ | Approved + applied in source; marker flipped/stripped. |
+
+### Voice-consistency flags
+
+First-person "I" is the chosen voice. Aftercare's "we recommend"/"ask us" was
+resolved in Round 1 (first-person throughout; second-skin brand names dropped).
+The one remaining slip is **CONFIRM-01** (`enquiry-received/index.html` — "We read
+through your idea…", not yet reviewed).
+
+### Where each ref lives
+
+Locations are file-level (line numbers drift); generated copy rows point at the
+data file, never the rendered markup. Worksheet sections above describe what each
+slot *is*; this table only adds source location + anything tracker-specific.
+
+| Ref | Type | Source | Tracker notes |
+|-----|------|--------|---------------|
+| SHARED-01 | ✅ 🟡 | footer `.tagline`, every page | Approved: "Fine line, high detail and realism…" |
+| SHARED-02 | 🟡 | footer link label (`Visit` column) | "Find me" → `/visit/` |
+| SHARED-03 | ✅ 🟡 | hero / drawer / mobile sticky CTA, sitewide | "Start an enquiry →" |
+| SHARED-04 | ⚪ | nav links | Home · Portfolio · Flash · About · Services · FAQ · More · Aftercare · Contact & visit · Newsletter · Enquire |
+| SHARED-05 | ⚪ | footer headings + contact | Explore / Visit / Follow · Instagram · `hello@beansprout.ink` · "© Beansprout 2026 · Winchester, UK" |
+| SHARED-06 | 🟡 | `src/build/newsletter-inline.js` | = NLBAND-01 (shared band on home / flash / enquiry-received) |
+| HOME-01..09 | ✅ 🟡 | `src/data/homepage.js` (01–04, generated) + `index.html` (05–09) | Round 1 approved + stripped — except HOME-08 (hidden until DATA-TEST) |
+| HOME-10 | 🟠 | `homepage.js` `videoCredit` | `@handle` film credit — off until a real video + credit are confirmed |
+| ABOUT-01..03, 06 | ✅ 🟡 | `about/index.html` | Round 1 approved + stripped |
+| ABOUT-04 | 🟠 | `about/index.html` credentials block | **Switched off** for go-live (→ facts table, "Your stats") |
+| ABOUT-05 | 🟡 | `about/index.html` "The space" | **Switched off** for go-live |
+| SERV-01..06 | ✅ 🟡/🟠 | `services/index.html` | Round 1 approved + stripped; figures → facts table; keep TERMS-03 aligned |
+| FAQ-01, FAQ-02, FAQ-03, FAQ-04, FAQ-05 | ✅ 🟡 | `faq/index.html` (FAQ-02 ⚪ category labels; FAQ-04 the "no matches" empty state) | Round 1 approved + stripped; now 17 Q&As (two added) |
+| AFTER-01..06 | ✅ 🟡 | `aftercare/index.html` | Round 1 approved + stripped; health-critical — re-read on any edit; voice settled |
+| ENQ-01, ENQ-02, ENQ-03, ENQ-04, ENQ-05, ENQ-08 | ✅ 🟡 | `enquire/index.html` (ENQ-02 the "four short steps" progress intro; ENQ-08 step buttons) | Round 1 approved + stripped |
+| ENQ-06 | ✅ 🟠 | `enquire/index.html` step 3 | Lead-time hint confirmed (#179, → facts table) |
+| ENQ-07 | 🔵 | `enquire/index.html` step 4 | Health/consent hints + photo permission + 3 consent checkboxes — **deposit/cancellation consent wording still open** |
+| ENQ-09 | ⚪ | `enquire/index.html` | Input placeholders ("Jane" / "you@email.com"); the *idea*/notes placeholders are 🟡 (covered by ENQ-05) |
+| VISIT-01, 02 | 🟡 | `visit/index.html` header | Still open |
+| VISIT-03 | ⚪ | `visit/index.html` | Address (41 Southgate Street, SO23 9EH) + studio tags "Women-owned" / "LGBTQ+ friendly" — confirm still accurate |
+| VISIT-04 | ~🟡 | `visit/index.html` contact rows | Hours + getting-there ✅ (→ facts table); email/Instagram ⚪; "Bookings are by enquiry only…" voice **still open** |
+| VISIT-05 | 🟠+🟡 | `visit/index.html` access block | 6 access/prep points incl. "up a flight of stairs, not step-free" — match how a session actually runs |
+| FLASH-01 | 🟠+🟡 | `flash/index.html` header | Drop number auto-derived from data; season label → facts table; intro voice open |
+| FLASH-02 | ⚪ | `flash/index.html` filter bar | All / Available / Claimed / Past drops + sort |
+| FLASH-03..05 | 🟡 | `flash/index.html` (empty state, custom CTA, claim modal) | Copy applied; review with the real drop |
+| FLASH-D1 | 🟠 | `src/data/flash.js` `season` | → facts table ("Flash" row) |
+| FLASH-D2 | 🟠 | `src/data/flash.js` pieces | 12 placeholder names/specs/prices until a real drop (→ facts table) |
+| PORT-01, PORT-02, PORT-03, PORT-04 | ✅ 🟡/⚪ | `portfolio/index.html` | Round 1 approved (incl. the 3 style categories); PORT-02 + PORT-04 ⚪ filter / count + load-more UI |
+| PORT-D1 | 🟡 | `src/data/pieces.js` titles | 28 piece names ("Good dog", "The Lovers"…) — **still to confirm** |
+| PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | Feeds alt text; SEO/a11y — skim for accuracy |
+| PIECE-01 | 🟡 | `src/build/piece-page.js` | Per-piece CTAs "Enquire about a piece like this →" / "See more work" |
+| NL-01..04 | 🟡 | `newsletter/index.html` | Still open |
+| NLBAND-01 | 🟡 | `src/build/newsletter-inline.js` | Still open (one renderer → three pages) |
+| CONFIRM-01 | 🟡 | `enquiry-received/index.html` | Still open + the "We"→"I" voice flag; quotes reply time (BUS-01) |
+| E404-01 | 🟡 | `404.html` | Still open |
+| PRIV-01, PRIV-02, PRIV-03, PRIV-04 | 🔵/🟠 | `privacy/index.html` | Trading name confirmed (PRIV-03); ICO + tattoo-reg refs → facts table; **legal review due**; PRIV-02 effective date approved |
+| TERMS-01, TERMS-02, TERMS-03 | 🔵/🟠 | `terms/index.html` | Trading name + liability insurance confirmed (TERMS-03); TERMS-02 effective date approved; keep deposit figures aligned with SERV-03; **legal review due** |
+| BUS-01 | 🟠 | `src/data/business.js` `replyTime` | "within 3 days" — set real turnaround (updates `/enquire/` + `/enquiry-received/` together) |
+| DATA-TEST | 🟣 | `src/data/testimonials.js` | Empty array — add **real, approved** quotes, then remove `hidden` on HOME-08. Never fabricate. |
+| DATA-MEDIA | 🟠 | `src/data/media.js` | Hero-clip `alt` text — confirm once real video lands |
+
+### Sign-off checklist
+
+> Round 1 (#155) + #179: ticked sections have the artist's approved words in source
+> **and** their `ARTIST-COPY` markers flipped + stripped; open sub-items inline.
+
+- [x] SHARED-01 brand line + SHARED-03 CTA
 - [~] Homepage (HOME-01..07, 09 stripped); HOME-08 testimonials + HOME-10 video credit still off
-- [~] About (ABOUT-01..03, 05, 06 stripped); ABOUT-04 stats switched off (8 yrs confirmed, rest TBC)
-- [x] Services (SERV-01..06) + real prices/deposits; markers stripped
-- [x] FAQ (FAQ-01..05) — now 17 Q&As (added "what to avoid after a tattoo" + "are you registered and insured?"); markers stripped
-- [x] Aftercare (AFTER-01..06) + voice consistency settled; markers stripped
-- [~] Enquire (ENQ-01..05 stripped); ENQ-06 booking lead time **confirmed**; ENQ-07 consent wording still open
-- [~] Visit (VISIT-01..03, 05 voice still open); VISIT-04 hours + getting-here **confirmed**
-- [ ] Flash (FLASH-03/04/05 copy applied) — **real drop data/photos still open**
+- [~] About (ABOUT-01..03, 06 stripped); ABOUT-04 stats + ABOUT-05 space switched off
+- [x] Services (SERV-01..06) + real prices/deposits
+- [x] FAQ (FAQ-01..05) — now 17 Q&As
+- [x] Aftercare (AFTER-01..06) + voice consistency settled
+- [~] Enquire (ENQ-01..06, 08 done); ENQ-07 consent wording still open
+- [~] Visit — VISIT-04 facts confirmed (#179); VISIT-01..03, 05 voice still open
+- [ ] Flash (FLASH-03/04/05 copy applied) — **real drop data/photos still open** (FLASH-D1/D2)
 - [~] Portfolio (PORT-01..04 + the 3 style categories); **piece names (PORT-D1) still to confirm**
 - [ ] Newsletter (NL-01..04, NLBAND-01)
 - [ ] Enquiry received (CONFIRM-01 voice) + 404 (E404-01) + piece pages (PIECE-01)
-- [~] Privacy + Terms — trading name **"Beansprout Tattoo"** + **public liability insurance** confirmed; still need **legal review** + ICO/tattoo-reg numbers (dates approved)
-- [ ] Reply time (BUS-01) + testimonials (DATA-TEST)
-- [ ] `grep -rn "pending approval" apps/web/` returns nothing (now **33** — reviewed-section markers flipped + stripped; the rest are the still-open sections)
+- [~] Privacy + Terms — names/insurance/dates done; **legal review + ICO/tattoo-reg** still open
+- [ ] Reply time (BUS-01) + testimonials (DATA-TEST) + media alt (DATA-MEDIA)
+- [ ] The gate: `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` returns nothing (32 as of 2026-06-09)

@@ -87,6 +87,9 @@ export function initLightbox() {
   // ── Open on tile click ───────────────────────────────────────────────────
   document.querySelectorAll('.masonry-tile').forEach(tile => {
     tile.addEventListener('click', e => {
+      // A modified or non-primary click means "open the piece page in a new
+      // tab/window" — let the tile's link do its job instead of the lightbox.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
       e.preventDefault()
       const visible = getVisibleTiles()
       openLightbox(visible.indexOf(tile))

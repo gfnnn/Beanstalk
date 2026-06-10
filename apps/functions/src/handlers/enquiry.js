@@ -20,6 +20,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { corsFor, replyWith, clientIp, EMAIL_RE } from '../lib/http.js'
 import { rateLimit, persistSubmission, reserveFlashPiece, releaseFlashPiece } from '../lib/db.js'
+import FLASH_PRICES from '../data/flash-prices.json'
 
 // Kept comfortably under typical synchronous request-body caps.
 const MAX_IMAGES      = 8
@@ -60,7 +61,7 @@ const FORMS = {
     ],
   },
   flash: {
-    required: ['name', 'email', 'piece'],
+    required: ['name', 'email', 'piece', 'piece_id'],
     consent:  [],
     images:   false,
     title:    'Flash claim',
@@ -167,6 +168,11 @@ export async function handler(event, env = {}) {
   const pieceId = kind === 'flash' ? String(fields.piece_id || '').trim() : ''
   let reservedHere = false
   if (kind === 'flash') {
+    // Server-side price authority for the artist's inbox: the email's price line
+    // is what she'll base the manual payment request on, so a known piece always
+    // shows OUR price from the manifest — never a client-tamperable figure.
+    const pence = FLASH_PRICES[pieceId]
+    if (Number.isInteger(pence) && pence > 0) fields.price = String(pence / 100)
     const reservation = await reserveFlashPiece(env, pieceId)
     if (!reservation.ok) {
       return reply(409, {
@@ -205,7 +211,9 @@ export async function handler(event, env = {}) {
         from,
         to: [ARTIST_EMAIL],
         reply_to: String(fields.email).trim(),
-        subject: form.subject(fields),
+        // Subjects interpolate user text (names, piece labels); flatten any
+        // newlines so a crafted value can't ever read as extra mail headers.
+        subject: form.subject(fields).replace(/[\r\n]+/g, ' '),
         html: buildHtml(form, fields, attachments.length, skipped),
         text: buildText(form, fields, attachments.length, skipped),
         ...(attachments.length ? { attachments } : {}),

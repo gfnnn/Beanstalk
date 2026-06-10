@@ -8,7 +8,8 @@ artist's inbox.
 
 > **Heads-up:** the site isn't pointed at `beansprout.ink` yet — that address still shows
 > the old (v1) site. This v2 lives on a preview link until the planned switch-over. The
-> step-by-step go-live plan is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+> step-by-step go-live plan — including the live tick-list of what's *left* — is in
+> [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ---
 
@@ -107,7 +108,7 @@ npm run preview:branch -- <branch>  # fetch a branch, install, and run its dev s
 ### Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — architecture and conventions (**start here**)
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — outstanding work, open decisions, and the go-live plan
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — the single living plan: shipped state, the remaining launch tick-list, and the post-launch backlog
 - [`docs/BRANCHING.md`](docs/BRANCHING.md) — branch/release model
 - [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md) — enquiry / flash-claim form + email setup
 - [`docs/NEWSLETTER-SETUP.md`](docs/NEWSLETTER-SETUP.md) — newsletter (Resend Audience) setup

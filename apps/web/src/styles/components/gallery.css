@@ -87,22 +87,3 @@
 }
 
 
-/* ── Masonry (portfolio inner page) ─────────────────────────────────────────
-   CSS column-count — matches /src/styles/components/masonry.css for the
-   home-page gallery version. This class is for legacy inner pages.
-   ─────────────────────────────────────────────────────────────────────────── */
-.gallery--masonry {
-  columns: 2;
-  column-gap: 6px;
-}
-.gallery--masonry .tile {
-  break-inside: avoid;
-  margin-bottom: 6px;
-  aspect-ratio: unset;
-  border-radius: var(--radius);
-}
-.gallery--masonry .tile-placeholder { aspect-ratio: 3 / 4; }
-
-@media (min-width: 900px) {
-  .gallery--masonry { columns: 3; }
-}

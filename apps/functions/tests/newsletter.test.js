@@ -56,6 +56,11 @@ describe('newsletter handler — validation', () => {
     expect(res.statusCode).toBe(200)
     expect(fetchMock).not.toHaveBeenCalled()
   })
+  it('rejects an oversized body before parsing it', async () => {
+    const res = await H({ ...post(valid()), body: 'x'.repeat(64 * 1024 + 1) })
+    expect(res.statusCode).toBe(413)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('newsletter handler — Resend integration', () => {

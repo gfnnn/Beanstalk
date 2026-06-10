@@ -50,6 +50,8 @@ export const altText = p =>
 
 // Real-photo markup — responsive <picture> with AVIF/WebP + JPEG fallback.
 // `eager` is passed for the first row so the LCP image isn't lazy-loaded.
+// `data-full` points the lightbox at the largest tier — without it the lightbox
+// would upscale whatever small srcset candidate the grid happened to load.
 function photo(p, eager) {
   const srcset = ext => `${p.img}-400.${ext} 400w, ${p.img}-800.${ext} 800w, ${p.img}-1200.${ext} 1200w`
   const sizes  = '(min-width:1200px) 23vw, (min-width:900px) 31vw, 47vw'
@@ -57,7 +59,7 @@ function photo(p, eager) {
   return `<picture>
         <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
         <source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">
-        <img src="${esc(p.img)}-800.jpg" alt="${esc(altText(p))}"
+        <img src="${esc(p.img)}-800.jpg" alt="${esc(altText(p))}" data-full="${esc(p.img)}-1200.jpg"
              width="${p.w}" height="${p.h}" loading="${loading}" decoding="async">
       </picture>`
 }

@@ -11,9 +11,15 @@
 // a new glyph/style/placement to the renderer (+ its filter chip), data that
 // uses it passes automatically — no fourth list to remember to update. The test
 // still fails when the DATA names a token the renderer doesn't know, which is the
-// actual bug worth catching. (Filter chips live in HTML and can't be imported, so
-// keeping the renderer map authoritative is the closest machine-checkable anchor.)
+// actual bug worth catching.
+//
+// The filter chips/<select> live in portfolio/index.html — read as text below so
+// the suite also guards the data→HTML side: a token a piece actually USES must be
+// filterable on the page (a labelled-but-chipless token would render fine and be
+// silently unreachable through the filter bar — the drift CLAUDE.md warns about).
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
 import {
@@ -71,6 +77,28 @@ describe('portfolio data (pieces.js)', () => {
       expect(typeof p.w, 'width').toBe('number')
       expect(typeof p.h, 'height').toBe('number')
     }
+  })
+
+  it('every token a piece uses is filterable on the portfolio page', () => {
+    const html = readFileSync(
+      fileURLToPath(new URL('../portfolio/index.html', import.meta.url)), 'utf8')
+    const chips   = new Set([...html.matchAll(/data-filter="([^"]+)"/g)].map(m => m[1]))
+    const options = new Set([...html.matchAll(/<option value="([^"]+)"/g)].map(m => m[1]))
+
+    const usedStyles     = new Set(pieces.flatMap(p => p.styles))
+    const usedPlacements = new Set(pieces.map(p => p.placement))
+
+    // A style/placement with a renderer label but no chip/option renders fine yet
+    // is unreachable through the filter UI — the first piece to use one fails here.
+    usedStyles.forEach(s =>
+      expect(chips, `style "${s}" needs a filter chip in portfolio/index.html`).toContain(s))
+    usedPlacements.forEach(pl =>
+      expect(options, `placement "${pl}" needs a <select> option in portfolio/index.html`).toContain(pl))
+
+    // …and the page never offers a filter the renderer can't label (dead chip).
+    const styleTokens = new Set(Object.keys(STYLE_LABELS))
+    ;[...chips].filter(c => c !== 'all').forEach(c =>
+      expect(styleTokens, `chip "${c}" has no STYLE_LABELS entry`).toContain(c))
   })
 })
 

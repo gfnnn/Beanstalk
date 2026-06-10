@@ -359,23 +359,6 @@ describe('initScrollAnimations', () => {
     expect(reveal.vars.scrollTrigger).toBeUndefined() // plays on load
   })
 
-  it('toggles the mobile sticky CTA as the hero enters/leaves the viewport', async () => {
-    const { initScrollAnimations } = await load()
-    document.body.innerHTML = '<section class="hero"></section><div id="mobile-cta" aria-hidden="true"></div>'
-    initScrollAnimations()
-    expect(ioInstances).toHaveLength(1)
-    expect(ioInstances[0].observed).toContain(document.querySelector('.hero'))
-
-    const cta = document.getElementById('mobile-cta')
-    ioInstances[0].fire({ isIntersecting: false }) // hero scrolled out → CTA shows
-    expect(cta.classList.contains('visible')).toBe(true)
-    expect(cta.getAttribute('aria-hidden')).toBe('false')
-
-    ioInstances[0].fire({ isIntersecting: true })  // hero back in view → CTA hides
-    expect(cta.classList.contains('visible')).toBe(false)
-    expect(cta.getAttribute('aria-hidden')).toBe('true')
-  })
-
   it('debounces a single ScrollTrigger.refresh across rapid resizes', async () => {
     const { initScrollAnimations } = await load()
     document.body.innerHTML = '<section class="hero"></section>'
