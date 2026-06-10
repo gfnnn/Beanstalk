@@ -154,6 +154,17 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       glance at the dev-tools console on home / portfolio / enquire (zero errors) and
       confirm the nav status light renders. (On staging, `robots.txt` = `Disallow: /`
       with no sitemap — expected, not a bug.)
+- [ ] **O7 · Media-input dry run (Dropbox → site, real input)** — the artist upload
+      journey shipped 2026-06-10 (#189: filename metadata + auto-written data entries;
+      guide in [`MEDIA.md`](./MEDIA.md)) but has only run against mocks/unit tests —
+      prove it with real input before go-live. 👤 the artist names + drops one real
+      master per lane per the `" -- "` grammar (portfolio; flash inside a `drop-N/`
+      folder), **plus one deliberately misnamed file** to see a rejection → 🛠 run
+      **Actions → Dropbox media sync** with `dry_run` (names parse; the reject reads
+      clearly enough to self-fix), then for real → verify the PR carries the tiers +
+      correct data entries + the reject report, merge to `develop`, and eyeball the
+      new piece on staging (grid + filters + its `/portfolio/<slug>/` page). Done =
+      the artist can publish a piece with no hand-holding beyond the MEDIA.md guide.
 
 ### The end-to-end email test (go-live acceptance — run "b" at cutover)
 
