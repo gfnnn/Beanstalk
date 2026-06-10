@@ -35,7 +35,8 @@ export const STATUS = {
 
 // Real square photo — responsive <picture>. Styled by `.flash-card .card-image img`.
 function photo(p) {
-  const srcset = ext => `${p.img}-300.${ext} 300w, ${p.img}-600.${ext} 600w, ${p.img}-900.${ext} 900w`
+  // esc() like the src below — attribute context, even for repo paths.
+  const srcset = ext => `${esc(p.img)}-300.${ext} 300w, ${esc(p.img)}-600.${ext} 600w, ${esc(p.img)}-900.${ext} 900w`
   const sizes  = '(min-width:1100px) 23vw, (min-width:900px) 31vw, 47vw'
   return `<picture>
           <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">

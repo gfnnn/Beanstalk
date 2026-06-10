@@ -13,11 +13,13 @@
 //   subject     What the piece depicts — feeds alt text   (COPY, e.g. "foxglove")
 //   styles      Array of style tokens. A piece can be MORE THAN ONE — it shows
 //               under every matching style chip. Tokens must match the chip
-//               data-filter values:
-//               fine-line · high-detail · realism · black-grey · colour · dotwork · cybersigilism · script
-//               (real execution styles only — NOT subject categories like "botanical")
-//   placement   Single placement token, matches the placement <select> options:
-//               forearm · wrist · back · spine · leg · chest · hand
+//               data-filter values; the canonical list lives in
+//               src/data/taxonomy.js (currently: fine-line · high-detail ·
+//               realism · black-grey · colour · dotwork · cybersigilism · script —
+//               real execution styles only, NOT subject categories like "botanical")
+//   placement   Single placement token, matches the placement <select> options;
+//               canonical list in src/data/taxonomy.js (currently: forearm ·
+//               wrist · back · spine · leg · chest · hand)
 //   date        The day the piece was made, "YYYY-MM-DD". This drives the order:
 //               the grid is newest-first by date (default), oldest-first when the
 //               Sort control flips. `dateKey()` in portfolio-tiles.js turns it into

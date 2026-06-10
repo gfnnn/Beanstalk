@@ -23,23 +23,13 @@ export const GLYPHS = {
   branch:   '<path d="M30 80C35 50 50 30 70 25C60 45 55 65 50 85"/>',
 }
 
-// Display labels for the tile overlay + alt text. These mirror the example chip /
-// placement labels in the COPY comments; if the artist renames a category, update
-// the chip label in portfolio/index.html and the matching entry here together.
-export const STYLE_LABELS = {
-  'fine-line':   'Fine line',
-  'high-detail': 'High detail',
-  realism:       'Realism',
-  'black-grey':  'Black & grey',
-  colour:        'Colour',
-  dotwork:       'Dotwork',
-  cybersigilism: 'Cybersigilism',
-  script:        'Script',
-}
-export const PLACEMENT_LABELS = {
-  forearm: 'Forearm', wrist: 'Wrist', back: 'Back', spine: 'Spine',
-  leg: 'Leg', chest: 'Chest', hand: 'Hand',
-}
+// Display labels for the tile overlay + alt text live in src/data/taxonomy.js
+// (the single source the data tests and the Dropbox filename parser also read);
+// re-exported here so renderers and tests keep one import site. If the artist
+// renames a category, update the chip label in portfolio/index.html and the
+// taxonomy entry together.
+export { STYLE_LABELS, PLACEMENT_LABELS } from '../data/taxonomy.js'
+import { STYLE_LABELS, PLACEMENT_LABELS } from '../data/taxonomy.js'
 
 export const styleLabel = t => STYLE_LABELS[t] || t
 export const placeLabel = t => PLACEMENT_LABELS[t] || t
@@ -53,7 +43,8 @@ export const altText = p =>
 // `data-full` points the lightbox at the largest tier — without it the lightbox
 // would upscale whatever small srcset candidate the grid happened to load.
 function photo(p, eager) {
-  const srcset = ext => `${p.img}-400.${ext} 400w, ${p.img}-800.${ext} 800w, ${p.img}-1200.${ext} 1200w`
+  // esc() like the src/data-full below — attribute context, even for repo paths.
+  const srcset = ext => `${esc(p.img)}-400.${ext} 400w, ${esc(p.img)}-800.${ext} 800w, ${esc(p.img)}-1200.${ext} 1200w`
   const sizes  = '(min-width:1200px) 23vw, (min-width:900px) 31vw, 47vw'
   const loading = eager ? 'eager" fetchpriority="high' : 'lazy'
   return `<picture>

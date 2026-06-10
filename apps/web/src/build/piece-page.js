@@ -20,6 +20,11 @@ import { homepage } from '../data/homepage.js'
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
 
+// JSON-LD sits inside a <script> element, where esc() would corrupt the JSON but
+// a raw "</script>" in a value (e.g. a pasted title) would terminate the element
+// mid-document. <-escape "<" — valid JSON, inert in HTML.
+const jsonLd = obj => JSON.stringify(obj).replace(/</g, '\\u003c')
+
 // styleLabel / placeLabel are imported from portfolio-tiles.js (single source of truth).
 
 // `img` may be a final web export carrying its own extension (e.g. "…/Koi.webp")
@@ -38,7 +43,7 @@ function media(p) {
       return `<img src="${esc(p.img)}" alt="${esc(altText(p))}"
                width="${p.w}" height="${p.h}" fetchpriority="high" decoding="async">`
     }
-    const srcset = ext => `${p.img}-400.${ext} 400w, ${p.img}-800.${ext} 800w, ${p.img}-1200.${ext} 1200w`
+    const srcset = ext => `${esc(p.img)}-400.${ext} 400w, ${esc(p.img)}-800.${ext} 800w, ${esc(p.img)}-1200.${ext} 1200w`
     const sizes  = '(min-width:900px) 56vw, 100vw'
     return `<picture>
           <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
@@ -116,7 +121,7 @@ ${renderPaletteStyle()}
 <link href="${FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="${cssHref}">
 ${LOADER_STYLE}
-<script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>
+<script type="application/ld+json">${jsonLd(breadcrumb)}</script>
 </head>
 <body>
 ${LOADER_MARKUP}
