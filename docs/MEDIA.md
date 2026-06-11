@@ -101,6 +101,51 @@ flash/drop-N/     Title -- <size>in -- £<price> -- <placement options> -- style
   refreshes its tiers (its filename needs no metadata; the data file is the
   source of truth once the entry exists — retune styles/copy there).
 
+## Preparing masters in darktable
+
+[darktable](https://www.darktable.org/) (free, all platforms) is the reference
+tool for turning a camera shot into a compliant master. It does exactly the two
+things the pipeline leaves to the artist — **framing to the lane aspect** and
+**declaring the filename metadata** — and nothing else (no resize, no
+format-fan-out; `process-media.mjs` owns those, so the export stays one big JPG).
+Set it up once:
+
+1. **Crop aspect (per lane).** In the **crop** module set **3:4 portrait** for
+   portfolio (pick `4:3`, then the orientation toggle) and **square (1:1)** for
+   flash. darktable remembers the last aspect, so you set it once per batch. Frame
+   inside the safe area from the export guidance above (central ~75–80%, extra
+   room at the bottom on portfolio for the title overlay) — the centre crop is
+   exact, so what you frame is what ships.
+2. **Put the grammar in the Title field, not the filename.** The clean way to emit
+   a name matching the `" -- "` grammar above is to type it into darktable's
+   **Title** metadata (lighttable → **metadata editor** module), e.g.
+   `Koi -- forearm -- black-grey+realism -- 2026-06-11 -- a koi carp`. It rides in
+   the photo's `.xmp` sidecar, doubles as a readable grid label, and keeps the
+   grammar out of raw-file renaming. Use the canonical `taxonomy.js` spellings
+   (tokens are validated exactly), join multiple styles with `+`, and write the
+   flash price as a bare number (the `£` is optional — keeps the filename ASCII).
+3. **Two export presets.** In the **export** module: **JPEG, quality ~95, full
+   resolution** (leave the size unconstrained — do *not* shrink; the pipeline
+   downscales and sharpens), **sRGB**, output sharpening **off** (the pipeline
+   sharpens on downscale; doubling up crunches the tiers), and crucially
+   **filename template `$(TITLE)`** so the export is named from step 2. Save two
+   presets (export module → presets → *store new preset*):
+   - **`Beansprout portfolio`** → output `…/Beansprout/masters/portfolio/`
+   - **`Beansprout flash`** → output `…/Beansprout/masters/flash/drop-<N>/` — point
+     it at the *current* drop's folder (the drop number is the folder, per the grammar).
+
+**Per shoot:** import → (optionally apply a baseline edit *style*) → crop to the
+lane aspect → set each **Title** to the grammar → export with the lane preset.
+Then run the sync (`npm run media:dropbox -- --write-data`, or the *Run sync*
+button); `--dry-run` first validates every name and reports the fix without
+touching anything. Re-exporting an existing piece needs only its Title's first
+segment (the slug) — the rest is ignored, it just refreshes the tiers.
+
+> **Why the Title field?** darktable's export filename is one template for the
+> whole batch, so it can't take a different literal name per image — but
+> `$(TITLE)` resolves per image from metadata you *can* set individually. The
+> Title field is how a single export run names each file differently and correctly.
+
 ## Collecting masters from Dropbox (automated)
 
 The masters live off-repo in **Dropbox** (only the generated tiers are committed —
