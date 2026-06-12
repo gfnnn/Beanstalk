@@ -353,8 +353,11 @@ against a double-inject). It hides the page from the first paint so the render-b
 CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
 (`initPageLoader()`, called first in `main.js`) dismisses it on `document.fonts.ready` for a
 **cold** first load (JS ceiling 3s **and** a pure-CSS failsafe 6s so a hung resource can never
-trap the page), but drops it **instantly on warm in-session navigations** (`sessionStorage`)
-so the page-transition cross-fade shows real content, not the cover. It resolves the
+trap the page) — **all-or-nothing**: a cover seen ≤0.4s lifts instantly (reads as "no
+preloader"), one seen longer holds to a 1.6s minimum so the animation completes rather than
+flashing half-played (decision table in `docs/MOTION.md`). It drops the cover **instantly on
+warm in-session navigations** (`sessionStorage`; a mid-session *reload* counts as cold) so the
+page-transition cross-fade shows real content, not the cover. It resolves the
 `pageReady` promise that gates the entrance (above). Reduced-motion: removed instantly, no
 animation. **Page transitions** (cross-document View Transitions) and the **animated
 hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/atmosphere.css`

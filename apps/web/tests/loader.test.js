@@ -8,7 +8,7 @@
 // document.fonts.ready (with a hard ceiling so it can never trap the page).
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { injectPageLoader, LOADER_STYLE, LOADER_MARKUP } from '../src/build/loader.js'
-import { initPageLoader } from '../src/js/modules/loader.js'
+import { initPageLoader, QUICK_LIFT_MS, MIN_SHOW_MS } from '../src/js/modules/loader.js'
 
 const doc = body =>
   `<!doctype html><html><head><title>t</title></head><body>${body}</body></html>`
@@ -164,6 +164,83 @@ describe('initPageLoader (runtime dismissal)', () => {
     // no flush, no timers.
     expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     expect(document.getElementById('page-loader')).toBeNull()
+  })
+
+  describe('bimodal dismissal — all-or-nothing, never a half-played cover', () => {
+    // The cover's visible time is measured from first-contentful-paint (the cover
+    // IS the FCP). Stub an entry that puts it `ms` in the past at decision time.
+    let savedGetEntriesByName
+    beforeEach(() => { savedGetEntriesByName = performance.getEntriesByName })
+    afterEach(() => {
+      performance.getEntriesByName = savedGetEntriesByName
+      vi.useRealTimers() // recover even if a fake-timer assertion failed mid-test
+    })
+    const coverVisibleFor = ms => {
+      performance.getEntriesByName = () => [{ startTime: performance.now() - ms }]
+    }
+
+    it('QUICK: a cover seen under the lift budget lifts immediately, no hold', async () => {
+      setReducedMotion(false)
+      coverVisibleFor(QUICK_LIFT_MS / 4) // a sub-perceptual glimpse
+      mountOverlay()
+      initPageLoader()
+      await flush() // fonts.ready → dismiss decides → no hold
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+    })
+
+    it('COMMIT: a registered cover holds to the minimum show, then fades — never mid-arc', async () => {
+      setReducedMotion(false)
+      // Fake ONLY the timers the hold uses — a blanket useFakeTimers() swaps the
+      // performance internals, and the module would no longer see the FCP stub.
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      coverVisibleFor(1000) // past QUICK, 600ms short of MIN_SHOW → must hold 600ms
+      mountOverlay()
+      initPageLoader()
+      await vi.advanceTimersByTimeAsync(0) // fonts.ready resolves → dismiss decides
+      // Committed: the page must NOT be revealed mid-performance…
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(false)
+      // …the cover completes MIN_SHOW, then the fade (and the entrance) begin.
+      await vi.advanceTimersByTimeAsync(MIN_SHOW_MS - 1000)
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+    })
+
+    it('a cover already past the minimum show fades without any extra hold', async () => {
+      setReducedMotion(false)
+      coverVisibleFor(MIN_SHOW_MS + 500) // slow load: the performance already played
+      mountOverlay()
+      initPageLoader()
+      await flush()
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+    })
+
+    it('reduced motion skips the hold — lifts as soon as the page is ready', async () => {
+      setReducedMotion(true)
+      coverVisibleFor(1000) // would commit under full motion
+      mountOverlay()
+      initPageLoader()
+      await flush()
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+      expect(document.getElementById('page-loader')).toBeNull() // removed, no fade
+    })
+  })
+
+  it('treats a mid-session RELOAD as cold — the cover is not instant-dropped', () => {
+    // A reload re-fetches the render-blocking CSS/fonts and has no inbound View
+    // Transition, so the warm instant-drop would re-expose the font-swap flash.
+    setReducedMotion(false)
+    sessionStorage.setItem('bs-visited', '1') // would otherwise read as warm
+    const saved = performance.getEntriesByType
+    performance.getEntriesByType = () => [{ type: 'reload' }]
+    try {
+      mountOverlay()
+      initPageLoader()
+      // Warm removes synchronously; a reload must keep the cover up (cold path)…
+      expect(document.getElementById('page-loader')).not.toBeNull()
+      // …including the cold-start flag for the nav-logo draw.
+      expect(document.documentElement.classList.contains('cold-start')).toBe(true)
+    } finally {
+      performance.getEntriesByType = saved
+    }
   })
 
   it('cold load flags <html> with cold-start (for the one-time nav-logo draw)', () => {

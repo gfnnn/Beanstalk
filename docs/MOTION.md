@@ -33,14 +33,17 @@ The whole reveal hangs off one promise and one class.
 2. **`initPageLoader()`** (first call in `main.js`) decides *when the page should be
    revealed* and resolves the exported **`pageReady`** promise at that moment:
    - **Warm** in-session navigation (this tab has loaded a page already this
-     session — `sessionStorage['bs-visited']`): the cover is dropped instantly and
-     `pageReady` resolves right away. The View Transition is doing the cross-fade,
-     so the cover would only get in the way.
+     session — `sessionStorage['bs-visited']`, *except* a reload, which counts as
+     cold): the cover is dropped instantly and `pageReady` resolves right away. The
+     View Transition is doing the cross-fade, so the cover would only get in the way.
    - **Cold** load: the cover holds until `document.fonts.ready` (the font swap is
-     the real cause of the reflow), then fades — and `pageReady` resolves as the
+     the real cause of the reflow), then lifts **all-or-nothing**: a cover that's
+     been visible ≤0.4s lifts immediately (reads as "no preloader ran"), while one
+     seen any longer commits — holding to a 1.6s minimum total so the mark plays a
+     full breathe beat — and only then fades. Either way `pageReady` resolves as the
      fade *begins*, so the entrance plays **as the cover lifts**, not behind it.
-     A 3s JS ceiling and a 6s pure-CSS failsafe guarantee the cover can never trap
-     the page.
+     Full decision table in the loader section below. A 3s JS ceiling and a 6s
+     pure-CSS failsafe guarantee the cover can never trap the page.
 3. **`pageReady.then(...)`** in `main.js` does the reveal: add `motion-ready` to
    `<html>`, then run `initHeroAnimation()` + `initScrollAnimations()`. The class
    flip and GSAP's `.from()` start-states land in **one synchronous tick**, so the
@@ -135,6 +138,28 @@ whole page from first paint.
   regression). The ink-rise draw lives on the nav logo + confirmation mark instead,
   past the dismiss race — see *Brand-mark ink-rise* below.
 - Dismissal and `pageReady` are described in the coordination spine above.
+
+### When the cover shows, and for how long (the decision table)
+
+The cover is painted from the very first frame on every cold load — that part is
+unconditional (it *is* the FOUC cover). The orchestration is entirely about **when
+it lifts**, and it is **all-or-nothing** so the visitor never sees a half-played
+performance (the old "ready at 0.5–1.5s" jank zone, where the cover registered and
+was then yanked mid-breathe). The thresholds are `QUICK_LIFT_MS` (400) and
+`MIN_SHOW_MS` (1600) in `modules/loader.js`; visible time is measured from
+first-contentful-paint (the cover *is* the FCP — falling back to init time, which
+errs toward holding, never flashing).
+
+| Situation | What happens |
+|---|---|
+| Cold, ready while cover seen **≤ 0.4s** | Lift immediately — reads as "no preloader ran"; the entrance starts as the fade begins, so there's never >0.4s without content or motion |
+| Cold, ready when cover seen **> 0.4s** | **Commit**: hold to 1.6s total visible (a full breathe beat), then fade — the performance always completes |
+| Cold, ready **after 1.6s** | Already played out — fade with no extra hold |
+| Warm in-session navigation | No cover (instant drop before the View Transition snapshot); the VT cross-fades real content |
+| **Mid-session reload** | Counts as **cold** — a reload re-fetches the render-blocking CSS/fonts and has no inbound VT, so the warm instant-drop would re-expose the font-swap flash |
+| Fonts hang | 3s JS ceiling forces the dismissal decision |
+| Bundle never runs | 6s pure-CSS `pl-failsafe` removes the cover (the worst committed fade starts ~4.2s, comfortably inside it) |
+| Reduced motion | No hold (there's no performance to finish) — lift as soon as ready, no fade |
 
 ### Brand-mark ink-rise (the shared logo "draw")
 
