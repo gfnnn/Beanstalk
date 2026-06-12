@@ -319,6 +319,27 @@ describe('initScrollAnimations', () => {
     expect(reveal.vars.filter).toContain('blur') // headings get the blur-to-sharp
   })
 
+  it('reveals the loose services .section-eyebrow ("What it costs") via the registry', async () => {
+    // Regression: this bespoke eyebrow sat static beside its animating title.
+    const { initScrollAnimations } = await load({ viewport: 'desktop' })
+    document.body.innerHTML =
+      '<p class="section-eyebrow">What it costs</p><h2 class="section-title reveal">Rates</h2>'
+    initScrollAnimations()
+    const reveal = fromFor(document.querySelector('.section-eyebrow'))
+    expect(reveal).toBeTruthy()
+    expect(reveal.vars.x).toBe(-20) // eyebrow role — leftward fade, in step with the title
+  })
+
+  it('skips a .section-eyebrow already inside a .reveal header wrapper (no double-animate)', async () => {
+    // The services included / policies headers wrap eyebrow + title in one .reveal.
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML =
+      '<div class="reveal"><p class="section-eyebrow">Every booking</p><h2 class="section-title">x</h2></div>'
+    initScrollAnimations()
+    expect(fromFor(document.querySelector('.reveal'))).toBeTruthy()
+    expect(fromFor(document.querySelector('.section-eyebrow'))).toBeUndefined()
+  })
+
   it('does NOT double-animate a header already inside a .reveal wrapper (claim guard)', async () => {
     const { initScrollAnimations } = await load()
     document.body.innerHTML = '<div class="reveal"><h2 class="section-title">x</h2></div>'

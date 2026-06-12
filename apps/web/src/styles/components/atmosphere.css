@@ -87,3 +87,38 @@ body::after {
    `<hr class="divider">`) wherever a hairline belongs and it inherits the
    grow above. */
 .divider { height: 1px; border: 0; background: var(--line); }
+
+/* ── Brand-mark ink-rise (the shared logo "draw") ────────────────────────────
+   The calligraphic mark (src/build/favicon.js) is ONE filled path, so it can't
+   self-ink stroke-by-stroke like the line-art hero sprig — it reveals instead with
+   a clip-path wipe from the base up, as if the ink is being laid down. This is the
+   same vocabulary as the preloader's `pl-draw` (which keeps its own copy: its CSS
+   is inline-critical and paints before this file loads, so it can't share the
+   keyframe). Two on-load homes, both hung off the one `.motion-ready` entrance
+   spine:
+     · the nav logo — ONLY on a cold first load (`html.cold-start`), drawn as the
+       preloader cover lifts; warm in-session navs deliberately skip it so the page
+       transition carries the header instead of re-drawing it every navigation;
+     · the enquiry-received confirmation mark — a one-time success flourish, riding
+       inside its `.reveal` block.
+   clip-path isn't guaranteed GPU-accelerated, but this is a single MONOTONIC
+   reveal on one element (no per-path stagger to render half-drawn), and on the cold
+   load the cream cover masks any first-frame cost until it lifts. Reduced motion:
+   the whole block is inert, so the mark is simply shown complete. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes mark-rise { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+  /* Nav logo — needs no first-paint guard: on a cold load the loader cover is over
+     it until `.motion-ready` flips (when this draw starts). */
+  html.cold-start.motion-ready .nav-logo .brand-mark {
+    animation: mark-rise 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  /* Confirmation mark — a warm redirect has no cover, so clip it from first paint
+     (before the bundle flips `.motion-ready`), then draw. Delay tracks the .reveal
+     block's on-load entrance so the mark draws as its block settles in. */
+  html:not(.motion-ready) .confirm-mark .brand-mark { clip-path: inset(100% 0 0 0); }
+  html.motion-ready .confirm-mark .brand-mark {
+    animation: mark-rise 1s cubic-bezier(0.22, 0.61, 0.36, 1) 0.35s both;
+  }
+}

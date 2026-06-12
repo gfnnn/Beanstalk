@@ -344,8 +344,9 @@ the focus-visible / reduced-motion / screen-reader rules.
 motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
 **inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
 Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
-overlay (a sprig mark on the cream bg, shown complete with a gentle opacity breathe — *not* a
-stroke-dashoffset draw, which janked on quick loads) right after `<body>`, on **every** page
+overlay (the calligraphic brand mark on the cream bg: a clip-path **ink-rise draw** from the
+base, then a gentle opacity breathe — the shared logo "draw" used by the nav logo + confirmation
+mark too; see `docs/MOTION.md` → *Brand-mark ink-rise*) right after `<body>`, on **every** page
 incl. the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
 against a double-inject). It hides the page from the first paint so the render-blocking
 CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`

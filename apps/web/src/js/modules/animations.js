@@ -205,9 +205,11 @@ export function initScrollAnimations() {
   // ── Unified section reveal — ONE registry, every page ───────────────────────
   // Reveals each section's eyebrow / heading / body the same way site-wide: the
   // generic semantic classes the homepage uses, PLUS the per-page bespoke
-  // equivalents inner pages invented (`.chooser-*`, `.contact-*`, `.newsletter-
-  // band-*`) — so a page can't quietly fall out of motion coverage just by naming
-  // its header differently. A faint blur-to-sharp ("coming into focus through
+  // equivalents inner pages invented (`.section-eyebrow`, `.chooser-*`,
+  // `.contact-*`, `.newsletter-band-*`) — so a page can't quietly fall out of
+  // motion coverage just by naming its header differently (e.g. the services
+  // "What it costs" eyebrow, which sat static beside its animating title). A
+  // faint blur-to-sharp ("coming into focus through
   // foliage", §3-C) rides the headings only; offsets shrink on mobile to protect
   // the budget.
   //
@@ -222,7 +224,7 @@ export function initScrollAnimations() {
   // new section header => use a listed class, or add its class here.
   const mobile = window.matchMedia('(max-width: 899px)').matches
   const roles = [
-    ['.eyebrow, .chooser-eyebrow', 0,
+    ['.eyebrow, .chooser-eyebrow, .section-eyebrow', 0,
       { opacity: 0, x: mobile ? -14 : -20, duration: mobile ? 0.6 : 0.65, ease: 'power2.out' }],
     ['.section-title, .page-hero__title, .chooser-heading, .contact-heading, .newsletter-band-title', 0.08,
       { opacity: 0, y: mobile ? 16 : 28, filter: `blur(${mobile ? 4 : 6}px)`, duration: mobile ? 0.7 : 0.85, ease: 'power3.out' }],

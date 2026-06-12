@@ -20,6 +20,7 @@ gets a fully visible, static page.
 | **Full-page loader** | `src/build/loader.js` (inject) + `src/js/modules/loader.js` (dismiss) | The cream cover for the slow **cold** first load |
 | **Page transitions** | `src/styles/components/atmosphere.css` | Cross-document View Transition — a soft cross-fade between routes |
 | **Animated hairline rules** | `atmosphere.css` (the `--rule-scale` switch + `.divider`) + per-page hairline pseudos | Dividers that grow in from the left as the page builds |
+| **Brand-mark ink-rise** | preloader copy in `src/build/loader.js`; shared `mark-rise` in `atmosphere.css` | The calligraphic logo "draws" in (clip-path wipe from the base) on the preloader, the nav logo (cold load only) and the confirmation mark |
 
 ## The coordination spine: `pageReady` → `motion-ready`
 
@@ -127,12 +128,37 @@ whole page from first paint.
   overlay markup is injected right after `<body>`. The `pageLoader` Vite plugin does
   this site-wide; `piece-page.js` carries its own copy for the per-piece pages (both
   inserts are idempotent).
-- The sprig is shown **fully formed** with only a gentle **compositor opacity
-  breathe** — *not* a `stroke-dashoffset` self-inking draw. A draw is a main-thread
-  property that janks under load-time contention, and a staggered per-path draw
-  renders inconsistently on a quick cover (the "two leaves, no stem" flash). Shown-
-  complete + breathe reads right at any load speed and glimpse length.
+- The mark plays a single **ink-rise draw** on load (`pl-draw`: a clip-path wipe
+  from the base up, as if the calligraphy is being laid down), then settles into a
+  gentle compositor **opacity breathe**; the word fades up under it. See *Brand-mark
+  ink-rise* below for why a clip-path works here where the old per-path
+  `stroke-dashoffset` draw didn't, and how the cover masks its cost.
 - Dismissal and `pageReady` are described in the coordination spine above.
+
+### Brand-mark ink-rise (the shared logo "draw")
+
+The calligraphic brand mark (`src/build/favicon.js`, one **filled** `<path>`) appears
+in three motion contexts, all sharing a single **clip-path wipe from the base up**:
+
+- **Preloader** — draws on the **cold** load, then breathes (above).
+- **Nav logo** — draws **only on a cold first load** (`html.cold-start`, set by
+  `modules/loader.js`), hung off `.motion-ready` so it reveals *as the cover lifts*.
+  Warm in-session navs deliberately skip it — the page transition already carries the
+  header, so re-drawing it every navigation would be busywork. No first-paint guard is
+  needed: the cover is over the nav until `.motion-ready` flips.
+- **Confirmation mark** (`/enquiry-received/`) — a one-time success flourish. A warm
+  redirect has no cover, so it's clip-guarded from first paint (`html:not(.motion-ready)`)
+  and drawn when the bundle flips `.motion-ready`, riding inside its `.reveal` block.
+
+Why clip-path, not the hero sprig's self-ink: the mark is **one filled silhouette** —
+there are no strokes to draw and no sub-parts to stagger, so `stroke-dashoffset`
+can't apply at all. A clip-path `inset()` is a single **monotonic** reveal on one
+element (no half-drawn per-path inconsistency — the old "two leaves, no stem" failure),
+and on the cold load the cream cover hides any first-frame cost until it lifts. The
+preloader keeps its **own copy** of the keyframe (`pl-draw`) because its CSS is
+inline-critical and paints before `atmosphere.css` (which holds the shared `mark-rise`)
+loads. All of it sits under `prefers-reduced-motion: no-preference`, so a reduced-motion
+visitor simply sees the mark, shown complete.
 
 ## Page transitions (`atmosphere.css`)
 
