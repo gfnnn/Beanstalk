@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   recordPayment, getPayment, markPaymentStatus,
-  promoteFlashClaim, expirePendingClaims, recordWebhookEvent,
+  promoteFlashClaim, expirePendingClaims, recordWebhookEvent, hasWebhookEvent,
   reserveFlashPiece, getFlashClaims,
 } from '../src/lib/db.js'
 import { makeD1, brokenD1, flashMap } from './helpers/fake-d1.js'
@@ -96,8 +96,11 @@ describe('promoteFlashClaim', () => {
     expect(flashMap(d1.data)).toEqual({ ghost: 'claimed' })
   })
 
-  it('fails safe when the DB is down', async () => {
-    expect(await promoteFlashClaim(broken, 'flash-01')).toBe(false)
+  it('signals a failed write as null — distinguishable from the benign already-claimed false', async () => {
+    // The webhook treats false as "end-state already correct" and null as "retry
+    // via Stripe redelivery"; collapsing them is how a paid piece could be
+    // silently relisted (see promoteFlashClaim's contract comment).
+    expect(await promoteFlashClaim(broken, 'flash-01')).toBeNull()
   })
 })
 
@@ -165,5 +168,54 @@ describe('recordWebhookEvent (idempotency)', () => {
 
   it('FAILS OPEN (fresh: true) when the DB is down — the downstream promote/markPaid are idempotent', async () => {
     expect(await recordWebhookEvent(broken, 'evt_x', 't')).toEqual({ fresh: true })
+  })
+
+  it('hasWebhookEvent: false before recording, true after, false on a missing id, FAILS OPEN when down', async () => {
+    const e = { DB: makeD1().DB }
+    expect(await hasWebhookEvent(e, 'evt_1')).toBe(false)
+    await recordWebhookEvent(e, 'evt_1', 't')
+    expect(await hasWebhookEvent(e, 'evt_1')).toBe(true)
+    expect(await hasWebhookEvent(e, '')).toBe(false)
+    expect(await hasWebhookEvent(broken, 'evt_1')).toBe(false)   // reprocess > drop
+  })
+
+  it('records a stored type of null when the event type is omitted', async () => {
+    const d1 = makeD1()
+    await recordWebhookEvent({ DB: d1.DB }, 'evt_untyped')
+    expect(d1.data.webhooks.get('evt_untyped').type).toBeNull()
+  })
+})
+
+describe('guard clauses & non-Error fail-safes', () => {
+  it('missing-id reads/writes are benign no-ops across the ledger', async () => {
+    const e = { DB: makeD1().DB }
+    expect(await getPayment(e, '')).toBeNull()
+    expect(await markPaymentStatus(e, '', 'paid')).toBe(false)
+    expect(await markPaymentStatus(e, 'ref', '')).toBe(false)   // status is required too
+    expect(await promoteFlashClaim(e, '')).toBe(false)
+  })
+
+  it('a minimal payment record gets every documented default', async () => {
+    const d1 = makeD1()
+    expect(await recordPayment({ DB: d1.DB }, { id: 'bare' })).toBe(true)
+    const row = await getPayment({ DB: d1.DB }, 'bare')
+    expect(row).toMatchObject({
+      kind: 'flash', status: 'awaiting', provider: 'stripe',
+      amount_pence: 0, currency: 'gbp',
+      provider_ref: null, email: null, piece_id: null, submission_id: null, paid_at: null,
+    })
+    expect(row.created_at).toBeTruthy()
+  })
+
+  it('fail-safes hold even when the DB throws a non-Error value', async () => {
+    // The catch blocks log err?.message || err — a thrown string must not break them.
+    const strThrow = { DB: { prepare() { throw 'string boom' }, batch() { throw 'string boom' } } }
+    expect(await recordPayment(strThrow, { id: 'x' })).toBe(false)
+    expect(await getPayment(strThrow, 'x')).toBeNull()
+    expect(await markPaymentStatus(strThrow, 'x', 'paid')).toBe(false)
+    expect(await promoteFlashClaim(strThrow, 'x')).toBeNull()
+    expect(await expirePendingClaims(strThrow)).toBe(0)
+    expect(await recordWebhookEvent(strThrow, 'e')).toEqual({ fresh: true })
+    expect(await hasWebhookEvent(strThrow, 'e')).toBe(false)
   })
 })

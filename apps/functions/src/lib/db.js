@@ -183,8 +183,17 @@ export async function releaseFlashPiece(env, id, paymentRef = null) {
 // piece would silently read available again). Idempotent: an existing 'claimed'
 // row is a no-op, so a re-delivered webhook can't double-promote. Clears the
 // hold's expiry so a sold piece can never be swept, and stamps the claiming
-// payment's reference on the row. Returns true iff THIS call marked it claimed.
-// Fail-safe → false.
+// payment's reference on the row.
+//
+// Returns a TRI-STATE the webhook relies on:
+//   true  — THIS call marked the piece claimed (durable progress)
+//   false — benign no-op: zero changes here can only mean the row already reads
+//           'claimed' (pending → updated, absent → inserted), so the end-state is
+//           correct without us
+//   null  — the write FAILED (D1 error). Deliberately distinguishable from the
+//           no-op: a paid piece whose promote write was lost would otherwise be
+//           acked, swept by expirePendingClaims, and silently relisted for a
+//           second sale — the caller must signal Stripe to redeliver instead.
 export async function promoteFlashClaim(env, id, paymentRef = null) {
   if (!id) return false
   try {
@@ -199,7 +208,7 @@ export async function promoteFlashClaim(env, id, paymentRef = null) {
     return (res?.meta?.changes ?? 0) > 0
   } catch (err) {
     console.error('promoteFlashClaim failed:', err?.message || err)
-    return false
+    return null
   }
 }
 

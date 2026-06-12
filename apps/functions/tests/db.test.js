@@ -78,6 +78,13 @@ describe('flash inventory', () => {
     expect(flashMap(d1.data)).toEqual({})
   })
 
+  it('releaseFlashPiece with no id is a silent no-op', async () => {
+    const d1 = makeD1()
+    await reserveFlashPiece({ DB: d1.DB }, 'flash-07')
+    await releaseFlashPiece({ DB: d1.DB }, '')
+    expect(flashMap(d1.data)).toEqual({ 'flash-07': 'pending' })   // untouched
+  })
+
   it('getFlashClaims returns the map, or {} when empty / DB down', async () => {
     const d1 = makeD1()
     d1.data.flash.set('a', { status: 'claimed', updated_at: 'x' })
@@ -231,5 +238,40 @@ describe('rateLimit', () => {
     const limiter = await rateLimit(broken, '1.1.1.1', { storeName: 's' })
     expect(limiter.ok).toBe(true)
     await expect(limiter.commit()).resolves.toBeUndefined()
+  })
+})
+
+describe('defaults & non-Error fail-safes', () => {
+  it('a minimal submission record gets every documented default', async () => {
+    const d1 = makeD1()
+    const id = await persistSubmission({ DB: d1.DB }, {})
+    expect(id.startsWith('item/')).toBe(true)   // kind falls back to 'item'
+    const row = d1.data.submissions.get(id)
+    expect(row).toMatchObject({
+      kind: 'item', email: null, ip: null, fields: '{}',
+      image_count: 0, image_names: '[]', skipped: 0, email_status: 'pending',
+    })
+    expect(row.received_at).toBeTruthy()
+  })
+
+  it('a minimal consent record stores nulls and still returns an id', async () => {
+    const d1 = makeD1()
+    const id = await persistConsent({ DB: d1.DB }, { email: 'a@b.co' })
+    expect(typeof id).toBe('string')
+    expect(d1.data.consent.get(id)).toMatchObject({
+      email: 'a@b.co', first_name: null, statement: null, version: null, source: null, ip: null,
+    })
+  })
+
+  it('fail-safes hold even when the DB throws a non-Error value', async () => {
+    // The catch blocks log err?.message || err — a thrown string must not break them.
+    const strThrow = { DB: { prepare() { throw 'string boom' }, batch() { throw 'string boom' } } }
+    expect(await persistSubmission(strThrow, { kind: 'enquiry', fields: {} })).toBeNull()
+    expect(await persistSubmission(strThrow, { fields: {} }, 'kept-id')).toBe('kept-id')
+    expect(await persistConsent(strThrow, { email: 'a@b.co' })).toBeNull()
+    expect(await getFlashClaims(strThrow)).toEqual({})
+    expect(await reserveFlashPiece(strThrow, 'p')).toEqual({ ok: true })
+    await expect(releaseFlashPiece(strThrow, 'p')).resolves.toBeUndefined()
+    expect((await rateLimit(strThrow, '1.1.1.1', { storeName: 's' })).ok).toBe(true)
   })
 })

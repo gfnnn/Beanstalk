@@ -335,6 +335,49 @@ describe('enquiry handler — persistence & size limits', () => {
     expect(res.statusCode).toBe(200)
     expect(JSON.parse(rows()[0].fields)['style[]'].length).toBe(50)
   })
+
+  it('413s with the images-specific message when the decoded total exceeds the cap', async () => {
+    // Two real-sniffing JPEGs of ~2.2 MB decoded each: the 4.4 MB total clears the
+    // per-image cap (4 MB) and the body cap (6 MB) but breaks MAX_TOTAL_BYTES — the
+    // visitor must get the actionable "remove some" 413, not the blunt body one.
+    const big = (() => {
+      const buf = Buffer.alloc(Math.round(2.2 * 1024 * 1024))
+      buf[0] = 0xFF; buf[1] = 0xD8; buf[2] = 0xFF
+      return buf.toString('base64')
+    })()
+    const res = await H(post({
+      ...validEnquiry(),
+      images: [{ name: 'a.jpg', data: big }, { name: 'b.jpg', data: big }],
+    }))
+    expect(res.statusCode).toBe(413)
+    expect(JSON.parse(res.body).error).toMatch(/images are too large/i)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('leaves non-string scalar fields untouched by the clamp', async () => {
+    const res = await H(post(validEnquiry({ budget_max: 400, returning: true })))
+    expect(res.statusCode).toBe(200)
+    const stored = JSON.parse(rows()[0].fields)
+    expect(stored.budget_max).toBe(400)
+    expect(stored.returning).toBe(true)
+  })
+
+  it('clamps nested objects too — the per-field cap cannot be smuggled past as JSON', async () => {
+    // The real form never produces object values, but a crafted payload could
+    // hide megabytes inside one (or inside an array item). Left whole, the
+    // persist insert would exceed D1's row limit and fail open — silently
+    // dropping the durable record while the enquiry still 200s.
+    const res = await H(post(validEnquiry({
+      idea: { deep: 'z'.repeat(5000) },
+      'style[]': ['fine', { sneaky: 'z'.repeat(5000) }],
+    })))
+    expect(res.statusCode).toBe(200)
+    const stored = JSON.parse(rows()[0].fields)
+    expect(typeof stored.idea).toBe('string')
+    expect(stored.idea.length).toBeLessThanOrEqual(2000)
+    expect(typeof stored['style[]'][1]).toBe('string')
+    expect(stored['style[]'][1].length).toBeLessThanOrEqual(2000)
+  })
 })
 
 describe('enquiry handler — flash inventory', () => {
@@ -374,6 +417,18 @@ describe('enquiry handler — flash inventory', () => {
     expect(sentBody(fetchMock).html).not.toContain('£1<')
   })
 
+  it('404s a piece id that is not in the manifest — no reserve, no email, no client-set price', async () => {
+    // Mirrors /checkout. Without this, a direct API caller could (a) put their
+    // own price in the artist's inbox (the manifest override only fired for
+    // known ids) and (b) write junk ids into flash_claims as unexpirable
+    // reserves the public /flash-status endpoint would serve forever.
+    const res = await H(post(flashClaim({ piece_id: 'flash-999', price: '1' })))
+    expect(res.statusCode).toBe(404)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(flashMap(d1.data)).toEqual({})
+    expect(d1.data.submissions.size).toBe(0)
+  })
+
   it('flattens newlines out of the email subject', async () => {
     const res = await H(post(flashClaim({ name: 'Ada\r\nBcc: evil@example.com' })))
     expect(res.statusCode).toBe(200)
@@ -391,6 +446,16 @@ describe('enquiry handler — flash inventory', () => {
     const retry = await H(post(flashClaim()))
     expect(retry.statusCode).toBe(200)
     expect(flashMap(d1.data)).toEqual({ 'flash-03': 'pending' })
+  })
+
+  it('releases the reservation when the send THROWS (network down), with the record marked failed', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await H(post(flashClaim()))
+    expect(res.statusCode).toBe(502)
+    expect(flashMap(d1.data)).toEqual({})                        // not stranded
+    const row = [...d1.data.submissions.values()][0]
+    expect(row.email_status).toBe('failed')                      // durable record kept
   })
 })
 

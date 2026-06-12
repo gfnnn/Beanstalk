@@ -76,6 +76,11 @@ describe('clientIp', () => {
   it('returns "unknown" when no trusted IP header is present', () => {
     expect(clientIp({ headers: {} })).toBe('unknown')
   })
+
+  it('returns "unknown" for a blank/whitespace header value (never an empty bucket key)', () => {
+    expect(clientIp({ headers: { 'cf-connecting-ip': '   ' } })).toBe('unknown')
+    expect(clientIp({ headers: { 'cf-connecting-ip': ' , 1.2.3.4' } })).toBe('unknown')
+  })
 })
 
 describe('toEvent', () => {
