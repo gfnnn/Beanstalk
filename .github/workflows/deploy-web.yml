@@ -20,6 +20,7 @@ on:
       - 'apps/web/**'
       - 'package.json'
       - 'package-lock.json'
+      - '.nvmrc'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -28,9 +29,12 @@ permissions:
   pages: write
   id-token: write
 
+# Queue production deploys, never cancel one mid-flight (GitHub's own Pages
+# starter workflow sets this deliberately): cancelling between the artifact
+# upload and deploy-pages wastes the deployment and muddies the run history.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:

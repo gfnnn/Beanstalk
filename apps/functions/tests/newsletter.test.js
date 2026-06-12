@@ -61,6 +61,19 @@ describe('newsletter handler — validation', () => {
     expect(res.statusCode).toBe(413)
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it('rejects invalid JSON with 400', async () => {
+    const res = await H({ ...post(valid()), body: 'not json' })
+    expect(res.statusCode).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('tolerates a missing body and a payload without fields (400, no throw)', async () => {
+    expect((await H({ httpMethod: 'POST', headers: {} })).statusCode).toBe(400)
+    expect((await H({ ...post(valid()), body: '{}' })).statusCode).toBe(400)
+    expect((await H({ ...post(valid()), body: '{"fields":"junk"}' })).statusCode).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('newsletter handler — Resend integration', () => {
@@ -107,6 +120,16 @@ describe('newsletter handler — Resend integration', () => {
   it('returns 502 on a genuine Resend error', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ message: 'boom' }) })
     expect((await H(post(valid()))).statusCode).toBe(502)
+  })
+
+  it('returns 502 when the Resend error body is unparseable (no throw)', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 500, json: async () => { throw new Error('bad json') } })
+    expect((await H(post(valid()))).statusCode).toBe(502)
+  })
+
+  it('500s with a valid audience id but a missing API key (config check covers each var)', async () => {
+    expect((await H(post(valid()), { RESEND_AUDIENCE_ID: AUDIENCE_ID, DB: d1.DB })).statusCode).toBe(500)
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('returns 502 when fetch throws', async () => {

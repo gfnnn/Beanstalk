@@ -13,7 +13,8 @@ export function initLenis() {
     duration: 1.2,
     easing: t => Math.min(1, 1.001 - 2 ** (-10 * t)),
     smoothWheel: true,
-    smoothTouch: false,  // native momentum scrolling on touch — don't override
+    syncTouch: false,    // native momentum scrolling on touch — don't override
+                         // (this Lenis version's name for the old smoothTouch)
     touchMultiplier: 2,
   })
 

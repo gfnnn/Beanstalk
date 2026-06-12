@@ -53,6 +53,24 @@ describe('renderPortfolioTiles', () => {
     expect(html).toContain('<svg')
   })
 
+  it('serves an extensioned img (a final web export) as a single <img>, no srcset tiers', () => {
+    // HAS_EXT routing: "/…/Koi.webp" is served as-is — these are artist exports,
+    // not masters to derive 400/800/1200 tiers from — but still sized + lazy/eager.
+    const single = { ...withImage, img: '/images/tattoos/Koi.webp' }
+    const html = renderPortfolioTiles([single])
+    expect(html).not.toContain('<picture>')
+    expect(html).toContain('src="/images/tattoos/Koi.webp"')
+    expect(html).not.toContain('srcset')
+    expect(html).toContain('width="800"')
+    expect(html).toContain('height="1000"')
+    expect(html).toContain('fetchpriority="high"')   // first tile → eager LCP slot
+
+    // Past the eager window it lazy-loads like the responsive path.
+    const many = Array.from({ length: 5 }, (_, i) => ({ ...single, slug: `e${i}`, date: `2026-01-0${i + 1}` }))
+    const lazy = renderPortfolioTiles(many)
+    expect(lazy).toContain('loading="lazy"')
+  })
+
   it('sorts tiles by `date` descending (newest first)', () => {
     const html = renderPortfolioTiles([placeholderPiece, withImage]) // 2026-01-01, then 2026-03-01
     expect(html.indexOf('/portfolio/s1/')).toBeLessThan(html.indexOf('/portfolio/s2/'))

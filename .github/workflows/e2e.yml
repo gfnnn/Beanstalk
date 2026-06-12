@@ -12,17 +12,24 @@
 # posture as test.yml (see CLAUDE.md → "CI / GitHub Actions security").
 name: E2E
 
+# Path gate: also the root package.json (workspaces/engines feed npm ci) and
+# .nvmrc (the Node the whole job runs on) — a change to either can break the
+# build/E2E without touching apps/web/**.
 on:
   pull_request:
     paths:
       - 'apps/web/**'
+      - 'package.json'
       - 'package-lock.json'
+      - '.nvmrc'
       - '.github/workflows/e2e.yml'
   push:
     branches: [main]
     paths:
       - 'apps/web/**'
+      - 'package.json'
       - 'package-lock.json'
+      - '.nvmrc'
       - '.github/workflows/e2e.yml'
   workflow_dispatch:
 

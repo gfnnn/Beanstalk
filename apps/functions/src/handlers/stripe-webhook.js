@@ -105,6 +105,14 @@ async function onSucceeded(env, pi) {
   let promoted = false
   if (pieceId) {
     promoted = await promoteFlashClaim(env, pieceId, reference)
+    // null = the promote WRITE failed (vs false = benign already-claimed no-op).
+    // Acking here would leave the paid piece 'pending' → swept → silently
+    // relisted for a second sale, so this must redeliver even if the ledger
+    // write above stuck — the steps are idempotent, a retry is safe.
+    if (promoted === null) {
+      console.error('stripe-webhook: paid but the promote write failed — asking Stripe to redeliver', reference, pieceId)
+      return false
+    }
     // A paid piece that didn't end up newly 'claimed' (it was already claimed
     // another way) needs the artist's eyes — log loudly, never silently.
     if (!promoted) console.error('stripe-webhook: paid but piece not newly promoted — check inventory', reference, pieceId)

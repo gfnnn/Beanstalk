@@ -214,7 +214,11 @@
      via Resend. Hidden piece/price are populated by JS when a card is clicked.
      ========================================================================== -->
 <div class="modal-overlay" id="claim-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
-  <div class="modal">
+  <!-- data-lenis-prevent: the open modal stops Lenis, whose stopped state
+       preventDefault()s wheel/touch everywhere — without this opt-out the
+       modal's own overflow-y can't be scrolled on short viewports (the consent
+       box + Send button sit below the fold on phones with the keyboard up). -->
+  <div class="modal" data-lenis-prevent>
     <div class="modal-header">
       <div>
         <!-- JS populates the piece name in #modal-piece-name -->

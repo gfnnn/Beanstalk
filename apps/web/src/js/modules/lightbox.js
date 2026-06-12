@@ -14,6 +14,7 @@ export function initLightbox() {
 
   let lbIndex = 0
   let lbTiles = []
+  let lastFocused = null
 
   // Visible tiles = not hidden by filter OR load-more. `offsetParent === null` for a
   // display:none element, so this is robust to *how* a tile was hidden — unlike a
@@ -24,6 +25,7 @@ export function initLightbox() {
   }
 
   function openLightbox(index) {
+    lastFocused = document.activeElement
     lbTiles = getVisibleTiles()
     lbIndex = index
     updateLightbox()
@@ -42,7 +44,29 @@ export function initLightbox() {
     lightbox.setAttribute('inert', '')
     document.body.style.overflow = ''
     resumeScroll()
+    // Return focus to the tile that opened the dialog — `inert` on a focused
+    // descendant otherwise drops focus to <body>, stranding keyboard users at
+    // the top of the page (the flash modal already does this).
+    lastFocused?.focus()
   }
+
+  // ── Focus trap — one listener, active only while open (mirrors the flash
+  // modal). Recomputes bounds each Tab so disabled prev/next at the ends are
+  // skipped; without this, aria-modal promises a trap the dialog didn't have.
+  lightbox.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open') || e.key !== 'Tab') return
+    const focusable = [...lightbox.querySelectorAll(
+      'button, [href], [tabindex]:not([tabindex="-1"])'
+    )].filter(el => !el.disabled)
+    if (!focusable.length) return
+    const first = focusable[0]
+    const last  = focusable[focusable.length - 1]
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus() }
+    } else {
+      if (document.activeElement === last)  { e.preventDefault(); first.focus() }
+    }
+  })
 
   function updateLightbox() {
     const tile = lbTiles[lbIndex]
@@ -56,23 +80,28 @@ export function initLightbox() {
     if (lbCounter) lbCounter.textContent =
       `${String(lbIndex + 1).padStart(2, '0')} / ${String(lbTiles.length).padStart(2, '0')}`
 
-    // Real photo if the tile has one; otherwise keep the palette placeholder.
+    // Real photo if the tile has one; otherwise the palette placeholder. Both
+    // nodes are kept and toggled — replacing the placeholder with the first
+    // photo used to delete it, so paging photo → placeholder piece then showed
+    // the PREVIOUS piece's image under the new piece's title.
     const tileImg = tile.querySelector('img')
+    const ph = document.getElementById('lightbox-placeholder')
+    let img  = document.getElementById('lightbox-img')
     if (tileImg) {
-      let img = document.getElementById('lightbox-img')
       if (!img) {
         img = document.createElement('img')
         img.id = 'lightbox-img'
-        const ph = document.getElementById('lightbox-placeholder')
-        if (ph) ph.replaceWith(img)
-        else lbWrap?.prepend(img)
+        lbWrap?.prepend(img)
       }
+      img.hidden = false
+      if (ph) ph.hidden = true
       // data-full lets a tile point at a higher-res file than its grid thumbnail.
       img.src = tileImg.dataset.full || tileImg.currentSrc || tileImg.src
       img.alt = tileImg.alt || title
     } else {
-      const ph = document.getElementById('lightbox-placeholder')
+      if (img) img.hidden = true
       if (ph) {
+        ph.hidden = false
         const swatches = ['t-moss','t-cream','t-ink','t-sage','t-clay','t-warm','t-deep','t-blush','t-stone','t-dark']
         ph.className = `lightbox-placeholder ${swatches[lbIndex % swatches.length]}`
       }

@@ -100,6 +100,28 @@ describe('checkout handler — validation & price authority', () => {
     expect(flashMap(d1.data)).toEqual({})
   })
 
+  it('rejects an oversized body with 413 before parsing it', async () => {
+    const res = await H({ httpMethod: 'POST', headers: {}, body: 'x'.repeat(64 * 1024 + 1) })
+    expect(res.statusCode).toBe(413)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('tolerates a missing body and a non-object fields value (no throw, 400)', async () => {
+    // No body at all → empty payload → not a flash checkout.
+    expect((await H({ httpMethod: 'POST', headers: {} })).statusCode).toBe(400)
+    // fields as a string must not crash field extraction — required fields missing.
+    expect((await H(post({ kind: 'flash', piece_id: PIECE, fields: 'junk' }))).statusCode).toBe(400)
+    // piece_id absent everywhere → unknown piece.
+    expect((await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com' } }))).statusCode).toBe(404)
+  })
+
+  it('accepts the piece id from fields.piece_id when the top-level key is absent', async () => {
+    const res = await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece_id: PIECE } }))
+    expect(res.statusCode).toBe(200)
+    expect(json(res).amount).toBe(PRICE)
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'pending' })
+  })
+
   it('charges the MANIFEST price, ignoring any amount the client tries to send', async () => {
     // A tampered client supplies its own (tiny) amount/price everywhere it could.
     const res = await H(post(claim({ amount: 1, price: 1 }, { amount: 1, price: 1 })))
@@ -181,6 +203,14 @@ describe('checkout handler — conflicts & rollback', () => {
     const res = await H(post(claim()))
     expect(res.statusCode).toBe(502)
     expect(flashMap(d1.data)).toEqual({})
+  })
+
+  it('treats an unparseable Stripe response body as a failure (rolls back)', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, status: 200, json: async () => { throw new Error('bad json') } })
+    const res = await H(post(claim()))
+    expect(res.statusCode).toBe(502)
+    expect(flashMap(d1.data)).toEqual({})
+    expect([...d1.data.payments.values()][0].status).toBe('failed')
   })
 })
 

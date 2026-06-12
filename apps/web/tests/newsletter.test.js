@@ -130,6 +130,40 @@ describe('initNewsletter', () => {
     })
   })
 
+  describe('degraded markup (every hook optional)', () => {
+    it('validates without throwing when the form has no feedback slot', () => {
+      global.fetch = mockFetch(true, {})
+      setup()
+      $('[data-nl-feedback]').remove()
+      initNewsletter()
+      const form = $('form[data-newsletter]')
+      form.querySelector('[name="email"]').value = 'not-an-email'
+      expect(() => submit(form)).not.toThrow()
+      expect(global.fetch).not.toHaveBeenCalled()   // still blocked, just silently
+    })
+
+    it('treats a form without an email input as an invalid submission (no fetch)', () => {
+      global.fetch = mockFetch(true, {})
+      const form = setup()
+      form.querySelector('[name="email"]').remove()
+      initNewsletter()
+      submit(form)
+      expect(global.fetch).not.toHaveBeenCalled()
+      expect($('[data-nl-feedback]').textContent).toMatch(/valid email/i)
+    })
+
+    it('a success response with an unparseable body still completes the swap', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.reject(new Error('bad json')) })
+      const form = setup()
+      initNewsletter()
+      fillValid(form)
+      submit(form)
+      await flush()
+      expect(form.hidden).toBe(true)
+      expect($('#nl-success').hidden).toBe(false)
+    })
+  })
+
   describe('failure handling', () => {
     it('surfaces the worker error message and re-enables the button', async () => {
       global.fetch = mockFetch(false, { error: 'Audience unavailable' }, 500)

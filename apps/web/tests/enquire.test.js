@@ -483,5 +483,481 @@ describe('initEnquire', () => {
       expect($('form-error-banner').textContent).toBe('offline')
       expect($('submit-btn').disabled).toBe(false)
     })
+
+    it('reuses one error banner across consecutive failures (no stacking alerts)', async () => {
+      global.fetch = mockFetch(false, { error: 'First failure' }, 500)
+      const form = fullForm()
+      initEnquire()
+      fillValid()
+      submit(form); await flush()
+      expect($('form-error-banner').textContent).toBe('First failure')
+
+      global.fetch = mockFetch(false, { error: 'Second failure' }, 500)
+      submit(form); await flush()
+      expect(document.querySelectorAll('#form-error-banner, .form-error-banner')).toHaveLength(1)
+      expect($('form-error-banner').textContent).toBe('Second failure')
+    })
+
+    it('falls back to the generic message when the failure body is unparseable', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, json: () => Promise.reject(new Error('bad json')) })
+      const form = fullForm()
+      initEnquire()
+      fillValid()
+      submit(form); await flush()
+      expect($('form-error-banner').textContent).toMatch(/something went wrong/i)
+    })
+
+    it('tracks the submit type as "unknown" when no tattoo_type was chosen', async () => {
+      global.fetch = mockFetch(true, { ok: true })
+      const form = fullForm()
+      document.querySelector('[name="tattoo_type"]').remove()
+      initEnquire()
+      fillValid()
+      submit(form); await flush()
+      expect(vi.mocked(track)).toHaveBeenCalledWith('enquiry_submit', { type: 'unknown' })
+    })
+
+    it('treats a missing step as valid (a trimmed form still submits)', async () => {
+      global.fetch = mockFetch(true, { ok: true })
+      const form = fullForm()
+      $('step-3').remove()   // validateStep(3) must return true, render must skip it
+      initEnquire()
+      fillValid()
+      submit(form); await flush()
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  // The image half of submit, minus the genuinely browser-only downscale: jsdom
+  // has File + FileReader but no createImageBitmap, so downscaleImage() falls back
+  // to sending the original — which is exactly the HEIC/undecodable-photo path a
+  // real browser takes. collectImages' caps and payload shape are all reachable.
+  describe('submit (attachments via the jsdom fallback path)', () => {
+    const submit = form =>
+      form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    const mockFetch = (ok, json, status = 200) =>
+      vi.fn().mockResolvedValue({ ok, status, json: () => Promise.resolve(json) })
+    const adultDob = () => {
+      const d = new Date(); d.setFullYear(d.getFullYear() - 25)
+      return d.toISOString().slice(0, 10)
+    }
+
+    function formWithFiles() {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div>
+          <div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1">
+            <div class="field"><input id="first-name" name="first_name" required value="Robin"></div>
+            <div class="field"><input id="email" type="email" name="email" required value="r@example.com"></div>
+            <div class="field"><input id="dob" type="date" name="dob" required></div>
+          </fieldset>
+          <fieldset id="step-2" data-step="2"></fieldset>
+          <fieldset id="step-3" data-step="3">
+            <input id="refs" name="refs" type="file" multiple>
+            <input id="coverup-img" name="coverup_img" type="file" disabled>
+          </fieldset>
+          <fieldset id="step-4" data-step="4">
+            <div class="field">
+              <label class="checkbox-row"><input id="consent" type="checkbox" name="consent" required checked></label>
+            </div>
+            <div class="step-footer"></div>
+            <button type="submit" id="submit-btn">Send</button>
+          </fieldset>
+        </form>`
+      $('dob').value = adultDob()
+      return $('enquiry-form')
+    }
+    const attach = (inputId, files) => {
+      Object.defineProperty($(inputId), 'files', { value: files, configurable: true })
+    }
+    const file = (name, content = 'png-bytes', type = 'image/png') =>
+      new window.File([content], name, { type })
+
+    it('base64-encodes attached files into the payload (original kept when downscale is unavailable)', async () => {
+      global.fetch = mockFetch(true, { ok: true })
+      const form = formWithFiles()
+      initEnquire()
+      attach('refs', [file('moth-ref.png')])
+      submit(form)
+      await vi.waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1))
+
+      const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
+      expect(payload.images).toHaveLength(1)
+      expect(payload.images[0].name).toBe('moth-ref.png')   // no .jpg rename — nothing was re-encoded
+      expect(payload.images[0].type).toBe('image/png')
+      expect(atob(payload.images[0].data)).toBe('png-bytes') // round-trips to the original bytes
+    })
+
+    it('skips files on a DISABLED input (the hidden cover-up upload never leaks)', async () => {
+      global.fetch = mockFetch(true, { ok: true })
+      const form = formWithFiles()
+      initEnquire()
+      attach('refs', [file('keep.png')])
+      attach('coverup-img', [file('leak.png')])   // input stays disabled
+      submit(form)
+      await vi.waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1))
+      const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
+      expect(payload.images.map(i => i.name)).toEqual(['keep.png'])
+    })
+
+    it('rejects more than 8 images with the banner, before any network call', async () => {
+      global.fetch = mockFetch(true, { ok: true })
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const form = formWithFiles()
+      initEnquire()
+      attach('refs', Array.from({ length: 9 }, (_, i) => file(`r${i}.png`)))
+      submit(form)
+      await vi.waitFor(() => expect($('form-error-banner')).not.toBeNull())
+      expect($('form-error-banner').textContent).toMatch(/no more than 8/)
+      expect(global.fetch).not.toHaveBeenCalled()
+      expect($('submit-btn').disabled).toBe(false)   // restored for another go
+    })
+
+    it('rejects an undecodable original over the per-file cap (mirrors the Worker limit)', async () => {
+      global.fetch = mockFetch(true, { ok: true })
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const form = formWithFiles()
+      initEnquire()
+      // A non-image type skips the downscale; an inflated `size` trips the 4 MB cap
+      // without allocating 4 MB of fixture.
+      const big = file('huge.heic', 'tiny', 'application/octet-stream')
+      Object.defineProperty(big, 'size', { value: 5 * 1024 * 1024 })
+      attach('refs', [big])
+      submit(form)
+      await vi.waitFor(() => expect($('form-error-banner')).not.toBeNull())
+      expect($('form-error-banner').textContent).toMatch(/max 4 MB/)
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('date plausibility (dob + appointment window)', () => {
+    // Text inputs, deliberately: jsdom's type=date value sanitiser would eat the
+    // malformed fixtures before the validators ever saw them. The module keys
+    // validators off element ids, not input types.
+    function dateSetup() {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div>
+          <div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1">
+            <div class="field"><input id="dob" name="dob" required></div>
+            <div class="field"><input id="date-from" name="date_from"></div>
+            <div class="field"><input id="date-to" name="date_to"></div>
+            <button type="button" id="step1-next">next</button>
+          </fieldset>
+          <fieldset id="step-2"></fieldset><fieldset id="step-3"></fieldset>
+          <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
+        </form>`
+    }
+    const iso = d => d.toISOString().slice(0, 10)
+    const daysFromNow = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d) }
+    const yearsAgo = n => { const d = new Date(); d.setFullYear(d.getFullYear() - n); return iso(d) }
+    const msgFor = id => $(id).closest('.field').querySelector('.field-error-msg')?.textContent || ''
+    const judge = () => click($('step1-next'))
+    const setDob = v => { $('dob').value = v }
+
+    it('rejects an impossible or malformed date of birth', () => {
+      dateSetup(); initEnquire()
+      setDob('2000-02-31'); judge()
+      expect(msgFor('dob')).toMatch(/doesn’t look right/)
+      setDob('not-a-date'); judge()
+      expect(msgFor('dob')).toMatch(/doesn’t look right/)
+    })
+
+    it('rejects a future date of birth and an implausibly ancient one', () => {
+      dateSetup(); initEnquire()
+      setDob(daysFromNow(30)); judge()
+      expect(msgFor('dob')).toMatch(/in the future/)
+      setDob(yearsAgo(130)); judge()
+      expect(msgFor('dob')).toMatch(/double-check/)
+    })
+
+    it('turns 18 on the day: today’s 18th birthday passes, tomorrow’s fails', () => {
+      dateSetup(); initEnquire()
+      setDob(yearsAgo(18)); judge()                       // 18 today → exactly 18
+      expect(msgFor('dob')).toBe('')
+      const d = new Date(); d.setFullYear(d.getFullYear() - 18); d.setDate(d.getDate() + 1)
+      setDob(iso(d)); judge()                              // 18 tomorrow → still 17
+      expect(msgFor('dob')).toMatch(/over-18s/)
+    })
+
+    it('appointment window: optional when blank, but must be a real, future-ish date', () => {
+      dateSetup(); initEnquire()
+      setDob(yearsAgo(25))
+      judge()
+      expect(msgFor('date-from')).toBe('')                 // optional + empty = fine
+
+      $('date-from').value = 'junk'; judge()
+      expect(msgFor('date-from')).toMatch(/doesn’t look right/)
+      $('date-from').value = daysFromNow(-7); judge()
+      expect(msgFor('date-from')).toMatch(/still to come/)
+      const far = new Date(); far.setFullYear(far.getFullYear() + 3)
+      $('date-from').value = iso(far); judge()
+      expect(msgFor('date-from')).toMatch(/within two years/)
+      $('date-from').value = daysFromNow(30); judge()
+      expect(msgFor('date-from')).toBe('')
+    })
+
+    it('the window’s end must sit on or after its start', () => {
+      dateSetup(); initEnquire()
+      setDob(yearsAgo(25))
+      $('date-from').value = daysFromNow(30)
+      $('date-to').value   = daysFromNow(10)
+      judge()
+      expect(msgFor('date-to')).toMatch(/on or after/)
+      $('date-to').value = daysFromNow(40); judge()
+      expect(msgFor('date-to')).toBe('')
+    })
+
+    it('bounds the native pickers: dob capped at today, the window floored at today', () => {
+      // The fixture inputs are textual, but the bounds are set regardless — in the
+      // real markup these are type=date so the picker can't offer the obvious mistakes.
+      dateSetup(); initEnquire()
+      const today = new Date()
+      const iso0 = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      expect($('dob').max).toBe(iso0)
+      expect($('date-from').min).toBe(iso0)
+      expect($('date-to').min).toBe(iso0)
+    })
+  })
+
+  describe('progress UI, restore & odds-and-ends', () => {
+    function progressSetup() {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-wrap">
+            <div class="progress-bar-track" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1">
+              <div id="progress-fill"></div>
+            </div>
+            <div id="progress-pct"></div>
+            <div class="progress-step"><span class="step-name">About you</span></div>
+            <div class="progress-step"><span class="step-name">The idea</span></div>
+            <div class="progress-step"></div>
+            <div class="progress-step"><span class="step-name">Consent</span></div>
+          </div>
+          <fieldset id="step-1" data-step="1"><button type="button" id="step1-next">n</button></fieldset>
+          <fieldset id="step-2" data-step="2"><button type="button" id="step2-next">n</button></fieldset>
+          <fieldset id="step-3" data-step="3"><button type="button" id="step3-next">n</button></fieldset>
+          <fieldset id="step-4" data-step="4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
+        </form>`
+    }
+
+    it('keeps the bar ARIA + label + step dots in lockstep with the active step', () => {
+      progressSetup(); initEnquire()
+      click($('step1-next'))   // step 1 has nothing required → advances
+      expect(document.querySelector('.progress-bar-track').getAttribute('aria-valuenow')).toBe('2')
+      expect($('progress-pct').textContent).toBe('Step 2 of 4 · The idea')
+      const dots = [...document.querySelectorAll('.progress-step')]
+      expect(dots[0].classList.contains('done')).toBe(true)
+      expect(dots[1].classList.contains('current')).toBe(true)
+
+      click($('step2-next'))   // a step whose dot has NO name → no “· name” suffix
+      expect($('progress-pct').textContent).toBe('Step 3 of 4')
+    })
+
+    it('restores the saved step from sessionStorage, ignoring out-of-range values', () => {
+      progressSetup()
+      sessionStorage.setItem('beansprout_step', '3')
+      initEnquire()
+      expect($('step-3').classList.contains('active')).toBe(true)
+
+      document.body.innerHTML = ''
+      progressSetup()
+      sessionStorage.setItem('beansprout_step', '9')   // out of range → ignored
+      initEnquire()
+      // No restore ran: setStep was never called, so the markup's initial state
+      // stands (the real page ships step 1 active in HTML) and no later step lit up.
+      expect($('progress-pct').textContent).toBe('')
+      expect($('step-3').classList.contains('active')).toBe(false)
+    })
+
+    it('scrolls the newly opened step into view on small screens (after the settle delay)', async () => {
+      vi.useFakeTimers()
+      const spy = vi.fn()
+      window.Element.prototype.scrollIntoView = spy
+      window.innerWidth = 375
+      progressSetup(); initEnquire()
+      click($('step1-next'))
+      expect(spy).not.toHaveBeenCalled()        // waits 100ms for the accordion to settle
+      await vi.advanceTimersByTimeAsync(100)
+      expect(spy).toHaveBeenCalledTimes(1)
+      vi.useRealTimers()
+      window.innerWidth = 1024
+    })
+
+    it('a required radio group blocks the step until one is picked', () => {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div><div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1">
+            <div class="field">
+              <label><input type="radio" name="kind" value="a" required>a</label>
+              <label><input type="radio" name="kind" value="b" required>b</label>
+            </div>
+            <button type="button" id="step1-next">n</button>
+          </fieldset>
+          <fieldset id="step-2"></fieldset><fieldset id="step-3"></fieldset>
+          <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
+        </form>`
+      initEnquire()
+      click($('step1-next'))
+      const field = document.querySelector('#step-1 .field')
+      expect(field.classList.contains('error')).toBe(true)
+      expect(field.querySelector('.field-error-msg').textContent).toMatch(/pick one/i)
+
+      const radio = document.querySelector('[name="kind"][value="a"]')
+      radio.checked = true; change(radio)
+      click($('step1-next'))
+      expect(field.classList.contains('error')).toBe(false)
+      expect($('progress-pct').textContent).toBe('Step 2 of 4')
+    })
+
+    it('a pill group without a usable data-max never disables its pills', () => {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div><div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1">
+            <div class="pill-group" data-max="">
+              <label class="pill"><input type="checkbox" name="s[]" value="a"></label>
+              <label class="pill"><input type="checkbox" name="s[]" value="b"></label>
+            </div>
+          </fieldset>
+          <fieldset id="step-2"></fieldset><fieldset id="step-3"></fieldset>
+          <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
+        </form>`
+      initEnquire()
+      const [a, b] = [...document.querySelectorAll('[name="s[]"]')]
+      a.checked = true; change(a)
+      expect(b.disabled).toBe(false)
+    })
+  })
+
+  describe('file preview thumbnails', () => {
+    function previewSetup() {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div><div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1"></fieldset>
+          <fieldset id="step-2"></fieldset>
+          <fieldset id="step-3">
+            <input id="refs" type="file" multiple>
+            <div id="thumb-row"></div>
+          </fieldset>
+          <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
+        </form>`
+    }
+    const attach = files =>
+      Object.defineProperty($('refs'), 'files', { value: files, configurable: true })
+    const file = name => new window.File(['x'], name, { type: 'image/png' })
+
+    let created, revoked
+    beforeEach(() => {
+      created = 0; revoked = []
+      window.URL.createObjectURL = () => `blob:fake-${++created}`
+      window.URL.revokeObjectURL = url => revoked.push(url)
+    })
+
+    it('builds one thumb per file (capped at 8) with the filename as DOM-safe alt text', () => {
+      previewSetup(); initEnquire()
+      const hostile = '"><img src=x onerror=alert(1)>.png'
+      attach([file(hostile), ...Array.from({ length: 9 }, (_, i) => file(`r${i}.png`))])
+      change($('refs'))
+
+      const thumbs = [...document.querySelectorAll('#thumb-row .thumb img')]
+      expect(thumbs).toHaveLength(8)                    // 10 attached → capped
+      expect(thumbs[0].alt).toBe(hostile)               // a DOM property, never markup
+      // The attribute-break payload never became an element of its own.
+      expect(document.querySelector('#thumb-row img[src="x"]')).toBeNull()
+      expect(document.querySelectorAll('#thumb-row img')).toHaveLength(8)
+    })
+
+    it('revokes each blob URL once its image loads OR errors (no session-long leak)', () => {
+      previewSetup(); initEnquire()
+      attach([file('a.png'), file('b.png')])
+      change($('refs'))
+      const [imgA, imgB] = [...document.querySelectorAll('#thumb-row img')]
+      imgA.onload()                                     // decoded fine
+      imgB.onerror()                                    // undecodable — must still revoke
+      expect(revoked.sort()).toEqual(['blob:fake-1', 'blob:fake-2'])
+    })
+
+    it('reselecting clears the previous previews', () => {
+      previewSetup(); initEnquire()
+      attach([file('a.png')]); change($('refs'))
+      attach([file('b.png')]); change($('refs'))
+      const thumbs = [...document.querySelectorAll('#thumb-row img')]
+      expect(thumbs).toHaveLength(1)
+      expect(thumbs[0].alt).toBe('b.png')
+    })
+  })
+
+  describe('character counter (quiet until the last quarter)', () => {
+    function counterSetup() {
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div><div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1"></fieldset>
+          <fieldset id="step-2">
+            <div class="field"><textarea name="idea" maxlength="200"></textarea></div>
+          </fieldset>
+          <fieldset id="step-3"></fieldset>
+          <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
+        </form>`
+    }
+    const type = (t, text) => {
+      t.value = text
+      t.dispatchEvent(new window.Event('input', { bubbles: true }))
+    }
+
+    it('stays silent below 75% and counts down (with a low warning) inside the last quarter', () => {
+      counterSetup(); initEnquire()
+      const t = document.querySelector('textarea')
+      const count = document.querySelector('.char-count')
+      expect(count.textContent).toBe('')                 // empty box → no hovering number
+
+      type(t, 'z'.repeat(100))
+      expect(count.textContent).toBe('')                 // still under 75% of 200
+      type(t, 'z'.repeat(150))
+      expect(count.textContent).toBe('50 characters left')
+      expect(count.classList.contains('low')).toBe(false)
+      type(t, 'z'.repeat(199))
+      expect(count.textContent).toBe('1 character left') // singular at exactly one
+      expect(count.classList.contains('low')).toBe(true) // ≤ 40 → low
+    })
+  })
+
+  describe('aria-invalid bookkeeping on multi-control fields', () => {
+    it('moves with the first outstanding control and clears completely when the field passes', () => {
+      // Two required consent boxes share one .field — exactly the step-4 shape.
+      document.body.innerHTML = `
+        <form id="enquiry-form" novalidate>
+          <div id="progress-fill"></div><div id="progress-pct"></div>
+          <fieldset id="step-1" data-step="1"><button type="button" id="step1-next">n</button></fieldset>
+          <fieldset id="step-2"></fieldset><fieldset id="step-3"></fieldset>
+          <fieldset id="step-4" data-step="4">
+            <div class="field">
+              <div class="checkbox-row"><input type="checkbox" id="c1" required></div>
+              <div class="checkbox-row"><input type="checkbox" id="c2" required></div>
+            </div>
+            <div class="step-footer"></div>
+            <button type="submit" id="submit-btn">Send</button>
+          </fieldset>
+        </form>`
+      initEnquire()
+      const submitForm = () =>
+        $('enquiry-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+
+      submitForm()                                       // both unticked → c1 is first-bad
+      expect($('c1').getAttribute('aria-invalid')).toBe('true')
+      expect($('c2').hasAttribute('aria-invalid')).toBe(false)
+
+      $('c1').checked = true; change($('c1'))            // first-bad shifts to c2
+      expect($('c1').hasAttribute('aria-invalid')).toBe(false) // the fixed box is no longer announced invalid
+      expect($('c2').getAttribute('aria-invalid')).toBe('true')
+
+      $('c2').checked = true; change($('c2'))            // field passes → nothing announced
+      expect(document.querySelectorAll('[aria-invalid]')).toHaveLength(0)
+    })
   })
 })

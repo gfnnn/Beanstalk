@@ -65,16 +65,26 @@ export function initLoadMore() {
       tile.dataset.shown = 'true'
       tile.style.display = ''
       tile.style.opacity = '0'
-      requestAnimationFrame(() => {
-        tile.style.transition = 'opacity 400ms ease'
-        tile.style.opacity    = '1'
-        // Drop the inline transition/opacity once the fade-in is done so tiles
-        // don't carry leftover inline styles for the rest of the page's life.
-        tile.addEventListener('transitionend', () => {
-          tile.style.transition = ''
-          tile.style.opacity    = ''
-        }, { once: true })
-      })
+    })
+    // A transition can't start from display:none, and rAF runs BEFORE the
+    // frame's style recalc — so the old single-rAF version computed
+    // `none → opacity:1` in one step: the fade never played and its
+    // transitionend cleanup never fired (leaving the inline styles behind).
+    // Committing one layout here makes opacity:0 the real start state.
+    void loadMoreBtn.offsetWidth
+    batch.forEach(tile => {
+      tile.style.transition = 'opacity 400ms ease'
+      tile.style.opacity    = '1'
+      // Drop the inline transition/opacity once the fade-in is done so tiles
+      // don't carry leftover inline styles for the rest of the page's life —
+      // with a timer fallback, since transitionend can be skipped (backgrounded
+      // tab, interrupted transition).
+      const clearInline = () => {
+        tile.style.transition = ''
+        tile.style.opacity    = ''
+      }
+      tile.addEventListener('transitionend', clearInline, { once: true })
+      setTimeout(clearInline, 500)
     })
 
     shownCount = next

@@ -14,7 +14,7 @@ test.describe('smoke: every page loads cleanly', () => {
 
       const res = await page.goto(path, { waitUntil: 'networkidle' })
       expect(res, `no response for ${path}`).toBeTruthy()
-      expect(res.status(), `${path} should serve 2xx`).toBeLessThan(400)
+      expect(res.status(), `${path} should serve a non-error status`).toBeLessThan(400)
 
       // The shared JS bundle mounts the nav on every page (initNav). Its presence
       // is a proxy for "the module bundle parsed and ran".

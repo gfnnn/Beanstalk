@@ -123,6 +123,11 @@ export function initEnquire() {
   function applyFieldError(field, el, msg) {
     if (!field) return
     field.classList.toggle('error', !!msg)
+    // A field can hold several controls and the "first bad" one shifts as boxes
+    // are ticked — sweep the whole field before (re)stamping, or a previously
+    // flagged control keeps a stale aria-invalid announced forever (clearing
+    // only `el` always targeted controls[0], never the control actually fixed).
+    field.querySelectorAll('[aria-invalid]').forEach(c => c.removeAttribute('aria-invalid'))
     let m = field.querySelector('.field-error-msg')
     if (msg) {
       // Once a field has been flagged it switches to live correction from here on
@@ -138,7 +143,6 @@ export function initEnquire() {
       el?.setAttribute('aria-invalid', 'true')
     } else {
       m?.remove()
-      el?.removeAttribute('aria-invalid')
     }
   }
 
@@ -412,10 +416,14 @@ export function initEnquire() {
   } catch (_) {}
 
   // ── Submit → Cloudflare Worker → Resend ───────────────────────────────────
-  // FUNCTION_URL is the shared endpoint (see config.js / .env.example).
+  // FUNCTION_URL is the shared endpoint (see config.js / .env.example). The caps
+  // mirror the Worker's (apps/functions enquiry.js: 4 MB per image, 4 MB total,
+  // 6 MB body) — looser client caps just deferred the rejection to the server,
+  // where an oversized original was silently dropped from the email and an
+  // oversized batch hit the blunt body-size 413 instead of a useful message.
   const MAX_IMAGES      = 8
-  const MAX_FILE_MB     = 8               // ceiling for originals we can't downscale (e.g. HEIC)
-  const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // self-imposed cap to keep the JSON POST small
+  const MAX_FILE_MB     = 4               // ceiling for originals we can't downscale (e.g. HEIC)
+  const MAX_TOTAL_BYTES = 4 * 1024 * 1024 // decoded-bytes cap, same as the Worker's
 
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
