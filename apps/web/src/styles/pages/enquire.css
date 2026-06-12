@@ -516,3 +516,14 @@
 @media (prefers-reduced-motion: reduce) {
   .progress-fill { transition: none; }
 }
+
+/* ── /enquiry-received/ — the confirmation page's brand mark ─────────────────
+   The rest of the confirmation page rides the global typography/layout styles
+   until the go-live styling pass (ROADMAP); only the mark is styled here. */
+.confirm-mark .brand-mark {
+  height: 64px;
+  width: auto;
+  display: block;
+  color: var(--moss);
+  margin-bottom: 18px;
+}

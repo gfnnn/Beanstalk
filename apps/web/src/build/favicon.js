@@ -16,6 +16,11 @@
 //     palette recolours the favicon on the next build, like the rest of the
 //     site. The raster icons (.ico/.png) stay static in public/ — only modern
 //     browsers' SVG favicon follows the palette.
+//   • renderMarkSvg() — the `generatedGrids` plugin swaps it in for every
+//     page's `<!-- brand:mark -->` marker (the nav brand lockup and the
+//     /enquiry-received/ confirmation mark). fill: currentColor, so each
+//     context colours it with CSS (the nav inherits ink; the confirmation
+//     page sets moss).
 //   • src/build/loader.js inlines the same path (fill: currentColor → --moss)
 //     for the preloader mark, so it follows the palette at runtime too.
 import { activePalette } from './palette.js'
@@ -43,4 +48,9 @@ export function renderFaviconSvg(palette = activePalette) {
 <g transform="translate(${tx.toFixed(2)} 0) scale(${scale.toFixed(5)})"><path d="${MARK_PATH}" fill="${palette.colors.ink}" fill-rule="${MARK_FILL_RULE}"/></g>
 </svg>
 `
+}
+
+// The bare mark as inline markup, coloured by its surroundings (currentColor).
+export function renderMarkSvg() {
+  return `<svg class="brand-mark" viewBox="${MARK_TIGHT_VIEWBOX}" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="${MARK_PATH}" fill="currentColor" fill-rule="${MARK_FILL_RULE}"/></svg>`
 }

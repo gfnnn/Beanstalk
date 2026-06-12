@@ -21,7 +21,7 @@ import { media } from './src/data/media.js'
 import { renderHeroMedia } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
-import { renderFaviconSvg } from './src/build/favicon.js'
+import { renderFaviconSvg, renderMarkSvg } from './src/build/favicon.js'
 import { renderSecurityMeta } from './src/build/security.js'
 import { injectPageLoader } from './src/build/loader.js'
 
@@ -64,6 +64,12 @@ const generatedGrids = {
       // Homepage testimonials (src/data/testimonials.js).
       if (html.includes('<!-- testimonials -->')) {
         html = html.replace('<!-- testimonials -->', () => renderTestimonials(testimonials))
+      }
+      // The brand mark (the traced sprig, src/build/favicon.js) — the nav lockup
+      // on EVERY page, plus the /enquiry-received/ confirmation mark, hence
+      // replaceAll (that page carries two markers).
+      if (html.includes('<!-- brand:mark -->')) {
+        html = html.replaceAll('<!-- brand:mark -->', () => renderMarkSvg())
       }
       // Homepage content (src/data/homepage.js). The nav status "light" markers
       // live on every page; the hero/notice markers only on the homepage.

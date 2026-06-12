@@ -60,32 +60,10 @@
 }
 .nav-logo em { font-style: italic; color: var(--moss); }
 
-.nav-logo-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  min-width: 120px;
-  border: 1.5px dashed var(--line);
-  border-radius: var(--radius-sm);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  background: var(--cream);
-  padding: 0 14px;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.nav-logo-placeholder::before {
-  content: '⬚';
-  font-size: 16px;
-  color: var(--line);
-  font-family: sans-serif;
-}
-
-.nav-logo-img {
+/* The traced brand mark (src/build/favicon.js, injected at build via the
+   brand:mark marker). currentColor → inherits the lockup's ink. Icon-only for
+   now; the .nav-logo text styles above stay ready for an optional wordmark. */
+.nav-logo .brand-mark {
   height: 36px;
   width: auto;
   display: block;
@@ -344,5 +322,4 @@
 
 @media (min-width: 1100px) {
   .nav-links { gap: 28px; }
-  .nav-logo-placeholder { min-width: 148px; }
 }

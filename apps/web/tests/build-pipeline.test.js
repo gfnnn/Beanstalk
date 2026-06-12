@@ -75,6 +75,14 @@ describe('transformIndexHtml pipeline', () => {
     expect(out).toContain(`Drop ${Math.max(...flash.map(f => f.drop))} · ${season}`)
   })
 
+  it('replaces every brand:mark marker with the inline traced mark', () => {
+    // every page's nav lockup carries one; /enquiry-received/ carries a second
+    const out = transformHtml(page('<!-- brand:mark --> nav … confirm <!-- brand:mark -->'))
+    expect(out).not.toContain('<!-- brand:mark -->')
+    expect(out.match(/class="brand-mark"/g)).toHaveLength(2)
+    expect(out).toContain('fill="currentColor"')
+  })
+
   it('replaces the reply-time marker with the authored reply-time phrase', () => {
     const out = transformHtml(page('reply by email, usually <!-- reply-time -->.'))
     expect(out).not.toContain('<!-- reply-time -->')
