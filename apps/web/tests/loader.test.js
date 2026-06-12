@@ -38,6 +38,17 @@ describe('injectPageLoader (build-time)', () => {
     expect(LOADER_STYLE).toContain('pl-failsafe')
   })
 
+  it('plays the ink-rise draw only under no-preference, leaving reduced motion shown-complete', () => {
+    // The mark draws with a clip-path wipe; it's a self-contained copy of the shared
+    // mark-rise (the inline-critical CSS can't reference main.css's keyframe).
+    expect(LOADER_STYLE).toContain('@keyframes pl-draw')
+    expect(LOADER_STYLE).toContain('clip-path:inset(100% 0 0 0)')
+    // …and the draw is gated behind no-preference, so a reduced-motion visitor just
+    // sees the mark (no clip applied at rest).
+    const noPref = LOADER_STYLE.slice(LOADER_STYLE.indexOf('no-preference'))
+    expect(noPref).toContain('pl-draw')
+  })
+
   it('leaves a document with no head/body untouched', () => {
     const frag = '<div>just a fragment</div>'
     expect(injectPageLoader(frag)).toBe(frag)
@@ -154,5 +165,20 @@ describe('initPageLoader (runtime dismissal)', () => {
     // no flush, no timers.
     expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     expect(document.getElementById('page-loader')).toBeNull()
+  })
+
+  it('cold load flags <html> with cold-start (for the one-time nav-logo draw)', () => {
+    setReducedMotion(false)
+    mountOverlay()
+    initPageLoader() // cold (sessionStorage cleared)
+    expect(document.documentElement.classList.contains('cold-start')).toBe(true)
+  })
+
+  it('warm navigation does NOT flag cold-start (so the nav logo is not re-drawn)', () => {
+    setReducedMotion(false)
+    sessionStorage.setItem('bs-visited', '1')
+    mountOverlay()
+    initPageLoader()
+    expect(document.documentElement.classList.contains('cold-start')).toBe(false)
   })
 })

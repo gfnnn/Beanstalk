@@ -68,6 +68,13 @@ export function initPageLoader() {
   }
   window.addEventListener('pagereveal', e => { if (e.viewTransition) removeNow() }, { once: true })
 
+  // A genuine cold first load (this is the only place the cover is actually shown).
+  // Marks <html> so the orchestrated entrance can give the nav logo its one-time
+  // ink-rise draw as the cover lifts — and ONLY here, so warm in-session navs let
+  // the page transition carry the header instead of re-drawing it every time
+  // (atmosphere.css: html.cold-start.motion-ready .nav-logo .brand-mark).
+  root.classList.add('cold-start')
+
   // Cold load: hold the cover until the page is ready, then fade it out.
   let dismissed = false
   function dismiss() {

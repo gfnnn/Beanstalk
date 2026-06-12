@@ -35,10 +35,12 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 #page-loader .pl-sprig path{fill:currentColor}
 #page-loader .pl-word{font-family:'JetBrains Mono',monospace;font-family:var(--mono,'JetBrains Mono',monospace);font-size:11px;letter-spacing:.3em;text-transform:lowercase;color:#5b574d;color:rgba(var(--ink-rgb),.5)}
 @media (prefers-reduced-motion:no-preference){
-#page-loader .pl-sprig{animation:pl-breathe 3.2s ease-in-out infinite}
-#page-loader .pl-word{animation:pl-pulse 3.2s ease-in-out infinite}
+#page-loader .pl-sprig{animation:pl-draw 1.1s cubic-bezier(.22,.61,.36,1) both,pl-breathe 3.2s ease-in-out 1.25s infinite}
+#page-loader .pl-word{animation:pl-word-in .7s ease-out .5s both,pl-pulse 3.2s ease-in-out 1.25s infinite}
 }
 @media (prefers-reduced-motion:reduce){#page-loader{transition:none}}
+@keyframes pl-draw{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes pl-word-in{from{opacity:0;transform:translateY(6px)}to{opacity:.4;transform:none}}
 @keyframes pl-breathe{0%,100%{opacity:1}50%{opacity:.82}}
 @keyframes pl-pulse{0%,100%{opacity:.4}50%{opacity:.72}}
 @keyframes pl-failsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
@@ -48,15 +50,21 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 // sprig is the brand mark — the traced vector from src/build/favicon.js, inlined
 // (the overlay covers the very first paint, so it can't reference a network
 // asset) and filled with currentColor, so it follows the palette's --moss like
-// the rest of the site. It's shown fully
-// formed at full opacity from the first painted frame, with only a gentle
-// COMPOSITOR-only opacity breathe. A self-inking stroke-dashoffset draw was tried
-// but is a MAIN-THREAD property that janks under load-time main-thread contention,
-// and a staggered per-path draw renders mid-draw inconsistently on a quick cover —
-// the reported "two leaves, no stem" flash (a delayed path with only `forwards`
-// fill shows its default DRAWN state during the delay while the un-delayed stem is
-// still hidden). Shown-complete + breathe reads right at any load speed and glimpse
-// length.
+// the rest of the site.
+//
+// It plays a single INK-RISE draw on load — a clip-path wipe from the base up
+// (pl-draw), as if the calligraphy is being painted — then settles into a gentle
+// COMPOSITOR-only opacity breathe; the word fades up under it. This is the shared
+// brand-mark "rise" vocabulary (see the nav logo + confirmation mark in
+// atmosphere.css). Note the mark is ONE filled path, so the hero sprig's
+// per-stroke self-ink (stroke-dashoffset) can't apply here at all. An earlier
+// per-PATH staggered stroke-draw was tried and reverted: stroke-dashoffset is a
+// main-thread property AND, staggered across paths, rendered mid-draw
+// inconsistently on a quick cover (the "two leaves, no stem" flash — a delayed
+// path with only `forwards` fill showing its default DRAWN state during the
+// delay). A clip-path inset on the single path sidesteps both: it's a single
+// MONOTONIC reveal with no partial-state inconsistency, and the cream cover hides
+// any first-frame cost until it lifts. Reduced motion: shown complete, no draw.
 export const LOADER_MARKUP = `<div id="page-loader" role="status" aria-label="Loading">
   <svg class="pl-sprig" viewBox="${MARK_TIGHT_VIEWBOX}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <path d="${MARK_PATH}" fill-rule="${MARK_FILL_RULE}"/>
