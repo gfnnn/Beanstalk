@@ -21,6 +21,7 @@ import { media } from './src/data/media.js'
 import { renderHeroMedia } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
+import { renderFaviconSvg } from './src/build/favicon.js'
 import { renderSecurityMeta } from './src/build/security.js'
 import { injectPageLoader } from './src/build/loader.js'
 
@@ -112,8 +113,11 @@ const generatedGrids = {
 // Inject the active colour palette (src/data/palette.js) as CSS custom properties
 // into every page's <head>, in dev AND build, so the whole site's colours come
 // from that one content file. Also points the theme-color meta at the palette
-// background. Idempotent: piece pages render their own <head> (with the palette
-// already in it), so the `id="palette"` guard stops a double-inject in dev.
+// background, and emits the palette-coloured /favicon.svg (src/build/favicon.js
+// — the SVG favicon is generated, not a public/ file, so a palette switch
+// recolours it too; the raster icons stay static in public/). Idempotent: piece
+// pages render their own <head> (with the palette already in it), so the
+// `id="palette"` guard stops a double-inject in dev.
 const palette = {
   name: 'beansprout-palette',
   transformIndexHtml: {
@@ -127,6 +131,16 @@ const palette = {
         `$1"${themeColor}"`,
       )
     },
+  },
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if ((req.url || '').split(/[?#]/)[0] !== '/favicon.svg') return next()
+      res.setHeader('Content-Type', 'image/svg+xml')
+      res.end(renderFaviconSvg())
+    })
+  },
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'favicon.svg', source: renderFaviconSvg() })
   },
 }
 
