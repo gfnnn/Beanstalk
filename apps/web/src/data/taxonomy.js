@@ -30,9 +30,14 @@ export const STYLE_LABELS = {
   script:        'Script',
 }
 
+// Placement buckets are intentionally COARSE — kept to three so the filter stays
+// short and unambiguous:
+//   arm  = forearm / upper-arm / wrist / hand     body = torso / back / chest / neck-down
+//   leg  = anything on the leg
+// (a deliberate, post-launch-refinable choice — split finer spots back out later
+// if real usage wants them; see docs/ROADMAP.md.)
 export const PLACEMENT_LABELS = {
-  forearm: 'Forearm', wrist: 'Wrist', back: 'Back', spine: 'Spine',
-  leg: 'Leg', chest: 'Chest', hand: 'Hand',
+  arm: 'Arm', body: 'Body', leg: 'Leg',
 }
 
 export const STYLE_TOKENS = Object.keys(STYLE_LABELS)

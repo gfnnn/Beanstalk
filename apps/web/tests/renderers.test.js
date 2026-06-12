@@ -420,13 +420,13 @@ describe('renderNewsletterInline', () => {
 describe('renderPiecePage', () => {
   const withImage = {
     slug: 'foxglove', title: 'Foxglove', subject: 'foxglove sprig',
-    styles: ['fine-line', 'dotwork'], placement: 'forearm', date: '2026-03-01',
+    styles: ['fine-line', 'dotwork'], placement: 'arm', date: '2026-03-01',
     tone: 't-moss', glyph: 'sprig', img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
   const exportImage = { ...withImage, slug: 'koi', title: 'Koi', img: '/images/tattoos/Koi.webp' }
   const placeholder = {
     slug: 'luna-moth', title: 'Luna moth', subject: 'luna moth', styles: ['black-grey'],
-    placement: 'wrist', date: '2026-01-01', tone: 't-ink', glyph: 'moth', img: null, w: null, h: null,
+    placement: 'arm', date: '2026-01-01', tone: 't-ink', glyph: 'moth', img: null, w: null, h: null,
   }
 
   it('renders a full HTML document with per-piece SEO', () => {
@@ -463,7 +463,7 @@ describe('renderPiecePage', () => {
 
   it('gives the share image a descriptive alt (piece-specific, brand default for placeholders)', () => {
     const withPhoto = renderPiecePage(withImage)
-    const alt = 'Fine line tattoo of foxglove sprig on Forearm'
+    const alt = 'Fine line tattoo of foxglove sprig on Arm'
     expect(withPhoto).toContain(`<meta property="og:image:alt" content="${alt}">`)
     expect(withPhoto).toContain(`<meta name="twitter:image:alt" content="${alt}">`)
     // No photo → the brand default alt (matches the og:image fallback).
@@ -482,7 +482,7 @@ describe('renderPiecePage', () => {
     const html = renderPiecePage(withImage)
     expect(html).toContain('>Fine line<')
     expect(html).toContain('>Dotwork<')
-    expect(html).toContain('>Forearm<')
+    expect(html).toContain('>Arm<')
     expect(html).toContain('href="/enquire/"')
     expect(html).toContain('href="/portfolio/"')
   })
