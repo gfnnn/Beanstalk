@@ -6,8 +6,11 @@
 // travel together in the one place she already works (Dropbox) — no second app,
 // no spreadsheet. The grammar (segments separated by " -- "):
 //
-//   portfolio/  Title -- placement -- style[+style…] -- YYYY-MM-DD[ -- subject]
-//               e.g.  Peacock butterfly -- forearm -- colour+realism -- 2026-05-15.jpg
+//   portfolio/  Title -- placement -- style[+style…] [-- YYYY-MM-DD] [-- subject]
+//               e.g.  Peacock butterfly -- arm -- colour+realism -- 2026-05-15.jpg
+//               The date is OPTIONAL — omit it and the master's upload date is used
+//               (so "Koi -- leg -- fine-line" is valid). A non-date 4th part is the
+//               subject; a 5th part is always the subject (the 4th is then the date).
 //   flash/drop-N/  Title -- <size>in -- £<price> -- <placement options> -- style
 //               e.g.  Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
 //
@@ -42,13 +45,20 @@ export function slugify(name) {
 const SEP = /\s*--\s*/
 const stripExt = name => String(name).replace(/\.[^.]+$/, '')
 
+// Portfolio date handling. A date segment is recognised ONLY as strict YYYY-MM-DD.
+// "date-shaped" (digits + separators) but invalid is flagged as a bad date rather
+// than silently taken as a subject, so a mistyped date isn't swallowed.
+const isValidDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s))
+const looksDateish = s => /^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}$/.test(s)
+const todayISO = () => new Date().toISOString().slice(0, 10)
+
 // The first " -- " segment (the title) — used to derive the slug BEFORE full
 // parsing, so the sync can tell a new piece (metadata required) from a re-upload
 // of an existing one (metadata segments unnecessary and ignored).
 export const titleOf = name => stripExt(name).split(SEP)[0].trim()
 
 const GRAMMAR = {
-  portfolio: 'Title -- placement -- style[+style] -- YYYY-MM-DD [-- subject]   e.g. "Peacock butterfly -- forearm -- colour+realism -- 2026-05-15.jpg"',
+  portfolio: 'Title -- placement -- style[+style] [-- YYYY-MM-DD] [-- subject]   e.g. "Peacock butterfly -- arm -- colour+realism -- 2026-05-15.jpg" (date optional — omit it and the master\'s upload date is used)',
   flash:     'Title -- <size>in -- £<price> -- <placement options> -- style   e.g. "Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg"',
 }
 
@@ -67,17 +77,17 @@ const DEFAULTS = {
  *   portfolio value: { slug, title, subject, subjectDefaulted, styles, placement, date, tone, glyph }
  *   flash value:     { slug, title, specs, price, size, drop, status, tone, glyph, placements, style }
  */
-export function parseMasterName(lane, filename, { drop = null } = {}) {
+export function parseMasterName(lane, filename, { drop = null, uploadDate = null } = {}) {
   const segs = stripExt(filename).split(SEP).map(s => s.trim())
   const title = segs[0]
   const slug = slugify(title)
   if (!slug) return reject(filename, 'the title gives an empty slug (use latin letters/numbers in the title)', lane)
 
   if (lane === 'portfolio') {
-    if (segs.length < 4 || segs.length > 5) {
-      return reject(filename, `found ${segs.length} part(s), needs 4 or 5 " -- "-separated parts`, lane)
+    if (segs.length < 3 || segs.length > 5) {
+      return reject(filename, `found ${segs.length} part(s), needs 3, 4, or 5 " -- "-separated parts`, lane)
     }
-    const [, placementRaw, stylesRaw, date, subjectRaw] = segs
+    const [, placementRaw, stylesRaw, fourth, fifth] = segs
     const placement = placementRaw.toLowerCase()
     if (!PLACEMENT_TOKENS.includes(placement)) {
       return reject(filename, `"${placementRaw}" isn't a placement — use one of: ${PLACEMENT_TOKENS.join(' · ')}`, lane)
@@ -89,13 +99,35 @@ export function parseMasterName(lane, filename, { drop = null } = {}) {
         return reject(filename, `"${s}" isn't a style — use one of: ${STYLE_TOKENS.join(' · ')}`, lane)
       }
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) {
-      return reject(filename, `"${date}" isn't a date — use YYYY-MM-DD (the day the piece was made; it sets the grid order)`, lane)
+
+    // Date is OPTIONAL. A 5th part is always the subject, so the 4th is then the
+    // date (and must be one). With 4 parts, the 4th is the date if it's date-shaped,
+    // else the subject. When no valid date is given, fall back to the master's
+    // upload date (passed by the sync; today as a last resort).
+    let date = null
+    let subjectRaw = ''
+    if (segs.length === 5) {
+      if (!isValidDate(fourth)) {
+        return reject(filename, `"${fourth}" isn't a date — use YYYY-MM-DD (the day the piece was made; it sets the grid order)`, lane)
+      }
+      date = fourth
+      subjectRaw = fifth
+    } else if (segs.length === 4) {
+      if (looksDateish(fourth)) {
+        if (!isValidDate(fourth)) {
+          return reject(filename, `"${fourth}" isn't a date — use YYYY-MM-DD (the day the piece was made; it sets the grid order)`, lane)
+        }
+        date = fourth
+      } else {
+        subjectRaw = fourth
+      }
     }
+    const dateDefaulted = !date
+    if (!date) date = uploadDate || todayISO()
     const subject = subjectRaw || title.toLowerCase()
     return {
       ok: true,
-      value: { slug, title, subject, subjectDefaulted: !subjectRaw, styles, placement, date, ...DEFAULTS.portfolio },
+      value: { slug, title, subject, subjectDefaulted: !subjectRaw, styles, placement, date, dateDefaulted, ...DEFAULTS.portfolio },
     }
   }
 

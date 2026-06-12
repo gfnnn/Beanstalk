@@ -74,19 +74,25 @@ filename**, segments separated by `" -- "`, and the sync validates every token
 **exactly** against the canonical vocabulary in `src/data/taxonomy.js`:
 
 ```
-portfolio/        Title -- placement -- style[+style…] -- YYYY-MM-DD [-- subject]
-                  Peacock butterfly -- forearm -- colour+realism -- 2026-05-15.jpg
+portfolio/        Title -- placement -- style[+style…] [-- YYYY-MM-DD] [-- subject]
+                  Peacock butterfly -- arm -- colour+realism -- 2026-05-15.jpg
+                  Koi -- leg -- fine-line                        (date omitted → upload date)
 
 flash/drop-N/     Title -- <size>in -- £<price> -- <placement options> -- style
                   Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
 ```
 
 - **Validated exactly (the artist's facts):** placement + style tokens (unknown →
-  the file is **rejected** with the valid list spelled out — no fuzzy matching),
-  the date (drives the grid order), flash size/price (price also feeds the
-  Worker's server-side price authority), and the flash **drop number — declared
-  by the `drop-N` folder** the master sits in (a new flash master loose in
-  `flash/` is rejected).
+  the file is **rejected** with the valid list spelled out — no fuzzy matching;
+  placements are the three buckets **arm · body · leg**), flash size/price (price
+  also feeds the Worker's server-side price authority), and the flash **drop number
+  — declared by the `drop-N` folder** the master sits in (a new flash master loose
+  in `flash/` is rejected).
+- **The portfolio date is optional.** Give a `YYYY-MM-DD` segment to set the grid
+  order explicitly; omit it and the master's **Dropbox upload date** is used — so
+  `Koi -- leg -- fine-line` is a complete name. (A non-date 4th segment is read as
+  the subject; a date-*shaped* but invalid one is still rejected, so a typo isn't
+  silently swallowed.)
 - **Defaulted (decorative/copy only, all reviewable in the PR):** `tone`/`glyph`
   (placeholder swatch, invisible once the photo is in), the flash `status`
   (`available`), and the portfolio `subject` (alt-text copy — defaults to the
@@ -119,7 +125,7 @@ Set it up once:
 2. **Put the grammar in the Title field, not the filename.** The clean way to emit
    a name matching the `" -- "` grammar above is to type it into darktable's
    **Title** metadata (lighttable → **metadata editor** module), e.g.
-   `Koi -- forearm -- black-grey+realism -- 2026-06-11 -- a koi carp`. It rides in
+   `Koi -- arm -- black-grey+realism -- 2026-06-11 -- a koi carp`. It rides in
    the photo's `.xmp` sidecar, doubles as a readable grid label, and keeps the
    grammar out of raw-file renaming. Use the canonical `taxonomy.js` spellings
    (tokens are validated exactly), join multiple styles with `+`, and write the
@@ -178,7 +184,7 @@ override with `DROPBOX_MEDIA_PATH` or `--remote-base`), keep a subfolder per lan
 
 ```
 /Beansprout/masters/
-  portfolio/   Koi -- forearm -- colour+realism -- 2025-09-11.jpg
+  portfolio/   Koi -- arm -- colour+realism -- 2025-09-11.jpg
                           → slug "koi" → public/images/tattoos/ + a pieces.js entry
   flash/
     drop-13/   Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
