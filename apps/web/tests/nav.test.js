@@ -183,5 +183,29 @@ describe('initNav', () => {
       await frame()
       expect(nav.classList.contains('scrolled')).toBe(false)
     })
+
+    it('latches a scroll-event burst to one toggle per frame, reading the latest position', async () => {
+      setup(); initNav()
+      const nav = $('main-nav')
+      const frame = () => new Promise(r => requestAnimationFrame(r))
+      window.scrollY = 120
+      // A real scroll fires many events per frame; the latch must queue ONE rAF.
+      for (let i = 0; i < 5; i++) window.dispatchEvent(new window.Event('scroll'))
+      window.scrollY = 0 // changes again before the frame: the latched read wins
+      await frame()
+      expect(nav.classList.contains('scrolled')).toBe(false)
+    })
+  })
+
+  it('wires the desktop nav but skips the drawer cleanly when the drawer markup is absent', () => {
+    setPath('/portfolio/')
+    setup()
+    document.getElementById('nav-drawer').remove()
+    expect(() => initNav()).not.toThrow()
+    // Desktop behaviour above the early-return still works…
+    const active = document.querySelector('.nav-links a[aria-current="page"]')
+    expect(active?.getAttribute('href')).toBe('/portfolio/')
+    // …and the hamburger is simply inert, not throwing.
+    expect(() => $('nav-hamburger').click()).not.toThrow()
   })
 })

@@ -189,9 +189,14 @@ export function initFlash() {
   const firstField = document.getElementById('claim-name')
 
   let lastFocused = null
+  // Synchronous open/closed state — NOT derived from the .open class, which only
+  // lands on the next animation frame: a stale close firing in that gap would
+  // read the class as "closed" and hide a modal the visitor just reopened.
+  let modalOpen = false
 
   function openModal(name, price, id) {
     lastFocused = document.activeElement
+    modalOpen = true
 
     if (pieceName)  pieceName.textContent = name
     if (pieceInput) pieceInput.value      = name
@@ -199,6 +204,10 @@ export function initFlash() {
     if (idInput)    idInput.value         = id || ''
 
     overlay.hidden = false
+    // Commit the un-hidden frame before .open lands: with [hidden] now genuinely
+    // display:none (reset.css), flipping both in one style recalc would skip the
+    // opacity fade (transitions can't start from display:none).
+    void overlay.offsetHeight
     requestAnimationFrame(() => overlay.classList.add('open'))
     document.body.style.overflow = 'hidden'
     pauseScroll()
@@ -207,12 +216,21 @@ export function initFlash() {
   }
 
   function closeModal() {
+    modalOpen = false
     overlay.classList.remove('open')
     // Hide on the fade-out, with a timeout fallback for the reduced-motion /
     // no-transition case where `transitionend` never fires (which would otherwise
     // leave the overlay in the a11y tree). Belt-and-braces, like the page loader.
+    // The modalOpen re-check guards the close→reopen race: reopening within the
+    // fade window must not let the stale transitionend/timeout from the PREVIOUS
+    // close hide a modal the visitor has just reopened (it would vanish
+    // mid-interaction with the page scroll still locked).
     let hidden = false
-    const hide = () => { if (hidden) return; hidden = true; overlay.hidden = true }
+    const hide = () => {
+      if (hidden || modalOpen) return
+      hidden = true
+      overlay.hidden = true
+    }
     overlay.addEventListener('transitionend', hide, { once: true })
     setTimeout(hide, 400)
     document.body.style.overflow = ''

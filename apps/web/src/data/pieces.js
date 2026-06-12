@@ -18,8 +18,8 @@
 //               realism · black-grey · colour · dotwork · cybersigilism · script —
 //               real execution styles only, NOT subject categories like "botanical")
 //   placement   Single placement token, matches the placement <select> options;
-//               canonical list in src/data/taxonomy.js (currently: forearm ·
-//               wrist · back · spine · leg · chest · hand)
+//               canonical list in src/data/taxonomy.js (currently: arm · body ·
+//               leg — deliberately coarse, refinable post-launch)
 //   date        The day the piece was made, "YYYY-MM-DD". This drives the order:
 //               the grid is newest-first by date (default), oldest-first when the
 //               Sort control flips. `dateKey()` in portfolio-tiles.js turns it into

@@ -4,6 +4,16 @@
   padding: 0;
 }
 
+/* Re-arm the `hidden` attribute. The UA's [hidden] rule is a NORMAL user-agent
+   declaration, so ANY author `display` (e.g. `.chip { display: inline-flex }`,
+   `.modal-overlay { display: flex }`) silently overrides it — which left
+   JS-hidden controls (the flash "Past drops" chip, the closed claim modal)
+   rendered and keyboard-focusable. One global rule restores the contract every
+   module's `el.hidden = true` relies on. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }

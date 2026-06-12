@@ -128,4 +128,59 @@ describe('initChipOverflow', () => {
     expect(chips.classList.contains('expanded')).toBe(false)
     expect(btn.getAttribute('aria-expanded')).toBe('false')
   })
+
+  it('no-ops when called without a bar, or with a chip-less chip row', () => {
+    expect(() => initChipOverflow(null)).not.toThrow()
+    document.body.innerHTML = '<div id="filter-bar"><div class="filter-chips"></div></div>'
+    expect(() => initChipOverflow(document.getElementById('filter-bar'))).not.toThrow()
+  })
+
+  it('debounces ResizeObserver bursts to one rAF re-apply, and re-arms after it runs', () => {
+    const bar = setupBar(portfolioBar, { chipWidth: 100, rowWidth: 360 })
+    // Swap in an observable RO + rAF AFTER setupBar's stubs, BEFORE init wires them.
+    let roCallback
+    global.ResizeObserver = class {
+      constructor(cb) { roCallback = cb }
+      observe() {}
+      disconnect() {}
+    }
+    const rafQueue = []
+    const realRaf = globalThis.requestAnimationFrame
+    globalThis.requestAnimationFrame = cb => { rafQueue.push(cb); return rafQueue.length }
+    try {
+      initChipOverflow(bar)
+      // The bar's own size changes (e.g. "More" opening) fire RO several times a
+      // frame — the latch must queue exactly one re-apply.
+      roCallback(); roCallback(); roCallback()
+      expect(rafQueue).toHaveLength(1)
+      rafQueue[0]()                       // the frame runs → re-applies, latch resets
+      roCallback()
+      expect(rafQueue).toHaveLength(2)    // re-armed for the next frame
+    } finally {
+      globalThis.requestAnimationFrame = realRaf
+    }
+  })
+
+  it('a re-apply while the user has expanded the row keeps everything revealed', () => {
+    const bar = setupBar(portfolioBar, { chipWidth: 100, rowWidth: 360 })
+    let roCallback
+    global.ResizeObserver = class {
+      constructor(cb) { roCallback = cb }
+      observe() {}
+      disconnect() {}
+    }
+    const realRaf = globalThis.requestAnimationFrame
+    globalThis.requestAnimationFrame = cb => { cb(0); return 0 }   // synchronous
+    try {
+      initChipOverflow(bar)
+      expect(collapsed().length).toBeGreaterThan(0)   // tight row → collapsed
+      click(document.getElementById('chip-more-btn')) // user opens "More"
+      expect(collapsed()).toHaveLength(0)
+      roCallback()                                    // a resize re-apply fires…
+      expect(collapsed()).toHaveLength(0)             // …but respects the expansion
+      expect(bar.classList.contains('needs-more')).toBe(true)
+    } finally {
+      globalThis.requestAnimationFrame = realRaf
+    }
+  })
 })

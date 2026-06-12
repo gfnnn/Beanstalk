@@ -92,9 +92,10 @@ body::after {
    The calligraphic mark (src/build/favicon.js) is ONE filled path, so it can't
    self-ink stroke-by-stroke like the line-art hero sprig — it reveals instead with
    a clip-path wipe from the base up, as if the ink is being laid down. This is the
-   same vocabulary as the preloader's `pl-draw` (which keeps its own copy: its CSS
-   is inline-critical and paints before this file loads, so it can't share the
-   keyframe). Two on-load homes, both hung off the one `.motion-ready` entrance
+   same vocabulary as the preloader's mark (whose CSS is inline-critical and
+   paints before this file loads, so it couldn't share a keyframe — and which now
+   shows complete with a `pl-breathe`; its draw was retired for janking on quick
+   loads). Two on-load homes, both hung off the one `.motion-ready` entrance
    spine:
      · the nav logo — ONLY on a cold first load (`html.cold-start`), drawn as the
        preloader cover lifts; warm in-session navs deliberately skip it so the page

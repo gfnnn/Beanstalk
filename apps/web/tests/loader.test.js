@@ -257,4 +257,61 @@ describe('initPageLoader (runtime dismissal)', () => {
     initPageLoader()
     expect(document.documentElement.classList.contains('cold-start')).toBe(false)
   })
+
+  describe('pagereveal coordination (cross-document View Transitions)', () => {
+    const pagereveal = viewTransition => {
+      const ev = new window.Event('pagereveal')
+      if (viewTransition) ev.viewTransition = viewTransition
+      window.dispatchEvent(ev)
+    }
+
+    it('warm: the belt-and-braces pagereveal after the instant drop is an inert second call', () => {
+      setReducedMotion(false)
+      sessionStorage.setItem('bs-visited', '1')
+      mountOverlay()
+      initPageLoader()                 // warm → removed synchronously
+      expect(document.getElementById('page-loader')).toBeNull()
+      expect(() => pagereveal({})).not.toThrow()   // removeNow() again → gone guard
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+    })
+
+    it('cold: a pagereveal CARRYING a view transition drops the cover before the VT snapshots it', () => {
+      setReducedMotion(false)
+      mountOverlay()
+      initPageLoader()                 // cold → cover up, waiting on fonts
+      expect(document.getElementById('page-loader')).not.toBeNull()
+      pagereveal({ vt: true })         // an incoming cross-document transition
+      expect(document.getElementById('page-loader')).toBeNull()
+      expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+    })
+
+    it('cold: a pagereveal WITHOUT a view transition leaves the cover to the normal dismissal', () => {
+      setReducedMotion(false)
+      mountOverlay()
+      initPageLoader()
+      pagereveal(undefined)            // no VT → nothing to compose with
+      expect(document.getElementById('page-loader')).not.toBeNull()
+    })
+
+    it('a commit-held fadeOut that fires after a pagereveal removal is an inert no-op', async () => {
+      // The hold timer and the pagereveal race: if the VT removal wins, the held
+      // fadeOut must hit the `gone` guard, not re-run the fade on a removed node.
+      setReducedMotion(false)
+      const saved = performance.getEntriesByName
+      performance.getEntriesByName = () => [{ startTime: performance.now() - 1000 }] // → COMMIT, ~600ms hold
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      try {
+        mountOverlay()
+        initPageLoader()
+        await vi.advanceTimersByTimeAsync(0)  // fonts.ready → dismiss() arms the hold
+        pagereveal({ vt: true })              // VT removal wins the race
+        expect(document.getElementById('page-loader')).toBeNull()
+        await expect(vi.runAllTimersAsync()).resolves.not.toThrow() // held fadeOut + 3s ceiling no-op
+        expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
+      } finally {
+        performance.getEntriesByName = saved
+        vi.useRealTimers()
+      }
+    })
+  })
 })

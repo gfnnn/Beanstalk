@@ -43,9 +43,19 @@ describe('initMobileCta', () => {
     expect(cta.getAttribute('aria-hidden')).toBe('true')
   })
 
+  // The inner-page (no-hero) path is driven by a live matchMedia, not a one-shot
+  // innerWidth read, so a rotation/resize across the breakpoint after load still
+  // shows/hides the bar. The stub captures the change listener to simulate that.
+  const stubViewport = matches => {
+    const listeners = []
+    const mq = { matches, addEventListener: (_, fn) => listeners.push(fn) }
+    vi.stubGlobal('matchMedia', () => mq)
+    return { rotate(nowMatches) { mq.matches = nowMatches; listeners.forEach(fn => fn()) } }
+  }
+
   it('shows the CTA immediately on a small-screen inner page (no hero)', () => {
     document.body.innerHTML = '<div id="mobile-cta" aria-hidden="true"></div>'
-    vi.stubGlobal('innerWidth', 480)
+    stubViewport(true)
     initMobileCta()
     const cta = document.getElementById('mobile-cta')
     expect(cta.classList.contains('visible')).toBe(true)
@@ -54,8 +64,20 @@ describe('initMobileCta', () => {
 
   it('keeps the CTA hidden on a wide-viewport inner page', () => {
     document.body.innerHTML = '<div id="mobile-cta" aria-hidden="true"></div>'
-    vi.stubGlobal('innerWidth', 1280)
+    stubViewport(false)
     initMobileCta()
     expect(document.getElementById('mobile-cta').classList.contains('visible')).toBe(false)
+  })
+
+  it('reveals the CTA when the viewport later crosses INTO the mobile breakpoint (rotation)', () => {
+    document.body.innerHTML = '<div id="mobile-cta" aria-hidden="true"></div>'
+    const viewport = stubViewport(false)   // loads at tablet-landscape width
+    initMobileCta()
+    const cta = document.getElementById('mobile-cta')
+    expect(cta.classList.contains('visible')).toBe(false)
+
+    viewport.rotate(true)                  // rotate to portrait → now mobile-width
+    expect(cta.classList.contains('visible')).toBe(true)
+    expect(cta.getAttribute('aria-hidden')).toBe('false')
   })
 })

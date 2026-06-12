@@ -21,8 +21,16 @@ export function initMobileCta() {
       mobileCta.setAttribute('aria-hidden', String(!show))
     }, { threshold: 0 })
     obs.observe(hero)
-  } else if (window.innerWidth < 640) {
-    mobileCta.classList.add('visible')
-    mobileCta.setAttribute('aria-hidden', 'false')
+  } else {
+    // Live media query, not a one-shot innerWidth read: a tablet rotated into
+    // portrait after load would otherwise have the bar's box displayed by the
+    // CSS breakpoint but never given .visible — present yet off-screen forever.
+    const mq = window.matchMedia('(max-width: 639px)')
+    const apply = () => {
+      mobileCta.classList.toggle('visible', mq.matches)
+      mobileCta.setAttribute('aria-hidden', String(!mq.matches))
+    }
+    apply()
+    mq.addEventListener?.('change', apply)
   }
 }

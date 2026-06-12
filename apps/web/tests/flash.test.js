@@ -245,6 +245,34 @@ describe('initFlash', () => {
       overlay.dispatchEvent(new window.Event('click', { bubbles: true })) // target === overlay
       expect(overlay.classList.contains('open')).toBe(false)
     })
+
+    it('a stale close (transitionend OR its timer) cannot hide a modal that was reopened mid-fade', async () => {
+      // Close piece A, reopen within the 400ms fade window: the close's armed
+      // transitionend/timeout must no-op, not blank the reopened modal (which
+      // would also kill Escape + the focus trap, both gated on !hidden). rAF is
+      // made synchronous so the .open assertion isn't racing the real frame clock.
+      const realRaf = globalThis.requestAnimationFrame
+      globalThis.requestAnimationFrame = cb => { cb(0); return 0 }
+      vi.useFakeTimers()
+      setup(); initFlash()
+      const overlay = byId('claim-modal')
+
+      click(cardById('p1').querySelector('.claim-btn'))
+      click(byId('modal-close'))                              // arms hide ×2
+      click(cardById('p1').querySelector('.claim-btn'))       // reopen mid-fade
+
+      overlay.dispatchEvent(new window.Event('transitionend')) // stale listener fires…
+      await vi.advanceTimersByTimeAsync(400)                    // …and the stale timer
+      expect(overlay.hidden).toBe(false)                        // still open
+      expect(overlay.classList.contains('open')).toBe(true)
+
+      // And a real close afterwards still hides it.
+      click(byId('modal-close'))
+      overlay.dispatchEvent(new window.Event('transitionend'))
+      expect(overlay.hidden).toBe(true)
+      vi.useRealTimers()
+      globalThis.requestAnimationFrame = realRaf
+    })
   })
 
   describe('modal focus trap', () => {
@@ -352,6 +380,67 @@ describe('initFlash', () => {
       await flush()
       expect(byId('claim-error').textContent).toBe('Server error')
       expect(byId('modal-submit').disabled).toBe(false)
+    })
+
+    it('falls back to a friendly message when the failure body is unparseable', async () => {
+      await openAndSubmit({ ok: false, status: 500, json: () => Promise.reject(new Error('bad json')) })
+      await flush()
+      expect(byId('claim-error').textContent).toMatch(/something went wrong/i)
+      expect(byId('modal-submit').disabled).toBe(false)
+    })
+  })
+
+  describe('degraded pages & live-status fail-safes', () => {
+    it('no-ops when the grid exists but holds no cards', () => {
+      document.body.innerHTML = '<div id="flash-grid"><div id="flash-empty"></div></div>'
+      expect(() => initFlash()).not.toThrow()
+    })
+
+    it('still wires the grid when the claim modal is absent from the page', async () => {
+      setup()
+      byId('claim-modal').remove()
+      expect(() => initFlash()).not.toThrow()
+      expect(byId('count-all').textContent).toBe('(3)')   // grid features still live
+      // A claim click can't open anything, but must not throw either.
+      expect(() => click(cardById('p1').querySelector('.claim-btn'))).not.toThrow()
+    })
+
+    it('ignores a non-ok live-status response (build-time statuses stand)', async () => {
+      global.fetch = vi.fn(async () => ({ ok: false, status: 500 }))
+      setup(); initFlash()
+      await flush()
+      expect(cardById('p1').dataset.status).toBe('available')
+    })
+
+    it('ignores an unparseable or claims-less live-status body', async () => {
+      global.fetch = vi.fn(async () => ({ ok: true, json: () => Promise.reject(new Error('bad json')) }))
+      setup(); initFlash()
+      await flush()
+      expect(cardById('p1').dataset.status).toBe('available')
+
+      global.fetch = vi.fn(async () => ({ ok: true, json: () => Promise.resolve({ claims: 'junk' }) }))
+      document.body.innerHTML = ''
+      setup(); initFlash()
+      await flush()
+      expect(cardById('p1').dataset.status).toBe('available')
+    })
+
+    it('survives the live-status fetch rejecting outright (availability is best-effort)', async () => {
+      global.fetch = vi.fn(async () => { throw new Error('offline') })
+      setup()
+      expect(() => initFlash()).not.toThrow()
+      await flush()
+      expect(cardById('p1').dataset.status).toBe('available')
+    })
+
+    it('the focus trap bails when every focusable control is disabled', () => {
+      setup(); initFlash()
+      click(cardById('p1').querySelector('.claim-btn'))
+      const overlay = byId('claim-modal')
+      overlay.querySelectorAll('button, input').forEach(el => { el.disabled = true })
+      const ev = new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+      overlay.dispatchEvent(ev)
+      expect(ev.defaultPrevented).toBe(false)   // nothing to trap between
     })
   })
 })
