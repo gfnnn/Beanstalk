@@ -61,8 +61,8 @@
 .nav-logo em { font-style: italic; color: var(--moss); }
 
 /* The traced brand mark (src/build/favicon.js, injected at build via the
-   brand:mark marker). currentColor → inherits the lockup's ink; the wordmark's
-   em keeps the moss accent above. */
+   brand:mark marker). currentColor → inherits the lockup's ink. Icon-only for
+   now; the .nav-logo text styles above stay ready for an optional wordmark. */
 .nav-logo .brand-mark {
   height: 36px;
   width: auto;

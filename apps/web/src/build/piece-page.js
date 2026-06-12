@@ -130,7 +130,7 @@ ${LOADER_MARKUP}
 
 <!-- NAV — Portfolio active -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
-  <a href="/" class="nav-logo">${renderMarkSvg()}beansprout<em>.ink</em></a>
+  <a href="/" class="nav-logo" aria-label="Beansprout home">${renderMarkSvg()}</a>
   <ul class="nav-links" role="list">
     <li><a href="/">Home</a></li>
     <li><a href="/portfolio/" class="active" aria-current="page">Portfolio</a></li>

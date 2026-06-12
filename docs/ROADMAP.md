@@ -123,8 +123,9 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       clip/GIF → 🛠 run `process-video.mjs`, flip `show: true`, LFS the binaries.
 - [x] **C7 · Brand logo + confirmation icon** — ✅ the supplied artwork is traced to a
       true vector (`src/build/favicon.js`) and injected at build via the
-      `<!-- brand:mark -->` marker: every nav now carries the mark + wordmark lockup,
-      and `/enquiry-received/` the moss confirmation mark (palette-driven, like the
+      `<!-- brand:mark -->` marker: every nav now carries the mark (icon-only — the
+      `.nav-logo` styles are ready if a wordmark is added later), and
+      `/enquiry-received/` the moss confirmation mark (palette-driven, like the
       generated `favicon.svg`).
 - [ ] **C8 · Portfolio spot-check** — 28 real photos are in; 👤 eyeball them on the
       built site.
