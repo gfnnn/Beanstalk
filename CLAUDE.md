@@ -158,7 +158,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
-  public/        favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml are generated, see SEO)
+  public/        raster favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml + favicon.svg are generated, see SEO/palette)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email + payments app)
   src/index.js                           # Worker entry — routes /enquiry /newsletter /checkout /webhooks/stripe /flash-status
@@ -198,7 +198,8 @@ or it won't be built. All pages load the same bundle: `<link href="/src/styles/m
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
 The seven Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
-work: `palette` (inject colour custom properties), `generatedGrids` (the content pipeline
+work: `palette` (inject colour custom properties + emit the palette-coloured `favicon.svg`
+from the traced brand mark in `src/build/favicon.js`), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
 `<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see below),
 `piecePages` (per-piece portfolio pages), and `sitemap`. Most run in **both dev and build**
