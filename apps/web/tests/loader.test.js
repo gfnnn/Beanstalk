@@ -38,15 +38,14 @@ describe('injectPageLoader (build-time)', () => {
     expect(LOADER_STYLE).toContain('pl-failsafe')
   })
 
-  it('plays the ink-rise draw only under no-preference, leaving reduced motion shown-complete', () => {
-    // The mark draws with a clip-path wipe; it's a self-contained copy of the shared
-    // mark-rise (the inline-critical CSS can't reference main.css's keyframe).
-    expect(LOADER_STYLE).toContain('@keyframes pl-draw')
-    expect(LOADER_STYLE).toContain('clip-path:inset(100% 0 0 0)')
-    // …and the draw is gated behind no-preference, so a reduced-motion visitor just
-    // sees the mark (no clip applied at rest).
-    const noPref = LOADER_STYLE.slice(LOADER_STYLE.indexOf('no-preference'))
-    expect(noPref).toContain('pl-draw')
+  it('shows the preloader mark complete — never a reveal-from-invisible (mobile regression guard)', () => {
+    // The cover dismisses on fonts.ready, near-instant on a mobile/cached load, so
+    // the mark must NOT animate from hidden — a clip-path/opacity reveal here left
+    // it unseen on quick covers. It only breathes; the ink-rise draw lives on the
+    // nav + confirmation marks (atmosphere.css), past the dismiss race.
+    expect(LOADER_STYLE).not.toContain('clip-path')
+    expect(LOADER_STYLE).not.toContain('pl-draw')
+    expect(LOADER_STYLE).toContain('pl-breathe') // the gentle shown-complete idle
   })
 
   it('leaves a document with no head/body untouched', () => {
