@@ -15,6 +15,7 @@ import { esc, HAS_EXT } from './html.js'
 import { SITE_URL, SITE_NAME, SITE_LOCALE, OG_IMAGE, OG_IMAGE_ALT } from './seo.js'
 import { renderStatus } from './homepage.js'
 import { renderPaletteStyle, themeColor } from './palette.js'
+import { renderMarkSvg } from './favicon.js'
 import { LOADER_STYLE, LOADER_MARKUP } from './loader.js'
 import { homepage } from '../data/homepage.js'
 
@@ -129,7 +130,7 @@ ${LOADER_MARKUP}
 
 <!-- NAV — Portfolio active -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
-  <a href="/" aria-label="Beansprout home"><div class="nav-logo-placeholder" aria-hidden="true">logo.svg</div></a>
+  <a href="/" class="nav-logo">${renderMarkSvg()}beansprout<em>.ink</em></a>
   <ul class="nav-links" role="list">
     <li><a href="/">Home</a></li>
     <li><a href="/portfolio/" class="active" aria-current="page">Portfolio</a></li>

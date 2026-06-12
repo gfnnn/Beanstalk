@@ -121,9 +121,11 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       `public/images/og-image.jpg`.
 - [ ] **C6 · Hero video / GIF** — both slots in `media.js` are `show: false`. 👤 supply
       clip/GIF → 🛠 run `process-video.mjs`, flip `show: true`, LFS the binaries.
-- [ ] **C7 · Brand logo + confirmation icon** — nav shows a `logo.svg` **text**
-      placeholder and `/enquiry-received/` an icon placeholder. 👤 supply final artwork
-      → 🛠 wire into `.nav-logo-placeholder` + `.confirm-mark`.
+- [x] **C7 · Brand logo + confirmation icon** — ✅ the supplied artwork is traced to a
+      true vector (`src/build/favicon.js`) and injected at build via the
+      `<!-- brand:mark -->` marker: every nav now carries the mark + wordmark lockup,
+      and `/enquiry-received/` the moss confirmation mark (palette-driven, like the
+      generated `favicon.svg`).
 - [ ] **C8 · Portfolio spot-check** — 28 real photos are in; 👤 eyeball them on the
       built site.
 - [ ] **C9 · (Optional) Testimonials** — "Kind words" is `hidden` while empty. Add real

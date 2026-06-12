@@ -225,9 +225,12 @@ comments document every field — **read them before editing**.
 | `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
 | `business.js`           | `business.js`                  | `<!-- reply-time -->` → enquire + enquiry-received (shared so the promised turnaround can't drift) |
+| (none)                  | `favicon.js` (`renderMarkSvg`) | `<!-- brand:mark -->` → every page's nav lockup + the `/enquiry-received/` confirmation mark |
 
-The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*
-page's nav, not just the homepage — it renders in two spots per page (the inline pill via
+Two markers appear on *every* page's nav, not just the homepage: the **brand mark**
+(`<!-- brand:mark -->`, the traced sprig from `src/build/favicon.js`, filled with
+currentColor inside the `.nav-logo` lockup) and the nav **status "light"**
+(`homepage.status`), which renders in two spots per page (the inline pill via
 `<!-- homepage:status -->` and the mobile-drawer variant via `<!-- homepage:status-drawer -->`).
 The `/flash/` page eyebrow is **fully data-driven from `flash.js`**: the drop *number*
 (`<!-- flash:drop -->`) is the highest `drop` value in the data (lower-numbered records fall

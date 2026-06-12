@@ -11,6 +11,7 @@ import {
   MARK_TIGHT_VIEWBOX,
   MARK_FILL_RULE,
   renderFaviconSvg,
+  renderMarkSvg,
 } from '../src/build/favicon.js'
 import { activePalette } from '../src/build/palette.js'
 
@@ -52,5 +53,22 @@ describe('renderFaviconSvg', () => {
   it('carries the mark with its fill rule', () => {
     expect(svg).toContain(`fill-rule="${MARK_FILL_RULE}"`)
     expect(svg).toContain(MARK_PATH.slice(0, 60))
+  })
+})
+
+describe('renderMarkSvg', () => {
+  const svg = renderMarkSvg()
+
+  it('is the bare mark on the tight box, coloured by its surroundings', () => {
+    expect(svg).toContain(`viewBox="${MARK_TIGHT_VIEWBOX}"`)
+    expect(svg).toContain('fill="currentColor"')
+    expect(svg).toContain(`fill-rule="${MARK_FILL_RULE}"`)
+    expect(svg).not.toContain('<rect') // no favicon tile — contexts bring their own bg
+  })
+
+  it('is decorative: hidden from AT, unfocusable, class-addressable', () => {
+    expect(svg).toContain('aria-hidden="true"')
+    expect(svg).toContain('focusable="false"')
+    expect(svg).toContain('class="brand-mark"')
   })
 })
