@@ -57,3 +57,28 @@ test('the close button dismisses the lightbox', async ({ page }) => {
   await page.locator('#lightbox-close').click()
   await expect(page.locator('#lightbox')).not.toHaveClass(/open/)
 })
+
+test('keyboard: focus is trapped inside the open dialog and returned to the tile on close', async ({ page }) => {
+  // aria-modal promises a trap: Tab must cycle within the dialog, never walk
+  // into the scroll-locked page behind it.
+  const firstTile = page.locator('.masonry-tile').first()
+  await firstTile.click()
+  await expect(page.locator('#lightbox')).toHaveClass(/open/)
+
+  // Tab forward more times than the dialog has controls — focus must stay inside.
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Tab')
+    expect(await page.evaluate(() =>
+      document.getElementById('lightbox').contains(document.activeElement),
+    )).toBe(true)
+  }
+
+  // Closing hands focus back to the element that opened the dialog (the tile),
+  // not <body> — `inert` on a focused subtree would otherwise strand keyboard
+  // users at the top of the page.
+  await page.keyboard.press('Escape')
+  await expect(page.locator('#lightbox')).not.toHaveClass(/open/)
+  expect(await page.evaluate(() =>
+    document.activeElement?.classList.contains('masonry-tile'),
+  )).toBe(true)
+})
