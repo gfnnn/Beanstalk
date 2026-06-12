@@ -103,7 +103,7 @@ npm run preview       # serve the built apps/web/dist/ locally
 npm run preview:branch -- <branch>  # LOCAL helper: fetch a branch, install, run its dev server (one command)
 npm test              # run BOTH workspaces' Vitest suites
 npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
-npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
+npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, checkout, stripe-webhook, payments, http, db)
 npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke);
                       #   skips cleanly if no Chromium is installed — see the web-session note above
 npm run lint          # Biome static-analysis floor over apps/**/{src,tests,e2e,scripts} + root scripts
@@ -240,9 +240,17 @@ cards. The homepage "Kind words" section is `hidden` while `testimonials` is emp
 quotes AND remove the `hidden` attribute to switch it on.
 
 **Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
-testimonials) — edit the data file and let the build regenerate it. Tokens in the data
-(`styles`, `placement`, `status`, `tone`, `glyph`) must match the filter chips / `<select>`
-options in the HTML and the label maps in the renderers; change them together.
+testimonials) — edit the data file and let the build regenerate it. The portfolio **style +
+placement vocabulary lives once in `src/data/taxonomy.js`** (the `STYLE_LABELS` /
+`PLACEMENT_LABELS` maps): `pieces.js`, the renderers (`portfolio-tiles.js` re-exports the
+label maps), the data-integrity test, and the Dropbox master-filename parser
+(`scripts/master-metadata.mjs`) all read it — so **add a new style/placement token there**,
+not in scattered label maps. A new token is valid in data + filenames immediately, but the
+first piece that *uses* it still needs a matching filter chip / `<select>` option in
+`portfolio/index.html` (the data-integrity test fails with instructions until it exists, so
+the filter UI only offers tokens with real work behind them). The other per-data-file tokens
+(`status`, `tone`, `glyph` in `flash.js` / `homepage.js`) must likewise match the HTML and the
+renderer label maps — change them together.
 
 ### Per-piece portfolio pages
 Each portfolio piece also gets its own shareable page at `/portfolio/<slug>/` (the masonry
