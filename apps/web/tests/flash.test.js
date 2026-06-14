@@ -81,7 +81,7 @@ function setup() {
           <input id="claim-name" name="name" value="Robin">
           <input id="modal-piece-input" name="piece" type="hidden">
           <input id="modal-price-input" name="price" type="hidden">
-          <input id="modal-id-input" name="id" type="hidden">
+          <input id="modal-id-input" name="piece_id" type="hidden">
           <div class="modal-foot">
             <button type="button" id="modal-cancel">Cancel</button>
             <button type="button" id="modal-close">×</button>
@@ -343,7 +343,7 @@ describe('initFlash', () => {
       const payload = JSON.parse(post[1].body)
       expect(payload.kind).toBe('flash')
       expect(payload.fields.piece).toBe('Piece p1')
-      expect(payload.fields.id).toBe('p1')
+      expect(payload.fields.piece_id).toBe('p1') // matches the real markup's hidden input name
 
       expect(cardById('p1').dataset.status).toBe('pending') // markCard('pending')
       expect(byId('claim-modal').classList.contains('open')).toBe(false) // closed
