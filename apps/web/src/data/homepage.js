@@ -76,11 +76,11 @@ export const homepage = {
   ],
 
   hero: {
-    eyebrow:  'Winchester · Fine line & high detail',
+    eyebrow:  'Fine line · High detail · Realism',
     headLead: 'Quietly considered',
     headEm:   'bespoke tattoo.',
     body:     "I'm Roxy, the fine line, high detail and realism tattoo artist behind Beansprout, working out of Tiny Knives in Winchester. Bespoke pieces, drawn for one person, at a pace that never feels rushed.",
-    mediaTag: 'Tiny Knives · Winchester',
+    mediaTag: 'Beansprout · By appointment',
   },
 
   specialisms: [
