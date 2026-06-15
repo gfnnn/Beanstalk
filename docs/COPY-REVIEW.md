@@ -29,7 +29,7 @@ can never drift apart again.
 grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules
 ```
 
-returns **nothing**. (32 markers remain as of 2026-06-09 — the still-open sections
+returns **nothing**. (18 markers remain as of 2026-06-15 — the still-open sections
 listed under "Where things stand".)
 
 ## Where things stand
@@ -41,13 +41,16 @@ listed under "Where things stand".)
   visible copy (incl. JS UI strings). Switched off for go-live: the About **stats**
   (ABOUT-04) and **"The space"** (ABOUT-05).
 - **Round 1.5 (#179):** hours, getting-there and booking lead time confirmed.
+- **Round 2 (2026-06-15):** **reply time** confirmed, and **newsletter, visit, portfolio
+  and the small pages confirmed** — their markers are stripped, the enquiry-received
+  "we→I" voice is fixed, and the **404 was reworked** (real brand mark + de-cheesed copy).
 - All confirmed **values** live in [the facts table](#part-1--facts-i-need-from-you) — the
   only place they're written down here.
-- **Still open:** reply time (BUS-01) · flash season + the 12 pieces (FLASH-D1/D2)
-  · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent
-  wording (ENQ-07) · visit voice (VISIT-01..03, 05) · portfolio piece names
-  (PORT-D1) · newsletter (NL, NLBAND-01) · enquiry-received voice (CONFIRM-01) ·
-  404 (E404-01) · piece-page CTAs (PIECE-01) · testimonials (DATA-TEST, HOME-08).
+- **Still open (~18 markers):** flash page + season + the 12 pieces (FLASH, FLASH-D1/D2)
+  · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent wording
+  (ENQ-07) + ENQ-06 voice · the original set's styles (PORT-D2 — Dropbox pieces confirmed;
+  names + placements pass) · testimonials
+  (DATA-TEST, HOME-08) · the off slots (ABOUT-04 stats, HOME-10 / DATA-MEDIA video).
 
 ## How the refs map to source (conventions)
 
@@ -80,7 +83,7 @@ instead of repeating them, so a value can never drift.
 
 | 🔒 | What | Was on the site (placeholder) | The real value |
 |----|------|-------------------------------|----------------|
-| Reply time | How long you take to reply to an enquiry | "within 3 days" | _still to confirm_ |
+| Reply time | How long you take to reply to an enquiry | "within 3 days" | ✅ **Confirmed: within 3 days** |
 | Prices | Min / small / half-day / full-day | £120 / £180–280 / £420 / £680 | ✅ **£80 / £120–£200 / £300 / £500** |
 | Deposit | (was Standard / half-day / full-day) | £60 / £120 / £200 | ✅ **Flat 50% of the price** |
 | Touch-up window | Free touch-up valid for… | 6 months | ✅ **1 year** |

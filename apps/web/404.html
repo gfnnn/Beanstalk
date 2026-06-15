@@ -67,11 +67,10 @@
 <!-- NOT FOUND -->
 <main class="confirm" role="main" id="maincontent" tabindex="-1">
   <div class="confirm-inner">
-    <div class="confirm-mark reveal" aria-hidden="true">🌱</div>
-<!-- ARTIST-COPY · E404-01 · pending approval — see docs/COPY-REVIEW.md -->
+    <div class="confirm-mark reveal" aria-hidden="true"><!-- brand:mark --></div>
     <p class="page-eyebrow reveal reveal-d1">Error 404</p>
-    <h1 class="confirm-title reveal reveal-d2">This page has <em>gone to seed.</em></h1>
-    <p class="confirm-text reveal reveal-d3">The link's broken or the page has moved. Nothing's lost. Try one of these instead.</p>
+    <h1 class="confirm-title reveal reveal-d2">This page isn't <em>here.</em></h1>
+    <p class="confirm-text reveal reveal-d3">The link may be broken, or the page has moved. Try one of these instead.</p>
 
     <div class="confirm-actions reveal reveal-d3">
       <a href="/" class="btn btn-outline">Back to home</a>
@@ -122,11 +121,7 @@
   padding:clamp(48px,8vw,96px) var(--pad-x);
 }
 .confirm-inner{max-width:560px;text-align:center}
-.confirm-mark{
-  font-size:44px;line-height:1;margin-bottom:24px;
-  width:84px;height:84px;display:flex;align-items:center;justify-content:center;
-  margin-inline:auto;border-radius:50%;background:var(--moss-bg);border:1px solid var(--line);
-}
+.confirm-mark{display:flex;justify-content:center;margin-bottom:8px}
 .confirm .page-eyebrow{justify-content:center}
 .confirm-title{
   font-family:var(--serif);font-weight:300;font-size:clamp(36px,5vw,60px);
