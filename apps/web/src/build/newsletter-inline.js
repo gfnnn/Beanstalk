@@ -17,7 +17,6 @@ export function renderNewsletterInline() {
   <div class="newsletter-band-inner">
     <div class="newsletter-band-copy">
       <p class="eyebrow">The newsletter</p>
-      <!-- ARTIST-COPY · NLBAND-01 · pending approval — see docs/COPY-REVIEW.md -->
       <!-- COPY: inline newsletter band heading + subhead -->
       <h2 class="newsletter-band-title" id="nl-band-title">New work &amp; flash, <em>before anywhere else.</em></h2>
       <p class="newsletter-band-sub">Drops, fresh flash and the occasional studio note, in your inbox before they go up on Instagram.</p>

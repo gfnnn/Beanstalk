@@ -21,8 +21,9 @@ Owners: 👤 **YOU** (external accounts / DNS / dashboards / sign-off) · 🛠 *
 
 ## Status snapshot
 
-**Verified against the codebase on 2026-06-09:** `npm test` fully green, CNAME absent
-(staging posture intact), 28 portfolio photos in, 12 flash pieces still placeholder.
+**Verified against the codebase on 2026-06-15:** `npm test` fully green, CNAME absent
+(staging posture intact), **54 portfolio photos in** (via the Dropbox media-sync
+workflow), 12 flash pieces still placeholder.
 
 Shipped (audience-capture + early management layer):
 
@@ -32,13 +33,15 @@ Shipped (audience-capture + early management layer):
   skip-to-content links; branded 404.
 - **Inline newsletter capture** on the homepage, flash, and post-enquiry pages.
 - **Per-piece portfolio pages** at `/portfolio/<slug>/` (per-piece SEO + sitemap).
-- **Responsive image pipeline** (#109) — `apps/web/scripts/process-media.mjs` (sharp)
-  emits AVIF/WebP/JPG tiers with a **centre cover-crop** to the lane aspect (masters are
-  pre-framed by the artist before upload). The catalogue is the artist's **28 pre-edited
-  pieces**. The style taxonomy is real execution styles (`fine-line · high-detail ·
-  realism · black-grey · colour · dotwork · script · cybersigilism`). A hero-video helper
-  (`process-video.mjs`) is in too, though the clips themselves are still to come (C6).
-  Full guide: [`MEDIA.md`](./MEDIA.md).
+- **Responsive image pipeline + Dropbox media workflow** (#109, #189–#194) —
+  `process-media.mjs` (sharp) emits AVIF/WebP/JPG tiers with a **centre cover-crop**; the
+  **Dropbox media-sync** Action parses filename metadata (the `" -- "` grammar) into
+  auto-written `pieces.js`/`flash.js` entries + a reject report. The catalogue is now
+  **54 portfolio photos**. Tokens — styles plus the coarse `arm · body · leg` placements —
+  live in **`src/data/taxonomy.js`** (the single source the renderers, data tests and the
+  filename parser read); the **cybersigilism** chip is in. A hero-video helper
+  (`process-video.mjs`) is ready, though the clips are still to come (C6). Full guide:
+  [`MEDIA.md`](./MEDIA.md).
 - **Data-driven testimonials** (`src/data/testimonials.js`).
 - **Flash inventory state** — claims reserve the one-of-a-kind piece server-side
   (reject double-claims with 409); the grid reflects live availability.
@@ -99,20 +102,22 @@ The gate for copy is one command reaching zero:
 worksheet half of [`COPY-REVIEW.md`](./COPY-REVIEW.md); each answer is applied to
 source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutover.
 
-- [~] **C1 · Copy approval (umbrella)** — **Round 1 applied + cleaned (#155, #179):**
-      the reviewed words + tone/style/fact decisions are in source for the checklist up
-      to enquiries, and the hours / getting-here / booking-lead-time **facts** are
-      confirmed. **Remaining (the gate above):** ABOUT-04 stats, HOME-08/10, ENQ-06/07
-      voice, FLASH, PORT page copy + piece names, NL, VISIT-04 voice, PRIV/TERMS legal,
-      CONFIRM voice, PIECE, BUS reply-time, DATA-MEDIA/TEST.
+- [~] **C1 · Copy approval (umbrella)** — **Round 1 + follow-ups applied & cleaned:**
+      the reviewed words + tone/style/fact decisions (#155, #179), plus **newsletter,
+      visit, portfolio and the small pages are now confirmed** — their markers (incl.
+      reply time, and the enquiry-received "we→I" fix) are stripped, and the **404 was
+      reworked** (real brand mark + de-cheesed copy). **Remaining (the gate above, ~18):**
+      the **flash** page + data (FLASH-01/03/04/05, FLASH-D1/D2), **portfolio piece names**
+      (PORT-D1/D2), **ENQ-06/07**, **PRIV/TERMS** legal, and the off/optional slots
+      (ABOUT-04 stats, HOME-08/10, DATA-MEDIA/TEST).
 - [x] **C2 · Services prices** — ✅ confirmed + applied (#155): **£80 / £120–£200 /
       £300 / £500**, flat 50% deposit, 48h reschedule, one-year touch-up; the
       `/enquire/` budget bands mirror them.
 - [~] **C3 · Terms/privacy effective date + legal review** — deposit figures match
-      `/services/` and the **effective date is approved** ("June 2026"). **Open:** the
-      **ICO public registration reference** (ZA###### — the account/cert number must
-      never be published), the **tattoo-registration number** (TBC), and a professional
-      review of the wording.
+      `/services/`, the **effective date is approved** ("June 2026"), and the **CCR 2013
+      deposit/cancellation wording was clarified** (#204). **Open:** the **ICO public
+      registration reference** (ZA###### — the account/cert number must never be
+      published), the **tattoo-registration number** (TBC), and a professional review.
 - [ ] **C4 · Flash art + copy** — all **12** pieces in `flash.js` are `img: null`
       (line-art glyphs; titles/specs/prices placeholder). 👤 supply photos + real copy
       → 🛠 add to `flash.js` + `public/images/flash/`.
@@ -127,8 +132,8 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       `.nav-logo` styles are ready if a wordmark is added later), and
       `/enquiry-received/` the moss confirmation mark (palette-driven, like the
       generated `favicon.svg`).
-- [ ] **C8 · Portfolio spot-check** — 28 real photos are in; 👤 eyeball them on the
-      built site.
+- [x] **C8 · Portfolio spot-check** — ✅ passed: the **54** real photos were eyeballed on
+      staging and signed off as good to go live.
 - [ ] **C9 · (Optional) Testimonials** — "Kind words" is `hidden` while empty. Add real
       quotes to `testimonials.js` + remove `hidden`. **Fine to launch without.**
 
@@ -157,17 +162,10 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       glance at the dev-tools console on home / portfolio / enquire (zero errors) and
       confirm the nav status light renders. (On staging, `robots.txt` = `Disallow: /`
       with no sitemap — expected, not a bug.)
-- [ ] **O7 · Media-input dry run (Dropbox → site, real input)** — the artist upload
-      journey shipped 2026-06-10 (#189: filename metadata + auto-written data entries;
-      guide in [`MEDIA.md`](./MEDIA.md)) but has only run against mocks/unit tests —
-      prove it with real input before go-live. 👤 the artist names + drops one real
-      master per lane per the `" -- "` grammar (portfolio; flash inside a `drop-N/`
-      folder), **plus one deliberately misnamed file** to see a rejection → 🛠 run
-      **Actions → Dropbox media sync** with `dry_run` (names parse; the reject reads
-      clearly enough to self-fix), then for real → verify the PR carries the tiers +
-      correct data entries + the reject report, merge to `develop`, and eyeball the
-      new piece on staging (grid + filters + its `/portfolio/<slug>/` page). Done =
-      the artist can publish a piece with no hand-holding beyond the MEDIA.md guide.
+- [x] **O7 · Media-input dry run (Dropbox → site, real input)** — ✅ **confirmed working
+      end-to-end:** the Dropbox → filename-parse → tiers + auto-written data → PR →
+      staging path was used to upload the live **54-piece catalogue** (#192–#194). The
+      artist can publish a piece unaided beyond the [`MEDIA.md`](./MEDIA.md) guide.
 
 ### The end-to-end email test (go-live acceptance — run "b" at cutover)
 
