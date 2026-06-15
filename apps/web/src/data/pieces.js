@@ -56,7 +56,6 @@
 
 const IMG = '/images/tattoos'
 
-// ARTIST-COPY · PORT-D1/PORT-D2 · pending approval (piece titles + subjects/alt text) — see docs/COPY-REVIEW.md
 export const pieces = [
   { slug: 'asiatic-lilies', title: 'Asiatic lilies', subject: 'Asiatic lilies', styles: ['fine-line'], placement: 'leg', date: '2026-06-12', tone: 't-stone', glyph: 'sprig', img: `${IMG}/asiatic-lilies`, w: 800, h: 1067 },
   { slug: 'bubble-crab', title: 'Bubble crab', subject: 'Bubble crab', styles: ['colour'], placement: 'arm', date: '2026-06-12', tone: 't-stone', glyph: 'sprig', img: `${IMG}/bubble-crab`, w: 800, h: 1067 },
@@ -84,9 +83,7 @@ export const pieces = [
   { slug: 'the-lovers', title: 'The lovers', subject: 'The lovers', styles: ['fine-line'], placement: 'arm', date: '2026-06-12', tone: 't-stone', glyph: 'sprig', img: `${IMG}/the-lovers`, w: 800, h: 1067 },
   { slug: 'window', title: 'Window', subject: 'Window', styles: ['fine-line'], placement: 'arm', date: '2026-06-12', tone: 't-stone', glyph: 'sprig', img: `${IMG}/window`, w: 800, h: 1067 },
   { slug: 'wise-owl', title: 'Wise owl', subject: 'Wise owl', styles: ['realism'], placement: 'arm', date: '2026-06-12', tone: 't-stone', glyph: 'sprig', img: `${IMG}/wise-owl`, w: 800, h: 1067 },
-  // ── Original (pre-Dropbox) set — real photos are in, but the `styles` below are a
-  //    first pass and still need the artist's confirmation (PORT-D2). Names + the coarse
-  //    arm/body/leg placements pass as-is; only the style tokens are unverified. ──
+  // ── Original (pre-Dropbox) set — styles confirmed by the artist (2026-06-15). ──
   { slug: 'peacock-butterfly',   title: 'Peacock butterfly',    subject: 'a peacock butterfly and carnations',   styles: ['colour', 'realism'],                      placement: 'arm', date: '2026-05-15', tone: 't-blush', glyph: 'moth',     img: `${IMG}/peacock-butterfly`,   w: 800, h: 1063 },
   { slug: 'lioness',             title: 'Lioness',              subject: 'a lioness',                            styles: ['black-grey', 'realism'],                  placement: 'arm', date: '2026-05-15', tone: 't-dark',  glyph: 'branch',   img: `${IMG}/lioness`,             w: 800, h: 1063 },
   { slug: 'betta-fish',          title: 'Betta fish',           subject: 'two betta fish',                       styles: ['fine-line', 'black-grey', 'realism'],     placement: 'arm', date: '2026-05-15', tone: 't-stone', glyph: 'waves',    img: `${IMG}/betta-fish`,          w: 800, h: 1063 },

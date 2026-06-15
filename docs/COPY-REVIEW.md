@@ -29,7 +29,7 @@ can never drift apart again.
 grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules
 ```
 
-returns **nothing**. (18 markers remain as of 2026-06-15 — the still-open sections
+returns **nothing**. (17 markers remain as of 2026-06-15 — the still-open sections
 listed under "Where things stand".)
 
 ## Where things stand
@@ -46,10 +46,9 @@ listed under "Where things stand".)
   "we→I" voice is fixed, and the **404 was reworked** (real brand mark + de-cheesed copy).
 - All confirmed **values** live in [the facts table](#part-1--facts-i-need-from-you) — the
   only place they're written down here.
-- **Still open (~18 markers):** flash page + season + the 12 pieces (FLASH, FLASH-D1/D2)
+- **Still open (~17 markers):** flash page + season + the 12 pieces (FLASH, FLASH-D1/D2)
   · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent wording
-  (ENQ-07) + ENQ-06 voice · the original set's styles (PORT-D2 — Dropbox pieces confirmed;
-  names + placements pass) · testimonials
+  (ENQ-07) + ENQ-06 voice · testimonials
   (DATA-TEST, HOME-08) · the off slots (ABOUT-04 stats, HOME-10 / DATA-MEDIA video).
 
 ## How the refs map to source (conventions)
