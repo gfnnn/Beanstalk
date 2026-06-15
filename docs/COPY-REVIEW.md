@@ -48,7 +48,8 @@ listed under "Where things stand".)
   only place they're written down here.
 - **Still open (~18 markers):** flash page + season + the 12 pieces (FLASH, FLASH-D1/D2)
   · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent wording
-  (ENQ-07) + ENQ-06 voice · portfolio piece names (PORT-D1/D2) · testimonials
+  (ENQ-07) + ENQ-06 voice · the original set's styles (PORT-D2 — Dropbox pieces confirmed;
+  names + placements pass) · testimonials
   (DATA-TEST, HOME-08) · the off slots (ABOUT-04 stats, HOME-10 / DATA-MEDIA video).
 
 ## How the refs map to source (conventions)

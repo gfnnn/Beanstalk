@@ -107,9 +107,10 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       visit, portfolio and the small pages are now confirmed** — their markers (incl.
       reply time, and the enquiry-received "we→I" fix) are stripped, and the **404 was
       reworked** (real brand mark + de-cheesed copy). **Remaining (the gate above, ~18):**
-      the **flash** page + data (FLASH-01/03/04/05, FLASH-D1/D2), **portfolio piece names**
-      (PORT-D1/D2), **ENQ-06/07**, **PRIV/TERMS** legal, and the off/optional slots
-      (ABOUT-04 stats, HOME-08/10, DATA-MEDIA/TEST).
+      the **flash** page + data (FLASH-01/03/04/05, FLASH-D1/D2), the **original set's
+      styles** (PORT-D2 — the Dropbox-synced pieces are confirmed; names + placements pass),
+      **ENQ-06/07**, **PRIV/TERMS** legal, and the off/optional slots (ABOUT-04 stats,
+      HOME-08/10, DATA-MEDIA/TEST).
 - [x] **C2 · Services prices** — ✅ confirmed + applied (#155): **£80 / £120–£200 /
       £300 / £500**, flat 50% deposit, 48h reschedule, one-year touch-up; the
       `/enquire/` budget bands mirror them.
