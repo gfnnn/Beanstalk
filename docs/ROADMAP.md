@@ -106,9 +106,10 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       the reviewed words + tone/style/fact decisions (#155, #179), plus **newsletter,
       visit, portfolio and the small pages are now confirmed** — their markers (incl.
       reply time, and the enquiry-received "we→I" fix) are stripped, and the **404 was
-      reworked** (real brand mark + de-cheesed copy). **Remaining (the gate above, ~18):**
-      the **flash** page + data (FLASH-01/03/04/05, FLASH-D1/D2), the **original set's
-      styles** (PORT-D2 — the Dropbox-synced pieces are confirmed; names + placements pass),
+      reworked** (real brand mark + de-cheesed copy); and the **portfolio piece data is
+      fully confirmed** (PORT-D1/D2 — incl. the original set's styles, signed off 2026-06-15).
+      **Remaining (the gate above, ~17):** the **flash** page + data (FLASH-01/03/04/05,
+      FLASH-D1/D2),
       **ENQ-06/07**, **PRIV/TERMS** legal, and the off/optional slots (ABOUT-04 stats,
       HOME-08/10, DATA-MEDIA/TEST).
 - [x] **C2 · Services prices** — ✅ confirmed + applied (#155): **£80 / £120–£200 /
