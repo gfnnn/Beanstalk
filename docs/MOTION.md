@@ -18,7 +18,7 @@ gets a fully visible, static page.
 | **Entrance animations** | `src/js/modules/animations.js` (GSAP) | Hero / page-header entrance, scroll reveals, grid + card cascades |
 | **FOUC guard** | `src/styles/motion.css` | Hold the entrance elements hidden from first paint so GSAP's `.from()` never flashes |
 | **Full-page loader** | `src/build/loader.js` (inject) + `src/js/modules/loader.js` (dismiss) | The cream cover for the slow **cold** first load |
-| **Page transitions** | `src/styles/components/atmosphere.css` | Cross-document View Transition — a soft cross-fade between routes |
+| **Page transitions** | opt-in inlined in `<head>` (`src/build/transition.js`); animations in `atmosphere.css` | Cross-document View Transition — a soft cross-fade between routes |
 | **Animated hairline rules** | `atmosphere.css` (the `--rule-scale` switch + `.divider`) + per-page hairline pseudos | Dividers that grow in from the left as the page builds |
 | **Brand-mark ink-rise** | shared `mark-rise` in `atmosphere.css` | The calligraphic logo "draws" in (clip-path wipe from the base) on the nav logo (cold load only) and the confirmation mark — *not* the preloader (its cover can lift before a reveal-from-hidden shows) |
 
@@ -188,12 +188,27 @@ under `prefers-reduced-motion: no-preference`, so a reduced-motion visitor simpl
 the mark, shown complete. The lesson the preloader bullet encodes: a reveal-from-hidden
 needs a context that stays on screen long enough — the cover doesn't.
 
-## Page transitions (`atmosphere.css`)
+## Page transitions (opt-in inline; animations in `atmosphere.css`)
 
 `@view-transition { navigation: auto }` opts the whole site into **cross-document
 View Transitions** — a soft cross-fade (old fades out 320ms, new fades in + small
 upward settle 420ms). The key property is that it **overlaps** the old and new page
 snapshots, so the page never empties to a blank frame between routes.
+
+**The opt-in is inlined in `<head>`** (`src/build/transition.js`, injected by the
+`viewTransition` plugin + carried into per-piece pages by `piece-page.js`), *not*
+left in `atmosphere.css`. A cross-document VT only plays if the inbound page is known
+to be opting in by the time the browser arms the transition (around `pagereveal`,
+before first render). In `atmosphere.css` the opt-in sits one `@import`-hop behind
+`main.css`, so on a slow inbound render the browser can hit its render deadline first,
+**skip** the transition, and hard-cut — rejecting with `AbortError: Transition was
+skipped` (which `modules/loader.js` now swallows). Inlined, it's parsed from the first
+bytes, before any stylesheet fetch, so the transition is armed as early as possible —
+the leading fix for "transitions feel inconsistent" (a skip degrades silently to a
+hard cut, load-dependent). The `::view-transition-*` animations stay in
+`atmosphere.css`: they only run once a transition is live, by when `main.css` is
+loaded. (Inbound first-paint latency — the render-blocking Google-Fonts request — is
+the *other* lever on skip rate, not yet pulled.)
 
 > ⚠️ This is why the transition is a View Transition and **not** a JS
 > "fade-out → navigate → fade-in" engine. Across an MPA navigation a JS fade can't

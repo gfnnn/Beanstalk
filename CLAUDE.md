@@ -197,12 +197,15 @@ entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's i
 or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The seven Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+The eight Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
 work: `palette` (inject colour custom properties + emit the palette-coloured `favicon.svg`
 from the traced brand mark in `src/build/favicon.js`), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
 `<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see below),
-`piecePages` (per-piece portfolio pages), and `sitemap`. Most run in **both dev and build**
+`viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
+armed before the `main.css` `@import` waterfall — a late opt-in lets a slow inbound render
+skip the cross-fade; `src/build/transition.js`), `piecePages` (per-piece portfolio pages),
+and `sitemap`. Most run in **both dev and build**
 so what you see on `npm run dev` is what ships — **except `securityHeaders`, which is
 `apply: 'build'`** (a strict CSP would break the dev server's HMR client), so it lands at
 build/preview only.
@@ -367,7 +370,9 @@ flashing half-played (decision table in `docs/MOTION.md`). It drops the cover **
 warm in-session navigations** (`sessionStorage`; a mid-session *reload* counts as cold) so the
 page-transition cross-fade shows real content, not the cover. It resolves the
 `pageReady` promise that gates the entrance (above). Reduced-motion: removed instantly, no
-animation. **Page transitions** (cross-document View Transitions) and the **animated
+animation. **Page transitions** (cross-document View Transitions — opt-in inlined in `<head>`
+via `src/build/transition.js` so it's armed before the CSS `@import` waterfall; animations in
+`atmosphere.css`) and the **animated
 hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/atmosphere.css`
 — full map in [`docs/MOTION.md`](docs/MOTION.md).
 

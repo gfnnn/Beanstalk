@@ -31,10 +31,13 @@ body::after {
    Small upward settle on the incoming page. Browsers without cross-document View
    Transitions hard-cut (progressive enhancement). The loader is suppressed on warm
    in-session navs (modules/loader.js) so this cross-fades real content, not the
-   cover. */
-@view-transition { navigation: auto; }
+   cover.
 
-::view-transition-old(root) { animation: vt-out 320ms var(--ease-soft) both; }
+   The `@view-transition { navigation: auto }` OPT-IN is NOT here — it's inlined in
+   <head> (src/build/transition.js) so the browser arms the transition from the
+   first parsed bytes, before this file loads one @import-hop deep behind main.css.
+   A late opt-in lets a slow inbound render skip the transition (a hard cut). Only
+   the animations below need main.css timing; they run once a transition is live. */
 ::view-transition-new(root) { animation: vt-in  420ms var(--ease-soft) both; }
 
 @keyframes vt-out { to   { opacity: 0; } }
