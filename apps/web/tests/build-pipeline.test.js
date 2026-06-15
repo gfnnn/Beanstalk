@@ -41,6 +41,7 @@ describe('vite.config plugins are all registered', () => {
     'beansprout-seo-head',
     'beansprout-security-headers',
     'beansprout-page-loader',
+    'beansprout-view-transition',
     'beansprout-piece-pages',
     'beansprout-sitemap',
   ])('%s is in the plugin list', name => {
@@ -158,6 +159,19 @@ describe('transformIndexHtml pipeline', () => {
     const again = transformHtml(out)
     expect(again.match(/id="page-loader-css"/g)).toHaveLength(1)
   })
+
+  it('inlines the View Transition opt-in into the head (armed before the CSS waterfall)', () => {
+    const out = transformHtml(page('<main></main>'))
+    expect(out).toContain('id="vt-optin"')
+    expect(out).toContain('@view-transition{navigation:auto}')
+    // it lands in the head, not the body
+    expect(out.indexOf('id="vt-optin"')).toBeLessThan(out.indexOf('</head>'))
+  })
+
+  it('does not double-inject the View Transition opt-in on a second pass', () => {
+    const again = transformHtml(transformHtml(page('')))
+    expect(again.match(/id="vt-optin"/g)).toHaveLength(1)
+  })
 })
 
 // The robots.txt + sitemap emit is staging-aware (keyed off isProductionBuild()),
@@ -256,5 +270,11 @@ describe('piece-pages generateBundle', () => {
     const sample = htmlFiles[0].source
     expect(sample).toContain('<style id="page-loader-css">')
     expect(sample).toContain('id="page-loader"')
+  })
+
+  it('carries the inline View Transition opt-in (it bypasses the transform plugin)', () => {
+    const sample = htmlFiles[0].source
+    expect(sample).toContain('id="vt-optin"')
+    expect(sample).toContain('@view-transition{navigation:auto}')
   })
 })

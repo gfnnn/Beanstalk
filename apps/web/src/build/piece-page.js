@@ -17,6 +17,7 @@ import { renderStatus } from './homepage.js'
 import { renderPaletteStyle, themeColor } from './palette.js'
 import { renderMarkSvg } from './favicon.js'
 import { LOADER_STYLE, LOADER_MARKUP } from './loader.js'
+import { VIEW_TRANSITION_STYLE } from './transition.js'
 import { homepage } from '../data/homepage.js'
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
@@ -111,6 +112,7 @@ ${securityMeta ? `${securityMeta}\n` : ''}${robotsMeta ? `${robotsMeta}\n` : ''}
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="theme-color" content="${themeColor}">
+${VIEW_TRANSITION_STYLE}
 ${renderPaletteStyle()}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-96x96.png" sizes="96x96" type="image/png">

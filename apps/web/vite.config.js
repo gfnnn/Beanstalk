@@ -24,6 +24,7 @@ import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 import { renderFaviconSvg, renderMarkSvg } from './src/build/favicon.js'
 import { renderSecurityMeta } from './src/build/security.js'
 import { injectPageLoader } from './src/build/loader.js'
+import { injectViewTransition } from './src/build/transition.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -197,6 +198,21 @@ const pageLoader = {
   },
 }
 
+// Inline the cross-document View Transition opt-in into every page's <head> (dev
+// AND build), so the browser arms the transition from the first parsed bytes
+// rather than after the main.css → atmosphere.css @import waterfall — a late
+// opt-in lets a slow inbound render skip the cross-fade (a hard cut, the
+// AbortError modules/loader.js swallows). The per-piece pages bypass this
+// transform and carry their own copy via piece-page.js; the id guard makes the
+// dev re-run idempotent. See src/build/transition.js.
+const viewTransition = {
+  name: 'beansprout-view-transition',
+  transformIndexHtml: {
+    order: 'post',
+    handler: html => injectViewTransition(html),
+  },
+}
+
 // One shareable HTML page per portfolio piece at /portfolio/<slug>/ (the masonry
 // tiles already link there). Rendered from pieces.js by src/build/piece-page.js.
 // In dev we serve them from a middleware; at build we emit one HTML file each,
@@ -288,7 +304,7 @@ const sitemap = {
 
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, viewTransition, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {
