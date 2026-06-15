@@ -70,12 +70,12 @@
 <main id="maincontent" tabindex="-1">
 <header class="page-header">
   <div>
-    <!-- Both the drop NUMBER (highest `drop`) and the SEASON label (`season`) are
-         generated from src/data/flash.js, so they track the data automatically —
-         don't hand-edit them here. TODO(artist): "Summer 2026" in src/data/flash.js is a
-         placeholder default — set the real season there before launch. -->
-    <p class="page-eyebrow">Drop <!-- flash:drop --> · <!-- flash:season --></p>
-    <!-- ARTIST-COPY · FLASH-01 · pending approval (season label is a placeholder) — see docs/COPY-REVIEW.md -->
+    <!-- No flash drop is scheduled, so the eyebrow is a generic static label rather than a
+         fabricated "Drop N · Season". To restore the data-driven version when a real drop
+         lands, put the "flash:drop" / "flash:season" marker comments back here — the
+         renderers (vite.config) and the season label (src/data/flash.js) are unchanged. -->
+    <p class="page-eyebrow">Available now</p>
+    <!-- ARTIST-COPY · FLASH-01 · pending approval (flash page copy + data still to confirm) — see docs/COPY-REVIEW.md -->
   <h1 class="page-title">Flash, ready <em>to claim.</em></h1>
   </div>
   <p class="page-descriptor">Pre-drawn designs, each one tattooed only once. See one you love? Claim it below and I'll be in touch to book you in. New designs always drop here first.</p>
