@@ -63,6 +63,17 @@ let signalReady
 /** Resolves when the page should be revealed (cover lifting / warm nav / no cover). */
 export const pageReady = new Promise(resolve => { signalReady = resolve })
 
+// The cross-document View Transition is driven entirely from CSS (atmosphere.css),
+// so nothing here awaits it — but the moment we read `e.viewTransition` its promises
+// become script-observable. A transition that gets skipped (slow inbound render, an
+// interrupted nav) rejects `ready`/`updateCallbackDone` with
+// `AbortError: Transition was skipped`; with no handler that surfaces as an uncaught
+// promise rejection. Attach no-op catches so a skip stays silent.
+function swallowSkip(vt) {
+  vt?.ready?.catch(() => {})
+  vt?.updateCallbackDone?.catch(() => {})
+}
+
 export function initPageLoader() {
   const loader = document.getElementById('page-loader')
   if (!loader) { signalReady(); return }
@@ -95,10 +106,12 @@ export function initPageLoader() {
   // guard belts-and-braces the timing on browsers with cross-document transitions.
   if (warm) {
     removeNow()
-    window.addEventListener('pagereveal', () => removeNow(), { once: true })
+    window.addEventListener('pagereveal', e => { swallowSkip(e.viewTransition); removeNow() }, { once: true })
     return
   }
-  window.addEventListener('pagereveal', e => { if (e.viewTransition) removeNow() }, { once: true })
+  window.addEventListener('pagereveal', e => {
+    if (e.viewTransition) { swallowSkip(e.viewTransition); removeNow() }
+  }, { once: true })
 
   // A genuine cold first load (this is the only place the cover is actually shown).
   // Marks <html> so the orchestrated entrance can give the nav logo its one-time

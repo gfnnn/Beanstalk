@@ -313,5 +313,31 @@ describe('initPageLoader (runtime dismissal)', () => {
         vi.useRealTimers()
       }
     })
+
+    // A cross-document VT that gets skipped (slow inbound render, interrupted nav)
+    // rejects ready/updateCallbackDone with `AbortError: Transition was skipped`.
+    // We only read `e.viewTransition` to time the cover — so we must also catch
+    // those promises, or the skip surfaces as an uncaught rejection in the console.
+    it('cold: a skipped View Transition has its rejection caught (no uncaught AbortError)', () => {
+      setReducedMotion(false)
+      mountOverlay()
+      initPageLoader()
+      const ready = { catch: vi.fn() }
+      const updateCallbackDone = { catch: vi.fn() }
+      pagereveal({ ready, updateCallbackDone })
+      expect(ready.catch).toHaveBeenCalledTimes(1)
+      expect(updateCallbackDone.catch).toHaveBeenCalledTimes(1)
+      expect(document.getElementById('page-loader')).toBeNull() // still drops the cover
+    })
+
+    it('warm: the belt-and-braces pagereveal also catches a skipped transition', () => {
+      setReducedMotion(false)
+      sessionStorage.setItem('bs-visited', '1')
+      mountOverlay()
+      initPageLoader()                 // warm → removed synchronously
+      const ready = { catch: vi.fn() }
+      pagereveal({ ready })            // late inbound transition, then skipped
+      expect(ready.catch).toHaveBeenCalledTimes(1)
+    })
   })
 })
