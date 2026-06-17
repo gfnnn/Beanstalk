@@ -275,6 +275,22 @@ and how to switch each one on when the files land. Both run through **one shared
 component** ([`apps/web/src/build/media.js`](../apps/web/src/build/media.js)), so
 they behave identically.
 
+## Why self-host (and when to revisit)
+
+**Decision:** the two muted hero loops ship as static `public/videos/` files served
+straight off **GitHub Pages** — no video host or CDN (Cloudflare Stream, R2, Mux,
+bunny.net …). For two sub-4 MB autoplay loops with no sound, no controls and no seeking,
+a streaming service buys nothing real (no adaptive bitrate, no scrubbing, negligible
+bandwidth) while adding a runtime dependency, an external account and CSP surface — against
+the lean-baseline rules in `../CLAUDE.md`. Self-host is the right answer at this scope.
+
+**Revisit when the scope changes.** If video grows into *many* clips, *longer* durations,
+or anything with *sound / controls / seeking* — or if bandwidth ever becomes a concern —
+re-evaluate an external host. The natural fit is **Cloudflare Stream** (or R2 behind the
+CDN), and it lands cleanly once the post-launch Cloudflare-front consolidation does (see
+`ROADMAP.md` → infrastructure consolidation), since the origin moves to Cloudflare anyway.
+Until then, don't pre-build it.
+
 ## Where the files live
 
 Clips go in **`apps/web/public/videos/`**. That folder is part of Vite's
@@ -356,5 +372,13 @@ The site is static (GitHub Pages); these files ship from the repo. GitHub blocks
 files **> 100 MB** and nags above 50 MB, so the budgets above matter. If a clip
 can't be squeezed under a few MB, track binaries with **Git LFS**
 (`git lfs track "apps/web/public/videos/*.mp4"` etc.) — the deploy workflow
-checks out LFS objects (`lfs: true` in `.github/workflows/deploy-web.yml`). Don't
-commit raw camera masters; commit only the web-export files listed above.
+checks out LFS objects (`lfs: true` in `.github/workflows/deploy-web.yml`). LFS
+works here **because the deploy builds and uploads the `dist/` artifact** (the
+`lfs: true` checkout materialises the real binaries, which Vite then copies into
+`dist/`) — *not* because Pages resolves LFS. Raw GitHub Pages git-serving would
+hand out the LFS *pointer text*, not the video; serving the built artifact sidesteps
+that. Don't commit raw camera masters; commit only the web-export files listed above.
+
+**CSP:** same-origin video needs no policy change — there's no `media-src` directive,
+so `<video>` src/poster inherit `default-src 'self'` (see `../apps/web/src/build/security.js`).
+An external host (per the revisit note above) would mean adding a `media-src` directive there.
