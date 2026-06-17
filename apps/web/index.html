@@ -75,7 +75,7 @@
   }
   </script>
 </head>
-<body>
+<body class="page-home">
 <a class="skip-link" href="#maincontent">Skip to main content</a>
 
 <!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
@@ -154,22 +154,34 @@
 <section class="hero" aria-label="Introduction">
 
   <div class="hero-text">
-    <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
+    <!--
+      HERO INTRO — on mobile this group OVERLAYS the full-screen video (tagline +
+      headline, bottom-aligned, cream over a scrim). On desktop (≥900px) the
+      wrappers are `display:contents`, so eyebrow + h1 + the detail block below
+      stack in the .hero-text column exactly as before. See components/hero.css.
+    -->
+    <div class="hero-intro">
+      <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
 
-    <h1><!-- homepage:hero-headline --></h1>
-
-    <p class="hero-body"><!-- homepage:hero-body --></p>
-
-    <div class="hero-actions">
-      <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
-      <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
+      <h1><!-- homepage:hero-headline --></h1>
     </div>
 
-    <!--
-      STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
-      src/data/homepage.js → `notices`. Whole block disappears when all are off.
-    -->
-    <!-- homepage:notices -->
+    <!-- HERO DETAIL — below the fold on mobile (revealed as you scroll past the
+         video); part of the .hero-text column on desktop. -->
+    <div class="hero-detail">
+      <p class="hero-body"><!-- homepage:hero-body --></p>
+
+      <div class="hero-actions">
+        <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+        <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
+      </div>
+
+      <!--
+        STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
+        src/data/homepage.js → `notices`. Whole block disappears when all are off.
+      -->
+      <!-- homepage:notices -->
+    </div>
   </div>
 
   <!--

@@ -131,6 +131,7 @@ const fromFor = el => calls.from.find(c => c.targets.includes(el))
 
 beforeEach(() => {
   document.body.innerHTML = ''
+  document.body.className = '' // some tests opt into .page-home; don't leak it
   ioInstances = []
   vi.stubGlobal('IntersectionObserver', MockIO)
 })
@@ -220,13 +221,49 @@ describe('initHeroAnimation', () => {
       expect(media.vars.y).toBeUndefined()
     })
 
-    it('raises the media column up on mobile', async () => {
+    it('raises the media column up on mobile (the first beat of the overlay reveal)', async () => {
       const { initHeroAnimation } = await load({ viewport: 'mobile' })
       mountFullHero()
       initHeroAnimation()
-      const media = fromFor(document.querySelector('.hero-media'))
+      // On mobile the media is the full-screen video opener, revealed as the
+      // first beat of a timeline (so the overlay can stagger in after it) — so
+      // its tween is a timeline .from(), not a bare gsap.from().
+      const mediaEl = document.querySelector('.hero-media')
+      const media = calls.tlFrom.find(c => c.targets.includes(mediaEl))
+      expect(media).toBeTruthy()
       expect(media.vars.y).toBe(20)
       expect(media.vars.x).toBeUndefined()
+    })
+
+    it('reveals the nav (logo/burger/Enquire) + video credit over the mobile homepage video', async () => {
+      const { initHeroAnimation } = await load({ viewport: 'mobile' })
+      document.body.classList.add('page-home')
+      document.body.innerHTML = `
+        <nav id="main-nav">
+          <a class="nav-logo">B</a>
+          <div class="nav-right"><a class="btn">Enquire</a><button class="nav-hamburger"></button></div>
+        </nav>
+        <section class="hero">
+          <div class="hero-intro"><p class="hero-eyebrow">e</p><h1>Quiet ink</h1></div>
+          <div class="hero-media">media<span class="hero-video-credit">Film by</span></div>
+        </section>`
+      initHeroAnimation()
+      const revealed = calls.tlFrom.flatMap(c => c.targets)
+      expect(revealed).toContain(document.querySelector('.nav-logo'))
+      expect(revealed).toContain(document.querySelector('.nav-hamburger'))
+      expect(revealed).toContain(document.querySelector('.nav-right .btn'))
+      expect(revealed).toContain(document.querySelector('.hero-video-credit'))
+    })
+
+    it('does NOT reveal the nav on a non-homepage mobile hero', async () => {
+      const { initHeroAnimation } = await load({ viewport: 'mobile' })
+      document.body.classList.remove('page-home')
+      document.body.innerHTML = `
+        <nav id="main-nav"><a class="nav-logo">B</a></nav>
+        <section class="hero"><h1>H</h1><div class="hero-media">m</div></section>`
+      initHeroAnimation()
+      const revealed = calls.tlFrom.flatMap(c => c.targets)
+      expect(revealed).not.toContain(document.querySelector('.nav-logo'))
     })
   })
 })

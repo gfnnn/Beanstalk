@@ -318,6 +318,16 @@ a.video-credit-name:focus-visible {
     min-height: calc(100svh - var(--nav-h));
   }
 
+  /* The mobile overlay/below-fold wrappers dissolve on desktop, so eyebrow + h1 +
+     body + actions + notices are direct flex children of .hero-text again — the
+     45/55 column is byte-identical to before the mobile redesign. */
+  .hero-intro,
+  .hero-detail { display: contents; }
+
+  /* A portrait clip (if set) is mobile-only; the landscape one fills the column. */
+  .media-clip--portrait { display: none; }
+  .media-clip--landscape { display: block; }
+
   .hero-media {
     order: 0; /* natural grid order — right column */
   }
@@ -372,4 +382,92 @@ a.video-credit-name:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .scroll-hint::before { animation: none; }
+}
+
+/* ── Mobile (<900px): full-screen portrait video opener ──────────────────────
+   Moves away from the stacked "media band → hero text" layout: the video covers
+   the first viewport, with the nav (transparent — see nav.css), the tagline +
+   headline (.hero-intro) and the video credit overlaid on it and revealed over
+   time (animations.js). The rest of the hero (.hero-detail) and the page flow
+   below it, revealed on scroll. Desktop (≥900px) is untouched (the block above).
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 899px) {
+  /* Pull the hero up under the sticky nav so the clip is truly full-bleed; the
+     nav floats over it, transparent until the video is scrolled past (nav.css). */
+  .page-home .hero { margin-top: calc(-1 * var(--nav-h)); }
+
+  .hero-text { padding: 0; }
+
+  /* The clip is a fixed background layer covering the first screen. dvh (with a
+     vh fallback) so it always covers; the hero isn't scroll-pinned, so the iOS
+     address-bar resize is harmless. */
+  .hero-media {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 100vh;
+    height: 100dvh;
+  }
+  .hero-media .media-clip,
+  .hero-media .video-placeholder {
+    min-height: 0;
+    height: 100%;
+  }
+
+  /* Legibility: darken the top (behind the nav) and the bottom (behind the
+     headline), leave the middle of the frame clear. */
+  .hero-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(var(--ink-rgb), 0.5)  0%,
+      rgba(var(--ink-rgb), 0)   24%,
+      rgba(var(--ink-rgb), 0)   52%,
+      rgba(var(--ink-rgb), 0.66) 100%);
+  }
+
+  /* Orientation swap — both clips only exist once media.hero.portrait is set;
+     without it the lone landscape .media-clip stays and covers (object-fit). */
+  .media-clip--landscape { display: none; }
+  .media-clip--portrait  { display: block; }
+
+  /* Drop the decorative sprig + studio tag on the mobile video for a clean overlay. */
+  .hero-sprig,
+  .hero-media-tag { display: none; }
+
+  /* Overlay group — full first screen, tagline + headline bottom-aligned. */
+  .hero-intro {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: calc(var(--nav-h) + 24px) var(--pad-x)
+             calc(48px + env(safe-area-inset-bottom));
+  }
+
+  /* Cream type + soft shadow so it reads over any frame of the clip. */
+  .hero-intro .hero-eyebrow         { color: rgba(var(--cream-rgb), 0.85); margin-bottom: 18px; }
+  .hero-intro .hero-eyebrow::before { background: rgba(var(--cream-rgb), 0.7); }
+  .hero-intro h1 {
+    color: var(--cream);
+    text-shadow: 0 1px 10px rgba(var(--black-rgb), 0.5);
+    margin-bottom: 0;
+  }
+  .hero-intro h1 em { color: var(--dune); }
+
+  /* Video credit (the "filmed by" line) overlays bottom-right over the clip. */
+  .hero-video-credit { bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 2; }
+
+  /* Below-the-fold remainder rides the page surface, after the video. */
+  .hero-detail {
+    position: relative;
+    z-index: 1;
+    background: var(--bg);
+    padding: 48px var(--pad-x) 8px;
+  }
 }

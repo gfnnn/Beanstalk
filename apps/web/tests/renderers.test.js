@@ -391,6 +391,42 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
     expect(html).toContain('&quot;onerror=')
     expect(html).toContain('&lt;i&gt;c&lt;/i&gt;') // caption escaped
   })
+
+  // The mobile full-screen hero takes a portrait clip; the landscape one becomes
+  // the desktop sibling. CSS (components/hero.css) swaps the two by breakpoint.
+  it('emits a portrait + landscape <video> pair when a portrait slot is supplied', () => {
+    const html = renderHeroMedia({
+      show: true, kind: 'video', alt: 'Hands at work', poster: '/videos/hero-poster.jpg',
+      sources: [{ src: '/videos/hero.mp4', type: 'video/mp4' }],
+      portrait: {
+        poster: '/videos/hero-portrait-poster.jpg',
+        sources: [{ src: '/videos/hero-portrait.mp4', type: 'video/mp4' }],
+      },
+    })
+    // landscape clip is now class-tagged so CSS can hide it on mobile…
+    expect(html).toContain('<video class="media-clip media-clip--landscape"')
+    expect(html).toContain('poster="/videos/hero-poster.jpg"')
+    expect(html).toContain('<source src="/videos/hero.mp4" type="video/mp4">')
+    // …and the portrait clip carries its own sources/poster
+    expect(html).toContain('<video class="media-clip media-clip--portrait"')
+    expect(html).toContain('poster="/videos/hero-portrait-poster.jpg"')
+    expect(html).toContain('<source src="/videos/hero-portrait.mp4" type="video/mp4">')
+    // both are real, JS-owned clips (no autoplay)
+    expect(html.match(/<video/g)).toHaveLength(2)
+    expect(html).not.toContain('autoplay')
+  })
+
+  it('stays a single landscape <video class="media-clip"> when no portrait slot is set (About + unchanged homepage)', () => {
+    const slot = {
+      show: true, kind: 'video', alt: 'x', poster: '/videos/x-poster.jpg',
+      sources: [{ src: '/videos/x.mp4', type: 'video/mp4' }],
+    }
+    const html = renderHeroMedia(slot, { variant: 'about' })
+    expect(html).toContain('<video class="media-clip"')
+    expect(html).not.toContain('media-clip--portrait')
+    expect(html).not.toContain('media-clip--landscape')
+    expect(html.match(/<video/g)).toHaveLength(1)
+  })
 })
 
 describe('media data (src/data/media.js)', () => {

@@ -86,4 +86,19 @@
   }
 }
 
+/* Mobile homepage hero only: the nav logo / burger / Enquire button reveal in
+   over the video (animations.js), so they need the same first-paint guard. Scoped
+   to .page-home + <900px because on every other page/viewport the nav paints
+   immediately and is never animated — it must NOT be hidden there. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 899px) {
+  html:not(.motion-ready) body.page-home :is(
+    #main-nav .nav-logo,
+    #main-nav .nav-hamburger,
+    #main-nav .nav-right .btn
+  ) {
+    opacity: 0;
+    animation: motion-fouc-failsafe 1ms linear 2s forwards;
+  }
+}
+
 @keyframes motion-fouc-failsafe { to { opacity: 1; } }

@@ -50,9 +50,23 @@ export function initHeroAnimation() {
   if (media) {
     const mm = gsap.matchMedia()
 
-    // Mobile: media stacks above text, animate from slight upward position
+    // Mobile: the media is now the full-screen video opener. It eases up first
+    // (covering the viewport), then the overlay elements reveal in sequence over
+    // it — on the homepage that includes the nav (logo → burger → Enquire) and
+    // the video credit; the eyebrow + h1 ride the shared timeline above. The nav
+    // bits are guarded against first-paint flash in motion.css (.page-home only).
     mm.add('(max-width: 899px)', () => {
-      gsap.from(media, { opacity: 0, y: 20, duration: 0.85, ease: 'power2.out', delay: 0 })
+      const onHome = document.body.classList.contains('page-home')
+      const navBits = onHome
+        ? ['#main-nav .nav-logo', '#main-nav .nav-hamburger', '#main-nav .nav-right .btn']
+            .map(s => document.querySelector(s)).filter(Boolean)
+        : []
+      const credit = document.querySelector('.hero-video-credit')
+
+      const mtl = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: 0.1 })
+      mtl.from(media, { opacity: 0, y: 20, duration: 0.85 }, 0)
+      if (navBits.length) mtl.from(navBits, { opacity: 0, y: -8, stagger: 0.12, duration: 0.6 }, 0.3)
+      if (credit)         mtl.from(credit,  { opacity: 0, y: 10, duration: 0.6 }, '>-0.1')
     })
 
     // Desktop: media is the right column, slide in from the right edge
