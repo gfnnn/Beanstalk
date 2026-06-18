@@ -65,8 +65,13 @@ export function initHeroAnimation() {
 
       const mtl = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: 0.1 })
       mtl.from(media, { opacity: 0, y: 20, duration: 0.85 }, 0)
-      if (navBits.length) mtl.from(navBits, { opacity: 0, y: -8, stagger: 0.12, duration: 0.6 }, 0.3)
-      if (credit)         mtl.from(credit,  { opacity: 0, y: 10, duration: 0.6 }, '>-0.1')
+      // Nav items fade in with NO y-shift. They're persistent controls that carry
+      // their own springy CSS `transition: transform` (buttons.css), so a GSAP
+      // y-translate fights that transition and can leave the Enquire button resting
+      // a few px high — opacity-only keeps every nav item pinned to its true layout
+      // position (flush with the hamburger) while still revealing over the video.
+      if (navBits.length) mtl.from(navBits, { opacity: 0, stagger: 0.12, duration: 0.6 }, 0.3)
+      if (credit)         mtl.from(credit,  { opacity: 0, y: 10, duration: 0.6, clearProps: 'transform' }, '>-0.1')
     })
 
     // Desktop: media is the right column, slide in from the right edge
