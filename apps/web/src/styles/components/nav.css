@@ -324,6 +324,15 @@
   .nav-links { gap: 28px; }
 }
 
+/* ── Mobile: size the nav Enquire button to the 44px hamburger ───────────────
+   The hamburger is a fixed 44px box; .btn-sm is only ~34px tall (its 9px padding
+   + 13px text), so the two sat at different heights and didn't line up edge-to-
+   edge in the right cluster. Match them on mobile (the hamburger is hidden ≥900px,
+   so desktop keeps the natural .btn-sm height). */
+@media (max-width: 899px) {
+  .nav-right .btn-sm { min-height: 44px; }
+}
+
 /* ── Mobile homepage: nav transparent over the full-screen hero video ────────
    `over-hero` is added by nav.js while the video still sits behind the nav, and
    removed once it's scrolled past (so the nav goes solid over page content). The
