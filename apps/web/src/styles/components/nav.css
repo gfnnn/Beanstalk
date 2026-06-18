@@ -323,3 +323,35 @@
 @media (min-width: 1100px) {
   .nav-links { gap: 28px; }
 }
+
+/* ── Mobile homepage: nav transparent over the full-screen hero video ────────
+   `over-hero` is added by nav.js while the video still sits behind the nav, and
+   removed once it's scrolled past (so the nav goes solid over page content). The
+   logo + burger flip to cream for legibility against the clip + its top scrim
+   (hero.css). When the drawer is open the nav is forced solid to match the cream
+   drawer behind it. Scoped to mobile + .page-home, so every other page/viewport
+   keeps the solid sticky nav. The Enquire button is a solid .btn — reads fine.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 899px) {
+  .page-home .nav.over-hero {
+    background: transparent;
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+  .page-home .nav.over-hero .nav-logo,
+  .page-home .nav.over-hero .nav-logo .brand-mark { color: var(--cream); }
+  .page-home .nav.over-hero .nav-logo em           { color: var(--cream); }
+  .page-home .nav.over-hero .nav-hamburger         { border-color: rgba(var(--cream-rgb), 0.5); }
+  .page-home .nav.over-hero .nav-hamburger span    { background: var(--cream); }
+
+  /* Drawer open → solid nav (matches the opaque drawer beneath it). */
+  .page-home .nav.over-hero.drawer-open {
+    background: var(--bg);
+    border-bottom-color: var(--line-soft);
+  }
+  .page-home .nav.over-hero.drawer-open .nav-logo,
+  .page-home .nav.over-hero.drawer-open .nav-logo .brand-mark { color: var(--ink); }
+  .page-home .nav.over-hero.drawer-open .nav-logo em          { color: var(--moss); }
+  .page-home .nav.over-hero.drawer-open .nav-hamburger        { border-color: var(--line); }
+  .page-home .nav.over-hero.drawer-open .nav-hamburger span   { background: var(--ink); }
+}

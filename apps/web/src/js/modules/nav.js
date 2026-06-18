@@ -18,6 +18,34 @@ export function initNav() {
     })
   }, { passive: true })
 
+  // ── Homepage: transparent nav over the full-screen mobile hero ─────────────
+  // Keep the nav transparent (cream logo/burger — nav.css) while the video still
+  // sits behind it, then flip it solid once the video is scrolled past. The
+  // `.scrolled` 60px toggle is too eager (the video is a full screen tall), so
+  // this watches the intro overlay (the video's height) instead. Scoped to
+  // .page-home + mobile; a no-op on every other page/viewport.
+  const overTarget = document.querySelector('.hero-intro') || document.querySelector('.hero')
+  if (overTarget && document.body.classList.contains('page-home') && 'IntersectionObserver' in window) {
+    const desktop = window.matchMedia('(min-width: 900px)')
+    let overObs = null
+    const connectOver = () => {
+      if (desktop.matches) {
+        overObs?.disconnect()
+        overObs = null
+        nav.classList.remove('over-hero')
+        return
+      }
+      if (overObs) return
+      nav.classList.add('over-hero') // transparent from the first paint
+      overObs = new IntersectionObserver(([e]) => {
+        nav.classList.toggle('over-hero', e.isIntersecting)
+      }, { rootMargin: `-${nav.offsetHeight || 65}px 0px 0px 0px`, threshold: 0 })
+      overObs.observe(overTarget)
+    }
+    connectOver()
+    desktop.addEventListener?.('change', connectOver)
+  }
+
   // ── Active link ─────────────────────────────────────────
   // The mobile drawer is a SIBLING of #main-nav, not a descendant, so a query
   // scoped to `nav` would never reach its links — that's why the current-page
@@ -72,6 +100,9 @@ export function initNav() {
     // Drawer is now visible — re-expose its links to the tab order / a11y tree.
     drawer.removeAttribute('inert')
     document.body.style.overflow = 'hidden'
+    // Force the (otherwise transparent-over-video) homepage nav solid so it
+    // matches the opaque drawer beneath it.
+    nav.classList.add('drawer-open')
   }
 
   const closeDrawer = () => {
@@ -82,6 +113,7 @@ export function initNav() {
     // Hidden drawer keeps focusable links out of the tab order (matches aria-hidden).
     drawer.setAttribute('inert', '')
     document.body.style.overflow = ''
+    nav.classList.remove('drawer-open')
   }
 
   hamburger.addEventListener('click', () => {
