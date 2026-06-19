@@ -6,7 +6,8 @@ test, cutover steps, rollback), and the **post-launch backlog** — including th
 engineering-quality thread from the June 2026 benchmarking review. Update it as
 items land; the tick-list below is the only place launch state is tracked.
 
-Architecture lives in [`CLAUDE.md`](../CLAUDE.md); function/secret setup in
+Architecture lives in [`CLAUDE.md`](../CLAUDE.md); the design→delivery handover (Claude
+Project → Claude Code) in [`WORKFLOW.md`](./WORKFLOW.md); function/secret setup in
 [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md), [`NEWSLETTER-SETUP.md`](./NEWSLETTER-SETUP.md)
 and [`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the copy review (artist worksheet +

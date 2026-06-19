@@ -15,6 +15,11 @@ workflow*; this file is the full runbook plus the one-time GitHub/Cloudflare set
 
 Everything else is a short-lived `feat/*`, `fix/*`, or `docs/*` branch cut off `develop`.
 
+> **Pre-launch reality:** only `develop` exists today — `main` is **created at launch** (the
+> apex cutover, `ROADMAP.md` → Phase D / "How this maps to go-live" below), since production
+> isn't live yet. Until then all work integrates on `develop`. How features get *designed* and
+> handed to delivery on this flow is [`WORKFLOW.md`](./WORKFLOW.md).
+
 ```
 feat/x ─┐
 feat/y ─┼─(squash PRs)─▶ develop ──(staging deploy: test together)──▶ release PR ──▶ main ──▶ PROD
