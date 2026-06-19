@@ -56,17 +56,20 @@ On claude.ai → **Projects → New project**. Two things to configure:
 > Match effort to a one-artist business. Flag when a request would cross a scope-discipline line
 > instead of quietly building past it.
 
-### 2. Project knowledge (what to attach)
+### 2. Project knowledge (connect the repo)
 
-Add these repo files so the Project reasons from current reality (re-upload when they change, or
-connect the GitHub repo if you use that integration):
+**Connect this GitHub repo to the Project** (Project → knowledge → add the GitHub repo) so it reasons
+from the **live files** — they stay current on every push, with nothing to re-upload. That's the whole
+setup; the docs it leans on are:
 
 - [`CLAUDE.md`](../CLAUDE.md) — architecture, build pipeline, guardrails (the most important one).
 - [`docs/ROADMAP.md`](./ROADMAP.md) — what's shipped, launch state, backlog priorities.
 - [`docs/BRANCHING.md`](./BRANCHING.md) — the develop→main flow the brief feeds into.
 - This file (`docs/WORKFLOW.md`) — the handover model + brief template.
 - The **relevant feature doc** for the thing under discussion (e.g. `PAYMENTS.md`, `MEDIA.md`,
-  `MOTION.md`, `DATA-COMPLIANCE.md`) — attach per-topic, not all at once.
+  `MOTION.md`, `DATA-COMPLIANCE.md`).
+
+(No GitHub connection? Upload those files instead — and re-upload them when they change.)
 
 ## The feature brief (the handover artifact)
 
