@@ -411,6 +411,17 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
     expect(html).toContain('<video class="media-clip media-clip--portrait"')
     expect(html).toContain('poster="/videos/hero-portrait-poster.jpg"')
     expect(html).toContain('<source src="/videos/hero-portrait.mp4" type="video/mp4">')
+    // the PORTRAIT clip must carry the same JS-owned playback contract as the
+    // landscape one — a regression dropping one of these from the portrait-only
+    // path would otherwise ship silently (the module pauses/plays via data-media,
+    // and muted/loop/playsinline/preload keep it inert + off the critical path).
+    const portraitTag = html.match(/<video class="media-clip media-clip--portrait"[^>]*>/)[0]
+    expect(portraitTag).toContain('muted')
+    expect(portraitTag).toContain('loop')
+    expect(portraitTag).toContain('playsinline')
+    expect(portraitTag).toContain('preload="none"')
+    expect(portraitTag).toContain('data-media')
+    expect(portraitTag).toContain('aria-label="Hands at work"') // inherits the slot's alt
     // both are real, JS-owned clips (no autoplay)
     expect(html.match(/<video/g)).toHaveLength(2)
     expect(html).not.toContain('autoplay')
@@ -440,6 +451,11 @@ describe('media data (src/data/media.js)', () => {
       ...media.hero.sources.map(s => s.src), media.hero.poster, media.hero.gif,
       ...media.aboutHero.sources.map(s => s.src),
       media.aboutHero.poster, media.aboutHero.gif,
+      // The optional mobile portrait clip ships its own poster/sources — guard
+      // them too, so a stray /images/… portrait path fails CI like any other.
+      ...(media.hero.portrait
+        ? [media.hero.portrait.poster, ...media.hero.portrait.sources.map(s => s.src)]
+        : []),
     ]
     paths.forEach(p => expect(p.startsWith('/videos/')).toBe(true))
   })
