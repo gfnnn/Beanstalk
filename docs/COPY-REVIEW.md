@@ -382,4 +382,4 @@ slot *is*; this table only adds source location + anything tracker-specific.
 - [ ] Enquiry received (CONFIRM-01 voice) + 404 (E404-01) + piece pages (PIECE-01)
 - [~] Privacy + Terms — names/insurance/dates done; **legal review + ICO/tattoo-reg** still open
 - [ ] Reply time (BUS-01) + testimonials (DATA-TEST) + media alt (DATA-MEDIA)
-- [ ] The gate: `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` returns nothing (32 as of 2026-06-09)
+- [ ] The gate: `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` returns nothing (current count tracked at the top of this doc)

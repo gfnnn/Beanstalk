@@ -166,9 +166,9 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email +
   src/handlers/{enquiry,newsletter,flash-status,checkout,stripe-webhook}.js
   src/lib/{http,db,stripe}.js            # CORS/IP/adapter + D1 storage (persist, rate limit, flash, payments) + Stripe client
   src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
-  migrations/{0001_init,0002_payments}.sql  # D1 schema (forms + the shipped-dark payments ledger)
+  migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ROADMAP.md  BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
+docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -411,7 +411,8 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   `recordWebhookEvent` for webhook idempotency), and the **rate limiter** (per-IP sliding
   window + global daily ceiling). Every function **fails safe / fails open** — a DB outage
   never blocks a real enquiry. Schema in `migrations/0001_init.sql` (+ `0002_payments.sql`
-  for the payments ledger). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
+  for the payments ledger, `0003_claim_refs.sql` tying a flash hold to the payment that
+  created it). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
 - `src/lib/http.js` is the HTTP plumbing: the **CORS origin allowlist** (the *site* origins,
   not the Worker's own URL), the JSON reply helper, `clientIp` (anti-spoof — trusts only
   `cf-connecting-ip`), and the Request→event adapter that keeps handlers `(event, env)`-shaped.

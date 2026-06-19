@@ -66,8 +66,8 @@ is to note **which page** and **what you'd like it to say/show**, and hand that 
 it's a small job each time.
 
 The remaining "before we go live" checklist (your prices, the ICO registration number,
-your real logo, flash photos, opening hours) is tracked in
-[`docs/ROADMAP.md`](docs/ROADMAP.md) → *Phase 4*.
+flash photos, opening hours) is tracked in
+[`docs/ROADMAP.md`](docs/ROADMAP.md) → *Remaining launch actions*.
 
 ---
 
@@ -118,7 +118,11 @@ npm run preview:branch -- <branch>  # fetch a branch, install, and run its dev s
 - [`docs/MOTION.md`](docs/MOTION.md) — the loader / entrance / page-transition motion system
 - [`docs/PAYMENTS.md`](docs/PAYMENTS.md) — integrated Stripe payments (flash full-pay / custom deposit → Monzo Business, with Klarna + PayPal): model, architecture, build spec, fees, and the operator runbook. Worker backbone shipped dark; frontend + go-live remain.
 - [`docs/SCHEDULING.md`](docs/SCHEDULING.md) — appointment-booking plan (not yet built)
+- [`docs/DASHBOARD.md`](docs/DASHBOARD.md) — artist-dashboard plan (not yet built)
 - [`docs/CMS.md`](docs/CMS.md) — content-CMS plan (planned, post-launch)
+- [`docs/ANALYTICS.md`](docs/ANALYTICS.md) — privacy-light analytics plan + the no-op `track()` scaffold
+- [`docs/COPY-REVIEW.md`](docs/COPY-REVIEW.md) — copy sign-off tracker (the `pending approval` gate)
+- [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — how a feature is designed (Claude Project) and handed to Code: the brief, `/deliver`, the `design-reviewer` subagent
 - [`.env.example`](.env.example) — environment variables (copy to `.env` for local work)
 </content>
 </invoke>
