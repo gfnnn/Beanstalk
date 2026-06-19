@@ -5,11 +5,17 @@
 // and the per-piece pages. It imports the REAL config so a renamed marker or an
 // unregistered plugin fails here instead of silently shipping a broken page.
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, relative, resolve } from 'node:path'
 import config from '../vite.config.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash, season } from '../src/data/flash.js'
 import { replyTime } from '../src/data/business.js'
 import { themeColor } from '../src/build/palette.js'
+import { ROUTES } from '../src/build/seo.js'
+
+const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 const plugins = config.plugins
 const byName = name => plugins.find(p => p.name === name)
@@ -276,5 +282,54 @@ describe('piece-pages generateBundle', () => {
     const sample = htmlFiles[0].source
     expect(sample).toContain('id="vt-optin"')
     expect(sample).toContain('@view-transition{navigation:auto}')
+  })
+})
+
+// The sitemap is built from ROUTES (src/build/seo.js), which is hand-kept in sync
+// with the `input` map in vite.config.js — seo.js says as much. This locks that
+// sync so it can't silently drift: every static page that ships gets indexed iff
+// it's in ROUTES. A page is OUT of ROUTES only because it declares `noindex` in
+// its own <head> (the post-submit confirmation page) — we derive that from the
+// real signal rather than hardcoding a filename allowlist (which would just move
+// the manual-sync problem up a level). 404.html is the one genuine special case:
+// it's an error document, not a `/dir/` route, so it's never in ROUTES.
+//
+// Set-equality catches all three drift directions: a new indexable page with no
+// ROUTES entry, a removed ROUTES entry whose page still builds, and a dead ROUTES
+// path with no backing page (a sitemap URL that would soft-404). Per-piece
+// /portfolio/<slug>/ routes are emitted via generateBundle (not the `input` map)
+// and appended to the sitemap separately, so they're correctly outside this check.
+describe('sitemap ROUTES ↔ vite input parity', () => {
+  // Classify every build input by its source: { route, indexable } for the static
+  // directory pages, or null for 404.html (not a route). Any unrecognised input
+  // shape throws — a future page added in an unexpected form fails loudly here
+  // rather than deriving a wrong route silently.
+  const inputs = Object.values(config.build.rollupOptions.input)
+  const classify = (absPath) => {
+    const rel = relative(WEB_ROOT, absPath).split('\\').join('/')
+    if (rel === '404.html') return null
+    const m = /^(?:(.+)\/)?index\.html$/.exec(rel)
+    if (!m) throw new Error(`Unrecognised build input shape: ${rel}`)
+    const route = m[1] ? `/${m[1]}/` : '/'
+    const noindex = /<meta[^>]+name=["']robots["'][^>]+noindex/i.test(readFileSync(absPath, 'utf8'))
+    return { route, indexable: !noindex }
+  }
+  const pages = inputs.map(classify).filter(Boolean)
+  const indexableRoutes = pages.filter(p => p.indexable).map(p => p.route)
+
+  it('every built input has a recognised page shape (index.html or 404.html)', () => {
+    // classify() above throws on an unknown shape; getting here proves they all parsed.
+    expect(pages.length).toBe(inputs.length - 1) // all inputs minus 404.html
+  })
+
+  it('the indexable pages and ROUTES are exactly the same set', () => {
+    expect(new Set(indexableRoutes)).toEqual(new Set(ROUTES.map(r => r.path)))
+  })
+
+  it('excludes the noindex confirmation page from ROUTES (for the right reason)', () => {
+    const received = pages.find(p => p.route === '/enquiry-received/')
+    expect(received).toBeTruthy()
+    expect(received.indexable).toBe(false)
+    expect(ROUTES.some(r => r.path === '/enquiry-received/')).toBe(false)
   })
 })
