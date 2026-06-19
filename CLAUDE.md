@@ -56,9 +56,10 @@ command instead of rediscovering the environment each time:
   `npm run build` work immediately — there is no "install first" dance. It's a no-op on a
   developer's local machine (gated on `$CLAUDE_CODE_REMOTE`). It is **synchronous** (the
   session waits for install to finish, trading a little startup latency for no race where
-  the agent runs a command before deps exist). These two files are the *only* tracked
-  things under `.claude/`; everything else there (incl. `settings.local.json`) stays
-  git-ignored.
+  the agent runs a command before deps exist). The tracked things under `.claude/` are this
+  hook + `settings.json`, plus the committed **slash commands** (`.claude/commands/`) and
+  **subagents** (`.claude/agents/`) — see [`docs/WORKFLOW.md`](docs/WORKFLOW.md); everything
+  else there (incl. `settings.local.json`) stays git-ignored.
 - **`npm test` is the trustworthy signal here.** Both Vitest suites (web + functions) run
   fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
@@ -459,7 +460,10 @@ Worker changes deploy to Cloudflare, and neither drags the other along.**
 Two long-lived branches, so features can be **tested together** before a **batched,
 deliberate** push to production. Full runbook (branch roles, release process, the GitHub
 ruleset settings, and the Cloudflare Pages staging setup) lives in
-[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow.
+[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow. How a feature
+gets *designed* (in a Claude Project) and handed to Code for delivery on this flow is
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) — the brief template, the `/deliver` command, and the
+`design-reviewer` subagent.
 
 - **`develop` is the integration branch.** Feature PRs target it, CI runs on every PR, and
   a push to `develop` deploys the **staging** site (Cloudflare Pages, branch-built) + a
