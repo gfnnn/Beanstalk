@@ -54,7 +54,7 @@ for arg in "$@"; do
   case "$arg" in
     --archive)  ARCHIVE=1 ;;
     --yes|-y)   ASSUME_YES=1 ;;
-    -h|--help)  sed -n '2,15p' "$0"; exit 0 ;;
+    -h|--help)  sed -n '2,21p' "$0"; exit 0 ;;
     *) echo "unknown option: $arg (try --help)" >&2; exit 2 ;;
   esac
 done
@@ -81,7 +81,13 @@ for b in "${BRANCHES[@]}"; do
     continue
   fi
   if [ "$ARCHIVE" -eq 1 ]; then
-    git tag -f "archive/$b" "$REMOTE/$b" >/dev/null && echo "tag    archive/$b"
+    if git tag -f "archive/$b" "$REMOTE/$b" >/dev/null; then
+      echo "tag    archive/$b"
+    else
+      echo "FAILED to archive $b — skipping its delete" >&2
+      fail=1
+      continue
+    fi
   fi
   if git push "$REMOTE" --delete "$b"; then
     echo "delete $b  ✔"
@@ -95,7 +101,7 @@ echo
 echo "Remaining branches on '$REMOTE' (excluding main/develop):"
 remaining="$(git ls-remote --heads "$REMOTE" | sed 's#.*refs/heads/##' | grep -vxE 'main|develop' || true)"
 if [ -n "$remaining" ]; then
-  printf '  %s\n' "$remaining"
+  printf '%s\n' "$remaining" | sed 's/^/  /'
 else
   echo "  (none — clean)"
 fi
