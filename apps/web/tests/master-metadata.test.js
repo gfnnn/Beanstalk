@@ -21,6 +21,24 @@ describe('titleOf', () => {
   })
 })
 
+describe('slugify', () => {
+  // The slug is the claim key / portfolio URL / Dropbox tier basename, so the
+  // accent-stripping (NFKD → drop combining marks) is load-bearing: a wrong slug
+  // breaks the live claim match. These cases use MID-word accents on purpose — a
+  // trailing accent before a space collapses to the same slug whether or not the
+  // combining mark is stripped, so only a letter-accent-letter case actually fails
+  // if that regex ever silently no-ops (the regression a re-encoding could cause).
+  it('strips mid-word accents so the slug stays ASCII-stable', () => {
+    expect(slugify('Piñata')).toBe('pinata')
+    expect(slugify('Jalapeño')).toBe('jalapeno')
+    expect(slugify('Désirée')).toBe('desiree')
+  })
+
+  it('lowercases, de-accents and hyphenates a multi-word title together', () => {
+    expect(slugify('Café Société')).toBe('cafe-societe')
+  })
+})
+
 describe('parseMasterName — portfolio', () => {
   const NAME = 'Peacock butterfly -- arm -- colour+realism -- 2026-05-15.jpg'
 
