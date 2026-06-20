@@ -106,15 +106,25 @@ files — see `CLAUDE.md` scope discipline). Copy this template:
 
 ## Handing off to Claude Code
 
+The loop is **PR-driven**: from build, the change always goes up to a PR + CI, Claude actively
+monitors and reacts, does a final review, and hands it to you — **your merge is the gate**.
+
 1. **Paste the brief** into a new Claude Code session and run **`/deliver`** (the brief as its
    argument). The command runs the delivery loop: read `CLAUDE.md` + the relevant docs, explore the
    affected code, **re-query the design** where the brief is ambiguous or fights best practice
    (delegating a deep look to the `design-reviewer` subagent when useful), plan, implement on a
-   `feat/*` branch off `develop`, then `npm test` + `npm run build` + `npm run lint`, a security
-   pass, and prepare the PR into `develop` with the brief as the body.
-2. **Mind the web-session realities** (full detail in `CLAUDE.md` → *Working in a Claude Code web
+   `feat/*` branch off `develop`, run `npm test` + `npm run build` + `npm run lint` and a security
+   pass, then **open the PR into `develop`** with the brief as the body.
+2. **It watches and reacts.** `/deliver` subscribes to the PR's activity and monitors CI + review
+   comments, **pushing fixes when the fix is clear** (asking you only when it's ambiguous or
+   architectural) until every check is green. Watching is the **standing default** — you've
+   pre-authorised it, so it won't ask each time.
+3. **Mind the web-session realities** (full detail in `CLAUDE.md` → *Working in a Claude Code web
    session*): the unit suites run in the sandbox, but the **E2E/visual check cannot** — that gate
    is the PR's E2E workflow plus a local/human review, not a skipped sandbox run. Remote-ref
    surgery (branch deletion, rebasing others' branches) also can't happen from a web session.
-3. **Land it** per [`BRANCHING.md`](./BRANCHING.md): squash-merge the feature PR into `develop`,
-   exercise it on staging, and batch it into the next `develop → main` release.
+4. **Final review + your merge gate.** Once CI is green, `/deliver` runs **`/code-review`** (plus
+   **`/security-review`** when the Worker / forms / payments / security surface is touched), folds in
+   what it finds, then hands you the PR with a summary. **You confirm any final changes and do the
+   squash-merge** into `develop` (or tell Claude to) — it never self-merges. From there it batches
+   into the next `develop → main` release per [`BRANCHING.md`](./BRANCHING.md).
