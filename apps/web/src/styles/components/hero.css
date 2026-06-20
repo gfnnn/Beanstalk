@@ -396,7 +396,14 @@ a.video-credit-name:focus-visible {
      nav floats over it, transparent until the video is scrolled past (nav.css). */
   .page-home .hero { margin-top: calc(-1 * var(--nav-h)); }
 
-  .hero-text { padding: 0; }
+  /* Lift the whole text column above the full-screen .hero-media. Both .hero-text
+     and .hero-media carry `will-change: transform, opacity`, so each forms its own
+     stacking context at z-index:0 — and since .hero-media is absolutely positioned
+     over the viewport AND later in source order, it would paint on top of the text.
+     The z-index:1 on .hero-intro/.hero-detail can't fix this: it's trapped inside
+     .hero-text's own stacking context. The lift has to live on the column itself
+     (a grid item, so z-index applies). */
+  .hero-text { padding: 0; position: relative; z-index: 1; }
 
   /* The clip is a fixed background layer covering the first screen. dvh (with a
      vh fallback) so it always covers; the hero isn't scroll-pinned, so the iOS
@@ -460,7 +467,12 @@ a.video-credit-name:focus-visible {
   }
   .hero-intro h1 em { color: var(--dune); }
 
-  /* Video credit (the "filmed by" line) overlays bottom-right over the clip. */
+  /* Video credit (the "filmed by" line) overlays bottom-right over the clip.
+     NOTE: this lives inside .hero-media, which now paints *below* .hero-text (the
+     z-index:1 lift above), so this z-index:2 only orders it within .hero-media —
+     it can't raise the credit above the overlaid headline. Fine today (the credit
+     sits in the empty bottom-right corner and only renders once a video ships); if
+     it ever clips behind the headline, move it out of .hero-media instead. */
   .hero-video-credit { bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 2; }
 
   /* Below-the-fold remainder rides the page surface, after the video. */
