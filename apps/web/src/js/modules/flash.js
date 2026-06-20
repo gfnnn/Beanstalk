@@ -262,8 +262,8 @@ export function initFlash() {
     if (!el) {
       el = document.createElement('p')
       el.id = 'claim-error'
+      el.className = 'claim-error'
       el.setAttribute('role', 'alert')
-      el.style.cssText = 'margin:0 0 4px;font-size:13px;color:var(--clay,#C45A3E);line-height:1.45'
       form.querySelector('.modal-foot')?.before(el)
     }
     el.textContent = msg
