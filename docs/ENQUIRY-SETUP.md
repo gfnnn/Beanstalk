@@ -123,7 +123,7 @@ The form needs the Worker URL **at build time** (Vite bakes it in).
      run `npm run build`, publish `apps/web/dist/`.
 2. **Apex domain is deferred — do not switch it yet.** `beansprout.ink` is still
    served by **v1**; v2 lives on the Pages project URL. There is intentionally **no
-   `public/CNAME`** until cutover (see `ROADMAP.md` → Go-live plan, Phase 6, and the
+   `public/CNAME`** until cutover (see `ROADMAP.md` → *D. The apex cutover*, and the
    guardrail in `CLAUDE.md`). The CORS allowlist in `src/lib/http.js` already permits
    `beansprout.ink`, `www.beansprout.ink`, the GitHub Pages origin, and localhost.
 3. Deploy. Done.
@@ -158,7 +158,7 @@ claim** (`/flash/`) and the **newsletter** (`/newsletter/`).
 | "isn't connected yet" / 500 | `VITE_ENQUIRY_FN_URL` not set, or a Worker secret missing | Set the build var (Part C) and the `wrangler secret`s (Part B) |
 | CORS error in console | Site origin not in the allowlist | Add it to `ALLOWED_ORIGINS` in `src/lib/http.js`, redeploy |
 | Email never arrives (502) | Domain not verified, or bad API key | Verify the domain in Resend; re-check `RESEND_API_KEY` |
-| Images missing / 413 | Too many / too large | Limit is 8 images, ~5 MB total *after* downscaling |
+| Images missing / 413 | Too many / too large | Limit is 8 images, ~4 MB total *after* downscaling |
 
 ---
 
@@ -166,7 +166,7 @@ claim** (`/flash/`) and the **newsletter** (`/newsletter/`).
 
 - **Image handling.** Photos are downscaled in the browser (long edge ≤ 1600px,
   JPEG) before upload; HEIC the browser can't decode is sent as-is and capped at
-  8 MB. Server-side each file is **type-sniffed by magic bytes** (the client's MIME
+  4 MB. Server-side each file is **type-sniffed by magic bytes** (the client's MIME
   isn't trusted) with request-body and per-image size caps.
 - **Spam & abuse.** A hidden honeypot (`_gotcha`) silently drops bots; the Worker is
   origin-locked (CORS allowlist) with per-IP + global-daily rate limiting (state in
@@ -227,5 +227,5 @@ than any single `maxlength` — it's a backstop, not the UX limit.
 | Additional notes (textarea) | 600 | 2000 |
 | Multi-selects (`style[]`, `days[]`, …) | — | 50 items (`MAX_ARRAY_ITEMS`), each clamped to 2000 |
 
-Image caps are separate (8 images, ~5 MB total after downscale, 4 MB per file) —
+Image caps are separate (8 images, ~4 MB total after downscale, 4 MB per file) —
 see **Image handling** above and the constants at the top of `enquiry.js`.

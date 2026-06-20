@@ -319,6 +319,7 @@ reduce motion; otherwise the **poster** still shows. So every video needs a post
 | Slot (in `media.js`) | Files | Crop | Notes |
 |---|---|---|---|
 | `hero` (video)         | `hero.webm`, `hero.mp4`, `hero-poster.jpg` | 16:9 landscape | above the fold — keep it small |
+| `hero.portrait` (optional) | `hero-portrait.webm`, `hero-portrait.mp4`, `hero-portrait-poster.jpg` | 9:16 portrait | mobile full-screen hero (<900px); landscape `hero` stays the desktop column. Omit and mobile reuses the landscape clip |
 | `aboutHero` (video)    | `about-portrait.webm`, `about-portrait.mp4`, `about-portrait-poster.jpg` | 4:5 portrait | |
 | either, as a GIF       | `<name>.gif` (+ a `*-poster.jpg`) | — | only if a real GIF was supplied — see below |
 
