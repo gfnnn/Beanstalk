@@ -12,7 +12,9 @@ Project → Claude Code) in [`WORKFLOW.md`](./WORKFLOW.md); function/secret setu
 and [`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md); data compliance in
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md); the copy review (artist worksheet +
 internal tracker, one doc) in [`COPY-REVIEW.md`](./COPY-REVIEW.md); image/video media
-in [`MEDIA.md`](./MEDIA.md); motion in [`MOTION.md`](./MOTION.md); the **payments**
+in [`MEDIA.md`](./MEDIA.md); motion in [`MOTION.md`](./MOTION.md); the **launch-day
+apex-cutover runbook** (go/no-go gate, command sequence, smoke test, rollback) in
+[`CUTOVER.md`](./CUTOVER.md); the **payments**
 plan in [`PAYMENTS.md`](./PAYMENTS.md); and the post-launch feature stubs in
 [`SCHEDULING.md`](./SCHEDULING.md), [`DASHBOARD.md`](./DASHBOARD.md) and
 [`CMS.md`](./CMS.md).
@@ -197,6 +199,23 @@ Gmail). All six must pass before the launch is "done":
 
 ## D. The apex cutover — LAST, only after A–C are green  (👤 + 🛠)
 
+> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **blocked-on-ICO**
+> Move the live apex `beansprout.ink` from **v1 → v2**. The long pole is **ICO
+> registration** (~2 weeks out); content is the parallel gate. **Hard gates (all must
+> be green to start):**
+> - **ICO number published** in the privacy policy (`/privacy/`) — see C3.
+> - **Copy grep-gate at zero** — `grep -rn "pending approval" apps/web/
+>   --exclude-dir=dist --exclude-dir=node_modules` returns nothing (A above).
+> - **Real images in** — no placeholder flash art (C4), the hero clip live (C6), and a
+>   real `og-image.jpg` (C5).
+>
+> The full launch-day procedure — pre-flight go/no-go gate, the command-by-command
+> cutover, the smoke test, the rollback, and post-cutover — is the **runbook in
+> [`CUTOVER.md`](./CUTOVER.md)**. The reusable post-deploy probe is
+> `npm run smoke -- <url>` (`scripts/smoke-test.mjs`), run at cutover and on every
+> release to `main`. The boxes below stay the **state tracker** (who owns what, what's
+> done); CUTOVER.md is the **how**.
+
 Moves `beansprout.ink` from **v1 → v2**. Two test→prod flips happen together (DNS +
 email). **X2 (re-add CNAME) only at cutover** — never earlier, or Pages claims the
 apex off v1 (the guardrail in `CLAUDE.md`).
@@ -220,17 +239,11 @@ apex off v1 (the guardrail in `CLAUDE.md`).
 
 ### Rollback plan (if the cutover goes wrong)
 
-Every step is reversible; with the TTL pre-lowered a revert is minutes. Roll back the
-moment the live apex is broken rather than debugging on the live domain:
-
-1. **DNS** — restore the apex `A` / `www` `CNAME` to the **v1** target (this moves
-   traffic back; do it first).
-2. **Email** — flip the Worker secrets back to test only if production sending is
-   what's broken.
-3. **Pages** — remove `apps/web/public/CNAME` (revert the commit) so Pages stops
-   claiming the apex.
-4. **Data is safe** — D1 is untouched by a DNS rollback; enquiries from the live
-   window are persisted (Time Travel covers operator error — `DATA-COMPLIANCE.md`).
+Every step is reversible; with the TTL pre-lowered a revert is minutes — roll back the
+moment the live apex is broken rather than debugging on the live domain. The
+authoritative step-by-step (DNS first → email → remove the CNAME → data is safe) lives
+once in **[`CUTOVER.md`](./CUTOVER.md) → Phase 4**, alongside the abort conditions that
+trigger it.
 
 ## Ordering (the only constraints)
 
