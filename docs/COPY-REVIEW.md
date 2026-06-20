@@ -350,7 +350,7 @@ slot *is*; this table only adds source location + anything tracker-specific.
 | FLASH-D1 | 🟠 | `src/data/flash.js` `season` | → facts table ("Flash" row) |
 | FLASH-D2 | 🟠 | `src/data/flash.js` pieces | 12 placeholder names/specs/prices until a real drop (→ facts table) |
 | PORT-01, PORT-02, PORT-03, PORT-04 | ✅ 🟡/⚪ | `portfolio/index.html` | Round 1 approved (incl. the 3 style categories); PORT-02 + PORT-04 ⚪ filter / count + load-more UI |
-| PORT-D1 | 🟡 | `src/data/pieces.js` titles | 28 piece names ("Good dog", "The Lovers"…) — **still to confirm** |
+| PORT-D1 | 🟡 | `src/data/pieces.js` titles | the piece names ("Good dog", "The Lovers"…) — **still to confirm** (count grows with the Dropbox sync; don't bake a number) |
 | PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | Feeds alt text; SEO/a11y — skim for accuracy |
 | PIECE-01 | 🟡 | `src/build/piece-page.js` | Per-piece CTAs "Enquire about a piece like this →" / "See more work" |
 | NL-01..04 | 🟡 | `newsletter/index.html` | Still open |

@@ -36,7 +36,7 @@ import { STYLE_LABELS, STYLE_TOKENS, PLACEMENT_TOKENS } from '../src/data/taxono
 // basename). De-accents, lowercases, collapses non-alphanumerics to hyphens.
 export function slugify(name) {
   return String(name)
-    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // strip combining accents
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '') // strip combining accents (escaped range — survives re-encoding)
     .toLowerCase().trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
