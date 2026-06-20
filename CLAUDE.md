@@ -168,7 +168,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email +
   src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
   migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
+docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
