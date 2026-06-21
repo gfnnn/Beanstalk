@@ -46,6 +46,13 @@ worth. These rules exist to hold the line. Follow them, and flag it when a reque
 
 ## Working in a Claude Code web session (read this first)
 
+Delivery happens in one of two Claude Code modes — a **full local session** (a real machine like a
+laptop: a shell, full git, an installable browser, so it can run *everything* end-to-end) or this
+constrained **web session**. This section is the operating manual for the **web** one; for which
+actions are best brought back to a full local session (the E2E/visual check, branch/ref cleanup,
+the real Worker via `wrangler dev`, the media/Dropbox scripts), see
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) → *Where to run what*.
+
 When this repo is opened in **Claude Code on the web** (a remote, ephemeral container —
 not your laptop), these are the ground rules so a session is productive from the first
 command instead of rediscovering the environment each time:
