@@ -25,12 +25,12 @@ import {
   rateLimit, reserveFlashPiece, releaseFlashPiece,
   recordPayment, markPaymentStatus,
 } from '../lib/db.js'
+import { CURRENCY } from '../lib/stripe.js'
 import FLASH_PRICES from '../data/flash-prices.json'
 
 const HOLD_MS        = 48 * 60 * 60 * 1000  // how long an unpaid reserve is held
 const MAX_BODY_BYTES = 64 * 1024            // no images here — a checkout body is tiny
 const MAX_FIELD_LEN  = 2000
-const CURRENCY       = 'gbp'
 const STRIPE_API     = 'https://api.stripe.com/v1/payment_intents'
 
 export async function handler(event, env = {}) {

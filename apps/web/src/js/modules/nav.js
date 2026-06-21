@@ -37,9 +37,14 @@ export function initNav() {
       }
       if (overObs) return
       nav.classList.add('over-hero') // transparent from the first paint
+      // Offset the trigger by the nav's own height — read from the --nav-h token
+      // (the nav is `height: var(--nav-h)`), the same source sticky.js uses, rather
+      // than re-measuring offsetHeight with a magic-number fallback.
+      const navH = getComputedStyle(document.documentElement)
+        .getPropertyValue('--nav-h').trim() || '65px'
       overObs = new IntersectionObserver(([e]) => {
         nav.classList.toggle('over-hero', e.isIntersecting)
-      }, { rootMargin: `-${nav.offsetHeight || 65}px 0px 0px 0px`, threshold: 0 })
+      }, { rootMargin: `-${navH} 0px 0px 0px`, threshold: 0 })
       overObs.observe(overTarget)
     }
     connectOver()

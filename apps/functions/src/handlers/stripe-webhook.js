@@ -25,7 +25,7 @@
 // can't double-promote or double-charge.
 // ─────────────────────────────────────────────────────────────────────────────
 import { corsFor, replyWith, escHtml as esc } from '../lib/http.js'
-import { verifyStripeSignature } from '../lib/stripe.js'
+import { verifyStripeSignature, CURRENCY } from '../lib/stripe.js'
 import {
   hasWebhookEvent, recordWebhookEvent, getPayment, markPaymentStatus,
   promoteFlashClaim, releaseFlashPiece,
@@ -33,9 +33,6 @@ import {
 import FLASH_PRICES from '../data/flash-prices.json'
 
 const nowIso = () => new Date().toISOString()
-// The only currency checkout ever opens an intent in (checkout.js CURRENCY). Used as
-// the expected value on the fail-open path, where there's no payment row to read it from.
-const EXPECTED_CURRENCY = 'gbp'
 
 export async function handler(event, env = {}) {
   const cors  = corsFor(event)
@@ -106,7 +103,7 @@ async function onSucceeded(env, pi) {
   // and acked (not retried — a redelivery carries the same amounts).
   const payment       = await getPayment(env, reference)
   const expectedPence = payment ? Number(payment.amount_pence) : FLASH_PRICES[pieceId]
-  const expectedCcy   = String(payment?.currency || EXPECTED_CURRENCY).toLowerCase()
+  const expectedCcy   = String(payment?.currency || CURRENCY).toLowerCase()
   if (Number.isInteger(expectedPence) && Number(pi.amount) !== expectedPence) {
     console.error('stripe-webhook: amount mismatch — not promoting', reference, pi.amount, expectedPence)
     return true
