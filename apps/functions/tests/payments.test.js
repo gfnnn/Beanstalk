@@ -59,6 +59,26 @@ describe('payments ledger', () => {
     expect(row.paid_at).toBe('2026-06-07T00:00:00Z')
   })
 
+  it('ifNotPaid ratchets a confirmed sale — a rollback can’t demote it, a refund still can', async () => {
+    const d1 = makeD1()
+    const e = { DB: d1.DB }
+    await recordPayment(e, { id: 'paid-ref', amountPence: 100 })
+    await markPaymentStatus(e, 'paid-ref', 'paid', { paidAt: '2026-06-07T00:00:00Z' })
+
+    // The guarded expire (the out-of-order cancel path) is a no-op on a paid row.
+    expect(await markPaymentStatus(e, 'paid-ref', 'expired', { ifNotPaid: true })).toBe(false)
+    expect((await getPayment(e, 'paid-ref')).status).toBe('paid')
+
+    // …but the same guard still settles a row that hasn't been paid.
+    await recordPayment(e, { id: 'await-ref', amountPence: 50 })   // defaults to 'awaiting'
+    expect(await markPaymentStatus(e, 'await-ref', 'expired', { ifNotPaid: true })).toBe(true)
+    expect((await getPayment(e, 'await-ref')).status).toBe('expired')
+
+    // …and a deliberate refund (unguarded) still moves the paid row forward.
+    expect(await markPaymentStatus(e, 'paid-ref', 'refunded')).toBe(true)
+    expect((await getPayment(e, 'paid-ref')).status).toBe('refunded')
+  })
+
   it('markPaymentStatus returns false for an unknown id', async () => {
     expect(await markPaymentStatus({ DB: makeD1().DB }, 'nope', 'paid')).toBe(false)
   })

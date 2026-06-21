@@ -30,8 +30,12 @@ import {
   hasWebhookEvent, recordWebhookEvent, getPayment, markPaymentStatus,
   promoteFlashClaim, releaseFlashPiece,
 } from '../lib/db.js'
+import FLASH_PRICES from '../data/flash-prices.json'
 
 const nowIso = () => new Date().toISOString()
+// The only currency checkout ever opens an intent in (checkout.js CURRENCY). Used as
+// the expected value on the fail-open path, where there's no payment row to read it from.
+const EXPECTED_CURRENCY = 'gbp'
 
 export async function handler(event, env = {}) {
   const cors  = corsFor(event)
@@ -93,11 +97,22 @@ async function onSucceeded(env, pi) {
   const pieceId   = pi.metadata?.piece_id
   if (!reference) { console.warn('stripe-webhook: succeeded without our reference', pi.id); return true }
 
-  // Defence in depth: only honour the amount we recorded at checkout. A mismatch
-  // (a tampered/replayed intent) is logged and NOT promoted — and not retried.
-  const payment = await getPayment(env, reference)
-  if (payment && Number(pi.amount) !== Number(payment.amount_pence)) {
-    console.error('stripe-webhook: amount mismatch — not promoting', reference, pi.amount, payment.amount_pence)
+  // Defence in depth: only honour the price + currency we INTENDED to charge. The
+  // recorded payment row is the authority; on the fail-open path (checkout's DB write
+  // never landed, so there's no row) fall back to the build-time price manifest — the
+  // same server-side source checkout itself charged from — so the manifest stays the
+  // price authority even when the ledger row is missing. A succeeded intent that
+  // disagrees is a tampered/replayed/price-drifted charge: logged and NOT promoted,
+  // and acked (not retried — a redelivery carries the same amounts).
+  const payment       = await getPayment(env, reference)
+  const expectedPence = payment ? Number(payment.amount_pence) : FLASH_PRICES[pieceId]
+  const expectedCcy   = String(payment?.currency || EXPECTED_CURRENCY).toLowerCase()
+  if (Number.isInteger(expectedPence) && Number(pi.amount) !== expectedPence) {
+    console.error('stripe-webhook: amount mismatch — not promoting', reference, pi.amount, expectedPence)
+    return true
+  }
+  if (pi.currency && String(pi.currency).toLowerCase() !== expectedCcy) {
+    console.error('stripe-webhook: currency mismatch — not promoting', reference, pi.currency, expectedCcy)
     return true
   }
 
@@ -133,10 +148,15 @@ async function onSucceeded(env, pi) {
 // Scoped by the payment's own reference: a delayed cancel from an old checkout
 // can never release a NEWER customer's live hold on the same piece. Best-effort
 // (a missed release is cleaned up by the lazy hold-expiry sweep).
+//
+// Both writes are guarded against a confirmed sale: `ifNotPaid` keeps a stray
+// out-of-order cancel from demoting a 'paid' ledger row to 'expired', and
+// releaseFlashPiece only ever deletes a still-'pending' hold — so a piece that's
+// already 'claimed' (and its ledger row) survive a late cancel untouched.
 async function onCanceled(env, pi) {
   const reference = pi.metadata?.reference
   const pieceId   = pi.metadata?.piece_id
-  if (reference) await markPaymentStatus(env, reference, 'expired')
+  if (reference) await markPaymentStatus(env, reference, 'expired', { ifNotPaid: true })
   if (pieceId && reference) await releaseFlashPiece(env, pieceId, reference)
 }
 

@@ -121,10 +121,13 @@ export function makeD1() {
       return data.payments.get(args[0]) || null
     }
     // markPaymentStatus — status flip, COALESCE keeps existing ref/paid_at when null.
+    // The `ifNotPaid` ratchet adds "AND status <> 'paid'" so the rollback paths can't
+    // demote a confirmed sale.
     if (s.startsWith('UPDATE payments')) {
       const [id, status, provider_ref, paid_at] = args
       const row = data.payments.get(id)
       if (!row) return { meta: { changes: 0 } }
+      if (/status <> 'paid'/.test(s) && row.status === 'paid') return { meta: { changes: 0 } }
       row.status = status
       if (provider_ref != null) row.provider_ref = provider_ref
       if (paid_at != null) row.paid_at = paid_at
