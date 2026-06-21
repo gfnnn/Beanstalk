@@ -4,6 +4,8 @@
 // noindex pages skipped, twitter mirrored from OG) that otherwise breaks SEO
 // silently with no error.
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import {
   injectSeoHead,
   injectStagingNoindex,
@@ -196,6 +198,23 @@ describe('renderSitemap', () => {
     const out = renderSitemap([{ path: '/x/', priority: '0.5' }], 'https://example.test')
     expect(out).toContain('<loc>https://example.test/x/</loc>')
     expect(out.match(/<url>/g)).toHaveLength(1)
+  })
+})
+
+// Contract test against the REAL authored pages, not a synthetic head. injectSeoHead
+// derives the canonical by regex-matching og:url with `property` immediately before
+// `content` (seo.js) — a page that authored those attributes in the other order (valid
+// HTML) would ship with NO canonical, silently, and every unit test above would still
+// pass because they hand-build the head in the happy order. This reads each indexable
+// page off disk and asserts the canonical actually lands, locking the attribute-order
+// assumption the extraction relies on.
+describe('canonical contract — every ROUTES page emits one after injectSeoHead', () => {
+  const pageFile = (path) =>
+    fileURLToPath(new URL(`../${path === '/' ? '' : path.slice(1)}index.html`, import.meta.url))
+
+  it.each(ROUTES)('$path ships a canonical to its own URL', ({ path }) => {
+    const out = injectSeoHead(readFileSync(pageFile(path), 'utf8'))
+    expect(out).toContain(`<link rel="canonical" href="${SITE_URL}${path}">`)
   })
 })
 
