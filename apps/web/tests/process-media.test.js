@@ -4,7 +4,7 @@
 // no-silent-upscale guard, transparent-PNG flattening for the JPG tier, and the
 // flash lane's trimmed JPG tiers.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mkdtemp, rm, writeFile, readdir } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile, readdir, readFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import sharp from 'sharp'
@@ -86,4 +86,74 @@ describe('processOne', () => {
     }
     expect(r.rows.filter(x => x.ext === 'jpg').map(x => x.width)).toEqual([600])
   }, 30000)
+})
+
+// A flat-colour 3:4 master big enough not to trip the upscale guard (≥ 1200×1600).
+const flatPortfolioMaster = (bg = { r: 74, g: 93, b: 63 }) => // moss
+  sharp({ create: { width: 1600, height: 2133, channels: 3, background: bg } }).jpeg().toBuffer()
+
+// How far the BRIGHTEST pixel in a region strays from a flat background, summed
+// over RGB. The mark is thin low-opacity strokes, so its *mean* barely moves the
+// region — but its peak pixels jump clear of the background; that's the signal.
+const regionPeakDist = async (file, region, bg) => {
+  // stats() reads the INPUT image and ignores a chained extract(), so crop to a
+  // buffer first, then take stats of that buffer.
+  const crop = await sharp(file).extract(region).toBuffer()
+  const { channels } = await sharp(crop).stats()
+  const [r, g, b] = channels.slice(0, 3).map(c => c.max)
+  return Math.abs(r - bg.r) + Math.abs(g - bg.g) + Math.abs(b - bg.b)
+}
+
+describe('watermark', () => {
+  it('stamps only the full-res tier — thumbnails are byte-identical with or without it', async () => {
+    const src = await writeMaster('wm.jpg', await flatPortfolioMaster())
+    const on = await mkdtemp(path.join(os.tmpdir(), 'pm-on-'))
+    const off = await mkdtemp(path.join(os.tmpdir(), 'pm-off-'))
+    try {
+      await processOne({ src, name: 'wm', lane: 'portfolio', outDir: on, crop: true, sharpen: true, watermark: true })
+      await processOne({ src, name: 'wm', lane: 'portfolio', outDir: off, crop: true, sharpen: true, watermark: false })
+      const read = (d, f) => readFile(path.join(d, f))
+      // Full-res 1200 tier differs (mark baked in)…
+      expect((await read(on, 'wm-1200.jpg')).equals(await read(off, 'wm-1200.jpg'))).toBe(false)
+      // …while the smaller tiers are untouched.
+      expect((await read(on, 'wm-800.jpg')).equals(await read(off, 'wm-800.jpg'))).toBe(true)
+      expect((await read(on, 'wm-400.jpg')).equals(await read(off, 'wm-400.jpg'))).toBe(true)
+    } finally {
+      await rm(on, { recursive: true, force: true })
+      await rm(off, { recursive: true, force: true })
+    }
+  }, 60000)
+
+  it('leaves the 1200 tier dimensions unchanged', async () => {
+    const src = await writeMaster('dim.jpg', await flatPortfolioMaster())
+    const r = await processOne({ src, name: 'dim', lane: 'portfolio', outDir: dir, crop: true, sharpen: true })
+    const t = r.rows.find(x => x.width === 1200 && x.ext === 'jpg')
+    expect([t.w, t.h]).toEqual([1200, 1600])
+  }, 60000)
+
+  it('bakes the mark into the bottom-left corner only (top-right stays the photo)', async () => {
+    const bg = { r: 74, g: 93, b: 63 } // moss
+    const src = await writeMaster('corner.jpg', await flatPortfolioMaster(bg))
+    await processOne({ src, name: 'corner', lane: 'portfolio', outDir: dir, crop: true, sharpen: true })
+    const file = path.join(dir, 'corner-1200.jpg')
+    // markH = round(1600·0.10)=160, markW=round(160·388/654)=95, margin=round(1200·0.035)=42.
+    const bl = await regionPeakDist(file, { left: 42, top: 1398, width: 95, height: 160 }, bg)
+    const tr = await regionPeakDist(file, { left: 1050, top: 0, width: 100, height: 100 }, bg)
+    expect(tr).toBeLessThan(8) // top-right is still flat moss
+    expect(bl).toBeGreaterThan(40) // bottom-left carries the cream/ink mark (peak ≫ bg)
+  }, 60000)
+
+  it('is deterministic — the watermarked tier re-encodes byte-identical', async () => {
+    const src = await writeMaster('det.jpg', await flatPortfolioMaster())
+    const a = await mkdtemp(path.join(os.tmpdir(), 'pm-a-'))
+    const b = await mkdtemp(path.join(os.tmpdir(), 'pm-b-'))
+    try {
+      await processOne({ src, name: 'det', lane: 'portfolio', outDir: a, crop: true, sharpen: true })
+      await processOne({ src, name: 'det', lane: 'portfolio', outDir: b, crop: true, sharpen: true })
+      expect((await readFile(path.join(a, 'det-1200.jpg'))).equals(await readFile(path.join(b, 'det-1200.jpg')))).toBe(true)
+    } finally {
+      await rm(a, { recursive: true, force: true })
+      await rm(b, { recursive: true, force: true })
+    }
+  }, 60000)
 })
