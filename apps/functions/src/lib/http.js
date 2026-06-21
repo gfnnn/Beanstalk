@@ -10,6 +10,14 @@
 // so the enquiry and newsletter validators agree on what "valid" means.
 export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
+// Escape user-supplied values interpolated into the HTML email bodies. Shared so
+// the enquiry and webhook senders can't drift in what they escape — both need the
+// same four entities (the double-quote cover matters because values land in
+// attribute contexts too).
+export function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 // ── CORS — origin allowlist, not a blanket '*' ──────────────────────────────
 // CORS is browser-enforced (it won't stop a scripted/curl POST — that's what the
 // rate limiter is for), but locking it to known SITE origins removes the casual
