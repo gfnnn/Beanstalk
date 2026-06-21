@@ -378,6 +378,22 @@ describe('enquiry handler — persistence & size limits', () => {
     expect(typeof stored['style[]'][1]).toBe('string')
     expect(stored['style[]'][1].length).toBeLessThanOrEqual(2000)
   })
+
+  it('caps the whole field set so a many-field payload cannot bloat the durable row', async () => {
+    // Each value clears the per-field cap, but 400 of them (~800 KB) would push
+    // the serialized row past D1's ~1 MB limit and fail the durable write open.
+    // The aggregate cap keeps the stored set well under that.
+    const junk = {}
+    for (let i = 0; i < 400; i++) junk[`junk_${i}`] = 'z'.repeat(2000) // each at the per-field cap
+    const res = await H(post(validEnquiry(junk)))
+    expect(res.statusCode).toBe(200)
+    const stored = JSON.parse(rows()[0].fields)
+    // Serialized row stays comfortably under D1's 1 MB row limit.
+    expect(JSON.stringify(stored).length).toBeLessThan(512 * 1024)
+    // The real required fields, sent first, are retained intact.
+    expect(stored.first_name).toBeTruthy()
+    expect(stored.email).toBeTruthy()
+  })
 })
 
 describe('enquiry handler — flash inventory', () => {

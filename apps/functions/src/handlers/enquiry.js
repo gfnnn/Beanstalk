@@ -35,6 +35,9 @@ const MAX_BODY_BYTES  = 6 * 1024 * 1024 // reject oversized bodies before parsin
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // per-image ceiling (decoded estimate)
 const MAX_FIELD_LEN   = 2000            // per-field text cap (cost / email-size guard)
 const MAX_ARRAY_ITEMS = 50              // cap multi-select arrays (style[], days[]…)
+const MAX_FIELDS_BYTES = 256 * 1024     // cap the whole serialized field set so a
+                                        // crafted many-field payload can't push the
+                                        // durable D1 row past its ~1 MB limit
 
 // Per-form definition: required fields, consent boxes, whether images apply,
 // the email's section layout, header title, and subject line.
@@ -251,23 +254,32 @@ export async function handler(event, env = {}) {
   }
 }
 
-// Truncate every string value (and array item) to MAX_FIELD_LEN in place, and
-// cap array fields to MAX_ARRAY_ITEMS. Non-string scalars are left untouched.
-// Nested objects (which the real form never produces) are stringified and
-// clamped like any other text: left whole, a crafted payload could smuggle ~6 MB
-// of JSON past the per-field cap straight into persistSubmission, whose insert
-// would then exceed D1's row limit and fail open — silently dropping the durable
-// record while the enquiry still 200s.
+// Clamp the field set so neither a single value NOR the set as a whole can bloat
+// the durable D1 row. Per value: strings (and array items) truncate to
+// MAX_FIELD_LEN, arrays cap to MAX_ARRAY_ITEMS, nested objects (which the real
+// form never produces) are stringified then truncated. Per set: fields are kept
+// only while the running serialized total stays under MAX_FIELDS_BYTES — without
+// this aggregate cap a crafted many-field / many-array payload (each value under
+// the per-field cap) could still total ~6 MB and push persistSubmission's insert
+// past D1's ~1 MB row limit, which fails open: the durable record is silently
+// dropped while the enquiry still 200s. A real enquiry is a few KB, far under the
+// budget, so nothing legitimate is ever trimmed.
 function clampFields(fields) {
   const clampItem = x => {
     if (typeof x === 'string') return x.length > MAX_FIELD_LEN ? x.slice(0, MAX_FIELD_LEN) : x
     if (x && typeof x === 'object') return JSON.stringify(x).slice(0, MAX_FIELD_LEN)
     return x
   }
+  let budget = MAX_FIELDS_BYTES
   for (const k of Object.keys(fields)) {
     const v = fields[k]
-    if (Array.isArray(v)) fields[k] = v.slice(0, MAX_ARRAY_ITEMS).map(clampItem)
-    else fields[k] = clampItem(v)
+    const clamped = Array.isArray(v) ? v.slice(0, MAX_ARRAY_ITEMS).map(clampItem) : clampItem(v)
+    // Once the cumulative size would breach the row budget, drop the rest — an
+    // attacker's overflow is rejected at validation (or stored short); a genuine
+    // enquiry never reaches the budget, so its fields are kept intact.
+    budget -= k.length + JSON.stringify(clamped ?? null).length + 4
+    if (budget < 0) { delete fields[k]; continue }
+    fields[k] = clamped
   }
 }
 
