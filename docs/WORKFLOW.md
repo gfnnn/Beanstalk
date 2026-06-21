@@ -8,7 +8,7 @@ discovery can run in parallel (often on mobile) and hand off cleanly to delivery
   scope discipline, and produce a tight **feature brief**. No code is written here.
 - **Claude Code** (this repo) — the *delivery* surface. Pick up the brief and ship a tested,
   secure feature on the `develop → main` flow. It runs in two modes — a **full local session**
-  (a real machine like this one: a shell, full git, an installable browser) or a **constrained
+  (a real machine — laptop or desktop: a shell, full git, an installable browser) or a **constrained
   web/mobile session** (an ephemeral cloud sandbox) — and the mode, not the task, decides what you
   can actually run; see [Where to run what](#where-to-run-what-local-session-vs-web-session) below.
 
@@ -135,12 +135,12 @@ monitors and reacts, does a final review, and hands it to you — **your merge i
 ## Where to run what (local session vs web session)
 
 Delivery runs in one of two Claude Code modes, and the **mode — not the task — decides what's
-actually exercisable**. A **full local session** (this kind of environment: a real machine with a
-shell, full git, and a browser you can install) can run everything end-to-end. A **web/mobile
+actually exercisable**. A **full local session** (a real machine with a shell, full git, and a
+browser you can install) can run everything end-to-end. A **web/mobile
 session** is an ephemeral cloud sandbox — ideal for kicking off `/deliver` and the unit loop, but it
 has no display and the git proxy only lets it touch its own branch. Match the action to the surface:
 
-| Action | Full local session (this) | Web/mobile session |
+| Action | Full local session | Web/mobile session |
 |---|---|---|
 | `/deliver`, edit code, open the PR | ✅ | ✅ |
 | `npm test` (both Vitest suites) + `npm run build` + `npm run lint` | ✅ | ✅ |
@@ -154,7 +154,7 @@ has no display and the git proxy only lets it touch its own branch. Match the ac
 So the rhythm is: do the **build + unit loop + PR** from whichever surface is to hand — a web/mobile
 session is fine, and is the whole point of the PR-driven loop — but bring the **browser-bound checks**
 (E2E, the visual check), **ref surgery** (branch cleanup, cross-branch rebases), **the real Worker**,
-and **the media/Dropbox scripts** back to a **full local session like this one**. The exhaustive
+and **the media/Dropbox scripts** back to a **full local session**. The exhaustive
 web-session ground rules — *why* E2E skips, why the proxy 403s, exactly where the browser coverage
 really runs — live in [`CLAUDE.md`](../CLAUDE.md) → *Working in a Claude Code web session*; this table
 is just the routing on top of them.
