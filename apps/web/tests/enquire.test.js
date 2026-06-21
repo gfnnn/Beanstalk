@@ -650,7 +650,12 @@ describe('initEnquire', () => {
           <fieldset id="step-4"><div class="step-footer"></div><button type="submit" id="submit-btn">s</button></fieldset>
         </form>`
     }
-    const iso = d => d.toISOString().slice(0, 10)
+    // Format from LOCAL components (the same way validateDob parses a date), NOT
+    // toISOString() which is UTC: building a boundary DOB here and validating it
+    // against a local `new Date()` would otherwise slip a day whenever the test runs
+    // between local midnight and the UTC offset — the over-18 boundary flake.
+    const pad = n => String(n).padStart(2, '0')
+    const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
     const daysFromNow = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d) }
     const yearsAgo = n => { const d = new Date(); d.setFullYear(d.getFullYear() - n); return iso(d) }
     const msgFor = id => $(id).closest('.field').querySelector('.field-error-msg')?.textContent || ''
