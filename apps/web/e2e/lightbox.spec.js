@@ -55,26 +55,33 @@ test('a two-finger pinch-zoom does not page to another image', async ({ page }) 
   // Regression: the swipe handler only tracked touches[0], so a pinch (two
   // fingers spreading apart) read one finger's horizontal travel as a swipe and
   // jumped to a random image. A multi-touch gesture must never page.
-  await page.locator('.masonry-tile').first().click()
-  await expect(page.locator('#lightbox-counter')).toContainText('01 /')
+  //
+  // Open a *middle* tile (not a boundary) so paging is possible in BOTH
+  // directions — at index 0 a spurious "prev" is a no-op and would mask the bug,
+  // making this test pass even against the un-fixed handler.
+  await page.locator('.masonry-tile').nth(2).click()
+  await expect(page.locator('#lightbox-counter')).toContainText('03 /')
 
   await page.evaluate(() => {
     const lb = document.getElementById('lightbox')
     const touch = (id, x) => new Touch({ identifier: id, target: lb, clientX: x, clientY: 200 })
-    const fire = (type, touches) =>
+    const fire = (type, touches, changedTouches = touches) =>
       lb.dispatchEvent(new TouchEvent(type, {
         bubbles: true, cancelable: true,
-        touches, targetTouches: touches, changedTouches: touches,
+        touches, targetTouches: touches, changedTouches,
       }))
-    // Two fingers down, spreading wide apart (a pinch), then lifting.
+    // Two fingers down, then spreading wide apart (a pinch). Finger 0 travels
+    // 150→40 — a leftward 110px move the old handler read as a forward swipe.
     fire('touchstart', [touch(0, 150), touch(1, 170)])
     fire('touchmove',  [touch(0, 40),  touch(1, 320)])
-    fire('touchend',   [touch(1, 320)])           // first finger lifts, one remains
-    fire('touchend',   [])                          // last finger lifts
+    // Both fingers lift together: no touches remain, and changedTouches[0] is
+    // finger 0 at 40 → the old handler computed 150−40 = +110 ≥ 50 and paged
+    // Next (→ 04). The fixed handler sees multi-touch and stays put.
+    fire('touchend',   [], [touch(0, 40), touch(1, 320)])
   })
 
   // Still on the same image — the pinch was not mistaken for a swipe.
-  await expect(page.locator('#lightbox-counter')).toContainText('01 /')
+  await expect(page.locator('#lightbox-counter')).toContainText('03 /')
 })
 
 test('the close button dismisses the lightbox', async ({ page }) => {
