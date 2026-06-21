@@ -18,7 +18,7 @@
 // newsletter function — see ../lib. `Buffer` (image sniffing) is provided by the
 // `nodejs_compat` flag; `fetch` is the runtime global.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, EMAIL_RE } from '../lib/http.js'
+import { corsFor, replyWith, clientIp, EMAIL_RE, escHtml as esc } from '../lib/http.js'
 import { rateLimit, persistSubmission, reserveFlashPiece, releaseFlashPiece } from '../lib/db.js'
 import FLASH_PRICES from '../data/flash-prices.json'
 
@@ -297,10 +297,6 @@ function fullName(f) {
 function humanize(key, v) {
   if (key === 'days[]' && DAYS[v]) return DAYS[v]
   return String(v).replace(/[-_]/g, ' ').replace(/^\w/, c => c.toUpperCase())
-}
-
-function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 // Image type sniffing — a client's claimed MIME can't be trusted, so identify the

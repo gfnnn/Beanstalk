@@ -24,7 +24,7 @@
 // Every sub-step is idempotent / fail-safe, so Stripe's at-least-once redelivery
 // can't double-promote or double-charge.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith } from '../lib/http.js'
+import { corsFor, replyWith, escHtml as esc } from '../lib/http.js'
 import { verifyStripeSignature } from '../lib/stripe.js'
 import {
   hasWebhookEvent, recordWebhookEvent, getPayment, markPaymentStatus,
@@ -177,10 +177,6 @@ async function send(key, payload) {
     body: JSON.stringify(payload),
   })
   if (!res.ok) console.error('Resend (webhook) error', res.status, await res.text().catch(() => ''))
-}
-
-function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 function customerHtml({ name, pieceId, amount, reference }) {
