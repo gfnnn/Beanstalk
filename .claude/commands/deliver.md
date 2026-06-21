@@ -37,10 +37,21 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
    only skips — the PR's E2E job is the real gate). Do a security pass: input validation, PII/GDPR,
    rate limits, CORS/CSP, secrets never in the repo.
 
-5. **Hand back.** Summarise what changed and the verification result. Prepare the PR into `develop`
-   with the brief as the body — note plainly that the visual/E2E check can't run from a web session
-   and is left to the PR's E2E workflow + a local/human review. **Do not open the PR, push, or
-   merge unless I ask.**
+5. **Open the PR.** `git push -u origin feat/<thing>` and open the PR into `develop` with the brief
+   as the body. State plainly that the sandbox can't run the visual/E2E check — that's left to the
+   PR's E2E workflow + the user's review. This is the default now: open it, don't wait to be asked.
+
+6. **Monitor and react until green.** `subscribe_pr_activity` for the PR, then watch CI + review
+   comments. On a CI failure or a clear review ask, **diagnose and push the fix** (autofix when
+   confident); use `AskUserQuestion` only when the fix is ambiguous, architectural, or could be done
+   several ways. Re-check CI state proactively — a success isn't always delivered as a webhook event.
+   Loop until every check is green.
+
+7. **Final review, then hand over.** Once green, run **`/code-review`** on the diff (and also
+   **`/security-review`** when the change touches the Worker / forms / payments / any security
+   surface); address what it finds, looping back through 4–6 if you push fixes. Then hand the PR to me
+   with a tight summary + the green status. **Do not merge** — confirming any final changes and
+   merging is my call.
 
 Respect the web-session limits in `CLAUDE.md` (no browser/visual check, no remote-ref surgery) and
 match effort to a one-artist business: the smallest thing that genuinely helps.
