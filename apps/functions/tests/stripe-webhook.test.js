@@ -25,7 +25,7 @@ const post = (raw, header) => ({ httpMethod: 'POST', headers: { 'stripe-signatur
 const succeeded = (over = {}, metaOver = {}) => ({
   id: 'evt_1', type: 'payment_intent.succeeded',
   data: { object: {
-    id: 'pi_123', amount: PRICE, receipt_email: 'ada@example.com',
+    id: 'pi_123', amount: PRICE, currency: 'gbp', receipt_email: 'ada@example.com',
     metadata: { reference: REF, piece_id: PIECE, name: 'Ada', ...metaOver },
     ...over,
   } },
@@ -166,6 +166,29 @@ describe('stripe-webhook — payment_intent.succeeded', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('does NOT promote on the fail-open path when the amount disagrees with the price manifest', async () => {
+    // No payment row (checkout's DB write failed open), so the amount can't be read
+    // from the ledger — but the build-time manifest (flash-prices.json, the same
+    // source checkout charged from) is still the price authority. An intent whose
+    // amount differs from it is refused, exactly as a recorded mismatch is.
+    await reserveFlashPiece(env, PIECE, new Date(Date.now() + 3600e3).toISOString())
+    const { raw, header } = await sign(succeeded({ amount: 999 }))   // manifest flash-01 = 18000
+    const res = await H(post(raw, header))
+    expect(res.statusCode).toBe(200)
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'pending' })   // not promoted
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('does NOT promote when the intent currency disagrees (defence in depth)', async () => {
+    await seedCheckout()
+    const { raw, header } = await sign(succeeded({ currency: 'usd' }))   // recorded as gbp
+    const res = await H(post(raw, header))
+    expect(res.statusCode).toBe(200)
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'pending' })   // untouched
+    expect(d1.data.payments.get(REF).status).toBe('awaiting')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('claims the piece even when the 48h hold was already swept (paid after lapse)', async () => {
     // The pending hold expired and the lazy sweep deleted it, but the customer
     // still completed the PaymentIntent. A verified payment must end with the
@@ -200,6 +223,24 @@ describe('stripe-webhook — other events', () => {
     expect(res.statusCode).toBe(200)
     expect(flashMap(d1.data)).toEqual({})                       // hold freed
     expect(d1.data.payments.get(REF).status).toBe('expired')
+  })
+
+  it('a late cancel never demotes an already-paid sale (ledger stays paid, piece stays claimed)', async () => {
+    // Out-of-order redelivery / a manual dashboard cancel AFTER capture: the piece is
+    // already paid + claimed when a stray payment_intent.canceled for the same
+    // reference arrives. A different event id, so idempotency doesn't dedupe it — the
+    // ratchet (ifNotPaid + release-only-pending) is what keeps the sale standing.
+    await seedCheckout()
+    const ok = await sign(succeeded())
+    await H(post(ok.raw, ok.header))
+    expect(d1.data.payments.get(REF).status).toBe('paid')
+
+    const evt = { id: 'evt_late_cancel', type: 'payment_intent.canceled', data: { object: { id: 'pi_123', metadata: { reference: REF, piece_id: PIECE } } } }
+    const { raw, header } = await sign(evt)
+    const res = await H(post(raw, header))
+    expect(res.statusCode).toBe(200)
+    expect(d1.data.payments.get(REF).status).toBe('paid')      // NOT flipped to 'expired'
+    expect(flashMap(d1.data)).toEqual({ [PIECE]: 'claimed' })  // piece still sold
   })
 
   it('a delayed cancel never releases a NEWER customer’s hold on the same piece', async () => {

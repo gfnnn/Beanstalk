@@ -93,6 +93,28 @@ describe('flash inventory', () => {
     expect(await getFlashClaims(broken)).toEqual({})
   })
 
+  it('throttles the lazy expiry sweep to once per window (the read is public + uncapped)', async () => {
+    const d1 = makeD1()
+    const e  = { DB: d1.DB, PAYMENTS_ENABLED: 'true' }
+    const past = '2000-01-01T00:00:00Z'
+    // A far-future ms base, above the module's initial throttle clock, so the first
+    // read always clears the window regardless of test order. expirePendingClaims
+    // compares against REAL time internally, so a year-2000 hold is always lapsed —
+    // the injected `now` only drives the throttle gate.
+    const t0 = 10_000_000_000_000
+
+    await reserveFlashPiece(e, 'a', past)
+    expect(await getFlashClaims(e, t0)).toEqual({})              // window elapsed → swept
+    expect(d1.data.flash.has('a')).toBe(false)
+
+    await reserveFlashPiece(e, 'b', past)
+    expect(await getFlashClaims(e, t0 + 30_000)).toEqual({ b: 'pending' })  // <60s → no sweep
+    expect(d1.data.flash.has('b')).toBe(true)
+
+    expect(await getFlashClaims(e, t0 + 70_000)).toEqual({})     // window cleared → swept again
+    expect(d1.data.flash.has('b')).toBe(false)
+  })
+
   it('FAILS OPEN — allows the claim when the DB is unavailable (no reserved flag)', async () => {
     expect(await reserveFlashPiece(broken, 'flash-07')).toEqual({ ok: true })
   })
