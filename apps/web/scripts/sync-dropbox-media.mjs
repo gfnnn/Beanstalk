@@ -270,7 +270,11 @@ export async function collectLane({
     const isNew = !existingIds.has(slug)
     let meta = null
     if (isNew) {
-      const parsed = parseMasterName(lane, e.name, { drop })
+      // The portfolio date is optional; when a master omits it, fall back to the
+      // file's Dropbox upload date (server_modified) so the piece still gets a real
+      // made-on date for the grid order.
+      const uploadDate = (e.server_modified || e.client_modified || '').slice(0, 10) || null
+      const parsed = parseMasterName(lane, e.name, { drop, uploadDate })
       if (!parsed.ok) {
         rejects.push({ name: e.name, reason: parsed.reason })
         continue

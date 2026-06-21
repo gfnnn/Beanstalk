@@ -44,11 +44,16 @@
     .hero-actions,
     .studio-notices,
     .hero-media,
+    .hero-media-tag,
+    .scroll-hint,
     /* Page header entrance (inner pages — the above-the-fold title block) */
     .page-eyebrow,
     .page-title,
     .page-descriptor,
-    /* Filter bar controls (portfolio / flash) — cascade in with the page */
+    /* Filter bar controls (portfolio / flash) — cascade in with the page. The
+       toggle is the only one visible on mobile (chips collapse behind it); it's
+       display:none on desktop, so guarding it there is an inert no-op. */
+    .filter-bar .filter-toggle,
     .filter-bar .chip,
     .filter-bar .chip-more,
     .filter-bar .filter-select,
@@ -59,12 +64,15 @@
     .serif-note,
     .reveal,
     /* Bespoke inner-page section headers the unified registry reveals (those that
-       can sit above the fold — aftercare chooser, visit contact) */
+       can sit above the fold — services pricing, aftercare chooser, visit contact) */
+    .section-eyebrow,
     .chooser-eyebrow,
     .chooser-heading,
     .chooser-sub,
     .contact-heading,
     .contact-subhead,
+    .newsletter-band-title,
+    .newsletter-band-sub,
     /* Enquiry form column — gentle on-load entrance (progress bar + active step).
        This guard + the 2s failsafe below are the SOLE owners of the form's
        visibility: its entrance (animations.js) animates transform only, never
@@ -79,6 +87,21 @@
     .process-step,
     .testimonial,
     .flash-card
+  ) {
+    opacity: 0;
+    animation: motion-fouc-failsafe 1ms linear 2s forwards;
+  }
+}
+
+/* Mobile homepage hero only: the nav logo / burger / Enquire button reveal in
+   over the video (animations.js), so they need the same first-paint guard. Scoped
+   to .page-home + <900px because on every other page/viewport the nav paints
+   immediately and is never animated — it must NOT be hidden there. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 899px) {
+  html:not(.motion-ready) body.page-home :is(
+    #main-nav .nav-logo,
+    #main-nav .nav-hamburger,
+    #main-nav .nav-right .btn
   ) {
     opacity: 0;
     animation: motion-fouc-failsafe 1ms linear 2s forwards;

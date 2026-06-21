@@ -54,7 +54,7 @@ const entry = (name, over = {}) => ({
 const folder = name => ({ '.tag': 'folder', name })
 
 // Valid new-piece names per the " -- " grammar (master-metadata.mjs).
-const PIECE_A = 'Koi -- forearm -- colour+realism -- 2025-09-11.jpg'        // slug koi
+const PIECE_A = 'Koi -- arm -- colour+realism -- 2025-09-11.jpg'            // slug koi
 const PIECE_B = 'Lily Script -- leg -- fine-line -- 2025-03-11.png'         // slug lily-script
 const FLASH_A = 'Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg' // slug luna-moth
 
@@ -251,7 +251,7 @@ describe('collectLane', () => {
     expect(results.map(r => r.name).sort()).toEqual(['koi', 'lily-script'])
     expect(results.every(r => r.isNew)).toBe(true)
     const koi = results.find(r => r.name === 'koi')
-    expect(koi.meta).toMatchObject({ slug: 'koi', placement: 'forearm', styles: ['colour', 'realism'], date: '2025-09-11' })
+    expect(koi.meta).toMatchObject({ slug: 'koi', placement: 'arm', styles: ['colour', 'realism'], date: '2025-09-11' })
 
     // each job went through the portfolio lane into our out dir, with crop:true
     for (const call of processFn.mock.calls) {
@@ -284,12 +284,12 @@ describe('collectLane', () => {
     })
     expect(results.map(r => r.name)).toEqual(['koi'])
     expect(rejects).toHaveLength(1)
-    expect(rejects[0].reason).toMatch(/Mystery\.jpg.*needs 4 or 5/)
+    expect(rejects[0].reason).toMatch(/Mystery\.jpg.*needs 3, 4, or 5/)
     expect(client.download).toHaveBeenCalledTimes(1) // the reject was never downloaded
   })
 
   it('rejects an unknown style/placement token exactly (no fuzzy matching)', async () => {
-    const client = fakeClient([entry('Koi -- forearm -- watercolour -- 2025-09-11.jpg')])
+    const client = fakeClient([entry('Koi -- arm -- watercolour -- 2025-09-11.jpg')])
     const { results, rejects } = await collectLane({
       lane: 'portfolio', remote: '/r', client, cacheDir, outDir, processFn: fakeProcess(), log: () => {},
     })
@@ -400,7 +400,7 @@ describe('collectLane', () => {
 describe('entryLinesFor + renderSummary', () => {
   const portfolioResult = {
     name: 'koi', isNew: true, warnings: [],
-    meta: { slug: 'koi', title: 'Koi', subject: 'a koi carp', subjectDefaulted: false, styles: ['colour'], placement: 'forearm', date: '2025-09-11', tone: 't-stone', glyph: 'sprig' },
+    meta: { slug: 'koi', title: 'Koi', subject: 'a koi carp', subjectDefaulted: false, styles: ['colour'], placement: 'arm', date: '2025-09-11', tone: 't-stone', glyph: 'sprig' },
     rows: [{ name: 'koi', width: 800, ext: 'jpg', w: 800, h: 1067, bytes: 1 }],
   }
 

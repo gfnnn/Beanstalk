@@ -50,6 +50,27 @@ export const media = {
       { src: '/videos/hero.mp4',  type: 'video/mp4'  },
     ],
     gif:    '/videos/hero.gif',
+
+    // OPTIONAL portrait clip — shown on the MOBILE full-screen hero (<900px); the
+    // landscape `sources` above stay the desktop 45/55 column (≥900px). When this
+    // block is present the renderer (src/build/media.js) emits a SECOND <video>
+    // tagged .media-clip--portrait and CSS swaps the two by breakpoint; remove it
+    // and the single landscape clip is cropped to cover on mobile, as before.
+    // Leave the homepage on `show:false` until the files land in public/videos/.
+    //
+    // Portrait shoot brief:
+    //   — Frame:    9:16 portrait, full-bleed. Subject lower-centre; headroom up
+    //               top so the overlaid headline/credit sit over clean negative space.
+    //   — Light:    Warm, directional. Same grade as the landscape cut.
+    //   — Duration: 25–30 sec seamless loop (last frame matches first). No audio.
+    //   — Export:   WebM (VP9) primary + MP4 (H.264) fallback. Target < 5 MB.
+    portrait: {
+      poster: '/videos/hero-portrait-poster.jpg',
+      sources: [
+        { src: '/videos/hero-portrait.webm', type: 'video/webm' },
+        { src: '/videos/hero-portrait.mp4',  type: 'video/mp4'  },
+      ],
+    },
   },
 
   // About page hero — the portrait frame in the intro (a calm looping clip of

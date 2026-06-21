@@ -1,9 +1,42 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { CustomEase } from 'gsap/CustomEase'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger, CustomEase)
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// ── One motion language (§3 woodland) ─────────────────────────────────────────
+// The entrance shares the SAME easing curves as the rest of the site — the CSS
+// `--ease-*` tokens in styles/variables.css — so load, scroll, hover and ambient
+// motion all read as one hand (see docs/MOTION.md → Motion language). Two curves,
+// applied BY ROLE:
+//   SOFT    — the house curve (= --ease-soft): fast start, soft landing. TEXT —
+//             headings (with the §3-C blur-to-focus), bodies, eyebrows, the
+//             page-header, the filter chips, the form rise, generic `.reveal`.
+//   ORGANIC — a gentle overshoot (= --ease-organic): a living "stem settle"
+//             (§3-F). ASSETS that grow/arrive — the card/tile grids and the hero
+//             media. The sprig growth keeps its own back.out (also organic) below.
+// CustomEase mirrors the exact bezier control points, so JS uses the same curve as
+// CSS — one language, not an approximation.
+const SOFT    = CustomEase.create('bs-soft',    '0.16, 1, 0.3, 1')
+const ORGANIC = CustomEase.create('bs-organic', '0.34, 1.2, 0.64, 1')
+
+// ── The positional reveal wave ────────────────────────────────────────────────
+// Every above-the-fold on-load reveal (the registry headers, the card grids, the
+// filter bar, generic `.reveal`) reads its delay from ONE position→time curve, so
+// the first view reveals as a single top-to-bottom wave instead of each mechanism
+// firing on its own fixed schedule. An element at the top of the viewport reveals
+// at ~WAVE_BASE; one near the fold at ~WAVE_BASE+WAVE_SPAN. The hero / page-header
+// timelines stay the LEAD (their own choreographed top-of-page beats); the wave
+// flows on beneath them. Below-the-fold elements ignore this and keep their own
+// scroll triggers. Tune the two constants to retime the whole wave at once.
+const WAVE_BASE = 0.35
+const WAVE_SPAN = 0.5
+function wavePos(el) {
+  const top = el.getBoundingClientRect().top
+  return WAVE_BASE + Math.min(Math.max(top, 0) / window.innerHeight, 1) * WAVE_SPAN
+}
 
 // ── Hero entrance ─────────────────────────────────────────────────────────────
 export function initHeroAnimation() {
@@ -23,21 +56,29 @@ export function initHeroAnimation() {
 
   if (!heading) return
 
-  // Text column entrance — identical on all viewports
+  // Text column entrance — identical on all viewports. SOFT house curve; the §3-C
+  // blur-to-focus rides the heading. This timeline is the LEAD of the page wave.
   const tl = gsap.timeline({
-    defaults: { ease: 'power3.out' },
+    defaults: { ease: SOFT },
     delay: 0.15,
   })
 
   if (eyebrow) tl.from(eyebrow, { opacity: 0, duration: 0.7 })
 
   tl.from(heading, {
-    opacity: 0, y: 30, filter: 'blur(8px)', duration: 0.9, ease: 'power4.out',
+    opacity: 0, y: 30, filter: 'blur(8px)', duration: 0.9,
   }, eyebrow ? '-=0.4' : 0)
 
   if (body)         tl.from(body,    { opacity: 0, y: 18, filter: 'blur(5px)', duration: 0.7 }, '-=0.5')
   if (actions.length) tl.from(actions, { opacity: 0, y: 14, stagger: 0.1, duration: 0.6 }, '-=0.45')
   if (notices)      tl.from(notices, { opacity: 0, y: 10, duration: 0.6 }, '-=0.35')
+
+  // The scroll cue is the hero's last beat (desktop-only — display:none < 900px,
+  // so on mobile this targets a non-rendered element and is an inert no-op). It
+  // was previously static at full opacity while the hero blur-faded in. Its
+  // infinite `::before` line-bounce (hero.css) is untouched.
+  const scrollHint = document.querySelector('.scroll-hint')
+  if (scrollHint) tl.from(scrollHint, { opacity: 0, y: 8, duration: 0.6 }, '-=0.25')
 
   // Botanical sprout *grows* (§3-A) on its own timeline, independent of the text
   // beats above so the choreography reads cleanly: seed → stem → leaves → crown,
@@ -50,14 +91,37 @@ export function initHeroAnimation() {
   if (media) {
     const mm = gsap.matchMedia()
 
-    // Mobile: media stacks above text, animate from slight upward position
+    // Mobile: the media is now the full-screen video opener. It eases up first
+    // (covering the viewport), then the overlay elements reveal in sequence over
+    // it — on the homepage that includes the nav (logo → burger → Enquire) and
+    // the video credit; the eyebrow + h1 ride the shared timeline above. The nav
+    // bits are guarded against first-paint flash in motion.css (.page-home only).
     mm.add('(max-width: 899px)', () => {
-      gsap.from(media, { opacity: 0, y: 20, duration: 0.85, ease: 'power2.out', delay: 0 })
+      const onHome = document.body.classList.contains('page-home')
+      const navBits = onHome
+        ? ['#main-nav .nav-logo', '#main-nav .nav-hamburger', '#main-nav .nav-right .btn']
+            .map(s => document.querySelector(s)).filter(Boolean)
+        : []
+      const credit = document.querySelector('.hero-video-credit')
+
+      const mtl = gsap.timeline({ defaults: { ease: SOFT }, delay: 0.1 })
+      mtl.from(media, { opacity: 0, y: 20, duration: 0.85, ease: ORGANIC }, 0)
+      // Nav items fade in with NO y-shift. They're persistent controls that carry
+      // their own springy CSS `transition: transform` (buttons.css), so a GSAP
+      // y-translate fights that transition and can leave the Enquire button resting
+      // a few px high — opacity-only keeps every nav item pinned to its true layout
+      // position (flush with the hamburger) while still revealing over the video.
+      if (navBits.length) mtl.from(navBits, { opacity: 0, stagger: 0.12, duration: 0.6 }, 0.3)
+      if (credit)         mtl.from(credit,  { opacity: 0, y: 10, duration: 0.6, clearProps: 'transform' }, '>-0.1')
     })
 
-    // Desktop: media is the right column, slide in from the right edge
+    // Desktop: media is the right column, slide in from the right edge (ORGANIC —
+    // an asset settling in). The studio-location tag sits over the media and used
+    // to be static; reveal it as a gentle late beat so the hero arrives together.
     mm.add('(min-width: 900px)', () => {
-      gsap.from(media, { opacity: 0, x: 24, duration: 0.95, ease: 'power2.out', delay: 0.1 })
+      gsap.from(media, { opacity: 0, x: 24, duration: 0.95, ease: ORGANIC, delay: 0.1 })
+      const tag = document.querySelector('.hero-media-tag')
+      if (tag) gsap.from(tag, { opacity: 0, y: 8, duration: 0.6, ease: SOFT, delay: 0.5 })
     })
   }
 }
@@ -141,7 +205,7 @@ function growSprout() {
 // site shares one vocabulary (per-item `each` stagger, gentle rise, blur-free).
 // Reduced motion and empty inputs no-op; `clearProps:'transform'` strips the
 // inline transform afterwards so hover / sticky states settle at their true spot.
-export function cascadeReveal(items, { y = 16, each = 0.06, duration = 0.6, ease = 'power2.out', delay = 0 } = {}) {
+export function cascadeReveal(items, { y = 16, each = 0.06, duration = 0.6, ease = SOFT, delay = 0 } = {}) {
   if (reduced) return
   const list = gsap.utils.toArray(items).filter(Boolean)
   if (!list.length) return
@@ -164,7 +228,7 @@ export function cascadeReveal(items, { y = 16, each = 0.06, duration = 0.6, ease
 //      header) play a deliberate on-LOAD cascade sequenced just after the header,
 //      instead of a ScrollTrigger that fires instantly and competes with it.
 //      Below the fold they reveal on scroll as you reach them.
-function revealGroup(items, { trigger, y = 22, duration = 0.7, ease = 'power2.out', each = 0.055, blur = 0 } = {}) {
+function revealGroup(items, { trigger, y = 22, duration = 0.7, ease = ORGANIC, each = 0.055, blur = 0 } = {}) {
   const list = gsap.utils.toArray(items)
   if (!list.length) return
   const root = trigger || list[0].parentElement
@@ -179,7 +243,9 @@ function revealGroup(items, { trigger, y = 22, duration = 0.7, ease = 'power2.ou
   if (blur) vars.filter = `blur(${blur}px)`
   const aboveFold = root.getBoundingClientRect().top < window.innerHeight * 0.85
   if (aboveFold) {
-    gsap.from(list, { ...vars, delay: 0.5 })   // continue the header's entrance
+    // Join the positional wave at the grid's place in the page; the per-card
+    // `each` stagger then continues the wave WITHIN the grid.
+    gsap.from(list, { ...vars, delay: wavePos(root) })
   } else {
     gsap.from(list, { ...vars, scrollTrigger: { trigger: root, start: 'top 85%', once: true } })
   }
@@ -205,9 +271,11 @@ export function initScrollAnimations() {
   // ── Unified section reveal — ONE registry, every page ───────────────────────
   // Reveals each section's eyebrow / heading / body the same way site-wide: the
   // generic semantic classes the homepage uses, PLUS the per-page bespoke
-  // equivalents inner pages invented (`.chooser-*`, `.contact-*`, `.newsletter-
-  // band-*`) — so a page can't quietly fall out of motion coverage just by naming
-  // its header differently. A faint blur-to-sharp ("coming into focus through
+  // equivalents inner pages invented (`.section-eyebrow`, `.chooser-*`,
+  // `.contact-*`, `.newsletter-band-*`) — so a page can't quietly fall out of
+  // motion coverage just by naming its header differently (e.g. the services
+  // "What it costs" eyebrow, which sat static beside its animating title). A
+  // faint blur-to-sharp ("coming into focus through
   // foliage", §3-C) rides the headings only; offsets shrink on mobile to protect
   // the budget.
   //
@@ -221,13 +289,16 @@ export function initScrollAnimations() {
   // above-the-fold bespoke headers so they don't flash before this runs. Adding a
   // new section header => use a listed class, or add its class here.
   const mobile = window.matchMedia('(max-width: 899px)').matches
+  // SOFT (text). The per-role base (0 / 0.06 / 0.12) is a SMALL intra-section
+  // micro-stagger (eyebrow → heading → body) added on top of the positional wave,
+  // so a section's parts lead in order while sections order by page position.
   const roles = [
-    ['.eyebrow, .chooser-eyebrow', 0,
-      { opacity: 0, x: mobile ? -14 : -20, duration: mobile ? 0.6 : 0.65, ease: 'power2.out' }],
-    ['.section-title, .page-hero__title, .chooser-heading, .contact-heading, .newsletter-band-title', 0.08,
-      { opacity: 0, y: mobile ? 16 : 28, filter: `blur(${mobile ? 4 : 6}px)`, duration: mobile ? 0.7 : 0.85, ease: 'power3.out' }],
-    ['.body-text, .serif-note, .chooser-sub, .contact-subhead, .newsletter-band-sub', 0.16,
-      { opacity: 0, y: mobile ? 12 : 18, duration: mobile ? 0.6 : 0.7, ease: 'power2.out' }],
+    ['.eyebrow, .chooser-eyebrow, .section-eyebrow', 0,
+      { opacity: 0, x: mobile ? -14 : -20, duration: mobile ? 0.6 : 0.65, ease: SOFT }],
+    ['.section-title, .page-hero__title, .chooser-heading, .contact-heading, .newsletter-band-title', 0.06,
+      { opacity: 0, y: mobile ? 16 : 28, filter: `blur(${mobile ? 4 : 6}px)`, duration: mobile ? 0.7 : 0.85, ease: SOFT }],
+    ['.body-text, .serif-note, .chooser-sub, .contact-subhead, .newsletter-band-sub', 0.12,
+      { opacity: 0, y: mobile ? 12 : 18, duration: mobile ? 0.6 : 0.7, ease: SOFT }],
   ]
   const claimed =
     '.reveal, .hero, .page-header, .filter-bar, [hidden], .care-stage, .form-steps, ' +
@@ -238,7 +309,7 @@ export function initScrollAnimations() {
       if (el.closest(claimed)) return                 // already animated elsewhere
       const aboveFold = el.getBoundingClientRect().top < window.innerHeight * 0.9
       if (aboveFold) {
-        gsap.from(el, { ...vars, delay: 0.4 + base })             // on-load, after the header
+        gsap.from(el, { ...vars, delay: wavePos(el) + base })     // join the positional wave
       } else {
         gsap.from(el, { ...vars, scrollTrigger: { trigger: el, start: 'top 88%', once: true } })
       }
@@ -257,7 +328,7 @@ export function initScrollAnimations() {
 
   const specGrid = document.querySelector('.specialism-grid')
   if (specGrid) revealGroup(specGrid.querySelectorAll('.specialism-card'),
-    { trigger: specGrid, y: 28, duration: 0.8, ease: 'power3.out', each: 0.1 })
+    { trigger: specGrid, y: 28, duration: 0.8, ease: ORGANIC, each: 0.1 })
 
   const procGrid = document.querySelector('.process-grid')
   if (procGrid) revealGroup(procGrid.querySelectorAll('.process-step'),
@@ -280,7 +351,7 @@ export function initScrollAnimations() {
   const pageEye   = document.querySelector('.page-eyebrow')
   const pageDesc  = document.querySelector('.page-descriptor')
   if (pageTitle) {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 })
+    const tl = gsap.timeline({ defaults: { ease: SOFT }, delay: 0.1 })
     if (pageEye)  tl.from(pageEye,  { opacity: 0, duration: 0.65 })
     tl.from(pageTitle, { opacity: 0, y: 28, filter: 'blur(6px)', duration: 0.8 }, pageEye ? '-=0.35' : 0)
     if (pageDesc) tl.from(pageDesc, { opacity: 0, y: 16, duration: 0.7 }, '-=0.45')
@@ -304,7 +375,7 @@ export function initScrollAnimations() {
   ].filter(Boolean)
   if (formIntro.length) {
     gsap.from(formIntro, {
-      y: 14, duration: 0.6, ease: 'power2.out', stagger: 0.1, delay: 0.45,
+      y: 14, duration: 0.6, ease: SOFT, stagger: 0.1, delay: 0.45,
       clearProps: 'transform',
     })
   }
@@ -316,11 +387,15 @@ export function initScrollAnimations() {
   //    sequenced after the header start. motion.css guards these against a flash.
   const filterBar = document.querySelector('.filter-bar')
   if (filterBar) {
-    const controls = filterBar.querySelectorAll('.chip, .chip-more, .filter-select')
+    // `.filter-toggle` leads: on mobile the chips/select are collapsed (display:
+    // none) behind it, so it's the only VISIBLE control — leading the cascade with
+    // it lets the wave start on something seen, then continue into the chips. On
+    // desktop the toggle is display:none (inert no-op) and the chips cascade.
+    const controls = filterBar.querySelectorAll('.filter-toggle, .chip, .chip-more, .filter-select')
     if (controls.length) {
       gsap.from(controls, {
-        opacity: 0, y: 8, duration: 0.5, ease: 'power2.out',
-        stagger: { each: 0.035, from: 'start' }, delay: 0.3,
+        opacity: 0, y: 8, duration: 0.5, ease: SOFT,
+        stagger: { each: 0.035, from: 'start' }, delay: wavePos(filterBar),
       })
     }
   }
@@ -340,10 +415,10 @@ export function initScrollAnimations() {
     const step = el.classList.contains('reveal-d3') ? 0.3
                : el.classList.contains('reveal-d2') ? 0.2
                : el.classList.contains('reveal-d1') ? 0.1 : 0
-    const vars = { opacity: 0, y: 20, filter: 'blur(4px)', duration: 0.7, ease: 'power2.out' }
+    const vars = { opacity: 0, y: 20, filter: 'blur(4px)', duration: 0.7, ease: SOFT }
     const aboveFold = el.getBoundingClientRect().top < window.innerHeight * 0.9
     if (aboveFold) {
-      gsap.from(el, { ...vars, delay: 0.4 + step })   // on-load cascade, after the header entrance
+      gsap.from(el, { ...vars, delay: wavePos(el) + step })   // join the positional wave; .reveal-d* nudges same-row groups
     } else {
       gsap.from(el, {
         ...vars,

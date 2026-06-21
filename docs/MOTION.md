@@ -18,8 +18,53 @@ gets a fully visible, static page.
 | **Entrance animations** | `src/js/modules/animations.js` (GSAP) | Hero / page-header entrance, scroll reveals, grid + card cascades |
 | **FOUC guard** | `src/styles/motion.css` | Hold the entrance elements hidden from first paint so GSAP's `.from()` never flashes |
 | **Full-page loader** | `src/build/loader.js` (inject) + `src/js/modules/loader.js` (dismiss) | The cream cover for the slow **cold** first load |
-| **Page transitions** | `src/styles/components/atmosphere.css` | Cross-document View Transition — a soft cross-fade between routes |
+| **Page transitions** | opt-in inlined in `<head>` (`src/build/transition.js`); animations in `atmosphere.css` | Cross-document View Transition — a soft cross-fade between routes |
 | **Animated hairline rules** | `atmosphere.css` (the `--rule-scale` switch + `.divider`) + per-page hairline pseudos | Dividers that grow in from the left as the page builds |
+| **Brand-mark ink-rise** | shared `mark-rise` in `atmosphere.css` | The calligraphic logo "draws" in (clip-path wipe from the base) on the nav logo (cold load only) and the confirmation mark — *not* the preloader (its cover can lift before a reveal-from-hidden shows) |
+
+## Motion language (§3 woodland) — the one vocabulary
+
+Every motion on the site — load reveal, scroll reveal, hover, ambient, page
+transition — speaks **one language**, so the whole reads as one hand rather than a
+pile of independent effects. This is the source of truth (it replaces the old
+`beansprout-woodland-motion-direction.md`); the `§3-x` tags are referenced from the
+code.
+
+**Easing — two curves, by role.** Both are the `--ease-*` tokens in
+`styles/variables.css`; the JS entrance mirrors them via `CustomEase` in
+`animations.js` (`SOFT`/`ORGANIC`) so JS and CSS use the *same* bezier, not an
+approximation.
+
+| Curve | Token / bezier | Used by |
+|---|---|---|
+| **SOFT** | `--ease-soft` `cubic-bezier(0.16,1,0.3,1)` — fast start, soft landing | **Text**: headings, bodies, eyebrows, the page-header, filter chips, the form rise, generic `.reveal`, the brand-mark ink-rise |
+| **ORGANIC** | `--ease-organic` `cubic-bezier(0.34,1.2,0.64,1)` — a gentle overshoot, a living "stem settle" (§3-F) | **Assets that grow/arrive**: the card/tile grids (`revealGroup`), the hero media. The sprig growth keeps its own `back.out` (also organic) |
+
+**Duration** anchors to `--dur-slow` ≈ 0.64s for reveals (text ~0.6–0.7, headings
+~0.8 with blur, cards ~0.7); `--dur` (220ms) for quick interaction states; `--sway`
+(14s) for the ambient sprig loop.
+
+**Direction & texture vocabulary.** Text **rises** (`y`); eyebrows **slide from the
+left** (their leading hairline grows in too); the hero media **slides from the
+edge**. A faint **blur-to-focus** ("coming into focus through foliage", §3-C) rides
+**headings only**. The sprig **draws / grows** (§3-A line-drawing, §3-B living ink);
+the page gains shallow **depth** on scroll (§3-D, the sprig parallax); surfaces get a
+"light falling on it" lift on hover (§3-F); the whole sits on **paper grain** (§3-H);
+routes **cross-fade** (§3-G).
+
+**The positional wave.** On a cold load the first view reveals as **one top-to-bottom
+wave**, not per-mechanism buckets: the hero / page-header timeline is the *lead*, then
+every other above-the-fold reveal (registry headers, grids, the filter bar, generic
+`.reveal`) reads its delay from a single position→time curve (`wavePos` in
+`animations.js`, `WAVE_BASE`/`WAVE_SPAN`) so elements arrive in visual order. A small
+per-role / `.reveal-d*` offset gives the intra-section micro-stagger (eyebrow →
+heading → body). Below the fold, each element keeps its own scroll trigger.
+
+**Deliberately bespoke (not drift).** A few motions intentionally sit *outside* the
+two curves and are kept so on purpose: the button spinner (`linear` — constant spin),
+the skip-link (snappy `150ms` focus affordance), the hairline-rule grow (its own gentle
+in-out "draw from the left"), and the loader breathe (`pl-breathe`/`pl-pulse`, its own
+self-contained inline-critical timing). The sprig `feTurbulence` "living ink" is SMIL.
 
 ## The coordination spine: `pageReady` → `motion-ready`
 
@@ -32,14 +77,17 @@ The whole reveal hangs off one promise and one class.
 2. **`initPageLoader()`** (first call in `main.js`) decides *when the page should be
    revealed* and resolves the exported **`pageReady`** promise at that moment:
    - **Warm** in-session navigation (this tab has loaded a page already this
-     session — `sessionStorage['bs-visited']`): the cover is dropped instantly and
-     `pageReady` resolves right away. The View Transition is doing the cross-fade,
-     so the cover would only get in the way.
+     session — `sessionStorage['bs-visited']`, *except* a reload, which counts as
+     cold): the cover is dropped instantly and `pageReady` resolves right away. The
+     View Transition is doing the cross-fade, so the cover would only get in the way.
    - **Cold** load: the cover holds until `document.fonts.ready` (the font swap is
-     the real cause of the reflow), then fades — and `pageReady` resolves as the
+     the real cause of the reflow), then lifts **all-or-nothing**: a cover that's
+     been visible ≤0.4s lifts immediately (reads as "no preloader ran"), while one
+     seen any longer commits — holding to a 1.6s minimum total so the mark plays a
+     full breathe beat — and only then fades. Either way `pageReady` resolves as the
      fade *begins*, so the entrance plays **as the cover lifts**, not behind it.
-     A 3s JS ceiling and a 6s pure-CSS failsafe guarantee the cover can never trap
-     the page.
+     Full decision table in the loader section below. A 3s JS ceiling and a 6s
+     pure-CSS failsafe guarantee the cover can never trap the page.
 3. **`pageReady.then(...)`** in `main.js` does the reveal: add `motion-ready` to
    `<html>`, then run `initHeroAnimation()` + `initScrollAnimations()`. The class
    flip and GSAP's `.from()` start-states land in **one synchronous tick**, so the
@@ -127,19 +175,84 @@ whole page from first paint.
   overlay markup is injected right after `<body>`. The `pageLoader` Vite plugin does
   this site-wide; `piece-page.js` carries its own copy for the per-piece pages (both
   inserts are idempotent).
-- The sprig is shown **fully formed** with only a gentle **compositor opacity
-  breathe** — *not* a `stroke-dashoffset` self-inking draw. A draw is a main-thread
-  property that janks under load-time contention, and a staggered per-path draw
-  renders inconsistently on a quick cover (the "two leaves, no stem" flash). Shown-
-  complete + breathe reads right at any load speed and glimpse length.
+- The mark is shown **fully formed** with only a gentle compositor **opacity
+  breathe** — it deliberately does *not* reveal-from-hidden. The cover dismisses on
+  `document.fonts.ready` (near-instant on a mobile/cached load), so a draw or fade-in
+  *here* would still be hidden when the cover lifts (the "missing on mobile"
+  regression). The ink-rise draw lives on the nav logo + confirmation mark instead,
+  past the dismiss race — see *Brand-mark ink-rise* below.
 - Dismissal and `pageReady` are described in the coordination spine above.
 
-## Page transitions (`atmosphere.css`)
+### When the cover shows, and for how long (the decision table)
+
+The cover is painted from the very first frame on every cold load — that part is
+unconditional (it *is* the FOUC cover). The orchestration is entirely about **when
+it lifts**, and it is **all-or-nothing** so the visitor never sees a half-played
+performance (the old "ready at 0.5–1.5s" jank zone, where the cover registered and
+was then yanked mid-breathe). The thresholds are `QUICK_LIFT_MS` (400) and
+`MIN_SHOW_MS` (1600) in `modules/loader.js`; visible time is measured from
+first-contentful-paint (the cover *is* the FCP — falling back to init time, which
+errs toward holding, never flashing).
+
+| Situation | What happens |
+|---|---|
+| Cold, ready while cover seen **≤ 0.4s** | Lift immediately — reads as "no preloader ran"; the entrance starts as the fade begins, so there's never >0.4s without content or motion |
+| Cold, ready when cover seen **> 0.4s** | **Commit**: hold to 1.6s total visible (a full breathe beat), then fade — the performance always completes |
+| Cold, ready **after 1.6s** | Already played out — fade with no extra hold |
+| Warm in-session navigation | No cover (instant drop before the View Transition snapshot); the VT cross-fades real content |
+| **Mid-session reload** | Counts as **cold** — a reload re-fetches the render-blocking CSS/fonts and has no inbound VT, so the warm instant-drop would re-expose the font-swap flash |
+| Fonts hang | 3s JS ceiling forces the dismissal decision |
+| Bundle never runs | 6s pure-CSS `pl-failsafe` removes the cover (the worst committed fade starts ~4.2s, comfortably inside it) |
+| Reduced motion | No hold (there's no performance to finish) — lift as soon as ready, no fade |
+
+### Brand-mark ink-rise (the shared logo "draw")
+
+The calligraphic brand mark (`src/build/favicon.js`, one **filled** `<path>`) reveals
+with a single **clip-path wipe from the base up** (`mark-rise`, in `atmosphere.css`) —
+but only where there's no dismiss race to swallow it:
+
+- **Preloader** — *not* drawn. Shown complete + breathe (above): its cover can lift
+  before a reveal-from-hidden has shown anything, so a draw there reads as a missing
+  mark (worst on mobile/fast loads).
+- **Nav logo** — draws **only on a cold first load** (`html.cold-start`, set by
+  `modules/loader.js`), hung off `.motion-ready` so it reveals *as the cover lifts* on
+  the real page. Warm in-session navs deliberately skip it — the page transition
+  already carries the header, so re-drawing it every navigation would be busywork. No
+  first-paint guard is needed: the cover is over the nav until `.motion-ready` flips.
+- **Confirmation mark** (`/enquiry-received/`) — a one-time success flourish. A warm
+  redirect has no cover, so it's clip-guarded from first paint (`html:not(.motion-ready)`,
+  with a 3s `mark-rise-failsafe` so a dead bundle can't leave it stuck-clipped) and
+  drawn when the bundle flips `.motion-ready`, riding inside its `.reveal` block.
+
+Why clip-path, not the hero sprig's self-ink: the mark is **one filled silhouette** —
+there are no strokes to draw and no sub-parts to stagger, so `stroke-dashoffset` can't
+apply at all. A clip-path `inset()` is a single **monotonic** reveal on one element (no
+half-drawn per-path inconsistency — the old "two leaves, no stem" failure). It sits
+under `prefers-reduced-motion: no-preference`, so a reduced-motion visitor simply sees
+the mark, shown complete. The lesson the preloader bullet encodes: a reveal-from-hidden
+needs a context that stays on screen long enough — the cover doesn't.
+
+## Page transitions (opt-in inline; animations in `atmosphere.css`)
 
 `@view-transition { navigation: auto }` opts the whole site into **cross-document
 View Transitions** — a soft cross-fade (old fades out 320ms, new fades in + small
 upward settle 420ms). The key property is that it **overlaps** the old and new page
 snapshots, so the page never empties to a blank frame between routes.
+
+**The opt-in is inlined in `<head>`** (`src/build/transition.js`, injected by the
+`viewTransition` plugin + carried into per-piece pages by `piece-page.js`), *not*
+left in `atmosphere.css`. A cross-document VT only plays if the inbound page is known
+to be opting in by the time the browser arms the transition (around `pagereveal`,
+before first render). In `atmosphere.css` the opt-in sits one `@import`-hop behind
+`main.css`, so on a slow inbound render the browser can hit its render deadline first,
+**skip** the transition, and hard-cut — rejecting with `AbortError: Transition was
+skipped` (which `modules/loader.js` now swallows). Inlined, it's parsed from the first
+bytes, before any stylesheet fetch, so the transition is armed as early as possible —
+the leading fix for "transitions feel inconsistent" (a skip degrades silently to a
+hard cut, load-dependent). The `::view-transition-*` animations stay in
+`atmosphere.css`: they only run once a transition is live, by when `main.css` is
+loaded. (Inbound first-paint latency — the render-blocking Google-Fonts request — is
+the *other* lever on skip rate, not yet pulled.)
 
 > ⚠️ This is why the transition is a View Transition and **not** a JS
 > "fade-out → navigate → fade-in" engine. Across an MPA navigation a JS fade can't

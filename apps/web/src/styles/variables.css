@@ -7,7 +7,6 @@
      of those palette colours, so they recolour automatically when the palette
      changes. To change a colour, edit src/data/palette.js. */
   --moss-bg:   rgba(var(--moss-rgb), 0.08);
-  --amber-bg:  rgba(var(--amber-rgb), 0.1);
   --line:      rgba(var(--ink-rgb), 0.14);
   --line-soft: rgba(var(--ink-rgb), 0.07);
 
@@ -22,18 +21,17 @@
   --filter-h:  60px;
   --radius-sm: 4px;
   --radius:    8px;
-  --radius-lg: 20px;
 
   /* ── Motion ──────────────────────────────────────────── */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur:  220ms;
 
-  /* Motion palette (woodland direction — see beansprout-woodland-motion-direction.md).
-     --ease-soft and --dur-fast alias the house curve/duration above; new tokens add a
-     gently-overshooting "growth" curve and longer durations for reveals + ambient loops. */
+  /* Motion palette (woodland direction §3 — the ONE motion language; see
+     docs/MOTION.md → "Motion language"). --ease-soft aliases the house curve above;
+     --ease-organic adds a gently-overshooting "growth/stem" curve. The JS entrance
+     (animations.js) mirrors these exact curves via CustomEase, so load/scroll motion
+     uses the SAME bezier as hover/transition motion — SOFT for text, ORGANIC for
+     assets that grow/arrive. */
   --ease-soft:    cubic-bezier(0.16, 1, 0.3, 1);    /* = --ease — soft landing, fast start */
   --ease-organic: cubic-bezier(0.34, 1.2, 0.64, 1); /* slight overshoot — springy "stem" feel */
-  --dur-fast:     220ms;                             /* = --dur */
-  --dur-slow:     640ms;                             /* reveals, settles */
-  --sway:         14s;                               /* ambient loop length */
 }

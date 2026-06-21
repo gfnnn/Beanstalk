@@ -60,6 +60,46 @@ describe('initLoadMore', () => {
     expect(document.getElementById('load-more-section').style.display).toBe('')
   })
 
+  it('keeps the progressbar ARIA in step with the visual fill', () => {
+    setup(20)
+    // The markup ships placeholder values; the module owns them once it knows
+    // the real catalogue size.
+    const fill = document.getElementById('progress-fill')
+    const bar = document.createElement('div')
+    bar.setAttribute('role', 'progressbar')
+    fill.replaceWith(bar); bar.appendChild(fill)
+    initLoadMore()
+    expect(bar.getAttribute('aria-valuenow')).toBe('16')
+    expect(bar.getAttribute('aria-valuemax')).toBe('20')
+    click(document.getElementById('load-more-btn'))
+    expect(bar.getAttribute('aria-valuenow')).toBe('20')
+  })
+
+  it('ignores clicks while the button is disabled (no double reveal)', () => {
+    setup(40)
+    initLoadMore()
+    const btn = document.getElementById('load-more-btn')
+    click(btn)                  // reveals page 2, button now in its loading state
+    expect(btn.disabled).toBe(true)
+    click(btn)                  // must NOT reveal page 3
+    expect(shownTiles()).toHaveLength(32)
+  })
+
+  it('re-shows a within-window tile that was left display:none (post-sort window restore)', () => {
+    setup(10)
+    tiles()[0].style.display = 'none'   // hidden by an earlier window state
+    initLoadMore()
+    expect(tiles()[0].style.display).toBe('')
+    expect(tiles()[0].dataset.shown).toBe('true')
+  })
+
+  it('handles an empty catalogue: 0% fill and the control hidden', () => {
+    setup(0)
+    initLoadMore()
+    expect(document.getElementById('progress-fill').style.width).toBe('0%')
+    expect(document.getElementById('load-more-section').style.display).toBe('none')
+  })
+
   it('clicking reveals the next page and fires the onReveal hook', () => {
     setup(20)
     const api = initLoadMore()

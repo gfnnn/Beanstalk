@@ -75,7 +75,7 @@
   }
   </script>
 </head>
-<body>
+<body class="page-home">
 <a class="skip-link" href="#maincontent">Skip to main content</a>
 
 <!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
@@ -90,16 +90,7 @@
 -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
 
-  <!--
-    LOGO — replace the placeholder div with:
-    <a href="/" aria-label="Beansprout — home">
-      <img src="/images/logo.svg" alt="Beansprout" class="nav-logo-img" />
-    </a>
-    SVG preferred · PNG fallback · max-height 36px
-  -->
-  <a href="/" aria-label="Beansprout home">
-    <div class="nav-logo-placeholder" aria-hidden="true">logo.svg</div>
-  </a>
+  <a href="/" class="nav-logo" aria-label="Beansprout home"><!-- brand:mark --></a>
 
   <ul class="nav-links" role="list">
     <li><a href="/" class="active" aria-current="page">Home</a></li>
@@ -163,22 +154,34 @@
 <section class="hero" aria-label="Introduction">
 
   <div class="hero-text">
-    <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
+    <!--
+      HERO INTRO — on mobile this group OVERLAYS the full-screen video (tagline +
+      headline, bottom-aligned, cream over a scrim). On desktop (≥900px) the
+      wrappers are `display:contents`, so eyebrow + h1 + the detail block below
+      stack in the .hero-text column exactly as before. See components/hero.css.
+    -->
+    <div class="hero-intro">
+      <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
 
-    <h1><!-- homepage:hero-headline --></h1>
-
-    <p class="hero-body"><!-- homepage:hero-body --></p>
-
-    <div class="hero-actions">
-      <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
-      <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
+      <h1><!-- homepage:hero-headline --></h1>
     </div>
 
-    <!--
-      STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
-      src/data/homepage.js → `notices`. Whole block disappears when all are off.
-    -->
-    <!-- homepage:notices -->
+    <!-- HERO DETAIL — below the fold on mobile (revealed as you scroll past the
+         video); part of the .hero-text column on desktop. -->
+    <div class="hero-detail">
+      <p class="hero-body"><!-- homepage:hero-body --></p>
+
+      <div class="hero-actions">
+        <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+        <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
+      </div>
+
+      <!--
+        STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
+        src/data/homepage.js → `notices`. Whole block disappears when all are off.
+      -->
+      <!-- homepage:notices -->
+    </div>
   </div>
 
   <!--
@@ -396,10 +399,10 @@
 
     <a href="/portfolio/" class="tile gradient-clay">
       <picture>
-        <source type="image/avif" srcset="/images/tattoos/lilies-400.avif 400w, /images/tattoos/lilies-800.avif 800w, /images/tattoos/lilies-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/lilies-400.webp 400w, /images/tattoos/lilies-800.webp 800w, /images/tattoos/lilies-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <img src="/images/tattoos/lilies-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
-             alt="Fine line tattoo of a pair of lilies on a leg">
+        <source type="image/avif" srcset="/images/tattoos/stargazer-lilies-400.avif 400w, /images/tattoos/stargazer-lilies-800.avif 800w, /images/tattoos/stargazer-lilies-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <source type="image/webp" srcset="/images/tattoos/stargazer-lilies-400.webp 400w, /images/tattoos/stargazer-lilies-800.webp 800w, /images/tattoos/stargazer-lilies-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+        <img src="/images/tattoos/stargazer-lilies-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
+             alt="Fine line tattoo of a pair of stargazer lilies on a leg">
       </picture>
       <div class="tile-overlay">
         <p class="tile-meta-title">Lilies</p>

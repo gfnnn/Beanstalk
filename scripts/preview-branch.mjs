@@ -17,18 +17,23 @@ import { spawnSync } from 'node:child_process'
 const args = process.argv.slice(2)
 const noServe = args.includes('--no-serve') || process.env.PREVIEW_NO_SERVE === '1'
 const branchArg = args.find((a) => !a.startsWith('-'))
-// npm is a .cmd shim on Windows; git is a plain binary everywhere.
+// npm is a .cmd shim on Windows; git is a plain binary everywhere. Node ≥18.20/
+// 20.12/22.x refuses to spawn .bat/.cmd without a shell (the CVE-2024-27980
+// mitigation), so the npm shim needs `shell: true` there — none of our args
+// contain spaces, so shell joining is safe. git stays shell-less on every OS.
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const spawnOpts = (cmd, extra) =>
+  ({ ...extra, shell: cmd === npmBin && process.platform === 'win32' })
 
 function capture(cmd, cmdArgs) {
-  const r = spawnSync(cmd, cmdArgs, { encoding: 'utf8' })
+  const r = spawnSync(cmd, cmdArgs, spawnOpts(cmd, { encoding: 'utf8' }))
   return (r.stdout || '').trim()
 }
 
 function run(cmd, cmdArgs) {
   const printable = [cmd, ...cmdArgs].join(' ')
   console.log(`\n$ ${printable}`)
-  const r = spawnSync(cmd, cmdArgs, { stdio: 'inherit' })
+  const r = spawnSync(cmd, cmdArgs, spawnOpts(cmd, { stdio: 'inherit' }))
   if (r.status !== 0) {
     console.error(`\n✗ \`${printable}\` failed (exit ${r.status ?? '?'}). Stopping.`)
     process.exit(r.status ?? 1)

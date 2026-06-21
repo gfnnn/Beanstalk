@@ -24,14 +24,16 @@ import { esc } from './html.js'
 
 // The active <video>: muted/looping/inline, no autoplay (the JS owns playback),
 // preload:none so the bytes stay off the critical path. data-media tags it for
-// src/js/modules/media.js.
-function videoEl(slot) {
-  const sources = (slot.sources || [])
+// src/js/modules/media.js. `set` carries the sources/poster (the slot itself, or
+// its `portrait` block); `cls` lets the homepage emit a landscape + portrait pair
+// that CSS swaps by breakpoint — a display:none clip is never observed/played.
+function videoEl(slot, set = slot, cls = 'media-clip') {
+  const sources = (set.sources || [])
     .filter(s => s?.src)
     .map(s => `<source src="${esc(s.src)}" type="${esc(s.type || '')}">`)
     .join('')
-  return `<video class="media-clip" muted loop playsinline preload="none" `
-    + `poster="${esc(slot.poster)}" aria-label="${esc(slot.alt)}" data-media>`
+  return `<video class="${cls}" muted loop playsinline preload="none" `
+    + `poster="${esc(set.poster)}" aria-label="${esc(slot.alt)}" data-media>`
     + `${sources}</video>`
 }
 
@@ -75,11 +77,20 @@ const PLACEHOLDERS = {
 // placeholder for the off state; the live clip is rendered identically either way.
 export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
   if (slot?.show) {
-    const clip = slot.kind === 'gif' ? gifEl(slot) : videoEl(slot)
+    // A portrait clip (homepage mobile only) makes the landscape one the
+    // desktop-only sibling; without it the lone landscape clip covers both, so
+    // the markup is byte-identical to before (About never sets `portrait`).
+    const hasPortrait = slot.kind !== 'gif' && slot.portrait?.sources?.length
+    const clip = slot.kind === 'gif'
+      ? gifEl(slot)
+      : videoEl(slot, slot, hasPortrait ? 'media-clip media-clip--landscape' : 'media-clip')
+    const portraitClip = hasPortrait
+      ? videoEl(slot, slot.portrait, 'media-clip media-clip--portrait')
+      : ''
     const caption = slot.caption
       ? `\n    <span class="media-caption">${esc(slot.caption)}</span>`
       : ''
-    return clip + caption
+    return clip + portraitClip + caption
   }
   return PLACEHOLDERS[variant] || ''
 }

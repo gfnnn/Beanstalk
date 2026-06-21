@@ -18,17 +18,26 @@
 // newsletter function — see ../lib. `Buffer` (image sniffing) is provided by the
 // `nodejs_compat` flag; `fetch` is the runtime global.
 // ─────────────────────────────────────────────────────────────────────────────
-import { corsFor, replyWith, clientIp, EMAIL_RE } from '../lib/http.js'
+import { corsFor, replyWith, clientIp, EMAIL_RE, escHtml as esc } from '../lib/http.js'
 import { rateLimit, persistSubmission, reserveFlashPiece, releaseFlashPiece } from '../lib/db.js'
 import FLASH_PRICES from '../data/flash-prices.json'
 
-// Kept comfortably under typical synchronous request-body caps.
+// Kept comfortably under typical synchronous request-body caps. The caps must
+// stay coherent: MAX_BODY_BYTES bounds the raw base64+JSON text, so the decoded
+// attachment total can never exceed ~MAX_BODY_BYTES × ¾ (4.5 MB) — MAX_TOTAL_BYTES
+// must sit BELOW that, or the friendly "images too large" 413 becomes dead code
+// and oversized batches hit the blunt body-size rejection instead. The client
+// (apps/web enquire.js) enforces the same totals so visitors are warned before
+// POSTing, not after.
 const MAX_IMAGES      = 8
-const MAX_TOTAL_BYTES = 5 * 1024 * 1024 // 5 MB of decoded image data
+const MAX_TOTAL_BYTES = 4 * 1024 * 1024 // 4 MB of decoded image data
 const MAX_BODY_BYTES  = 6 * 1024 * 1024 // reject oversized bodies before parsing
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // per-image ceiling (decoded estimate)
 const MAX_FIELD_LEN   = 2000            // per-field text cap (cost / email-size guard)
 const MAX_ARRAY_ITEMS = 50              // cap multi-select arrays (style[], days[]…)
+const MAX_FIELDS_BYTES = 256 * 1024     // cap the whole serialized field set so a
+                                        // crafted many-field payload can't push the
+                                        // durable D1 row past its ~1 MB limit
 
 // Per-form definition: required fields, consent boxes, whether images apply,
 // the email's section layout, header title, and subject line.
@@ -169,10 +178,17 @@ export async function handler(event, env = {}) {
   let reservedHere = false
   if (kind === 'flash') {
     // Server-side price authority for the artist's inbox: the email's price line
-    // is what she'll base the manual payment request on, so a known piece always
-    // shows OUR price from the manifest — never a client-tamperable figure.
+    // is what she'll base the manual payment request on, so the piece must exist
+    // in the manifest (which the drift-guard test proves covers every flash
+    // piece) and the price shown is always OURS — never a client-tamperable
+    // figure. Rejecting unknown ids (mirroring /checkout's 404) also stops junk
+    // ids being written into flash_claims as unexpirable reserves that the
+    // public /flash-status endpoint would then serve forever.
     const pence = FLASH_PRICES[pieceId]
-    if (Number.isInteger(pence) && pence > 0) fields.price = String(pence / 100)
+    if (!Number.isInteger(pence) || pence <= 0) {
+      return reply(404, { error: 'We couldn’t find that piece. Please pick one from the flash page.' })
+    }
+    fields.price = String(pence / 100)
     const reservation = await reserveFlashPiece(env, pieceId)
     if (!reservation.ok) {
       return reply(409, {
@@ -238,17 +254,32 @@ export async function handler(event, env = {}) {
   }
 }
 
-// Truncate every string value (and array item) to MAX_FIELD_LEN in place, and
-// cap array fields to MAX_ARRAY_ITEMS. Non-string scalars are left untouched.
+// Clamp the field set so neither a single value NOR the set as a whole can bloat
+// the durable D1 row. Per value: strings (and array items) truncate to
+// MAX_FIELD_LEN, arrays cap to MAX_ARRAY_ITEMS, nested objects (which the real
+// form never produces) are stringified then truncated. Per set: fields are kept
+// only while the running serialized total stays under MAX_FIELDS_BYTES — without
+// this aggregate cap a crafted many-field / many-array payload (each value under
+// the per-field cap) could still total ~6 MB and push persistSubmission's insert
+// past D1's ~1 MB row limit, which fails open: the durable record is silently
+// dropped while the enquiry still 200s. A real enquiry is a few KB, far under the
+// budget, so nothing legitimate is ever trimmed.
 function clampFields(fields) {
+  const clampItem = x => {
+    if (typeof x === 'string') return x.length > MAX_FIELD_LEN ? x.slice(0, MAX_FIELD_LEN) : x
+    if (x && typeof x === 'object') return JSON.stringify(x).slice(0, MAX_FIELD_LEN)
+    return x
+  }
+  let budget = MAX_FIELDS_BYTES
   for (const k of Object.keys(fields)) {
     const v = fields[k]
-    if (typeof v === 'string') {
-      if (v.length > MAX_FIELD_LEN) fields[k] = v.slice(0, MAX_FIELD_LEN)
-    } else if (Array.isArray(v)) {
-      fields[k] = v.slice(0, MAX_ARRAY_ITEMS).map(x =>
-        typeof x === 'string' && x.length > MAX_FIELD_LEN ? x.slice(0, MAX_FIELD_LEN) : x)
-    }
+    const clamped = Array.isArray(v) ? v.slice(0, MAX_ARRAY_ITEMS).map(clampItem) : clampItem(v)
+    // Once the cumulative size would breach the row budget, drop the rest — an
+    // attacker's overflow is rejected at validation (or stored short); a genuine
+    // enquiry never reaches the budget, so its fields are kept intact.
+    budget -= k.length + JSON.stringify(clamped ?? null).length + 4
+    if (budget < 0) { delete fields[k]; continue }
+    fields[k] = clamped
   }
 }
 
@@ -266,10 +297,6 @@ function fullName(f) {
 function humanize(key, v) {
   if (key === 'days[]' && DAYS[v]) return DAYS[v]
   return String(v).replace(/[-_]/g, ' ').replace(/^\w/, c => c.toUpperCase())
-}
-
-function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 // Image type sniffing — a client's claimed MIME can't be trusted, so identify the

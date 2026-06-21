@@ -196,6 +196,27 @@ describe('initFilter', () => {
     ).toBe(true)
   })
 
+  it('also clears from the empty-state button, and tolerates a chip without a count span', () => {
+    setup([
+      { style: 'fine-line', placement: 'forearm', shown: 'true' },
+      { style: 'blackwork', placement: 'wrist', shown: 'true' },
+    ])
+    // A count-less chip (e.g. a bare "All") must not break updateCounts.
+    document.getElementById('filter-bar').insertAdjacentHTML(
+      'afterbegin', '<button class="chip" data-filter="dotwork">Dotwork</button>')
+    // The empty-state "clear" affordance the no-results panel offers.
+    document.getElementById('empty-state').innerHTML = '<button id="empty-clear">show everything</button>'
+
+    expect(() => initFilter()).not.toThrow()
+    click(document.querySelector('.chip[data-filter="dotwork"]'))
+    expect(visible()).toHaveLength(0)   // nothing matches → empty state path
+    click(document.getElementById('empty-clear'))
+    expect(visible()).toHaveLength(2)
+    expect(
+      document.querySelector('.chip[data-filter="all"]').classList.contains('active'),
+    ).toBe(true)
+  })
+
   it('clears via the keyboard (Enter / Space) on the clear control', () => {
     setup([
       { style: 'fine-line', placement: 'forearm', shown: 'true' },

@@ -15,6 +15,11 @@ workflow*; this file is the full runbook plus the one-time GitHub/Cloudflare set
 
 Everything else is a short-lived `feat/*`, `fix/*`, or `docs/*` branch cut off `develop`.
 
+> **Pre-launch reality:** both long-lived branches exist. What's deferred to launch is the
+> **apex cutover** (adding `apps/web/public/CNAME` — see "How this maps to go-live" below), not
+> `main` itself: until then `main` → GitHub Pages is a staging stand-in. How a feature gets
+> *designed* and handed to delivery on this flow is [`WORKFLOW.md`](./WORKFLOW.md).
+
 ```
 feat/x ─┐
 feat/y ─┼─(squash PRs)─▶ develop ──(staging deploy: test together)──▶ release PR ──▶ main ──▶ PROD

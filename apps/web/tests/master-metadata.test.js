@@ -21,10 +21,28 @@ describe('titleOf', () => {
   })
 })
 
-describe('parseMasterName — portfolio', () => {
-  const NAME = 'Peacock butterfly -- forearm -- colour+realism -- 2026-05-15.jpg'
+describe('slugify', () => {
+  // The slug is the claim key / portfolio URL / Dropbox tier basename, so the
+  // accent-stripping (NFKD → drop combining marks) is load-bearing: a wrong slug
+  // breaks the live claim match. These cases use MID-word accents on purpose — a
+  // trailing accent before a space collapses to the same slug whether or not the
+  // combining mark is stripped, so only a letter-accent-letter case actually fails
+  // if that regex ever silently no-ops (the regression a re-encoding could cause).
+  it('strips mid-word accents so the slug stays ASCII-stable', () => {
+    expect(slugify('Piñata')).toBe('pinata')
+    expect(slugify('Jalapeño')).toBe('jalapeno')
+    expect(slugify('Désirée')).toBe('desiree')
+  })
 
-  it('parses a valid 4-part name (subject defaults to the title)', () => {
+  it('lowercases, de-accents and hyphenates a multi-word title together', () => {
+    expect(slugify('Café Société')).toBe('cafe-societe')
+  })
+})
+
+describe('parseMasterName — portfolio', () => {
+  const NAME = 'Peacock butterfly -- arm -- colour+realism -- 2026-05-15.jpg'
+
+  it('parses a valid 4-part name with an explicit date (subject defaults to the title)', () => {
     const r = parseMasterName('portfolio', NAME)
     expect(r.ok).toBe(true)
     expect(r.value).toMatchObject({
@@ -33,8 +51,9 @@ describe('parseMasterName — portfolio', () => {
       subject: 'peacock butterfly',
       subjectDefaulted: true,
       styles: ['colour', 'realism'],
-      placement: 'forearm',
+      placement: 'arm',
       date: '2026-05-15',
+      dateDefaulted: false,
     })
     // decorative placeholder defaults, valid against the renderer maps
     expect(r.value.tone).toBe('t-stone')
@@ -42,16 +61,41 @@ describe('parseMasterName — portfolio', () => {
   })
 
   it('takes an optional 5th part as the subject/alt-text override', () => {
-    const r = parseMasterName('portfolio', 'Peacock -- forearm -- colour -- 2026-05-15 -- a peacock butterfly and carnations.jpg')
+    const r = parseMasterName('portfolio', 'Peacock -- arm -- colour -- 2026-05-15 -- a peacock butterfly and carnations.jpg')
     expect(r.ok).toBe(true)
     expect(r.value.subject).toBe('a peacock butterfly and carnations')
     expect(r.value.subjectDefaulted).toBe(false)
   })
 
-  it('is forgiving about case and separator spacing, but not about tokens', () => {
-    const r = parseMasterName('portfolio', 'Koi--FOREARM--Fine-Line -- 2026-05-15.jpg')
+  it('makes the date optional — a 3-part name uses the supplied upload date', () => {
+    const r = parseMasterName('portfolio', 'Koi -- leg -- fine-line.jpg', { uploadDate: '2026-02-02' })
     expect(r.ok).toBe(true)
-    expect(r.value.placement).toBe('forearm')
+    expect(r.value).toMatchObject({
+      slug: 'koi', placement: 'leg', styles: ['fine-line'],
+      date: '2026-02-02', dateDefaulted: true, subjectDefaulted: true,
+    })
+  })
+
+  it('falls back to today when neither a date nor an upload date is given', () => {
+    const r = parseMasterName('portfolio', 'Koi -- leg -- fine-line.jpg')
+    expect(r.ok).toBe(true)
+    expect(r.value.dateDefaulted).toBe(true)
+    expect(r.value.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('reads a non-date 4th part as the subject and still auto-dates', () => {
+    const r = parseMasterName('portfolio', 'Koi -- leg -- fine-line -- a leaping koi.jpg', { uploadDate: '2026-02-02' })
+    expect(r.ok).toBe(true)
+    expect(r.value.subject).toBe('a leaping koi')
+    expect(r.value.subjectDefaulted).toBe(false)
+    expect(r.value.date).toBe('2026-02-02')
+    expect(r.value.dateDefaulted).toBe(true)
+  })
+
+  it('is forgiving about case and separator spacing, but not about tokens', () => {
+    const r = parseMasterName('portfolio', 'Koi--ARM--Fine-Line -- 2026-05-15.jpg')
+    expect(r.ok).toBe(true)
+    expect(r.value.placement).toBe('arm')
     expect(r.value.styles).toEqual(['fine-line'])
   })
 
@@ -59,30 +103,30 @@ describe('parseMasterName — portfolio', () => {
     const r = parseMasterName('portfolio', 'Koi -- shoulder -- colour -- 2026-05-15.jpg')
     expect(r.ok).toBe(false)
     expect(r.reason).toMatch(/"shoulder" isn't a placement/)
-    expect(r.reason).toMatch(/forearm · wrist · back · spine · leg · chest · hand/)
+    expect(r.reason).toMatch(/arm · body · leg/)
   })
 
   it('rejects an unknown style, listing the valid tokens — never fuzzy-matches', () => {
-    const r = parseMasterName('portfolio', 'Koi -- forearm -- fineline -- 2026-05-15.jpg')
+    const r = parseMasterName('portfolio', 'Koi -- arm -- fineline -- 2026-05-15.jpg')
     expect(r.ok).toBe(false)
     expect(r.reason).toMatch(/"fineline" isn't a style/)
     expect(r.reason).toMatch(/fine-line/)
   })
 
-  it('rejects a malformed or impossible date', () => {
-    expect(parseMasterName('portfolio', 'Koi -- forearm -- colour -- 15-05-2026.jpg').ok).toBe(false)
-    expect(parseMasterName('portfolio', 'Koi -- forearm -- colour -- 2026-13-45.jpg').ok).toBe(false)
+  it('rejects a date-shaped but malformed or impossible date (not silently a subject)', () => {
+    expect(parseMasterName('portfolio', 'Koi -- arm -- colour -- 15-05-2026.jpg').ok).toBe(false)
+    expect(parseMasterName('portfolio', 'Koi -- arm -- colour -- 2026-13-45.jpg').ok).toBe(false)
   })
 
   it('rejects the wrong part count with the grammar in the message', () => {
-    const r = parseMasterName('portfolio', 'Koi -- forearm.jpg')
+    const r = parseMasterName('portfolio', 'Koi -- arm.jpg')
     expect(r.ok).toBe(false)
-    expect(r.reason).toMatch(/needs 4 or 5/)
+    expect(r.reason).toMatch(/needs 3, 4, or 5/)
     expect(r.reason).toMatch(/Title -- placement -- style/)
   })
 
   it('rejects a title that slugifies to nothing', () => {
-    const r = parseMasterName('portfolio', '桜 -- forearm -- colour -- 2026-05-15.jpg')
+    const r = parseMasterName('portfolio', '桜 -- arm -- colour -- 2026-05-15.jpg')
     expect(r.ok).toBe(false)
     expect(r.reason).toMatch(/empty slug/)
   })

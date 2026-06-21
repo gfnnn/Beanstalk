@@ -21,8 +21,10 @@ import { media } from './src/data/media.js'
 import { renderHeroMedia } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
+import { renderFaviconSvg, renderMarkSvg } from './src/build/favicon.js'
 import { renderSecurityMeta } from './src/build/security.js'
 import { injectPageLoader } from './src/build/loader.js'
+import { injectViewTransition } from './src/build/transition.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
 // into per-page markers. Runs in dev AND build via transformIndexHtml, so the
@@ -63,6 +65,12 @@ const generatedGrids = {
       // Homepage testimonials (src/data/testimonials.js).
       if (html.includes('<!-- testimonials -->')) {
         html = html.replace('<!-- testimonials -->', () => renderTestimonials(testimonials))
+      }
+      // The brand mark (the traced sprig, src/build/favicon.js) — the nav lockup
+      // on EVERY page, plus the /enquiry-received/ confirmation mark, hence
+      // replaceAll (that page carries two markers).
+      if (html.includes('<!-- brand:mark -->')) {
+        html = html.replaceAll('<!-- brand:mark -->', () => renderMarkSvg())
       }
       // Homepage content (src/data/homepage.js). The nav status "light" markers
       // live on every page; the hero/notice markers only on the homepage.
@@ -112,8 +120,11 @@ const generatedGrids = {
 // Inject the active colour palette (src/data/palette.js) as CSS custom properties
 // into every page's <head>, in dev AND build, so the whole site's colours come
 // from that one content file. Also points the theme-color meta at the palette
-// background. Idempotent: piece pages render their own <head> (with the palette
-// already in it), so the `id="palette"` guard stops a double-inject in dev.
+// background, and emits the palette-coloured /favicon.svg (src/build/favicon.js
+// — the SVG favicon is generated, not a public/ file, so a palette switch
+// recolours it too; the raster icons stay static in public/). Idempotent: piece
+// pages render their own <head> (with the palette already in it), so the
+// `id="palette"` guard stops a double-inject in dev.
 const palette = {
   name: 'beansprout-palette',
   transformIndexHtml: {
@@ -127,6 +138,16 @@ const palette = {
         `$1"${themeColor}"`,
       )
     },
+  },
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if ((req.url || '').split(/[?#]/)[0] !== '/favicon.svg') return next()
+      res.setHeader('Content-Type', 'image/svg+xml')
+      res.end(renderFaviconSvg())
+    })
+  },
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'favicon.svg', source: renderFaviconSvg() })
   },
 }
 
@@ -174,6 +195,21 @@ const pageLoader = {
   transformIndexHtml: {
     order: 'post',
     handler: html => injectPageLoader(html),
+  },
+}
+
+// Inline the cross-document View Transition opt-in into every page's <head> (dev
+// AND build), so the browser arms the transition from the first parsed bytes
+// rather than after the main.css → atmosphere.css @import waterfall — a late
+// opt-in lets a slow inbound render skip the cross-fade (a hard cut, the
+// AbortError modules/loader.js swallows). The per-piece pages bypass this
+// transform and carry their own copy via piece-page.js; the id guard makes the
+// dev re-run idempotent. See src/build/transition.js.
+const viewTransition = {
+  name: 'beansprout-view-transition',
+  transformIndexHtml: {
+    order: 'post',
+    handler: html => injectViewTransition(html),
   },
 }
 
@@ -268,7 +304,7 @@ const sitemap = {
 
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, viewTransition, piecePages, sitemap],
   build: {
     outDir: 'dist',
     rollupOptions: {

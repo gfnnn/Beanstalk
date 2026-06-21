@@ -65,7 +65,13 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      # Pin the checkout to develop: the sync decides which masters are NEW by
+      # reading pieces.js/flash.js from this working tree, and its PR targets
+      # develop — dispatched from main (or any stale branch) it would re-classify
+      # pieces already landed on develop as new and PR duplicate data entries.
       - uses: actions/checkout@v6
+        with:
+          ref: develop
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc

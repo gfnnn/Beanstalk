@@ -64,6 +64,40 @@ node apps/web/scripts/process-media.mjs --lane portfolio \
 again, e.g. the artist's original 28 portfolio webps that were migrated to tiers
 without re-framing.
 
+## Watermark (the brand mark, baked into the full-res tier)
+
+The photos are the artist's work, so the pipeline **bakes a small brand-mark
+watermark into the image pixels** (not a CSS overlay a download bypasses) — a
+deterrent against casual saving/screenshotting. The recipe lives in one place,
+**`apps/web/src/build/watermark.js`** (the same traced sprig as the favicon,
+`MARK_PATH`): a **cream** glyph over a faint blurred **ink** halo so it reads on
+both light and dark photos, in the **bottom-left** corner, low-opacity and small.
+All the knobs (size, margin, opacity) are the `WATERMARK` constants at the top of
+that file — tune there, nowhere else. It renders as a full-tier-sized SVG overlay
+and is composited by sharp during encode, so it stays **deterministic** (no churn).
+
+- **Scope: only the full-res tier per lane** (`WATERMARK_WIDTH` — portfolio `-1200`,
+  flash `-900`). Portfolio's lightbox loads `-1200` (`data-full`) while the grid
+  `<img>` loads `-800`, so the **close-up / downloaded image is always marked** and
+  the smaller grid thumbnails stay clean. Widening to `-800` later is a one-line
+  change to `WATERMARK_WIDTH` + the renderer's base tier.
+- **New images get it automatically.** `process-media.mjs` (and therefore the
+  Dropbox sync) stamps the full-res tier on every run — single encode, best
+  quality. `--no-watermark` skips it (e.g. processing a one-off image that
+  shouldn't carry the mark).
+- **The already-live tiers were stamped in place** by a one-time migration,
+  **`apps/web/scripts/watermark-existing.mjs`**: most of the original 54 pieces
+  predate the Dropbox flow and their masters are gone, so it composites the same
+  mark straight onto the committed `-1200` files and re-encodes them with the same
+  `ENCODERS` opts (one extra encode on an already-optimised file — the accepted
+  cost of covering masterless pieces). It records every stamped path in
+  `scripts/.watermarked.json` and **skips listed files on re-run**, so it's
+  idempotent and safe to re-invoke; `--dry-run` lists what it would touch. New
+  Dropbox pieces never pass through it (they're marked at processing time), so it
+  targets the fixed legacy set and is normally run once. If a legacy piece's master
+  *does* still exist, a forced re-sync reprocesses it clean and supersedes the
+  in-place tier.
+
 ## Metadata rides in the filename (the " -- " grammar)
 
 The filter metadata (styles, placement, …) is the artist's call, never inferred
@@ -74,19 +108,25 @@ filename**, segments separated by `" -- "`, and the sync validates every token
 **exactly** against the canonical vocabulary in `src/data/taxonomy.js`:
 
 ```
-portfolio/        Title -- placement -- style[+style…] -- YYYY-MM-DD [-- subject]
-                  Peacock butterfly -- forearm -- colour+realism -- 2026-05-15.jpg
+portfolio/        Title -- placement -- style[+style…] [-- YYYY-MM-DD] [-- subject]
+                  Peacock butterfly -- arm -- colour+realism -- 2026-05-15.jpg
+                  Koi -- leg -- fine-line                        (date omitted → upload date)
 
 flash/drop-N/     Title -- <size>in -- £<price> -- <placement options> -- style
                   Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
 ```
 
 - **Validated exactly (the artist's facts):** placement + style tokens (unknown →
-  the file is **rejected** with the valid list spelled out — no fuzzy matching),
-  the date (drives the grid order), flash size/price (price also feeds the
-  Worker's server-side price authority), and the flash **drop number — declared
-  by the `drop-N` folder** the master sits in (a new flash master loose in
-  `flash/` is rejected).
+  the file is **rejected** with the valid list spelled out — no fuzzy matching;
+  placements are the three buckets **arm · body · leg**), flash size/price (price
+  also feeds the Worker's server-side price authority), and the flash **drop number
+  — declared by the `drop-N` folder** the master sits in (a new flash master loose
+  in `flash/` is rejected).
+- **The portfolio date is optional.** Give a `YYYY-MM-DD` segment to set the grid
+  order explicitly; omit it and the master's **Dropbox upload date** is used — so
+  `Koi -- leg -- fine-line` is a complete name. (A non-date 4th segment is read as
+  the subject; a date-*shaped* but invalid one is still rejected, so a typo isn't
+  silently swallowed.)
 - **Defaulted (decorative/copy only, all reviewable in the PR):** `tone`/`glyph`
   (placeholder swatch, invisible once the photo is in), the flash `status`
   (`available`), and the portfolio `subject` (alt-text copy — defaults to the
@@ -100,6 +140,51 @@ flash/drop-N/     Title -- <size>in -- £<price> -- <placement options> -- style
   and must be unique; a master whose slug **already has a data entry** just
   refreshes its tiers (its filename needs no metadata; the data file is the
   source of truth once the entry exists — retune styles/copy there).
+
+## Preparing masters in darktable
+
+[darktable](https://www.darktable.org/) (free, all platforms) is the reference
+tool for turning a camera shot into a compliant master. It does exactly the two
+things the pipeline leaves to the artist — **framing to the lane aspect** and
+**declaring the filename metadata** — and nothing else (no resize, no
+format-fan-out; `process-media.mjs` owns those, so the export stays one big JPG).
+Set it up once:
+
+1. **Crop aspect (per lane).** In the **crop** module set **3:4 portrait** for
+   portfolio (pick `4:3`, then the orientation toggle) and **square (1:1)** for
+   flash. darktable remembers the last aspect, so you set it once per batch. Frame
+   inside the safe area from the export guidance above (central ~75–80%, extra
+   room at the bottom on portfolio for the title overlay) — the centre crop is
+   exact, so what you frame is what ships.
+2. **Put the grammar in the Title field, not the filename.** The clean way to emit
+   a name matching the `" -- "` grammar above is to type it into darktable's
+   **Title** metadata (lighttable → **metadata editor** module), e.g.
+   `Koi -- arm -- black-grey+realism -- 2026-06-11 -- a koi carp`. It rides in
+   the photo's `.xmp` sidecar, doubles as a readable grid label, and keeps the
+   grammar out of raw-file renaming. Use the canonical `taxonomy.js` spellings
+   (tokens are validated exactly), join multiple styles with `+`, and write the
+   flash price as a bare number (the `£` is optional — keeps the filename ASCII).
+3. **Two export presets.** In the **export** module: **JPEG, quality ~95, full
+   resolution** (leave the size unconstrained — do *not* shrink; the pipeline
+   downscales and sharpens), **sRGB**, output sharpening **off** (the pipeline
+   sharpens on downscale; doubling up crunches the tiers), and crucially
+   **filename template `$(TITLE)`** so the export is named from step 2. Save two
+   presets (export module → presets → *store new preset*):
+   - **`Beansprout portfolio`** → output `…/Beansprout/masters/portfolio/`
+   - **`Beansprout flash`** → output `…/Beansprout/masters/flash/drop-<N>/` — point
+     it at the *current* drop's folder (the drop number is the folder, per the grammar).
+
+**Per shoot:** import → (optionally apply a baseline edit *style*) → crop to the
+lane aspect → set each **Title** to the grammar → export with the lane preset.
+Then run the sync (`npm run media:dropbox -- --write-data`, or the *Run sync*
+button); `--dry-run` first validates every name and reports the fix without
+touching anything. Re-exporting an existing piece needs only its Title's first
+segment (the slug) — the rest is ignored, it just refreshes the tiers.
+
+> **Why the Title field?** darktable's export filename is one template for the
+> whole batch, so it can't take a different literal name per image — but
+> `$(TITLE)` resolves per image from metadata you *can* set individually. The
+> Title field is how a single export run names each file differently and correctly.
 
 ## Collecting masters from Dropbox (automated)
 
@@ -133,7 +218,7 @@ override with `DROPBOX_MEDIA_PATH` or `--remote-base`), keep a subfolder per lan
 
 ```
 /Beansprout/masters/
-  portfolio/   Koi -- forearm -- colour+realism -- 2025-09-11.jpg
+  portfolio/   Koi -- arm -- colour+realism -- 2025-09-11.jpg
                           → slug "koi" → public/images/tattoos/ + a pieces.js entry
   flash/
     drop-13/   Luna moth -- 4in -- £220 -- forearm, spine -- black-grey.jpg
@@ -224,6 +309,22 @@ and how to switch each one on when the files land. Both run through **one shared
 component** ([`apps/web/src/build/media.js`](../apps/web/src/build/media.js)), so
 they behave identically.
 
+## Why self-host (and when to revisit)
+
+**Decision:** the two muted hero loops ship as static `public/videos/` files served
+straight off **GitHub Pages** — no video host or CDN (Cloudflare Stream, R2, Mux,
+bunny.net …). For two sub-4 MB autoplay loops with no sound, no controls and no seeking,
+a streaming service buys nothing real (no adaptive bitrate, no scrubbing, negligible
+bandwidth) while adding a runtime dependency, an external account and CSP surface — against
+the lean-baseline rules in `../CLAUDE.md`. Self-host is the right answer at this scope.
+
+**Revisit when the scope changes.** If video grows into *many* clips, *longer* durations,
+or anything with *sound / controls / seeking* — or if bandwidth ever becomes a concern —
+re-evaluate an external host. The natural fit is **Cloudflare Stream** (or R2 behind the
+CDN), and it lands cleanly once the post-launch Cloudflare-front consolidation does (see
+`ROADMAP.md` → infrastructure consolidation), since the origin moves to Cloudflare anyway.
+Until then, don't pre-build it.
+
 ## Where the files live
 
 Clips go in **`apps/web/public/videos/`**. That folder is part of Vite's
@@ -252,6 +353,7 @@ reduce motion; otherwise the **poster** still shows. So every video needs a post
 | Slot (in `media.js`) | Files | Crop | Notes |
 |---|---|---|---|
 | `hero` (video)         | `hero.webm`, `hero.mp4`, `hero-poster.jpg` | 16:9 landscape | above the fold — keep it small |
+| `hero.portrait` (optional) | `hero-portrait.webm`, `hero-portrait.mp4`, `hero-portrait-poster.jpg` | 9:16 portrait | mobile full-screen hero (<900px); landscape `hero` stays the desktop column. Omit and mobile reuses the landscape clip |
 | `aboutHero` (video)    | `about-portrait.webm`, `about-portrait.mp4`, `about-portrait-poster.jpg` | 4:5 portrait | |
 | either, as a GIF       | `<name>.gif` (+ a `*-poster.jpg`) | — | only if a real GIF was supplied — see below |
 
@@ -305,5 +407,13 @@ The site is static (GitHub Pages); these files ship from the repo. GitHub blocks
 files **> 100 MB** and nags above 50 MB, so the budgets above matter. If a clip
 can't be squeezed under a few MB, track binaries with **Git LFS**
 (`git lfs track "apps/web/public/videos/*.mp4"` etc.) — the deploy workflow
-checks out LFS objects (`lfs: true` in `.github/workflows/deploy-web.yml`). Don't
-commit raw camera masters; commit only the web-export files listed above.
+checks out LFS objects (`lfs: true` in `.github/workflows/deploy-web.yml`). LFS
+works here **because the deploy builds and uploads the `dist/` artifact** (the
+`lfs: true` checkout materialises the real binaries, which Vite then copies into
+`dist/`) — *not* because Pages resolves LFS. Raw GitHub Pages git-serving would
+hand out the LFS *pointer text*, not the video; serving the built artifact sidesteps
+that. Don't commit raw camera masters; commit only the web-export files listed above.
+
+**CSP:** same-origin video needs no policy change — there's no `media-src` directive,
+so `<video>` src/poster inherit `default-src 'self'` (see `../apps/web/src/build/security.js`).
+An external host (per the revisit note above) would mean adding a `media-src` directive there.

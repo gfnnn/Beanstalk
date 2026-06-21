@@ -30,7 +30,7 @@
 <!-- NAV — Flash active -->
 <nav class="nav" id="main-nav" aria-label="Main navigation">
   <!-- LOGO: replace with <img src="images/logo.svg" alt="Beansprout" class="nav-logo-img"> -->
-  <a href="/" aria-label="Beansprout home"><div class="nav-logo-placeholder" aria-hidden="true">logo.svg</div></a>
+  <a href="/" class="nav-logo" aria-label="Beansprout home"><!-- brand:mark --></a>
   <ul class="nav-links" role="list">
     <li><a href="/">Home</a></li>
     <li><a href="/portfolio/">Portfolio</a></li>
@@ -70,12 +70,12 @@
 <main id="maincontent" tabindex="-1">
 <header class="page-header">
   <div>
-    <!-- Both the drop NUMBER (highest `drop`) and the SEASON label (`season`) are
-         generated from src/data/flash.js, so they track the data automatically —
-         don't hand-edit them here. TODO(artist): "Summer 2026" in src/data/flash.js is a
-         placeholder default — set the real season there before launch. -->
-    <p class="page-eyebrow">Drop <!-- flash:drop --> · <!-- flash:season --></p>
-    <!-- ARTIST-COPY · FLASH-01 · pending approval (season label is a placeholder) — see docs/COPY-REVIEW.md -->
+    <!-- No flash drop is scheduled, so the eyebrow is a generic static label rather than a
+         fabricated "Drop N · Season". To restore the data-driven version when a real drop
+         lands, put the "flash:drop" / "flash:season" marker comments back here — the
+         renderers (vite.config) and the season label (src/data/flash.js) are unchanged. -->
+    <p class="page-eyebrow">Available now</p>
+    <!-- ARTIST-COPY · FLASH-01 · pending approval (flash page copy + data still to confirm) — see docs/COPY-REVIEW.md -->
   <h1 class="page-title">Flash, ready <em>to claim.</em></h1>
   </div>
   <p class="page-descriptor">Pre-drawn designs, each one tattooed only once. See one you love? Claim it below and I'll be in touch to book you in. New designs always drop here first.</p>
@@ -214,7 +214,11 @@
      via Resend. Hidden piece/price are populated by JS when a card is clicked.
      ========================================================================== -->
 <div class="modal-overlay" id="claim-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
-  <div class="modal">
+  <!-- data-lenis-prevent: the open modal stops Lenis, whose stopped state
+       preventDefault()s wheel/touch everywhere — without this opt-out the
+       modal's own overflow-y can't be scrolled on short viewports (the consent
+       box + Send button sit below the fold on phones with the keyboard up). -->
+  <div class="modal" data-lenis-prevent>
     <div class="modal-header">
       <div>
         <!-- JS populates the piece name in #modal-piece-name -->

@@ -175,6 +175,16 @@ describe('initAftercare', () => {
       arrow(tab('second-skin'), 'ArrowLeft')
       expect(document.activeElement).toBe(tab('cling-film'))
     })
+
+    it('ignores non-arrow keys on a tab (Tab itself must keep its native behaviour)', () => {
+      setup()
+      initAftercare()
+      click(tab('second-skin'))
+      const ev = new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+      tab('second-skin').dispatchEvent(ev)
+      expect(ev.defaultPrevented).toBe(false)
+      expect(panel('second-skin').classList.contains('active')).toBe(true) // unchanged
+    })
   })
 
   describe('deep link', () => {

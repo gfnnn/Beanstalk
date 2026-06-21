@@ -10,6 +10,11 @@
 
 const enc = new TextEncoder()
 
+// The single currency the studio charges in — the authority for both the amount
+// checkout opens an intent in and the currency the webhook re-checks a paid intent
+// against. Defined once here so the two handlers can't drift.
+export const CURRENCY = 'gbp'
+
 // Constant-time compare of two equal-length hex strings (avoids leaking, via
 // timing, how much of a forged signature matched).
 function timingSafeEqualHex(a, b) {

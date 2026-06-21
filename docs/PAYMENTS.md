@@ -285,10 +285,11 @@ the flash behaviour is unchanged.
 2. ✅ **`/checkout` handler (landed)** — validate + rate-limit + server-side price → reserve (48h
    hold) → `recordPayment('awaiting')` → create PaymentIntent (REST, no SDK, idempotency-keyed) →
    return `client_secret`; rolls back on failure; dark behind `PAYMENTS_ENABLED` (503 until set).
-   18 unit tests.
+   Covered by `tests/checkout.test.js`.
 3. ✅ **`/webhooks/stripe` handler (landed)** — Web-Crypto signature verify → dedupe by event id →
    on success: re-check amount, `promoteFlashClaim` + `markPaymentStatus('paid')` + receipt/artist
-   emails; on cancel: `expired` + release. Idempotent + fail-safe. 12 unit tests.
+   emails; on cancel: `expired` + release. Idempotent + fail-safe. Covered by
+   `tests/stripe-webhook.test.js` (+ `stripe-webhook-throw.test.js`).
 4. ⬜ **Frontend (the remaining slice)** — §7: wire the flash modal, mount the Payment Element,
    `/flash/payment-return/`, config/CSP/Vite wiring, web + E2E tests. Flag off → ships dark.
 5. ✅ **Stale release (landed)** — `getFlashClaims` lazily sweeps lapsed holds before reporting;

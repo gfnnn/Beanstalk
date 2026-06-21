@@ -56,9 +56,10 @@ command instead of rediscovering the environment each time:
   `npm run build` work immediately — there is no "install first" dance. It's a no-op on a
   developer's local machine (gated on `$CLAUDE_CODE_REMOTE`). It is **synchronous** (the
   session waits for install to finish, trading a little startup latency for no race where
-  the agent runs a command before deps exist). These two files are the *only* tracked
-  things under `.claude/`; everything else there (incl. `settings.local.json`) stays
-  git-ignored.
+  the agent runs a command before deps exist). The tracked things under `.claude/` are this
+  hook + `settings.json`, plus the committed **slash commands** (`.claude/commands/`) and
+  **subagents** (`.claude/agents/`) — see [`docs/WORKFLOW.md`](docs/WORKFLOW.md); everything
+  else there (incl. `settings.local.json`) stays git-ignored.
 - **`npm test` is the trustworthy signal here.** Both Vitest suites (web + functions) run
   fully in the sandbox.
 - **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
@@ -103,7 +104,7 @@ npm run preview       # serve the built apps/web/dist/ locally
 npm run preview:branch -- <branch>  # LOCAL helper: fetch a branch, install, run its dev server (one command)
 npm test              # run BOTH workspaces' Vitest suites
 npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
-npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, http, db)
+npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, checkout, stripe-webhook, payments, http, db)
 npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke);
                       #   skips cleanly if no Chromium is installed — see the web-session note above
 npm run lint          # Biome static-analysis floor over apps/**/{src,tests,e2e,scripts} + root scripts
@@ -158,16 +159,16 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
-  public/        favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml are generated, see SEO)
+  public/        raster favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml + favicon.svg are generated, see SEO/palette)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email + payments app)
   src/index.js                           # Worker entry — routes /enquiry /newsletter /checkout /webhooks/stripe /flash-status
   src/handlers/{enquiry,newsletter,flash-status,checkout,stripe-webhook}.js
   src/lib/{http,db,stripe}.js            # CORS/IP/adapter + D1 storage (persist, rate limit, flash, payments) + Stripe client
   src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
-  migrations/{0001_init,0002_payments}.sql  # D1 schema (forms + the shipped-dark payments ledger)
+  migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ROADMAP.md  BRANCHING.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
+docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
@@ -197,11 +198,15 @@ entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's i
 or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The seven Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
-work: `palette` (inject colour custom properties), `generatedGrids` (the content pipeline
+The eight Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+work: `palette` (inject colour custom properties + emit the palette-coloured `favicon.svg`
+from the traced brand mark in `src/build/favicon.js`), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
 `<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see below),
-`piecePages` (per-piece portfolio pages), and `sitemap`. Most run in **both dev and build**
+`viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
+armed before the `main.css` `@import` waterfall — a late opt-in lets a slow inbound render
+skip the cross-fade; `src/build/transition.js`), `piecePages` (per-piece portfolio pages),
+and `sitemap`. Most run in **both dev and build**
 so what you see on `npm run dev` is what ships — **except `securityHeaders`, which is
 `apply: 'build'`** (a strict CSP would break the dev server's HMR client), so it lands at
 build/preview only.
@@ -224,9 +229,12 @@ comments document every field — **read them before editing**.
 | `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
 | `business.js`           | `business.js`                  | `<!-- reply-time -->` → enquire + enquiry-received (shared so the promised turnaround can't drift) |
+| (none)                  | `favicon.js` (`renderMarkSvg`) | `<!-- brand:mark -->` → every page's nav lockup + the `/enquiry-received/` confirmation mark |
 
-The nav **status "light"** (`homepage.status`) is the one marker that appears on *every*
-page's nav, not just the homepage — it renders in two spots per page (the inline pill via
+Two markers appear on *every* page's nav, not just the homepage: the **brand mark**
+(`<!-- brand:mark -->`, the traced sprig from `src/build/favicon.js`, filled with
+currentColor inside the `.nav-logo` lockup) and the nav **status "light"**
+(`homepage.status`), which renders in two spots per page (the inline pill via
 `<!-- homepage:status -->` and the mobile-drawer variant via `<!-- homepage:status-drawer -->`).
 The `/flash/` page eyebrow is **fully data-driven from `flash.js`**: the drop *number*
 (`<!-- flash:drop -->`) is the highest `drop` value in the data (lower-numbered records fall
@@ -236,9 +244,17 @@ cards. The homepage "Kind words" section is `hidden` while `testimonials` is emp
 quotes AND remove the `hidden` attribute to switch it on.
 
 **Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
-testimonials) — edit the data file and let the build regenerate it. Tokens in the data
-(`styles`, `placement`, `status`, `tone`, `glyph`) must match the filter chips / `<select>`
-options in the HTML and the label maps in the renderers; change them together.
+testimonials) — edit the data file and let the build regenerate it. The portfolio **style +
+placement vocabulary lives once in `src/data/taxonomy.js`** (the `STYLE_LABELS` /
+`PLACEMENT_LABELS` maps): `pieces.js`, the renderers (`portfolio-tiles.js` re-exports the
+label maps), the data-integrity test, and the Dropbox master-filename parser
+(`scripts/master-metadata.mjs`) all read it — so **add a new style/placement token there**,
+not in scattered label maps. A new token is valid in data + filenames immediately, but the
+first piece that *uses* it still needs a matching filter chip / `<select>` option in
+`portfolio/index.html` (the data-integrity test fails with instructions until it exists, so
+the filter UI only offers tokens with real work behind them). The other per-data-file tokens
+(`status`, `tone`, `glyph` in `flash.js` / `homepage.js`) must likewise match the HTML and the
+renderer label maps — change them together.
 
 ### Per-piece portfolio pages
 Each portfolio piece also gets its own shareable page at `/portfolio/<slug>/` (the masonry
@@ -340,17 +356,24 @@ the focus-visible / reduced-motion / screen-reader rules.
 motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
 **inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
 Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
-overlay (a sprig mark on the cream bg, shown complete with a gentle opacity breathe — *not* a
-stroke-dashoffset draw, which janked on quick loads) right after `<body>`, on **every** page
+overlay (the calligraphic brand mark on the cream bg, shown complete with a gentle opacity
+breathe — it deliberately does *not* draw/reveal here, since the cover can dismiss before a
+reveal-from-hidden shows; the shared logo "ink-rise" draw lives on the nav logo + confirmation
+mark instead — see `docs/MOTION.md` → *Brand-mark ink-rise*) right after `<body>`, on **every** page
 incl. the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
 against a double-inject). It hides the page from the first paint so the render-blocking
 CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
 (`initPageLoader()`, called first in `main.js`) dismisses it on `document.fonts.ready` for a
 **cold** first load (JS ceiling 3s **and** a pure-CSS failsafe 6s so a hung resource can never
-trap the page), but drops it **instantly on warm in-session navigations** (`sessionStorage`)
-so the page-transition cross-fade shows real content, not the cover. It resolves the
+trap the page) — **all-or-nothing**: a cover seen ≤0.4s lifts instantly (reads as "no
+preloader"), one seen longer holds to a 1.6s minimum so the animation completes rather than
+flashing half-played (decision table in `docs/MOTION.md`). It drops the cover **instantly on
+warm in-session navigations** (`sessionStorage`; a mid-session *reload* counts as cold) so the
+page-transition cross-fade shows real content, not the cover. It resolves the
 `pageReady` promise that gates the entrance (above). Reduced-motion: removed instantly, no
-animation. **Page transitions** (cross-document View Transitions) and the **animated
+animation. **Page transitions** (cross-document View Transitions — opt-in inlined in `<head>`
+via `src/build/transition.js` so it's armed before the CSS `@import` waterfall; animations in
+`atmosphere.css`) and the **animated
 hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/atmosphere.css`
 — full map in [`docs/MOTION.md`](docs/MOTION.md).
 
@@ -388,7 +411,8 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   `recordWebhookEvent` for webhook idempotency), and the **rate limiter** (per-IP sliding
   window + global daily ceiling). Every function **fails safe / fails open** — a DB outage
   never blocks a real enquiry. Schema in `migrations/0001_init.sql` (+ `0002_payments.sql`
-  for the payments ledger). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
+  for the payments ledger, `0003_claim_refs.sql` tying a flash hold to the payment that
+  created it). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
 - `src/lib/http.js` is the HTTP plumbing: the **CORS origin allowlist** (the *site* origins,
   not the Worker's own URL), the JSON reply helper, `clientIp` (anti-spoof — trusts only
   `cf-connecting-ip`), and the Request→event adapter that keeps handlers `(event, env)`-shaped.
@@ -437,7 +461,10 @@ Worker changes deploy to Cloudflare, and neither drags the other along.**
 Two long-lived branches, so features can be **tested together** before a **batched,
 deliberate** push to production. Full runbook (branch roles, release process, the GitHub
 ruleset settings, and the Cloudflare Pages staging setup) lives in
-[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow.
+[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow. How a feature
+gets *designed* (in a Claude Project) and handed to Code for delivery on this flow is
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) — the brief template, the `/deliver` command, and the
+`design-reviewer` subagent.
 
 - **`develop` is the integration branch.** Feature PRs target it, CI runs on every PR, and
   a push to `develop` deploys the **staging** site (Cloudflare Pages, branch-built) + a
@@ -610,6 +637,13 @@ Warm earthy palette (cream `#F7F1E3`, moss `#4A5D3F`, clay `#C45A3E`, ink `#2C2A
 with Fraunces (serif display) / Karla (sans body) / JetBrains Mono (labels). Reuse the
 shared nav, footer, button, and JS-module patterns across pages. Placeholder copy is
 marked `<!-- COPY: -->`; image placeholders carry shoot briefs in HTML comments.
+
+**Motion is one language too — don't drift it either.** The whole site (load reveal,
+scroll reveal, hover, ambient, page transition) speaks two curves from the `--ease-*`
+tokens — **SOFT** for text, **ORGANIC** for assets that grow/arrive — and the JS
+entrance mirrors them via `CustomEase` so JS == CSS. The first view reveals as one
+top-to-bottom positional wave. New motion uses those tokens/curves; see
+[`docs/MOTION.md`](docs/MOTION.md) → *Motion language* before adding any.
 
 **Colour lives in one place — `apps/web/src/data/palette.js`.** No CSS hard-codes a
 colour; every rule reads a CSS custom property (`var(--moss)`, `rgba(var(--ink-rgb),

@@ -206,8 +206,7 @@
 .chooser-foot a:hover { border-color: var(--moss); }
 
 /* ══ SWITCHER — slim sticky bar (revealed after first choice) ════════════════ */
-.care-switch-wrap[hidden],
-.care-stage[hidden] { display: none !important; }
+/* (The [hidden] guard these elements need is now the global rule in reset.css.) */
 
 .care-switch-wrap {
   position: sticky;

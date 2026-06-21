@@ -437,3 +437,13 @@
   .flash-grid { grid-template-columns: 1fr; }
   .flash-card .card-price { font-size: 24px; }
 }
+
+/* Inline claim-modal error (injected by modules/flash.js as #claim-error before
+   the modal footer). Colour comes from the palette — never a hard-coded hex —
+   matching the enquiry form's .form-error-banner. */
+.claim-error {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--clay);
+}

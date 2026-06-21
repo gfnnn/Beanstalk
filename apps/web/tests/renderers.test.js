@@ -53,6 +53,24 @@ describe('renderPortfolioTiles', () => {
     expect(html).toContain('<svg')
   })
 
+  it('serves an extensioned img (a final web export) as a single <img>, no srcset tiers', () => {
+    // HAS_EXT routing: "/…/Koi.webp" is served as-is — these are artist exports,
+    // not masters to derive 400/800/1200 tiers from — but still sized + lazy/eager.
+    const single = { ...withImage, img: '/images/tattoos/Koi.webp' }
+    const html = renderPortfolioTiles([single])
+    expect(html).not.toContain('<picture>')
+    expect(html).toContain('src="/images/tattoos/Koi.webp"')
+    expect(html).not.toContain('srcset')
+    expect(html).toContain('width="800"')
+    expect(html).toContain('height="1000"')
+    expect(html).toContain('fetchpriority="high"')   // first tile → eager LCP slot
+
+    // Past the eager window it lazy-loads like the responsive path.
+    const many = Array.from({ length: 5 }, (_, i) => ({ ...single, slug: `e${i}`, date: `2026-01-0${i + 1}` }))
+    const lazy = renderPortfolioTiles(many)
+    expect(lazy).toContain('loading="lazy"')
+  })
+
   it('sorts tiles by `date` descending (newest first)', () => {
     const html = renderPortfolioTiles([placeholderPiece, withImage]) // 2026-01-01, then 2026-03-01
     expect(html.indexOf('/portfolio/s1/')).toBeLessThan(html.indexOf('/portfolio/s2/'))
@@ -373,6 +391,53 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
     expect(html).toContain('&quot;onerror=')
     expect(html).toContain('&lt;i&gt;c&lt;/i&gt;') // caption escaped
   })
+
+  // The mobile full-screen hero takes a portrait clip; the landscape one becomes
+  // the desktop sibling. CSS (components/hero.css) swaps the two by breakpoint.
+  it('emits a portrait + landscape <video> pair when a portrait slot is supplied', () => {
+    const html = renderHeroMedia({
+      show: true, kind: 'video', alt: 'Hands at work', poster: '/videos/hero-poster.jpg',
+      sources: [{ src: '/videos/hero.mp4', type: 'video/mp4' }],
+      portrait: {
+        poster: '/videos/hero-portrait-poster.jpg',
+        sources: [{ src: '/videos/hero-portrait.mp4', type: 'video/mp4' }],
+      },
+    })
+    // landscape clip is now class-tagged so CSS can hide it on mobile…
+    expect(html).toContain('<video class="media-clip media-clip--landscape"')
+    expect(html).toContain('poster="/videos/hero-poster.jpg"')
+    expect(html).toContain('<source src="/videos/hero.mp4" type="video/mp4">')
+    // …and the portrait clip carries its own sources/poster
+    expect(html).toContain('<video class="media-clip media-clip--portrait"')
+    expect(html).toContain('poster="/videos/hero-portrait-poster.jpg"')
+    expect(html).toContain('<source src="/videos/hero-portrait.mp4" type="video/mp4">')
+    // the PORTRAIT clip must carry the same JS-owned playback contract as the
+    // landscape one — a regression dropping one of these from the portrait-only
+    // path would otherwise ship silently (the module pauses/plays via data-media,
+    // and muted/loop/playsinline/preload keep it inert + off the critical path).
+    const portraitTag = html.match(/<video class="media-clip media-clip--portrait"[^>]*>/)[0]
+    expect(portraitTag).toContain('muted')
+    expect(portraitTag).toContain('loop')
+    expect(portraitTag).toContain('playsinline')
+    expect(portraitTag).toContain('preload="none"')
+    expect(portraitTag).toContain('data-media')
+    expect(portraitTag).toContain('aria-label="Hands at work"') // inherits the slot's alt
+    // both are real, JS-owned clips (no autoplay)
+    expect(html.match(/<video/g)).toHaveLength(2)
+    expect(html).not.toContain('autoplay')
+  })
+
+  it('stays a single landscape <video class="media-clip"> when no portrait slot is set (About + unchanged homepage)', () => {
+    const slot = {
+      show: true, kind: 'video', alt: 'x', poster: '/videos/x-poster.jpg',
+      sources: [{ src: '/videos/x.mp4', type: 'video/mp4' }],
+    }
+    const html = renderHeroMedia(slot, { variant: 'about' })
+    expect(html).toContain('<video class="media-clip"')
+    expect(html).not.toContain('media-clip--portrait')
+    expect(html).not.toContain('media-clip--landscape')
+    expect(html.match(/<video/g)).toHaveLength(1)
+  })
 })
 
 describe('media data (src/data/media.js)', () => {
@@ -386,6 +451,11 @@ describe('media data (src/data/media.js)', () => {
       ...media.hero.sources.map(s => s.src), media.hero.poster, media.hero.gif,
       ...media.aboutHero.sources.map(s => s.src),
       media.aboutHero.poster, media.aboutHero.gif,
+      // The optional mobile portrait clip ships its own poster/sources — guard
+      // them too, so a stray /images/… portrait path fails CI like any other.
+      ...(media.hero.portrait
+        ? [media.hero.portrait.poster, ...media.hero.portrait.sources.map(s => s.src)]
+        : []),
     ]
     paths.forEach(p => expect(p.startsWith('/videos/')).toBe(true))
   })
@@ -420,13 +490,13 @@ describe('renderNewsletterInline', () => {
 describe('renderPiecePage', () => {
   const withImage = {
     slug: 'foxglove', title: 'Foxglove', subject: 'foxglove sprig',
-    styles: ['fine-line', 'dotwork'], placement: 'forearm', date: '2026-03-01',
+    styles: ['fine-line', 'dotwork'], placement: 'arm', date: '2026-03-01',
     tone: 't-moss', glyph: 'sprig', img: '/images/tattoos/foxglove', w: 800, h: 1000,
   }
   const exportImage = { ...withImage, slug: 'koi', title: 'Koi', img: '/images/tattoos/Koi.webp' }
   const placeholder = {
     slug: 'luna-moth', title: 'Luna moth', subject: 'luna moth', styles: ['black-grey'],
-    placement: 'wrist', date: '2026-01-01', tone: 't-ink', glyph: 'moth', img: null, w: null, h: null,
+    placement: 'arm', date: '2026-01-01', tone: 't-ink', glyph: 'moth', img: null, w: null, h: null,
   }
 
   it('renders a full HTML document with per-piece SEO', () => {
@@ -463,7 +533,7 @@ describe('renderPiecePage', () => {
 
   it('gives the share image a descriptive alt (piece-specific, brand default for placeholders)', () => {
     const withPhoto = renderPiecePage(withImage)
-    const alt = 'Fine line tattoo of foxglove sprig on Forearm'
+    const alt = 'Fine line tattoo of foxglove sprig on Arm'
     expect(withPhoto).toContain(`<meta property="og:image:alt" content="${alt}">`)
     expect(withPhoto).toContain(`<meta name="twitter:image:alt" content="${alt}">`)
     // No photo → the brand default alt (matches the og:image fallback).
@@ -482,7 +552,7 @@ describe('renderPiecePage', () => {
     const html = renderPiecePage(withImage)
     expect(html).toContain('>Fine line<')
     expect(html).toContain('>Dotwork<')
-    expect(html).toContain('>Forearm<')
+    expect(html).toContain('>Arm<')
     expect(html).toContain('href="/enquire/"')
     expect(html).toContain('href="/portfolio/"')
   })

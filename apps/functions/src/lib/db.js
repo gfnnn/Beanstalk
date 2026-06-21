@@ -91,6 +91,10 @@ export async function persistConsent(env, record) {
 
 // ── Flash inventory ─────────────────────────────────────────────────────────
 
+// How often the lazy hold-expiry sweep may actually run (see getFlashClaims).
+const SWEEP_THROTTLE_MS = 60_000
+let lastSweepAt = 0
+
 // The current map of claimed/pending flash piece ids → status. Fails safe to {}.
 // When payments are ON it first lazily releases any lapsed pending hold
 // (expirePendingClaims), so a piece from an abandoned checkout shows as available
@@ -98,9 +102,19 @@ export async function persistConsent(env, record) {
 // (and is fail-safe regardless): with payments off there are no holds to sweep, so
 // this path stays byte-for-byte identical to before — no extra query, no dependency
 // on the payments migration (0002). It never blocks the read.
-export async function getFlashClaims(env) {
+//
+// The sweep is also THROTTLED to once per SWEEP_THROTTLE_MS per warm isolate: this
+// endpoint is public, uncapped (no rate limiter — it's a read), and called on every
+// flash-grid load, so without this a request flood would become a DELETE flood.
+// Holds last ~48h, so a per-minute sweep frees an abandoned one plenty fast; the
+// `now` is injectable so the throttle is testable. `lastSweepAt` is set before the
+// await so a failing/slow sweep can't be retried into a hot loop.
+export async function getFlashClaims(env, now = Date.now()) {
   try {
-    if (String(env.PAYMENTS_ENABLED) === 'true') await expirePendingClaims(env)
+    if (String(env.PAYMENTS_ENABLED) === 'true' && now - lastSweepAt >= SWEEP_THROTTLE_MS) {
+      lastSweepAt = now
+      await expirePendingClaims(env)
+    }
     const { results } = await env.DB.prepare(
       'SELECT piece_id, status FROM flash_claims',
     ).all()
@@ -183,8 +197,17 @@ export async function releaseFlashPiece(env, id, paymentRef = null) {
 // piece would silently read available again). Idempotent: an existing 'claimed'
 // row is a no-op, so a re-delivered webhook can't double-promote. Clears the
 // hold's expiry so a sold piece can never be swept, and stamps the claiming
-// payment's reference on the row. Returns true iff THIS call marked it claimed.
-// Fail-safe → false.
+// payment's reference on the row.
+//
+// Returns a TRI-STATE the webhook relies on:
+//   true  — THIS call marked the piece claimed (durable progress)
+//   false — benign no-op: zero changes here can only mean the row already reads
+//           'claimed' (pending → updated, absent → inserted), so the end-state is
+//           correct without us
+//   null  — the write FAILED (D1 error). Deliberately distinguishable from the
+//           no-op: a paid piece whose promote write was lost would otherwise be
+//           acked, swept by expirePendingClaims, and silently relisted for a
+//           second sale — the caller must signal Stripe to redeliver instead.
 export async function promoteFlashClaim(env, id, paymentRef = null) {
   if (!id) return false
   try {
@@ -199,7 +222,7 @@ export async function promoteFlashClaim(env, id, paymentRef = null) {
     return (res?.meta?.changes ?? 0) > 0
   } catch (err) {
     console.error('promoteFlashClaim failed:', err?.message || err)
-    return false
+    return null
   }
 }
 
@@ -278,15 +301,22 @@ export async function getPayment(env, id) {
 // payment id) from the webhook, or 'failed'/'expired' on rollback. COALESCE means
 // a null providerRef/paidAt leaves the existing value intact, so a status-only
 // flip never wipes the provider id. Idempotent. Returns true iff a row changed.
-export async function markPaymentStatus(env, id, status, { providerRef = null, paidAt = null } = {}) {
+//
+// `ifNotPaid` is a one-way ratchet for the rollback paths: a stray, out-of-order
+// `payment_intent.canceled` (a Stripe redelivery, or a manual dashboard cancel
+// AFTER capture) must never demote a confirmed sale's ledger row 'paid' → 'expired'.
+// The cancel path passes it so the expire is a no-op once the row reads 'paid'; a
+// real refund (paid → 'refunded') is a deliberate forward move and is NOT guarded.
+export async function markPaymentStatus(env, id, status, { providerRef = null, paidAt = null, ifNotPaid = false } = {}) {
   if (!id || !status) return false
   try {
+    const guard = ifNotPaid ? " AND status <> 'paid'" : ''
     const res = await env.DB.prepare(
       `UPDATE payments
           SET status = ?2,
               provider_ref = COALESCE(?3, provider_ref),
               paid_at = COALESCE(?4, paid_at)
-        WHERE id = ?1`,
+        WHERE id = ?1${guard}`,
     ).bind(id, status, providerRef, paidAt).run()
     return (res?.meta?.changes ?? 0) > 0
   } catch (err) {

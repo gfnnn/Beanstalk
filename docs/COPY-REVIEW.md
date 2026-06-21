@@ -29,7 +29,7 @@ can never drift apart again.
 grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules
 ```
 
-returns **nothing**. (32 markers remain as of 2026-06-09 — the still-open sections
+returns **nothing**. (17 markers remain as of 2026-06-15 — the still-open sections
 listed under "Where things stand".)
 
 ## Where things stand
@@ -41,13 +41,15 @@ listed under "Where things stand".)
   visible copy (incl. JS UI strings). Switched off for go-live: the About **stats**
   (ABOUT-04) and **"The space"** (ABOUT-05).
 - **Round 1.5 (#179):** hours, getting-there and booking lead time confirmed.
+- **Round 2 (2026-06-15):** **reply time** confirmed, and **newsletter, visit, portfolio
+  and the small pages confirmed** — their markers are stripped, the enquiry-received
+  "we→I" voice is fixed, and the **404 was reworked** (real brand mark + de-cheesed copy).
 - All confirmed **values** live in [the facts table](#part-1--facts-i-need-from-you) — the
   only place they're written down here.
-- **Still open:** reply time (BUS-01) · flash season + the 12 pieces (FLASH-D1/D2)
-  · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent
-  wording (ENQ-07) · visit voice (VISIT-01..03, 05) · portfolio piece names
-  (PORT-D1) · newsletter (NL, NLBAND-01) · enquiry-received voice (CONFIRM-01) ·
-  404 (E404-01) · piece-page CTAs (PIECE-01) · testimonials (DATA-TEST, HOME-08).
+- **Still open (~17 markers):** flash page + season + the 12 pieces (FLASH, FLASH-D1/D2)
+  · ICO public reference + tattoo-reg (PRIV/TERMS) + the legal review · consent wording
+  (ENQ-07) + ENQ-06 voice · testimonials
+  (DATA-TEST, HOME-08) · the off slots (ABOUT-04 stats, HOME-10 / DATA-MEDIA video).
 
 ## How the refs map to source (conventions)
 
@@ -80,7 +82,7 @@ instead of repeating them, so a value can never drift.
 
 | 🔒 | What | Was on the site (placeholder) | The real value |
 |----|------|-------------------------------|----------------|
-| Reply time | How long you take to reply to an enquiry | "within 3 days" | _still to confirm_ |
+| Reply time | How long you take to reply to an enquiry | "within 3 days" | ✅ **Confirmed: within 3 days** |
 | Prices | Min / small / half-day / full-day | £120 / £180–280 / £420 / £680 | ✅ **£80 / £120–£200 / £300 / £500** |
 | Deposit | (was Standard / half-day / full-day) | £60 / £120 / £200 | ✅ **Flat 50% of the price** |
 | Touch-up window | Free touch-up valid for… | 6 months | ✅ **1 year** |
@@ -348,7 +350,7 @@ slot *is*; this table only adds source location + anything tracker-specific.
 | FLASH-D1 | 🟠 | `src/data/flash.js` `season` | → facts table ("Flash" row) |
 | FLASH-D2 | 🟠 | `src/data/flash.js` pieces | 12 placeholder names/specs/prices until a real drop (→ facts table) |
 | PORT-01, PORT-02, PORT-03, PORT-04 | ✅ 🟡/⚪ | `portfolio/index.html` | Round 1 approved (incl. the 3 style categories); PORT-02 + PORT-04 ⚪ filter / count + load-more UI |
-| PORT-D1 | 🟡 | `src/data/pieces.js` titles | 28 piece names ("Good dog", "The Lovers"…) — **still to confirm** |
+| PORT-D1 | 🟡 | `src/data/pieces.js` titles | the piece names ("Good dog", "The Lovers"…) — **still to confirm** (count grows with the Dropbox sync; don't bake a number) |
 | PORT-D2 | ⚪/🟡 | `pieces.js` `subject` field | Feeds alt text; SEO/a11y — skim for accuracy |
 | PIECE-01 | 🟡 | `src/build/piece-page.js` | Per-piece CTAs "Enquire about a piece like this →" / "See more work" |
 | NL-01..04 | 🟡 | `newsletter/index.html` | Still open |
@@ -380,4 +382,4 @@ slot *is*; this table only adds source location + anything tracker-specific.
 - [ ] Enquiry received (CONFIRM-01 voice) + 404 (E404-01) + piece pages (PIECE-01)
 - [~] Privacy + Terms — names/insurance/dates done; **legal review + ICO/tattoo-reg** still open
 - [ ] Reply time (BUS-01) + testimonials (DATA-TEST) + media alt (DATA-MEDIA)
-- [ ] The gate: `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` returns nothing (32 as of 2026-06-09)
+- [ ] The gate: `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` returns nothing (current count tracked at the top of this doc)

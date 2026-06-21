@@ -55,6 +55,17 @@ describe('initFaq', () => {
   })
 
   describe('accordion', () => {
+    it('skips an item without a trigger button instead of throwing', () => {
+      setup()
+      document.querySelector('.faq-item').insertAdjacentHTML('beforebegin',
+        '<div class="faq-item" data-category="booking" data-question="broken">no trigger</div>')
+      expect(() => initFaq()).not.toThrow()
+      // The well-formed items still work.
+      const ok = $$('.faq-item')[1]
+      click(ok.querySelector('.faq-item-trigger'))
+      expect(ok.classList.contains('open')).toBe(true)
+    })
+
     it('opens the clicked item and sets aria-expanded', () => {
       setup(); initFaq()
       const [a] = items()

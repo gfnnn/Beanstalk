@@ -25,12 +25,12 @@ import {
   rateLimit, reserveFlashPiece, releaseFlashPiece,
   recordPayment, markPaymentStatus,
 } from '../lib/db.js'
+import { CURRENCY } from '../lib/stripe.js'
 import FLASH_PRICES from '../data/flash-prices.json'
 
 const HOLD_MS        = 48 * 60 * 60 * 1000  // how long an unpaid reserve is held
 const MAX_BODY_BYTES = 64 * 1024            // no images here — a checkout body is tiny
 const MAX_FIELD_LEN  = 2000
-const CURRENCY       = 'gbp'
 const STRIPE_API     = 'https://api.stripe.com/v1/payment_intents'
 
 export async function handler(event, env = {}) {
@@ -162,6 +162,9 @@ export async function handler(event, env = {}) {
 // row. 36⁸ ≈ 2.8 × 10¹² per piece, so collisions are out of the picture (a 4-char
 // suffix was ~1.7M — close enough to worry about silently corrupting the ledger).
 function makeRef(pieceId) {
-  const rand = Math.random().toString(36).slice(2, 10).padEnd(8, '0')
+  // CSPRNG (free in the Workers runtime) — this value is the ledger PK, the
+  // Stripe idempotency key, and the hold tie, so it should not be guessable.
+  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  const rand  = Array.from(bytes, b => (b % 36).toString(36)).join('')
   return `BSF-${pieceId}-${rand}`
 }
