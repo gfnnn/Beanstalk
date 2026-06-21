@@ -41,6 +41,14 @@ if (!executable || !existsSync(executable)) {
       '   (needs network access to cdn.playwright.dev). CI does this automatically;',
       '   web sandboxes block that host, so this tier is CI/local-only — not a failure.',
       '',
+      '   On a distro newer than this Playwright build knows (install errors with',
+      '   "does not support chromium on <os>"), force its ubuntu24.04 fallback build,',
+      '   then install the system libs with apt directly — `sudo -E playwright',
+      '   install-deps` silently no-ops here because sudo drops the override env var:',
+      '     PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64 npx playwright install chromium',
+      '     sudo apt-get install -y libnspr4 libnss3 libasound2t64   # core headless libs',
+      '   The override only governs the download; once installed, test:e2e runs unchanged.',
+      '',
     ].join('\n'),
   )
   process.exit(0)
