@@ -51,6 +51,32 @@ test('ArrowRight / ArrowLeft page through, then Escape closes and restores scrol
   expect(await page.evaluate(() => document.body.style.overflow)).toBe('')
 })
 
+test('a two-finger pinch-zoom does not page to another image', async ({ page }) => {
+  // Regression: the swipe handler only tracked touches[0], so a pinch (two
+  // fingers spreading apart) read one finger's horizontal travel as a swipe and
+  // jumped to a random image. A multi-touch gesture must never page.
+  await page.locator('.masonry-tile').first().click()
+  await expect(page.locator('#lightbox-counter')).toContainText('01 /')
+
+  await page.evaluate(() => {
+    const lb = document.getElementById('lightbox')
+    const touch = (id, x) => new Touch({ identifier: id, target: lb, clientX: x, clientY: 200 })
+    const fire = (type, touches) =>
+      lb.dispatchEvent(new TouchEvent(type, {
+        bubbles: true, cancelable: true,
+        touches, targetTouches: touches, changedTouches: touches,
+      }))
+    // Two fingers down, spreading wide apart (a pinch), then lifting.
+    fire('touchstart', [touch(0, 150), touch(1, 170)])
+    fire('touchmove',  [touch(0, 40),  touch(1, 320)])
+    fire('touchend',   [touch(1, 320)])           // first finger lifts, one remains
+    fire('touchend',   [])                          // last finger lifts
+  })
+
+  // Still on the same image — the pinch was not mistaken for a swipe.
+  await expect(page.locator('#lightbox-counter')).toContainText('01 /')
+})
+
 test('the close button dismisses the lightbox', async ({ page }) => {
   await page.locator('.masonry-tile').first().click()
   await expect(page.locator('#lightbox')).toHaveClass(/open/)

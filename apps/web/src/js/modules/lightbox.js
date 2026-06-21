@@ -150,11 +150,25 @@ export function initLightbox() {
   })
 
   // ── Touch swipe ──────────────────────────────────────────────────────────
+  // A pinch-zoom is a two-finger gesture; tracking only touches[0] would read
+  // one finger's horizontal spread as a swipe and page to a random image. So
+  // any gesture that ever has more than one active touch is disqualified from
+  // counting as a swipe.
   let touchStartX = 0
+  let multiTouch  = false
   lightbox.addEventListener('touchstart', e => {
+    if (e.touches.length > 1) { multiTouch = true; return }
+    multiTouch = false
     touchStartX = e.touches[0].clientX
   }, { passive: true })
+  lightbox.addEventListener('touchmove', e => {
+    if (e.touches.length > 1) multiTouch = true
+  }, { passive: true })
   lightbox.addEventListener('touchend', e => {
+    // Wait until every finger has lifted, then ignore the gesture if it was
+    // ever multi-touch (pinch/zoom), so only a true one-finger swipe pages.
+    if (e.touches.length > 0) return
+    if (multiTouch) { multiTouch = false; return }
     const diff = touchStartX - e.changedTouches[0].clientX
     if (Math.abs(diff) < 50) return
     if (diff > 0 && lbIndex < lbTiles.length - 1) { lbIndex++; updateLightbox() }
