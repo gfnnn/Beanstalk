@@ -44,11 +44,16 @@
     .hero-actions,
     .studio-notices,
     .hero-media,
+    .hero-media-tag,
+    .scroll-hint,
     /* Page header entrance (inner pages — the above-the-fold title block) */
     .page-eyebrow,
     .page-title,
     .page-descriptor,
-    /* Filter bar controls (portfolio / flash) — cascade in with the page */
+    /* Filter bar controls (portfolio / flash) — cascade in with the page. The
+       toggle is the only one visible on mobile (chips collapse behind it); it's
+       display:none on desktop, so guarding it there is an inert no-op. */
+    .filter-bar .filter-toggle,
     .filter-bar .chip,
     .filter-bar .chip-more,
     .filter-bar .filter-select,
@@ -66,6 +71,8 @@
     .chooser-sub,
     .contact-heading,
     .contact-subhead,
+    .newsletter-band-title,
+    .newsletter-band-sub,
     /* Enquiry form column — gentle on-load entrance (progress bar + active step).
        This guard + the 2s failsafe below are the SOLE owners of the form's
        visibility: its entrance (animations.js) animates transform only, never

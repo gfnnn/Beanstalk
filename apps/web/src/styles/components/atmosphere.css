@@ -115,7 +115,7 @@ body::after {
   /* Nav logo — needs no first-paint guard: on a cold load the loader cover is over
      it until `.motion-ready` flips (when this draw starts). */
   html.cold-start.motion-ready .nav-logo .brand-mark {
-    animation: mark-rise 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: mark-rise 0.9s var(--ease-soft) both;
   }
 
   /* Confirmation mark — a warm redirect has no cover, so clip it from first paint
@@ -127,7 +127,7 @@ body::after {
     animation: mark-rise-failsafe 1ms linear 3s forwards;
   }
   html.motion-ready .confirm-mark .brand-mark {
-    animation: mark-rise 1s cubic-bezier(0.22, 0.61, 0.36, 1) 0.35s both;
+    animation: mark-rise 1s var(--ease-soft) 0.35s both;
   }
 }
 @keyframes mark-rise-failsafe { to { clip-path: inset(0 0 0 0); } }

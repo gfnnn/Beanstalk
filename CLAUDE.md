@@ -638,6 +638,13 @@ with Fraunces (serif display) / Karla (sans body) / JetBrains Mono (labels). Reu
 shared nav, footer, button, and JS-module patterns across pages. Placeholder copy is
 marked `<!-- COPY: -->`; image placeholders carry shoot briefs in HTML comments.
 
+**Motion is one language too — don't drift it either.** The whole site (load reveal,
+scroll reveal, hover, ambient, page transition) speaks two curves from the `--ease-*`
+tokens — **SOFT** for text, **ORGANIC** for assets that grow/arrive — and the JS
+entrance mirrors them via `CustomEase` so JS == CSS. The first view reveals as one
+top-to-bottom positional wave. New motion uses those tokens/curves; see
+[`docs/MOTION.md`](docs/MOTION.md) → *Motion language* before adding any.
+
 **Colour lives in one place — `apps/web/src/data/palette.js`.** No CSS hard-codes a
 colour; every rule reads a CSS custom property (`var(--moss)`, `rgba(var(--ink-rgb),
 …)`, the `--tone-*` swatch trios). `src/build/palette.js` generates those properties
