@@ -75,6 +75,16 @@ vi.mock('gsap/ScrollTrigger', () => ({
   ScrollTrigger: { refresh() { hoisted.calls.refresh++ } },
 }))
 
+// CustomEase.create() returns the bezier string in tests so the module's SOFT /
+// ORGANIC eases are recognisable, assertable values (and so the real CustomEase
+// doesn't run against the mocked gsap core). These mirror styles/variables.css.
+vi.mock('gsap/CustomEase', () => ({
+  CustomEase: { create: (_name, bezier) => bezier },
+}))
+const SOFT = '0.16, 1, 0.3, 1'
+const ORGANIC = '0.34, 1.2, 0.64, 1'
+const WAVE_BASE = 0.35 // jsdom rect top = 0 → above-fold wave delay = WAVE_BASE
+
 const { calls } = hoisted
 
 // Drive which media queries match: the reduced-motion flag + the viewport tier.
@@ -219,6 +229,39 @@ describe('initHeroAnimation', () => {
       expect(media).toBeTruthy()
       expect(media.vars.x).toBe(24)        // slides from the right edge
       expect(media.vars.y).toBeUndefined()
+      expect(media.vars.ease).toBe(ORGANIC) // an asset settling in
+    })
+
+    it('reveals the desktop studio-location tag as a late beat over the media', async () => {
+      const { initHeroAnimation } = await load({ viewport: 'desktop' })
+      mountFullHero()
+      document.querySelector('.hero-media').innerHTML += '<span class="hero-media-tag">Studio</span>'
+      initHeroAnimation()
+      const tag = fromFor(document.querySelector('.hero-media-tag'))
+      expect(tag).toBeTruthy()
+      expect(tag.vars.opacity).toBe(0)
+      expect(tag.vars.ease).toBe(SOFT)
+    })
+
+    it('reveals the scroll cue as the hero text timeline\'s last beat', async () => {
+      const { initHeroAnimation } = await load()
+      mountFullHero()
+      document.querySelector('.hero').innerHTML += '<div class="scroll-hint">Scroll</div>'
+      initHeroAnimation()
+      const hint = document.querySelector('.scroll-hint')
+      const beat = calls.tlFrom.find(c => c.targets.includes(hint))
+      expect(beat).toBeTruthy()
+      expect(beat.vars.opacity).toBe(0)
+    })
+
+    it('runs the hero heading on the SOFT house curve with a blur-to-focus', async () => {
+      const { initHeroAnimation } = await load()
+      mountFullHero()
+      initHeroAnimation()
+      const h1 = calls.tlFrom.find(c => c.targets.includes(document.querySelector('.hero h1')))
+      expect(h1.vars.filter).toContain('blur')   // §3-C blur-to-focus on the heading
+      // the timeline default ease is SOFT (the heading inherits it)
+      expect(calls.timelines.some(t => t.defaults && t.defaults.ease === SOFT)).toBe(true)
     })
 
     it('raises the media column up on mobile (the first beat of the overlay reveal)', async () => {
@@ -300,7 +343,8 @@ describe('initScrollAnimations', () => {
     const reveal = fromFor(document.querySelector('.masonry-tile'))
     expect(reveal).toBeTruthy()
     expect(reveal.vars.scrollTrigger).toBeUndefined() // plays on load, not on scroll
-    expect(reveal.vars.delay).toBe(0.5)               // sequenced just after the header
+    expect(reveal.vars.delay).toBe(WAVE_BASE)         // joins the positional wave (jsdom top 0 → WAVE_BASE)
+    expect(reveal.vars.ease).toBe(ORGANIC)            // card grids settle on the organic curve
   })
 
   it('reveals a below-the-fold grid on scroll', async () => {
@@ -343,6 +387,29 @@ describe('initScrollAnimations', () => {
     document.body.innerHTML = '<p class="eyebrow">x</p>'
     initScrollAnimations()
     expect(fromFor(document.querySelector('.eyebrow')).vars.x).toBe(-14)
+  })
+
+  it('reveals registry text on the SOFT curve and at the positional-wave delay', async () => {
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML = '<p class="eyebrow">x</p>'
+    initScrollAnimations()
+    const r = fromFor(document.querySelector('.eyebrow'))
+    expect(r.vars.ease).toBe(SOFT)             // text → house curve
+    expect(r.vars.delay).toBe(WAVE_BASE)       // jsdom top 0 → wave base (+ role base 0 for eyebrow)
+    expect(r.vars.scrollTrigger).toBeUndefined()
+  })
+
+  it('includes the .filter-toggle in the filter cascade (SOFT, positional delay)', async () => {
+    const { initScrollAnimations } = await load()
+    document.body.innerHTML =
+      '<div class="filter-bar"><button class="filter-toggle"></button><button class="chip"></button></div>'
+    initScrollAnimations()
+    const toggle = document.querySelector('.filter-toggle')
+    const cascade = calls.from.find(c => c.targets.includes(toggle))
+    expect(cascade).toBeTruthy()               // the visible mobile control joins the cascade
+    expect(cascade.targets).toContain(document.querySelector('.chip'))
+    expect(cascade.vars.ease).toBe(SOFT)
+    expect(cascade.vars.delay).toBe(WAVE_BASE)
   })
 
   it('reveals a bespoke inner-page heading through the unified registry', async () => {

@@ -22,6 +22,50 @@ gets a fully visible, static page.
 | **Animated hairline rules** | `atmosphere.css` (the `--rule-scale` switch + `.divider`) + per-page hairline pseudos | Dividers that grow in from the left as the page builds |
 | **Brand-mark ink-rise** | shared `mark-rise` in `atmosphere.css` | The calligraphic logo "draws" in (clip-path wipe from the base) on the nav logo (cold load only) and the confirmation mark — *not* the preloader (its cover can lift before a reveal-from-hidden shows) |
 
+## Motion language (§3 woodland) — the one vocabulary
+
+Every motion on the site — load reveal, scroll reveal, hover, ambient, page
+transition — speaks **one language**, so the whole reads as one hand rather than a
+pile of independent effects. This is the source of truth (it replaces the old
+`beansprout-woodland-motion-direction.md`); the `§3-x` tags are referenced from the
+code.
+
+**Easing — two curves, by role.** Both are the `--ease-*` tokens in
+`styles/variables.css`; the JS entrance mirrors them via `CustomEase` in
+`animations.js` (`SOFT`/`ORGANIC`) so JS and CSS use the *same* bezier, not an
+approximation.
+
+| Curve | Token / bezier | Used by |
+|---|---|---|
+| **SOFT** | `--ease-soft` `cubic-bezier(0.16,1,0.3,1)` — fast start, soft landing | **Text**: headings, bodies, eyebrows, the page-header, filter chips, the form rise, generic `.reveal`, the brand-mark ink-rise |
+| **ORGANIC** | `--ease-organic` `cubic-bezier(0.34,1.2,0.64,1)` — a gentle overshoot, a living "stem settle" (§3-F) | **Assets that grow/arrive**: the card/tile grids (`revealGroup`), the hero media. The sprig growth keeps its own `back.out` (also organic) |
+
+**Duration** anchors to `--dur-slow` ≈ 0.64s for reveals (text ~0.6–0.7, headings
+~0.8 with blur, cards ~0.7); `--dur` (220ms) for quick interaction states; `--sway`
+(14s) for the ambient sprig loop.
+
+**Direction & texture vocabulary.** Text **rises** (`y`); eyebrows **slide from the
+left** (their leading hairline grows in too); the hero media **slides from the
+edge**. A faint **blur-to-focus** ("coming into focus through foliage", §3-C) rides
+**headings only**. The sprig **draws / grows** (§3-A line-drawing, §3-B living ink);
+the page gains shallow **depth** on scroll (§3-D, the sprig parallax); surfaces get a
+"light falling on it" lift on hover (§3-F); the whole sits on **paper grain** (§3-H);
+routes **cross-fade** (§3-G).
+
+**The positional wave.** On a cold load the first view reveals as **one top-to-bottom
+wave**, not per-mechanism buckets: the hero / page-header timeline is the *lead*, then
+every other above-the-fold reveal (registry headers, grids, the filter bar, generic
+`.reveal`) reads its delay from a single position→time curve (`wavePos` in
+`animations.js`, `WAVE_BASE`/`WAVE_SPAN`) so elements arrive in visual order. A small
+per-role / `.reveal-d*` offset gives the intra-section micro-stagger (eyebrow →
+heading → body). Below the fold, each element keeps its own scroll trigger.
+
+**Deliberately bespoke (not drift).** A few motions intentionally sit *outside* the
+two curves and are kept so on purpose: the button spinner (`linear` — constant spin),
+the skip-link (snappy `150ms` focus affordance), the hairline-rule grow (its own gentle
+in-out "draw from the left"), and the loader breathe (`pl-breathe`/`pl-pulse`, its own
+self-contained inline-critical timing). The sprig `feTurbulence` "living ink" is SMIL.
+
 ## The coordination spine: `pageReady` → `motion-ready`
 
 The whole reveal hangs off one promise and one class.

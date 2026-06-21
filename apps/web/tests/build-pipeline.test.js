@@ -333,3 +333,20 @@ describe('sitemap ROUTES ↔ vite input parity', () => {
     expect(ROUTES.some(r => r.path === '/enquiry-received/')).toBe(false)
   })
 })
+
+// The FOUC guard and the JS entrance must stay paired: anything animated on-load
+// above the fold must be held at opacity:0 until `.motion-ready`, or it flashes.
+// These newly-woven elements were the gaps; pin them so the pairing can't silently
+// drop (the guard lives in motion.css, the animation in animations.js).
+describe('motion.css FOUC guard covers the woven-in above-the-fold elements', () => {
+  const motionCss = readFileSync(resolve(WEB_ROOT, 'src/styles/motion.css'), 'utf8')
+  it.each([
+    '.newsletter-band-title',
+    '.newsletter-band-sub',
+    '.scroll-hint',
+    '.hero-media-tag',
+    '.filter-bar .filter-toggle',
+  ])('guards %s', sel => {
+    expect(motionCss).toContain(sel)
+  })
+})
