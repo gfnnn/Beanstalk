@@ -64,6 +64,40 @@ node apps/web/scripts/process-media.mjs --lane portfolio \
 again, e.g. the artist's original 28 portfolio webps that were migrated to tiers
 without re-framing.
 
+## Watermark (the brand mark, baked into the full-res tier)
+
+The photos are the artist's work, so the pipeline **bakes a small brand-mark
+watermark into the image pixels** (not a CSS overlay a download bypasses) — a
+deterrent against casual saving/screenshotting. The recipe lives in one place,
+**`apps/web/src/build/watermark.js`** (the same traced sprig as the favicon,
+`MARK_PATH`): a **cream** glyph over a faint blurred **ink** halo so it reads on
+both light and dark photos, in the **bottom-left** corner, low-opacity and small.
+All the knobs (size, margin, opacity) are the `WATERMARK` constants at the top of
+that file — tune there, nowhere else. It renders as a full-tier-sized SVG overlay
+and is composited by sharp during encode, so it stays **deterministic** (no churn).
+
+- **Scope: only the full-res tier per lane** (`WATERMARK_WIDTH` — portfolio `-1200`,
+  flash `-900`). Portfolio's lightbox loads `-1200` (`data-full`) while the grid
+  `<img>` loads `-800`, so the **close-up / downloaded image is always marked** and
+  the smaller grid thumbnails stay clean. Widening to `-800` later is a one-line
+  change to `WATERMARK_WIDTH` + the renderer's base tier.
+- **New images get it automatically.** `process-media.mjs` (and therefore the
+  Dropbox sync) stamps the full-res tier on every run — single encode, best
+  quality. `--no-watermark` skips it (e.g. processing a one-off image that
+  shouldn't carry the mark).
+- **The already-live tiers were stamped in place** by a one-time migration,
+  **`apps/web/scripts/watermark-existing.mjs`**: most of the original 54 pieces
+  predate the Dropbox flow and their masters are gone, so it composites the same
+  mark straight onto the committed `-1200` files and re-encodes them with the same
+  `ENCODERS` opts (one extra encode on an already-optimised file — the accepted
+  cost of covering masterless pieces). It records every stamped path in
+  `scripts/.watermarked.json` and **skips listed files on re-run**, so it's
+  idempotent and safe to re-invoke; `--dry-run` lists what it would touch. New
+  Dropbox pieces never pass through it (they're marked at processing time), so it
+  targets the fixed legacy set and is normally run once. If a legacy piece's master
+  *does* still exist, a forced re-sync reprocesses it clean and supersedes the
+  in-place tier.
+
 ## Metadata rides in the filename (the " -- " grammar)
 
 The filter metadata (styles, placement, …) is the artist's call, never inferred

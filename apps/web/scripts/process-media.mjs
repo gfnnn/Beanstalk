@@ -41,6 +41,8 @@
 //                            (used when migrating already-cropped exports so we
 //                             don't shave or upscale them into a new aspect)
 //   --no-sharpen             skip the downscale sharpen pass
+//   --no-watermark           skip baking the brand-mark watermark into the full-res
+//                            tier (default: on — see src/build/watermark.js)
 //   --allow-upscale          accept a master smaller than the largest tier
 //                            (default: hard error — an upscale ships blurry)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,6 +53,7 @@ import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import sharp from 'sharp'
 import { activePalette } from '../src/build/palette.js'
+import { WATERMARK_WIDTH, watermarkSvgBuffer } from '../src/build/watermark.js'
 
 // Pin the libvips thread pool: AVIF output bytes vary with the worker count, so
 // the default (= CPU cores) makes the same master re-encode byte-DIFFERENT on a
@@ -80,14 +83,16 @@ const LANES = {
 }
 
 // Encoder settings — quality tuned for photos; effort high since this is offline.
-const ENCODERS = {
+// Exported so the in-place watermark migration (scripts/watermark-existing.mjs)
+// re-encodes legacy tiers with the EXACT same opts.
+export const ENCODERS = {
   avif: { ext: 'avif', opts: { quality: 50, effort: 6 } },
   webp: { ext: 'webp', opts: { quality: 72, effort: 6 } },
   jpg:  { ext: 'jpg',  opts: { quality: 80, mozjpeg: true } },
 }
 
 function parseArgs(argv) {
-  const args = { lane: null, out: null, src: null, name: null, manifest: null, crop: true, sharpen: true, allowUpscale: false }
+  const args = { lane: null, out: null, src: null, name: null, manifest: null, crop: true, sharpen: true, watermark: true, allowUpscale: false }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     switch (a) {
@@ -98,6 +103,7 @@ function parseArgs(argv) {
       case '--manifest': args.manifest = argv[++i]; break
       case '--no-crop': args.crop = false; break
       case '--no-sharpen': args.sharpen = false; break
+      case '--no-watermark': args.watermark = false; break
       case '--allow-upscale': args.allowUpscale = true; break
       default: throw new Error(`Unknown arg: ${a}`)
     }
@@ -114,7 +120,7 @@ const ASPECT_TOLERANCE = 0.02
 
 // Produce every tier×format for one master. Returns the per-output rows so the
 // caller can print a single aligned table for the whole batch.
-async function processOne({ src, name, lane, outDir, crop, sharpen, allowUpscale = false }) {
+async function processOne({ src, name, lane, outDir, crop, sharpen, watermark = true, allowUpscale = false }) {
   const recipe = LANES[lane]
   const input = await readFile(src)
   // metadata() reads the input header, so its width/height IGNORE the EXIF
@@ -154,17 +160,26 @@ async function processOne({ src, name, lane, outDir, crop, sharpen, allowUpscale
     // Base pipeline: apply EXIF rotation, then crop. Default is a centre cover-crop
     // to the lane aspect (masters are pre-framed by the artist); --no-crop just
     // downscales by width keeping the source aspect.
+    // The tier's output pixel size — crop forces the lane aspect; --no-crop keeps
+    // the source aspect. Needed to size the watermark overlay to this exact tier.
+    const outW = width
+    const outH = crop ? Math.round(width / recipe.aspect) : Math.round(width * (srcH / srcW))
+    // Only the full-res tier per lane carries the mark; thumbnails stay clean.
+    const stamp = watermark && width === WATERMARK_WIDTH[lane]
+
     const make = () => {
       let pipe = sharp(input).rotate()
       if (crop) {
-        const height = Math.round(width / recipe.aspect)
-        pipe = pipe.resize(width, height, { fit: 'cover', position: recipe.position, kernel: 'lanczos3' })
+        pipe = pipe.resize(outW, outH, { fit: 'cover', position: recipe.position, kernel: 'lanczos3' })
       } else {
         pipe = pipe.resize({ width, kernel: 'lanczos3' })
       }
       // Sharpen only when we're actually shrinking (downscale softens; upscaling
       // a small export to a bigger tier should NOT be sharpened — it amplifies).
       if (sharpen && width < srcW) pipe = pipe.sharpen({ sigma: 0.8 })
+      // Bake the watermark onto the photo BEFORE the JPG flatten below, so the
+      // mark's translucency composites over the image, then flattens onto cream.
+      if (stamp) pipe = pipe.composite([{ input: watermarkSvgBuffer({ width: outW, height: outH, lane }), gravity: 'northwest' }])
       return pipe
     }
 
@@ -203,7 +218,7 @@ async function main() {
   for (const job of jobs) {
     const srcAbs = path.resolve(job.src)
     await stat(srcAbs) // fail loudly if a master is missing
-    results.push(await processOne({ src: srcAbs, name: job.name, lane: args.lane, outDir, crop: args.crop, sharpen: args.sharpen, allowUpscale: args.allowUpscale }))
+    results.push(await processOne({ src: srcAbs, name: job.name, lane: args.lane, outDir, crop: args.crop, sharpen: args.sharpen, watermark: args.watermark, allowUpscale: args.allowUpscale }))
   }
 
   printReport(results, args.lane, outDir)
