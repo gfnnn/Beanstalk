@@ -95,6 +95,27 @@ describe('enquiry handler — validation', () => {
     expect(res.statusCode).toBe(400)
   })
 
+  describe('health-data consent (special category, explicit consent)', () => {
+    it('rejects health details sent without the health-consent box, storing and sending nothing', async () => {
+      const res = await H(post(validEnquiry({ allergies: 'Plaster allergy' })))
+      expect(res.statusCode).toBe(400)
+      expect(JSON.parse(res.body).error).toMatch(/health-consent/)
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(d1.data.submissions.size).toBe(0)
+    })
+
+    it('accepts health details when the health-consent box is ticked, and shows it in the email', async () => {
+      const res = await H(post(validEnquiry({ allergies: 'Plaster allergy', health_consent: 'on' })))
+      expect(res.statusCode).toBe(200)
+      expect(sentBody(fetchMock).html).toContain('Consented to health data use')
+    })
+
+    it('does not require the box when no health details are given (blank or whitespace)', async () => {
+      expect((await H(post(validEnquiry()))).statusCode).toBe(200)
+      expect((await H(post(validEnquiry({ allergies: '   ' }), { 'cf-connecting-ip': '6.6.6.6' }))).statusCode).toBe(200)
+    })
+  })
+
   it('silently accepts (200) but sends nothing when the honeypot is filled', async () => {
     const res = await H(post(validEnquiry({ _gotcha: 'i am a bot' })))
     expect(res.statusCode).toBe(200)

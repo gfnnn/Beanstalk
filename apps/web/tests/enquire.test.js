@@ -116,6 +116,51 @@ describe('initEnquire', () => {
     })
   })
 
+  describe('health-data consent box', () => {
+    // A step-4-like field: the health textarea plus its consent box, as on the page.
+    function setupHealth() {
+      setup()
+      $('step-1').insertAdjacentHTML('beforeend', `
+        <div class="field" id="health-field">
+          <textarea id="allergies" name="allergies"></textarea>
+          <input type="checkbox" id="check-health" name="health_consent">
+        </div>`)
+    }
+    const input = el => el.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+    it('is optional while the health field is empty', () => {
+      setupHealth()
+      initEnquire()
+      expect($('check-health').required).toBe(false)
+      document.querySelector('[name="name"]').value = 'Robin'
+      click($('step1-next'))
+      expect($('progress-pct').textContent).toBe('Step 2 of 4')
+    })
+
+    it('becomes required once health details are typed, and blocks the step until ticked', () => {
+      setupHealth()
+      initEnquire()
+      document.querySelector('[name="name"]').value = 'Robin'
+      $('allergies').value = 'Plaster allergy'
+      input($('allergies'))
+      expect($('check-health').required).toBe(true)
+      click($('step1-next'))
+      expect($('health-field').classList.contains('error')).toBe(true)
+      expect($('progress-pct').textContent).toBe('')
+      $('check-health').checked = true
+      click($('step1-next'))
+      expect($('progress-pct').textContent).toBe('Step 2 of 4')
+    })
+
+    it('drops the requirement again if the health details are cleared', () => {
+      setupHealth()
+      initEnquire()
+      $('allergies').value = 'x'; input($('allergies'))
+      $('allergies').value = '  '; input($('allergies'))
+      expect($('check-health').required).toBe(false)
+    })
+  })
+
   describe('pill multi-select cap (data-max)', () => {
     it('disables the remaining pills once the cap is reached, and re-enables on deselect', () => {
       setup()

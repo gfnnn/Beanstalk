@@ -63,7 +63,8 @@ const FORMS = {
         ['date_from', 'Available from'], ['date_to', 'Available until'], ['days[]', 'Preferred days'],
       ]],
       ['Health & consent', [
-        ['allergies', 'Allergies / medical'], ['additional_notes', 'Additional notes'],
+        ['allergies', 'Allergies / medical'], ['health_consent', 'Consented to health data use'],
+        ['additional_notes', 'Additional notes'],
         ['photo_permission', 'Photo permission'], ['policy_accepted', 'Accepted studio policy'],
         ['age_confirmed', 'Confirmed 18+'], ['deposit_understood', 'Understands deposit'],
       ]],
@@ -131,6 +132,11 @@ export async function handler(event, env = {}) {
   }
   if (form.consent.some(k => !fields[k])) {
     return reply(400, { error: 'Please confirm the required consent boxes.' })
+  }
+  // Health details are special-category data: the privacy policy relies on
+  // explicit consent, so they're only accepted alongside the health-consent box.
+  if (kind === 'enquiry' && String(fields.allergies || '').trim() && !fields.health_consent) {
+    return reply(400, { error: 'Please tick the health-consent box, or remove the health details.' })
   }
 
   // ── Rate limit — gate BEFORE any expensive work ─────────────────────────────
