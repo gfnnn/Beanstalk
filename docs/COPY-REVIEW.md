@@ -95,7 +95,7 @@ instead of repeating them, so a value can never drift.
 | Flash | Next flash day + the season + 12 names/sizes/prices | "Summer 2026" + placeholders | ⏳ **Next flash day 26 July** set; season label + the 12 pieces still to confirm |
 | Legal dates | Effective date for Privacy + Terms | "June 2026" | ✅ **Approved (June 2026)** |
 | Trading name + insurance | Legal pages' "who I am" / liability | blanks | ✅ **"Beansprout Tattoo"** + **public liability insurance** confirmed |
-| ⚖️ ICO number | Your ICO registration reference (**ZA######**) | blank | ⏳ held — need the **public ZA###### reference** (not the account/certificate number) |
+| ⚖️ ICO number | Your ICO registration reference (**ZA######**) | blank | ✅ **ZC165794** applied to `/privacy/` (public register reference) |
 | ⚖️ Tattoo reg | Winchester City Council registration number | blank | _still to confirm_ |
 
 ---

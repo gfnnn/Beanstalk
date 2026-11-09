@@ -120,9 +120,9 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       `/enquire/` budget bands mirror them.
 - [~] **C3 · Terms/privacy effective date + legal review** — deposit figures match
       `/services/`, the **effective date is approved** ("June 2026"), and the **CCR 2013
-      deposit/cancellation wording was clarified** (#204). **Open:** the **ICO public
-      registration reference** (ZA###### — the account/cert number must never be
-      published), the **tattoo-registration number** (TBC), and a professional review.
+      deposit/cancellation wording was clarified** (#204). **ICO public registration
+      reference — ✅ `ZC165794` applied to `/privacy/`.** **Open:** the
+      **tattoo-registration number** (Winchester City Council, TBC), and a professional review.
 - [ ] **C4 · Flash art + copy** — all **12** pieces in `flash.js` are `img: null`
       (line-art glyphs; titles/specs/prices placeholder). 👤 supply photos + real copy
       → 🛠 add to `flash.js` + `public/images/flash/`.
@@ -199,11 +199,12 @@ Gmail). All six must pass before the launch is "done":
 
 ## D. The apex cutover — LAST, only after A–C are green  (👤 + 🛠)
 
-> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **blocked-on-ICO**
-> Move the live apex `beansprout.ink` from **v1 → v2**. The long pole is **ICO
-> registration** (~2 weeks out); content is the parallel gate. **Hard gates (all must
-> be green to start):**
-> - **ICO number published** in the privacy policy (`/privacy/`) — see C3.
+> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **blocked-on-content**
+> Move the live apex `beansprout.ink` from **v1 → v2**. The ICO number is now in hand
+> (`ZC165794`, applied to `/privacy/`); the remaining long pole is **content + a legal
+> review**. **Hard gates (all must be green to start):**
+> - **ICO number published** in the privacy policy (`/privacy/`) — ✅ applied; still needs
+>   the tattoo-reg number + legal review to strip the PRIV marker (C3).
 > - **Copy grep-gate at zero** — `grep -rn "pending approval" apps/web/
 >   --exclude-dir=dist --exclude-dir=node_modules` returns nothing (A above).
 > - **Real images in** — no placeholder flash art (C4), the hero clip live (C6), and a
