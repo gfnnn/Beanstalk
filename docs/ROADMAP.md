@@ -237,7 +237,9 @@ apex off v1 (the guardrail in `CLAUDE.md`).
 - [ ] **X7b · Turn on production analytics** (👤): create the production GA4 property
       (admin setup per [`ANALYTICS.md`](./ANALYTICS.md)), paste its ID into
       `production.measurementId` in `apps/web/src/data/analytics.js` (🛠 one-line PR to
-      `develop` → release), mark `generate_lead` + `sign_up` as key events, verify in Realtime.
+      `develop` → release), mark `generate_lead` + `sign_up` as key events, set the
+      internal-traffic filter *Active*, register the `form` custom dimension, turn on data
+      redaction, verify in Realtime.
 - [ ] **X8 · Decommission/redirect v1** once v2 is healthy — keep v1 **idle, not
       deleted** for 1–2 weeks as the rollback target.
 

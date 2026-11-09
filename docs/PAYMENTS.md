@@ -258,6 +258,12 @@ integration). Bank transfer stays a manual, off-page option in the [dashboard](.
   `stripe.retrievePaymentIntent`, and renders the status (`succeeded` → "you're booked";
   `processing` → "we'll email you"; `requires_payment_method` → "try again"). The **webhook still
   does the real promotion** — this page is just the customer's view of the return.
+  **Analytics:** Stripe appends `payment_intent`, `payment_intent_client_secret` and
+  `redirect_status` to the `return_url`, and GA4's automatic `page_view` records the full URL.
+  The client secret must **not** reach GA4: read it, then strip the query with
+  `history.replaceState` **before** `initAnalytics()` runs on this page (or keep this page's
+  bundle path from loading gtag). GA4's web-stream redaction of `payment_intent_client_secret`
+  is on as a backstop, not the primary control. See `ANALYTICS.md`.
 
 **Confirmation UX:** card/Link resolve in the modal → confirmation panel; Klarna/PayPal/wallets
 redirect to `/flash/payment-return/`. Either way money-truth = the webhook; the UI is

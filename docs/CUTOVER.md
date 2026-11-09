@@ -94,7 +94,8 @@ Two test→prod flips happen together (DNS + email). Do them in this order.
 7. **X7b · Production analytics (👤 + 🛠 one line).** Create the **production GA4 property**
    and run its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*: signals
    off, data sharing off, 14-month retention, form-interaction/site-search measurement off,
-   internal-traffic filter). Put its `G-…` ID in `production.measurementId` in
+   internal-traffic filter **Active**, the event-scoped `form` dimension, data redaction for
+   email + `payment_intent_client_secret`). Put its `G-…` ID in `production.measurementId` in
    `apps/web/src/data/analytics.js` and ship it via the release PR. Mark `generate_lead`
    and `sign_up` as **key events**. (Order doesn't matter relative to DNS: with no ID the
    apex simply sends nothing.)

@@ -41,6 +41,9 @@ privacy wording is pending that review (`PRIV-05`, `COPY-REVIEW.md`).
   `cookie_expires` ≈ 13 months.
 - **No PII, enforced centrally:** `track()` sends only an allowlist (events + fixed param
   values); anything else is dropped. Call sites never touch gtag.
+- **Two properties:** staging and production are separate GA4 properties (separate IDs
+  in the data file), so test traffic never mixes with real numbers. The production ID stays
+  empty until cutover (X7b).
 - **CSP** (`src/build/security.js`) widened only to Google's GA4 host set: `script-src
   www.googletagmanager.com`; `img-src`/`connect-src` `*.google-analytics.com`,
   `*.analytics.google.com` (connect only), `*.googletagmanager.com`.
@@ -65,9 +68,16 @@ gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`
 4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn **off** *Form
    interactions* (fires on failed/invalid submits, double-counts) and *Site search* (no search
    exists; it would read `q`/`s` from any crafted URL).
-5. **Internal traffic:** define the rule, add the data filter in *Testing*, check DebugView,
-   then set it *Active*.
-6. Production only (cutover): mark `generate_lead` and `sign_up` as **key events**.
+5. **Internal traffic:** define the rule and add the data filter. **Staging: leave it in
+   *Testing*** (staging traffic is almost all internal, so an *Active* filter would hide the
+   very hits you're verifying). **Production: set it *Active*.**
+6. **Custom dimension:** register an **event-scoped** dimension for the `form` param
+   (`enquiry` | `flash`) so `generate_lead` can be split by form. `sign_up`'s `method` needs
+   nothing: it maps to GA4's built-in *Method* dimension.
+7. **Data redaction** (web stream → *Redact data*): turn on **email** redaction and add the
+   query parameter **`payment_intent_client_secret`**. Nothing sends either today; this is
+   belt-and-braces for the future Payment Element return URL (see `PAYMENTS.md` §7).
+8. Production only (cutover): mark `generate_lead` and `sign_up` as **key events**.
 
 Verify on staging with GA4 **DebugView/Realtime**: `page_view`, `generate_lead`, `sign_up`.
 

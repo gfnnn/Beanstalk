@@ -75,6 +75,14 @@ describe('measurementIdFor (hostname → ID)', () => {
     expect(analytics.staging.hosts).toEqual(['gfnnn.github.io', 'beanstalk-e61.pages.dev'])
     expect(analytics.production.hosts).toEqual(['beansprout.ink'])
   })
+
+  it('maps the real staging hosts to the real staging ID (and the apex to production)', async () => {
+    const { analytics } = await vi.importActual('../src/data/analytics.js')
+    for (const host of ['gfnnn.github.io', 'beanstalk-e61.pages.dev']) {
+      expect(measurementIdFor(host, analytics)).toBe(analytics.staging.measurementId)
+    }
+    expect(measurementIdFor('beansprout.ink', analytics)).toBe(analytics.production.measurementId)
+  })
 })
 
 describe('initAnalytics (when gtag loads)', () => {
