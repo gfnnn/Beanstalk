@@ -32,7 +32,8 @@ test('the /privacy/ opt-out toggles, persists across a reload, and logs no error
   const toggle = page.locator('[data-analytics-toggle]')
 
   await expect(control).toBeVisible()
-  await expect(status).toContainText(/on in this browser/i)
+  // localhost has no Measurement ID, so the control says analytics isn't running.
+  await expect(status).toContainText(/isn’t running/i)
   await toggle.click()
   await expect(status).toContainText(/off in this browser/i)
   await expect(toggle).toHaveText('Turn analytics back on')
@@ -41,6 +42,6 @@ test('the /privacy/ opt-out toggles, persists across a reload, and logs no error
   await expect(status).toContainText(/off in this browser/i)
 
   await toggle.click()
-  await expect(status).toContainText(/on in this browser/i)
+  await expect(status).toContainText(/isn’t running/i)
   errors.assertClean()
 })

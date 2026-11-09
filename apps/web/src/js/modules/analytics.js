@@ -176,6 +176,8 @@ const STATUS = {
   storage: 'Your browser is blocking site storage, so analytics stays off for you.',
   choice: 'Analytics is off in this browser. This choice is saved for future visits.',
   on: 'Analytics is on in this browser.',
+  // A host with no Measurement ID (production before cutover, localhost) loads nothing.
+  none: 'Analytics isn’t running on this site right now. You can still turn it off here, and the choice is saved for later.',
 }
 
 function initOptOutControl(id) {
@@ -186,7 +188,7 @@ function initOptOutControl(id) {
 
   const render = () => {
     const reason = optOutReason()
-    status.textContent = STATUS[reason || 'on']
+    status.textContent = STATUS[reason || (id ? 'on' : 'none')]
     btn.hidden = reason === 'gpc' || reason === 'storage'
     btn.textContent = reason === 'choice' ? 'Turn analytics back on' : 'Turn off analytics'
   }
@@ -216,6 +218,11 @@ export function initAnalytics({ hostname = location.hostname } = {}) {
     return
   }
   loadGtag(id)
+  // An opt-out made in another tab, or before Back restored this page from the
+  // bfcache, must stop this page too, not just the one where the button was pressed.
+  const recheck = () => { if (activeId && isOptedOut()) stopTracking(id) }
+  window.addEventListener('storage', e => { if (e.key === OPT_OUT_KEY) recheck() })
+  window.addEventListener('pageshow', e => { if (e.persisted) recheck() })
 }
 
 // Test-only: reset module state between cases.

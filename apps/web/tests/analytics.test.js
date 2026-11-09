@@ -258,6 +258,38 @@ describe('the /privacy/ opt-out control', () => {
     expect(btn.hidden).toBe(true)
   })
 
+  it('says analytics isn\'t running (not "on") on a host with no ID', () => {
+    document.body.innerHTML = `
+      <div data-analytics-optout hidden>
+        <p data-analytics-status></p><button type="button" data-analytics-toggle></button>
+      </div>`
+    initAnalytics({ hostname: 'beansprout.ink' }) // production, ID still empty
+    const status = document.querySelector('[data-analytics-status]')
+    expect(status.textContent).toMatch(/isn’t running/)
+    expect(status.textContent).not.toMatch(/on in this browser/)
+    document.querySelector('[data-analytics-toggle]').click()
+    expect(localStorage.getItem(OPT_OUT_KEY)).toBe('1') // choice still saved for later
+  })
+
+  it('an opt-out from another tab stops this page sending', () => {
+    initAnalytics({ hostname: 'staging.example' })
+    localStorage.setItem(OPT_OUT_KEY, '1')
+    window.dispatchEvent(new StorageEvent('storage', { key: OPT_OUT_KEY, newValue: '1' }))
+    track('sign_up', { method: 'newsletter' })
+    expect(events()).toEqual([])
+    expect(window[`ga-disable-${ID}`]).toBe(true)
+  })
+
+  it('a page restored from the bfcache re-checks the opt-out', () => {
+    initAnalytics({ hostname: 'staging.example' })
+    localStorage.setItem(OPT_OUT_KEY, '1')
+    const ev = new Event('pageshow')
+    Object.defineProperty(ev, 'persisted', { value: true })
+    window.dispatchEvent(ev)
+    track('sign_up', { method: 'newsletter' })
+    expect(events()).toEqual([])
+  })
+
   it('no-ops on pages without the control', () => {
     document.body.innerHTML = '<p>nothing here</p>'
     expect(() => initAnalytics({ hostname: 'localhost' })).not.toThrow()
