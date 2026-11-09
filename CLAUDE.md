@@ -162,7 +162,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   index.html (home) + 404.html + page folders:
     portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
     newsletter/ enquiry-received/ privacy/ terms/
-  src/data/      pieces, flash, homepage, testimonials, media, palette, business, taxonomy  (content = single sources of truth)
+  src/data/      pieces, flash, homepage, testimonials, media, palette, business, taxonomy, analytics  (content/config = single sources of truth)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
@@ -311,7 +311,8 @@ Two layers, both centralised so new pages/responses inherit them:
   build points the forms at — derived from the `VITE_*_FN_URL` vars, falling back to the
   `config.js` default. The allowances map 1:1 to what the site loads (inline palette
   style + `style=""` attrs → `style-src 'unsafe-inline'`; Google Fonts; `blob:` image
-  previews; the `/visit/` Google-Maps iframe). **Build/preview only** — a strict CSP
+  previews; the `/visit/` Google-Maps iframe; GA4's documented host set for gtag.js and
+  its collect hits, nothing wider). **Build/preview only** — a strict CSP
   breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**
   set `frame-ancestors`/`X-Frame-Options`/HSTS on Pages — that clickjacking gap waits for
   the Cloudflare-front consolidation (`ROADMAP.md` → infrastructure consolidation).
@@ -339,8 +340,10 @@ collapses the whole filter bar behind a deterministic "Filters" toggle — a tap
 scroll-driven auto-hide, so it can't flicker on mobile browser-chrome motion; also shared by
 filter and flash), `aftercare`, `faq`, `enquire`,
 `flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
-on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that no-ops until
-a provider is wired in — no cookie banner owed yet), `loader` (dismisses the full-page
+on-screen-only playback), `analytics` (GA4 behind `track()`: gtag.js loads at runtime only on a
+host with an ID in `src/data/analytics.js` and only if the visitor hasn't opted out via GPC
+or the `/privacy/` control; `track()` sends only an allowlist of events/params, so no form
+values can leak — call sites never touch gtag; see `docs/ANALYTICS.md`), `loader` (dismisses the full-page
 preloader — see below), `spinner` (shared button busy-state: swaps a button's label for an
 animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by
 load-more and the enquiry/flash/newsletter submits), `cta` (the mobile sticky "Enquire"

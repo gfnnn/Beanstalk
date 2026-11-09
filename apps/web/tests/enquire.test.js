@@ -18,9 +18,10 @@ import { initEnquire } from '../src/js/modules/enquire.js'
 import { track } from '../src/js/modules/analytics.js'
 
 // Stub analytics so the success path's track() call is observable and side-effect
-// free (the real module no-ops until a provider is wired in, but mocking lets us
-// assert the event fires and keeps the suite independent of that).
-vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn() }))
+// free (the real module is covered in analytics.test.js).
+// The mock runs the navigate-after callback straight away, like track() does when
+// analytics is off.
+vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn((_e, _p, done) => done?.()) }))
 
 function setup() {
   document.body.innerHTML = `
@@ -480,7 +481,7 @@ describe('initEnquire', () => {
         fields: { first_name: 'Robin', email: 'robin@example.com', dob: DOB, tattoo_type: 'custom', consent: 'on' },
         images: [],
       })
-      expect(vi.mocked(track)).toHaveBeenCalledWith('enquiry_submit', { type: 'custom' })
+      expect(vi.mocked(track)).toHaveBeenCalledWith('generate_lead', { form: 'enquiry' }, expect.any(Function))
       expect(sessionStorage.getItem('beansprout_step')).toBeNull()
     })
 
@@ -552,14 +553,23 @@ describe('initEnquire', () => {
       expect($('form-error-banner').textContent).toMatch(/something went wrong/i)
     })
 
-    it('tracks the submit type as "unknown" when no tattoo_type was chosen', async () => {
+    it('sends the lead with no form values (no PII leaves via analytics)', async () => {
       global.fetch = mockFetch(true, { ok: true })
       const form = fullForm()
-      document.querySelector('[name="tattoo_type"]').remove()
       initEnquire()
       fillValid()
       submit(form); await flush()
-      expect(vi.mocked(track)).toHaveBeenCalledWith('enquiry_submit', { type: 'unknown' })
+      const sent = JSON.stringify(vi.mocked(track).mock.calls.map(([e, p]) => [e, p]))
+      for (const value of ['Robin', 'robin@example.com', DOB, 'custom']) expect(sent).not.toContain(value)
+    })
+
+    it('fires no lead when the Worker rejects the enquiry', async () => {
+      global.fetch = mockFetch(false, { error: 'nope' })
+      const form = fullForm()
+      initEnquire()
+      fillValid()
+      submit(form); await flush()
+      expect(vi.mocked(track)).not.toHaveBeenCalled()
     })
 
     it('treats a missing step as valid (a trimmed form still submits)', async () => {

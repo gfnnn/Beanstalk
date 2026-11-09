@@ -1,43 +1,85 @@
-# Analytics — privacy-first measurement for Beansprout
+# Analytics: GA4, statistics only, banner-free
 
-The decision record for the (now **decided**) Phase-0 analytics item in
-[`ROADMAP.md`](./ROADMAP.md) — **Plausible, deferred to post-launch** — plus the wiring plan
-for when it's picked up and the two P1 leftovers it gates ("Retargeting pixel", "Instagram
-feed embed").
+The decision record and runbook for site measurement, plus the two P1 leftovers it gates
+("Retargeting pixel", "Instagram feed embed") in [`ROADMAP.md`](./ROADMAP.md).
 
-> Status: **decided / not yet wired.** The `track()` scaffold
-> (`apps/web/src/js/modules/analytics.js`) deliberately no-ops in production, so the live site
-> ships **launch-legal with no tracker and no banner** today. Nothing here is a launch
-> blocker — it's the post-launch "turn measurement on" plan.
+> Status: **shipped on staging** (code live, inert until the staging Measurement ID is set in
+> `apps/web/src/data/analytics.js`). Production stays a no-op until cutover
+> ([`CUTOVER.md`](./CUTOVER.md)).
 
 ---
 
 ## 1. The decision and why
 
-**Plausible** (managed cloud), switched on post-launch. The rationale, compressed:
+**Google Analytics 4**, loaded directly as `gtag.js` (no GTM, no npm dependency, no build
+step), measuring the two outcomes that matter: **enquiries** (and flash claims) and
+**newsletter sign-ups**.
 
-- **Cookieless = no consent banner.** A banner is legally owed for non-essential
-  cookies/identifiers; Plausible (like Fathom) sets **no cookies** and stores **no personal
-  data**, and the UK ICO and France's CNIL have accepted that this style of analytics needs no
-  consent. Switching it on adds **zero** consent burden — the house rule. (It's also why the
-  scaffold's header says "there's nothing to consent to until [a provider] is" —
-  `analytics.js:6-7`.)
-- **The artist's "foolproof view" is native.** The hard requirement is that a non-technical
-  artist can *read* the numbers without help. Plausible's read-only **shared dashboard link**
-  opens with no account and no login — one bookmark gives the handful of numbers that matter:
-  visitors + trend, top pages, where they came from ("is my Instagram doing anything?"), the
-  conversion events in §3.1, and rough geo/device. No funnels, no reports to maintain.
-- **Plausible over Fathom — a close call, not a landslide.** Both are cookieless, no-banner,
-  EU-resident, one-clean-page tools; either satisfies the brief. Plausible wins on the cheaper
-  entry tier at our modest traffic (~$9/mo vs ~$15/mo, third-party-reported 2026), the cleanest
-  no-login shared link, and a genuine **self-host escape hatch** (Plausible Community Edition,
-  free, AGPLv3) if we ever want zero third-party anything — Fathom is managed-SaaS only.
-- **GA4 is rejected** — two reasons, in order of severity: (1) it **requires a cookie consent
-  banner** (its data collection needs UK/EU opt-in), which alone disqualifies it; (2) the raw
-  interface is a maze for a non-technical user. The one foolproofing path — a simplified
-  Looker Studio dashboard on top — is build-and-maintain work we'd own *and still needs the
-  banner*: more work for a worse privacy outcome. Reconsider only if the project later needs
-  something Plausible can't do (deep Google Ads attribution, say) **and** accepts a banner.
+This **reverses** the earlier record here (Plausible decided, GA4 rejected because it needed a
+consent banner). What changed: the UK **Data (Use and Access) Act 2025** amended PECR so a
+cookie used **only to collect statistics to improve your own site** needs no prior consent,
+provided visitors get **clear information** and a **simple, free way to object**. That removes
+GA4's disqualifying banner, and GA4 is free.
+
+**Accepted risk, on the record:** commentators disagree on whether GA4 can rely on that
+exemption, because Google may reuse the data unless its sharing settings are off (which can
+make it look like a joint controller rather than a processor). We mitigate in code and in
+admin (below) and keep the data purely for our own statistics; **Plausible remains the
+zero-risk fallback** (cookieless, no exemption needed) if a legal review says otherwise. The
+privacy wording is pending that review (`PRIV-05`, `COPY-REVIEW.md`).
+
+### What the code guarantees (`apps/web/src/js/modules/analytics.js`)
+- **Runtime hostname → ID** from `src/data/analytics.js`: staging hosts (`gfnnn.github.io`,
+  `beanstalk-e61.pages.dev` + its branch previews) → staging ID; `beansprout.ink`/`www` →
+  production ID (**empty until cutover**); anything else (localhost, unknown) → no script.
+  An empty ID means no script, no errors.
+- **Opt-out before load:** Global Privacy Control, a saved opt-out (the control on `/privacy/`),
+  or unreadable storage all mean gtag is never injected and no `dataLayer` exists: zero Google
+  requests. Opting out mid-visit sets `window['ga-disable-<ID>']`, stops events and expires the
+  `_ga` cookies; the choice persists (localStorage) and can be reversed.
+- **gtag config:** `allow_google_signals: false`, `allow_ad_personalization_signals: false`,
+  `cookie_expires` ≈ 13 months.
+- **No PII, enforced centrally:** `track()` sends only an allowlist (events + fixed param
+  values); anything else is dropped. Call sites never touch gtag.
+- **Two properties:** staging and production are separate GA4 properties (separate IDs
+  in the data file), so test traffic never mixes with real numbers. The production ID stays
+  empty until cutover (X7b).
+- **CSP** (`src/build/security.js`) widened only to Google's GA4 host set: `script-src
+  www.googletagmanager.com`; `img-src`/`connect-src` `*.google-analytics.com`,
+  `*.analytics.google.com` (connect only), `*.googletagmanager.com`.
+
+### Events (fired only on a successful Worker response, never on the submit click)
+
+| Event | Params | Fired from |
+|---|---|---|
+| `page_view` | GA4 default (page URL/title; URLs carry no PII, the only query string is `?style=`) | gtag `config` |
+| `generate_lead` | `{ form: 'enquiry' }` | `enquire.js` (waits up to 800 ms for the hit before redirecting) |
+| `generate_lead` | `{ form: 'flash' }` | `flash.js` |
+| `sign_up` | `{ method: 'newsletter' }` (not fired for an already-subscribed address) | `newsletter.js` |
+
+Outbound clicks come from GA4 enhanced measurement (the old `social_click` custom event is
+gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`.
+
+### 👤 GA4 admin setup (owner, per property)
+1. Create the property + web stream; paste its `G-…` ID into `src/data/analytics.js`.
+2. **Admin → Data collection:** Google signals **off**; granular location/device data **off**.
+   **Account → Data sharing settings:** all **off**. Accept the Data Processing Terms.
+3. **Data retention:** 14 months.
+4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn **off** *Form
+   interactions* (fires on failed/invalid submits, double-counts) and *Site search* (no search
+   exists; it would read `q`/`s` from any crafted URL).
+5. **Internal traffic:** define the rule and add the data filter. **Staging: leave it in
+   *Testing*** (staging traffic is almost all internal, so an *Active* filter would hide the
+   very hits you're verifying). **Production: set it *Active*.**
+6. **Custom dimension:** register an **event-scoped** dimension for the `form` param
+   (`enquiry` | `flash`) so `generate_lead` can be split by form. `sign_up`'s `method` needs
+   nothing: it maps to GA4's built-in *Method* dimension.
+7. **Data redaction** (web stream → *Redact data*): turn on **email** redaction and add the
+   query parameter **`payment_intent_client_secret`**. Nothing sends either today; this is
+   belt-and-braces for the future Payment Element return URL (see `PAYMENTS.md` §7).
+8. Production only (cutover): mark `generate_lead` and `sign_up` as **key events**.
+
+Verify on staging with GA4 **DebugView/Realtime**: `page_view`, `generate_lead`, `sign_up`.
 
 ---
 
@@ -46,87 +88,20 @@ feed embed").
 This gates the "Retargeting pixel" P1 leftover in [`ROADMAP.md`](./ROADMAP.md). A Meta or
 TikTok **retargeting pixel is a marketing cookie / cross-site identifier**, which under UK/EU
 GDPR + ePrivacy/PECR requires **explicit opt-in consent before it fires**. Banner-free
-analytics gives **no** head start — the pixel is a separate legal category — and **server-side
+analytics gives **no** head start (GA4's statistics exemption doesn't cover advertising) — the pixel is a separate legal category — and **server-side
 ("Conversions API") tracking does not exempt you**: sending the same personal data from the
 Worker still needs consent. So it's an either/or, not a free add-on:
 
-- **(A) Stay banner-free** — cookieless analytics only, **no retargeting pixel**. Recommended
+- **(A) Stay banner-free** — statistics-only analytics, **no retargeting pixel**. Recommended
   (and the default): simplest, cleanest, on-brand, and the enquiry/flash funnels are short
   enough that retargeting's payoff is marginal for a one-artist studio.
 - **(B) Run retargeting** — accept and build a **consent banner** (a consent manager that
-  blocks the pixel until "Accept"; the cookieless analytics keeps running regardless since it
-  needs no consent). A real project, not a snippet.
+  blocks the pixel until "Accept"; the statistics-only analytics keeps running regardless).
+  A real project, not a snippet.
 
 ---
 
-## 3. Wiring plan (when we turn it on)
-
-The codebase is already shaped for this — one function fill, one `<head>` snippet, one CSP
-edit. **No module other than `analytics.js` changes.**
-
-### 3.1 The events already wired
-
-`track(event, props)` is the single instrumentation point and the conversion moments already
-call it (no-op until a provider is in `send()`):
-
-| Event | Props | Fired from |
-|---|---|---|
-| `enquiry_submit` | `{ type }` (tattoo type) | `apps/web/src/js/modules/enquire.js` |
-| `flash_claim` | `{ piece }` | `apps/web/src/js/modules/flash.js` |
-| `newsletter_signup` | `{ already }` | `apps/web/src/js/modules/newsletter.js` |
-| `social_click` | `{ network, location }` | `apps/web/src/js/modules/analytics.js` (auto-wired to all IG/TikTok links by `initAnalytics()`, called from `main.js`) |
-
-In dev, every event already logs to the console (`analytics.js:18`), so the wiring is
-verifiable **before** shipping a tracker to real visitors.
-
-### 3.2 Fill `send()` (the only code change)
-
-`send()` is currently a dev-only console log (`analytics.js:15-19`). To enable Plausible,
-forward to its global:
-
-```js
-function send(event, props) {
-  if (import.meta.env.DEV) console.debug('[track]', event, props || {})
-  // Plausible (cookieless): custom events map straight to track() events.
-  window.plausible?.(event, props ? { props } : undefined)
-}
-```
-
-(The scaffold's header comment documents the Fathom and GA4 equivalents — `analytics.js:9-13`
-— if the provider choice changes. Errors are already swallowed by the `try/catch` in
-`track()`, so a tracker outage can never break the UX.)
-
-### 3.3 Add the provider snippet to every page `<head>`
-
-**Preferred: a build-time injector**, matching how the repo already injects palette, SEO,
-security and loader tags via Vite plugins (`apps/web/vite.config.js`). Add a tiny plugin that
-injects the Plausible `<script defer data-domain="…" src="…/script.js">` into each page's
-`<head>` (and into `apps/web/src/build/piece-page.js`, which bypasses the HTML transform —
-same pattern the security/loader injectors follow). Gate it on the **production/apex** build so
-the staging preview and dev don't send hits. (Hand-pasting per page works but drifts and is
-easy to miss on a new page — prefer the plugin.) The script's own custom-event support makes
-`window.plausible(...)` from §3.2 work with no extra config.
-
-### 3.4 CSP — the one allowlist edit
-
-The strict `<meta>` CSP is built in `apps/web/src/build/security.js`. Widen **two** directives
-to the provider's origin — for Plausible's managed cloud (`plausible.io`): **`script-src`**
-(loads the tracker `script.js`) and **`connect-src`** (the tracker POSTs events). Leave
-`default-src 'self'` as the backstop; touch nothing else. If we **self-host** Plausible CE on
-our own subdomain, allowlist that instead (same-origin may need no widening at all). Reminder:
-the CSP is **build/preview only** — verify with `npm run build && npm run preview`, not
-`npm run dev`.
-
-### 3.5 Privacy page
-
-Cookieless analytics needs only a **brief, honest line** on the privacy page ("we use
-Plausible, a privacy-first analytics tool that uses no cookies and collects no personal data")
-— no consent UI. Keep this in step with `docs/DATA-COMPLIANCE.md`. (If retargeting is ever
-added per §2 option B, the privacy page *and* a consent banner become mandatory.)
-
----
-
-## 4. Instagram feed — build-time static snapshot
+## 3. Instagram feed — build-time static snapshot
 
 Gates the "Instagram feed embed" P1 leftover in [`ROADMAP.md`](./ROADMAP.md). Constraints:
 low-maintenance, no cookie banner, no token rot. The 2026 landscape rules out the easy paths —
@@ -141,7 +116,7 @@ cookies, **no banner**. It slots straight into the existing architecture: proces
 through `apps/web/scripts/process-media.mjs` (see `docs/MEDIA.md`), add an `instagram.js` data
 file + a small `src/build/` renderer + an `<!-- instagram:grid -->` marker — the same
 data → build-time HTML pattern as `pieces.js`/`flash.js`. Each tile links to the real post,
-and those clicks are **already tracked** as `social_click` by `initAnalytics()`.
+and those clicks are counted by GA4's outbound-click measurement.
 
 The honest cost: it's a snapshot, refreshed on the same cadence as portfolio updates — a few
 minutes per content drop vs a banner + a 30-day token that breaks when missed. **Revisit** the
@@ -152,18 +127,15 @@ Business/Creator — and even then weigh it against simply linking out to Instag
 
 ## Sources
 
-- Plausible — data policy / cookieless / no-banner: https://plausible.io/data-policy ·
-  https://plausible.io/privacy-focused-web-analytics · shared links (the foolproof view):
-  https://plausible.io/docs/shared-links · Community Edition (self-host, AGPLv3):
-  https://plausible.io/self-hosted-web-analytics
-- Fathom — cookieless / no consent banner & shared dashboards:
-  https://usefathom.com/why-fathom-analytics/gdpr-compliant-analytics ·
-  https://usefathom.com/docs/features/shared-dashboards
+- ICO, storage and access technologies after the DUAA (statistics exemption, objection
+  route): https://ico.org.uk/media2/mufgyf25/mind-your-banners-the-icos-approach-to-sats.pdf
+- Google, GA4 CSP host set: https://developers.google.com/tag-platform/security/guides/csp
+- Google, disabling measurement (`ga-disable-<ID>`):
+  https://developers.google.com/analytics/devguides/collection/ga4/disable-analytics
+- Global Privacy Control: https://globalprivacycontrol.org/
+- Plausible (the fallback): https://plausible.io/data-policy
 - Retargeting pixels need consent (Meta/TikTok; CAPI doesn't exempt):
   https://www.flowconsent.com/en/blog/meta-pixel-cookies-gdpr-compliance ·
   https://www.webtoffee.com/blog/tiktok-pixel-gdpr-compliance/
 - Instagram embedding (Basic Display EOL, Graph API tokens, widgets):
   https://elfsight.com/blog/instagram-graph-api-complete-developer-guide-for-2026/
-
-*Pricing and tier figures are 2026 vendor- or third-party-reported — re-confirm on the
-vendor's own pricing page before purchase.*

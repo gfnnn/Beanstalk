@@ -27,6 +27,14 @@ Image **bytes are never stored** — only filenames/counts — so an erasure onl
 to clear the structured row. (The artist's *email inbox* is a separate copy they
 control; erasure there is a manual delete in Gmail.)
 
+**Outside D1: Google Analytics (GA4).** Pseudonymous usage statistics only (page views,
+`generate_lead`, `sign_up`; never form contents), held by Google with **14-month**
+retention. Basis: legitimate interests + the DUAA statistics-only cookie exemption, with
+an opt-out on `/privacy/` and GPC honoured. GA4 data can involve transfer to Google in the
+US under its Data Processing Terms. There's nothing of ours to erase per person (no
+identifiers we can look up); a subject request is answered by pointing to the opt-out and
+Google's own deletion tools. Decision + risk: [`ANALYTICS.md`](./ANALYTICS.md).
+
 ## Retention policy (matches the privacy page)
 
 - **Enquiries that don't lead to a booking:** kept **up to 12 months**, then deleted.

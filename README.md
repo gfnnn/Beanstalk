@@ -146,7 +146,7 @@ deploys a staging copy; `main` is updated only by batched release PRs
 - [`docs/SCHEDULING.md`](docs/SCHEDULING.md): appointment booking plan (not built)
 - [`docs/DASHBOARD.md`](docs/DASHBOARD.md): artist dashboard plan (not built)
 - [`docs/CMS.md`](docs/CMS.md): content editor plan (not built)
-- [`docs/ANALYTICS.md`](docs/ANALYTICS.md): analytics plan
+- [`docs/ANALYTICS.md`](docs/ANALYTICS.md): GA4 analytics (statistics only, with opt-out and Global Privacy Control)
 - [`docs/COPY-REVIEW.md`](docs/COPY-REVIEW.md): copy sign-off tracker
 - [`docs/WORKFLOW.md`](docs/WORKFLOW.md): how features are designed and handed to Claude Code
 - [`.env.example`](.env.example): environment variables
