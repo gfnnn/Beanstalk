@@ -120,7 +120,7 @@ npm run preview:branch -- <branch>  # fetch a branch, install, and run its dev s
 - [`docs/SCHEDULING.md`](docs/SCHEDULING.md) — appointment-booking plan (not yet built)
 - [`docs/DASHBOARD.md`](docs/DASHBOARD.md) — artist-dashboard plan (not yet built)
 - [`docs/CMS.md`](docs/CMS.md) — content-CMS plan (planned, post-launch)
-- [`docs/ANALYTICS.md`](docs/ANALYTICS.md) — privacy-light analytics plan + the no-op `track()` scaffold
+- [`docs/ANALYTICS.md`](docs/ANALYTICS.md) — GA4 analytics (statistics-only, opt-out + GPC): decision, events, admin setup
 - [`docs/COPY-REVIEW.md`](docs/COPY-REVIEW.md) — copy sign-off tracker (the `pending approval` gate)
 - [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — how a feature is designed (Claude Project) and handed to Code: the brief, `/deliver`, the `design-reviewer` subagent
 - [`.env.example`](.env.example) — environment variables (copy to `.env` for local work)

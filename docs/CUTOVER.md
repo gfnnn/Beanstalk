@@ -91,6 +91,13 @@ Two test→prod flips happen together (DNS + email). Do them in this order.
 6. **X6 · Verify CORS (👤).** Confirm the Worker's `ALLOWED_ORIGINS` already includes
    `https://beansprout.ink` + `https://www.beansprout.ink` — it does
    (`apps/functions/src/lib/http.js`); this is a read-only verify, no change expected.
+7. **X7b · Production analytics (👤 + 🛠 one line).** Create the **production GA4 property**
+   and run its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*: signals
+   off, data sharing off, 14-month retention, form-interaction/site-search measurement off,
+   internal-traffic filter). Put its `G-…` ID in `production.measurementId` in
+   `apps/web/src/data/analytics.js` and ship it via the release PR. Mark `generate_lead`
+   and `sign_up` as **key events**. (Order doesn't matter relative to DNS: with no ID the
+   apex simply sends nothing.)
 
 ---
 
@@ -117,6 +124,12 @@ acceptance round-trip (real email, which the probe deliberately does not send).
    (enquiry → inbox with photos; reply-path = enquirer; flash claim reserves + re-claim 409;
    newsletter → Audience; the D1 source-of-truth `SELECT`; SPF/DKIM/DMARC all PASS, lands in
    inbox not spam). Use clearly-marked test submissions and prune them from D1 afterwards.
+3. **Analytics in Realtime.** With GA4 **Realtime/DebugView** open on the production
+   property, load a page (`page_view`), send the test enquiry (`generate_lead`) and the test
+   newsletter sign-up (`sign_up`); all three should appear. Then on `/privacy/` turn analytics
+   off, reload, and confirm (browser devtools → Network) no request goes to any Google
+   analytics host. Not an abort trigger on its own: analytics failing doesn't break the site,
+   so fix forward.
 
 ### Abort conditions for Phase 3
 Roll back (Phase 4) if: any page is non-200 or served without HTTPS; the apex serves a
@@ -162,5 +175,4 @@ Once the apex is healthy and both smoke layers are green:
       to shipped.
 - [ ] **Schedule the deferred post-launch steps** (explicitly *not* part of this cutover):
       enabling payments (`PAYMENTS_ENABLED` → `true` + live Stripe keys, see
-      [`PAYMENTS.md`](./PAYMENTS.md)) and wiring the analytics vendor
-      ([`ANALYTICS.md`](./ANALYTICS.md)).
+      [`PAYMENTS.md`](./PAYMENTS.md)). (Analytics is switched on *during* cutover, X7b.)

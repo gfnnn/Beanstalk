@@ -87,3 +87,19 @@
 }
 .legal-section a:hover { border-color: var(--moss); }
 .legal-section strong { color: var(--ink); font-weight: 600; }
+
+/* Analytics opt-out control (Cookies & analytics section). Revealed by
+   modules/analytics.js; the status line is announced as it changes. */
+.analytics-optout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 4px 0 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.analytics-optout[hidden] { display: none; }
+.legal-section .analytics-optout-status { margin: 0; flex: 1 1 240px; }
+.analytics-optout .btn[hidden] { display: none; }

@@ -234,6 +234,10 @@ apex off v1 (the guardrail in `CLAUDE.md`).
       (`src/lib/http.js`); just verify.
 - [ ] **X7 · Smoke-test the live apex** — the acceptance test above as production
       run "b", incl. deliverability.
+- [ ] **X7b · Turn on production analytics** (👤): create the production GA4 property
+      (admin setup per [`ANALYTICS.md`](./ANALYTICS.md)), paste its ID into
+      `production.measurementId` in `apps/web/src/data/analytics.js` (🛠 one-line PR to
+      `develop` → release), mark `generate_lead` + `sign_up` as key events, verify in Realtime.
 - [ ] **X8 · Decommission/redirect v1** once v2 is healthy — keep v1 **idle, not
       deleted** for 1–2 weeks as the rollback target.
 
@@ -258,9 +262,12 @@ A content + B wiring  (parallel)
   stays dark behind `PAYMENTS_ENABLED`; the embedded Payment Element frontend + account
   setup are the post-launch item ([`PAYMENTS.md`](./PAYMENTS.md)). The engine decision
   (**Stripe → Monzo Business**) is settled — it's what shipped.
-- **Analytics — NOT live at launch.** **Plausible**, post-launch (cookieless, no
-  banner; the read-only shared link is the artist's view). GA4 is out. The `track()`
-  scaffold no-ops until wired, so the site is launch-legal without it
+- **Analytics — GA4, shipped on staging; production at cutover.** Statistics-only under
+  the UK DUAA cookie exemption (no banner; opt-out on `/privacy/` + GPC honoured;
+  signals/ad personalisation off). Reverses the earlier Plausible pick, with the
+  joint-controller risk accepted on the record and Plausible kept as the fallback. The
+  staging ID is still to be supplied (👤); the production ID stays empty until cutover
+  (`CUTOVER.md` → Phase 2), so production is a no-op until then
   ([`ANALYTICS.md`](./ANALYTICS.md)).
 
 ---
@@ -280,7 +287,7 @@ The per-feature decisions live in the stubs ([`PAYMENTS.md`](./PAYMENTS.md),
 Launch (D above)
   │
   ├─0. Quick wins (independent, front-load) ─ reduced-motion as a tested invariant +
-  │     axe-core a11y in the Playwright tier · wire the analytics vendor
+  │     axe-core a11y in the Playwright tier · (analytics: GA4 shipped)
   │
   ├─1. /studio artist dashboard ──────────┐  (token-protected read/manage over D1:
   │      enquiry/claim status lifecycle +  │   the shared substrate the next three reuse)

@@ -17,6 +17,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 vi.mock('../src/js/modules/lenis.js', () => ({ pauseScroll: vi.fn(), resumeScroll: vi.fn() }))
 
 import { initFlash } from '../src/js/modules/flash.js'
+import { track } from '../src/js/modules/analytics.js'
+// Observe the lead event without loading any analytics.
+vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn() }))
 
 const $  = sel => document.querySelector(sel)
 const $$ = sel => [...document.querySelectorAll(sel)]
@@ -101,7 +104,7 @@ beforeEach(() => {
   document.body.innerHTML = ''
   global.fetch = mockFetch() // default: no live claims
 })
-afterEach(() => { vi.restoreAllMocks(); delete global.fetch; document.body.style.overflow = '' })
+afterEach(() => { vi.restoreAllMocks(); vi.mocked(track).mockClear(); delete global.fetch; document.body.style.overflow = '' })
 
 describe('initFlash', () => {
   it('no-ops when there is no flash grid', () => {
@@ -348,6 +351,17 @@ describe('initFlash', () => {
       expect(cardById('p1').dataset.status).toBe('pending') // markCard('pending')
       expect(byId('claim-modal').classList.contains('open')).toBe(false) // closed
       expect(byId('claim-name').value).toBe('Robin') // form.reset() restored the default
+      // One lead, with only the fixed form param: no piece, name or email.
+      expect(vi.mocked(track)).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(track)).toHaveBeenCalledWith('generate_lead', { form: 'flash' })
+    })
+
+    it('fires no lead on a 409 or a failed claim', async () => {
+      await openAndSubmit({ ok: false, status: 409, json: () => Promise.resolve({ error: 'Taken.' }) })
+      await flush()
+      await openAndSubmit({ ok: false, status: 500, json: () => Promise.resolve({ error: 'Server error' }) })
+      await flush()
+      expect(vi.mocked(track)).not.toHaveBeenCalled()
     })
 
     it('ignores a re-entrant submit while a claim is in flight (no duplicate claim)', async () => {

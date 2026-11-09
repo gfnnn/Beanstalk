@@ -49,6 +49,31 @@ describe('cspContent', () => {
   })
 })
 
+describe('cspContent — GA4 allowance', () => {
+  const directive = name => cspContent(['https://api.example.com'])
+    .split('; ').find(d => d.startsWith(`${name} `))
+
+  it('allows gtag.js from www.googletagmanager.com only', () => {
+    expect(directive('script-src')).toBe("script-src 'self' https://www.googletagmanager.com")
+  })
+
+  it('allows GA4 collect hits on exactly Google\'s documented hosts', () => {
+    expect(directive('connect-src')).toBe(
+      "connect-src 'self' https://api.example.com https://*.google-analytics.com " +
+      'https://*.analytics.google.com https://*.googletagmanager.com'
+    )
+    expect(directive('img-src')).toBe(
+      "img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com"
+    )
+  })
+
+  it('adds no Google host to any other directive', () => {
+    const others = cspContent(['https://api.example.com']).split('; ')
+      .filter(d => !/^(script|img|connect)-src /.test(d))
+    for (const d of others) expect(d).not.toMatch(/google-analytics|googletagmanager|analytics\.google/)
+  })
+})
+
 describe('renderSecurityMeta', () => {
   it('emits both meta tags', () => {
     const meta = renderSecurityMeta(['https://api.example.com'])
