@@ -311,7 +311,7 @@ export function initFlash() {
         }
         if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
-        track('flash_claim', { piece: pieceInput ? pieceInput.value : 'unknown' })
+        track('generate_lead', { form: 'flash' })
         markCard('pending')
         closeModal()
         form.reset()

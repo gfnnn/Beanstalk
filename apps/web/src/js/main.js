@@ -67,8 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
   //      on-screen-only playback. No-ops when the page has no generated clip.
   initMedia()
 
-  // 10b. Analytics — outbound social-link tracking (conversion events fire
-  //      inline from their own modules). No-op until a provider is configured.
+  // 10b. Analytics — loads GA4 only on a configured host for a visitor who
+  //      hasn't opted out (GPC / the /privacy/ control), and wires that control.
+  //      Conversion events fire inline from their own modules via track().
   initAnalytics()
 
   // 11. Mobile sticky CTA — homepage: appears after the hero scrolls out;

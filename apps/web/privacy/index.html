@@ -160,15 +160,28 @@
       <h2>Who I share it with</h2>
       <!-- COPY: confirm this list matches the live stack before launch.
            Processors (act on the artist's instructions): Cloudflare (Worker + D1), Resend (email +
-           newsletter Audience), GitHub Pages (static hosting). Independent third parties the
+           newsletter Audience), GitHub Pages (static hosting), Google Analytics (GA4, statistics
+           only; see docs/ANALYTICS.md). Independent third parties the
            site loads from: Google Fonts (every page) and a Google Maps embed (/visit/) — both
            send the visitor's IP to Google, so they're disclosed for transparency, not omitted. -->
-      <p>I never sell your data. I share it only with the service providers that help me run Beansprout, and only as far as they need it: <strong>Cloudflare</strong> (which runs the enquiry and newsletter forms and securely stores submissions), <strong>Resend</strong> (which delivers my emails and holds the newsletter list), and <strong>GitHub Pages</strong> (which hosts this website). These act on my instructions under their own data-protection terms. Separately, the site loads its fonts from <strong>Google Fonts</strong> on every page, and the contact page embeds a <strong>Google map</strong>. When these load, your browser sends your IP address to Google, which handles it under its own privacy policy.</p>
+      <p>I never sell your data. I share it only with the service providers that help me run Beansprout, and only as far as they need it: <strong>Cloudflare</strong> (which runs the enquiry and newsletter forms and securely stores submissions), <strong>Resend</strong> (which delivers my emails and holds the newsletter list), and <strong>GitHub Pages</strong> (which hosts this website), and <strong>Google Analytics</strong> (site statistics, see below). These act on my instructions under their own data-protection terms. Separately, the site loads its fonts from <strong>Google Fonts</strong> on every page, and the contact page embeds a <strong>Google map</strong>. When these load, your browser sends your IP address to Google, which handles it under its own privacy policy.</p>
     </section>
 
     <section class="legal-section reveal">
       <h2>Cookies &amp; analytics</h2>
-      <p>The website doesn't use advertising or tracking cookies, and I don't run third-party analytics that profile you. My forms use a small amount of technical data (such as your IP address) purely to stop spam and abuse; this isn't used to identify or track you, and isn't shared for marketing. The only third-party embed is the Google map on the contact page, which Google may use to set its own cookies if you interact with it.</p>
+      <!-- ARTIST-COPY · PRIV-05 · pending approval + LEGAL REVIEW (GA4 under the UK DUAA statistics exemption) — see docs/COPY-REVIEW.md + docs/ANALYTICS.md.
+           Facts this paragraph must stay true to: GA4 only (no ads, no Google signals,
+           no ad personalisation, Google data-sharing off in admin); events = page views,
+           enquiry/flash-claim sent, newsletter sign-up, with no form contents; 14-month
+           retention; _ga cookie expires ~13 months after the last visit (renewed per visit); opt-out below + GPC honoured. -->
+      <p>The website doesn't use advertising cookies, and I don't use your data for marketing or to build a profile of you. My forms use a small amount of technical data (such as your IP address) purely to stop spam and abuse; this isn't used to identify or track you.</p>
+      <p>To understand how the site is used and improve it, I use <strong>Google Analytics</strong> purely for my own statistics. It counts things like which pages are visited, roughly where visitors come from (for example Instagram or a search), the type of device, and whether an enquiry, flash claim or newsletter sign-up was sent. It never receives what you type into a form: no names, emails, tattoo ideas or health details. It sets a small first-party cookie (<code>_ga</code>) so repeat visits can be counted, which expires 13&nbsp;months after your last visit. I've turned off Google's advertising features, Google signals and Google's data-sharing settings, and analytics data is deleted after 14&nbsp;months. My lawful basis is my legitimate interest in understanding how the site is used, and UK law allows this kind of statistics-only cookie without asking first, as long as you can easily turn it off.</p>
+      <p>If your browser sends a Global Privacy Control signal, analytics is switched off for you automatically. You can also turn it off for this browser here:</p>
+      <div class="analytics-optout" data-analytics-optout hidden>
+        <p class="analytics-optout-status" data-analytics-status role="status" aria-live="polite"></p>
+        <button type="button" class="btn btn-outline btn-sm" data-analytics-toggle>Turn off analytics</button>
+      </div>
+      <p>The only third-party embed is the Google map on the contact page, which Google may use to set its own cookies if you interact with it.</p>
     </section>
 
     <section class="legal-section reveal">

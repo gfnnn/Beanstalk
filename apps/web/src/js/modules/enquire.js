@@ -552,9 +552,9 @@ export function initEnquire() {
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
-      track('enquiry_submit', { type: fields.tattoo_type || 'unknown' })
       try { sessionStorage.removeItem('beansprout_step') } catch (_) {}
-      window.location.href = '/enquiry-received/'
+      // Navigating away straight after, so let the lead send first (bounded wait).
+      track('generate_lead', { form: 'enquiry' }, () => { window.location.href = '/enquiry-received/' })
     } catch (err) {
       console.error('Enquiry error:', err)
       showFormError(err.message || 'Something went wrong. Please try again, or email hello@beansprout.ink directly.')

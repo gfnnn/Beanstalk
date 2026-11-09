@@ -358,6 +358,7 @@ slot *is*; this table only adds source location + anything tracker-specific.
 | CONFIRM-01 | 🟡 | `enquiry-received/index.html` | Still open + the "We"→"I" voice flag; quotes reply time (BUS-01) |
 | E404-01 | 🟡 | `404.html` | Still open |
 | PRIV-01, PRIV-02, PRIV-03, PRIV-04 | 🔵/🟠 | `privacy/index.html` | Trading name confirmed (PRIV-03); ICO + tattoo-reg refs → facts table; **legal review due**; PRIV-02 effective date approved |
+| PRIV-05 | 🟠 | `privacy/index.html` "Cookies & analytics" | GA4 disclosure + opt-out wording (what's collected, 14-month retention, `_ga` cookie, GPC). **Legal review due** (DUAA statistics exemption, see `ANALYTICS.md`). Keep it true to the facts in the comment above it |
 | TERMS-01, TERMS-02, TERMS-03 | 🔵/🟠 | `terms/index.html` | Trading name + liability insurance confirmed (TERMS-03); TERMS-02 effective date approved; keep deposit figures aligned with SERV-03; **legal review due** |
 | BUS-01 | 🟠 | `src/data/business.js` `replyTime` | "within 3 days" — set real turnaround (updates `/enquire/` + `/enquiry-received/` together) |
 | DATA-TEST | 🟣 | `src/data/testimonials.js` | Empty array — add **real, approved** quotes, then remove `hidden` on HOME-08. Never fabricate. |

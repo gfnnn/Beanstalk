@@ -40,8 +40,8 @@ export function workerConnectOrigins(env = (typeof process !== 'undefined' ? pro
 
 // Why each directive (everything first-party unless noted):
 //   default-src 'self'              — lock the baseline to same-origin.
-//   script-src 'self'               — only the bundled main-*.js (gsap/lenis are
-//                                     npm deps, so they ship in it). The JSON-LD
+//   script-src 'self' <gtag>        — the bundled main-*.js (gsap/lenis are
+//                                     npm deps, so they ship in it) + gtag.js. The JSON-LD
 //                                     blocks are non-executable data, exempt.
 //   style-src … 'unsafe-inline' …   — the injected <style id="palette"> block and
 //                                     a few inline style="" attributes need inline;
@@ -50,18 +50,32 @@ export function workerConnectOrigins(env = (typeof process !== 'undefined' ? pro
 //   img-src 'self' data: blob:      — local images; blob: is the enquiry image
 //                                     preview (URL.createObjectURL).
 //   connect-src 'self' <worker>     — the form/flash-status fetch() targets.
+//   GA4 (script/img/connect)        — gtag.js from www.googletagmanager.com and
+//                                     its collect hits, exactly Google's GA4 CSP
+//                                     host set and no wider. Loaded only on a
+//                                     configured host for a visitor who hasn't
+//                                     opted out (src/js/modules/analytics.js);
+//                                     the allowance is the same on every build.
 //   frame-src google maps           — the embedded studio map on /visit/.
 //   base-uri / object-src / form-action — tighten the usual injection footguns.
+export const GA_SCRIPT_ORIGIN = 'https://www.googletagmanager.com'
+export const GA_IMG_ORIGINS = ['https://*.google-analytics.com', 'https://*.googletagmanager.com']
+export const GA_CONNECT_ORIGINS = [
+  'https://*.google-analytics.com',
+  'https://*.analytics.google.com',
+  'https://*.googletagmanager.com',
+]
+
 export function cspContent(connectOrigins = workerConnectOrigins()) {
   return [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
-    "script-src 'self'",
+    `script-src 'self' ${GA_SCRIPT_ORIGIN}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob:",
-    `connect-src ${["'self'", ...connectOrigins].join(' ')}`,
+    `img-src 'self' data: blob: ${GA_IMG_ORIGINS.join(' ')}`,
+    `connect-src ${["'self'", ...connectOrigins, ...GA_CONNECT_ORIGINS].join(' ')}`,
     'frame-src https://www.google.com https://maps.google.com',
     "form-action 'self'",
   ].join('; ')
