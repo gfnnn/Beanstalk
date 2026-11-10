@@ -12,7 +12,7 @@ switch-over.
 - **A fast, mobile-friendly portfolio site:** gallery, flash designs, prices, FAQ,
   aftercare and contact pages, with the content kept in data files so it can't drift
   between pages.
-- **An enquiry system that replaces Instagram DMs:** a step-by-step booking enquiry form
+- **An enquiry system that replaces Instagram DMs:** a step-by-step enquiry form
   (with reference photos) and a flash-claim form. Each submission is stored first, then
   emailed to the artist with the photos attached, so nothing is lost if an email fails.
   A flash design is held the moment it's claimed, so two people can't claim it.
@@ -20,6 +20,15 @@ switch-over.
   retention and erasure routine for UK GDPR requests, and spam is held back by a
   rate limiter. See [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md).
 - **Costs nothing to run:** everything sits inside free service tiers.
+
+## Planned (not built yet)
+
+- **Online booking:** choosing and confirming an appointment date on the site. Planned
+  for after launch; see [`docs/SCHEDULING.md`](docs/SCHEDULING.md).
+- **Card payments for flash and deposits:** planned. Part of the back end exists but is
+  switched off and not offered on the site; see [`docs/PAYMENTS.md`](docs/PAYMENTS.md).
+- **Artist dashboard and content editor:** planned; see [`docs/DASHBOARD.md`](docs/DASHBOARD.md)
+  and [`docs/CMS.md`](docs/CMS.md).
 
 ## How it's built
 
@@ -101,7 +110,7 @@ Think of this project as **your website plus a tiny receptionist.**
 | **About** | Your story and how you work. |
 | **Contact and visit** | Where the studio is, hours, how to find it, a map. |
 | **FAQ / Aftercare** | The questions you'd otherwise answer over and over, and healing guidance. |
-| **Enquire** | The main booking form: a step-by-step way to send an idea and photos. |
+| **Enquire** | The main enquiry form: a step-by-step way to send an idea and photos. |
 | **Newsletter** | Sign-ups for your mailing list. |
 | **Privacy / Terms** | The legal bits (data, deposits, cancellations). |
 

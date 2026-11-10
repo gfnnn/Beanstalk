@@ -1,4 +1,4 @@
-# Tests — `@beansprout/functions`
+# Tests: `@beansprout/functions`
 
 Unit/integration tests for the **Cloudflare Worker logic**: input validation,
 image-upload security, CORS, D1 storage, and rate limiting. (The frontend
@@ -18,13 +18,13 @@ Runner: [Vitest](https://vitest.dev) (`environment: node`, see `vitest.config.js
 
 | File | Tests |
 | --- | --- |
-| `tests/index.test.js` | `src/index.js` — the Worker entry/router: path dispatch to the three handlers, trailing-slash normalisation, query-string-insensitive matching, the 404 for unknown paths, that handlers receive the adapted event + `env`, and the 204/empty-body → null Response body rule. The handlers are mocked so only the router is under test. |
-| `tests/http.test.js` | `src/lib/http.js` — CORS allowlist, JSON replies, anti-spoof client-IP extraction, and the Request→event adapter. |
-| `tests/db.test.js` | `src/lib/db.js` — persistence, flash inventory (atomic reserve / release), consent ledger, and the rate limiter's window/daily-ceiling **and fail-open** behaviour. |
-| `tests/enquiry.test.js` | enquiry handler — validation, honeypot, magic-byte image sniffing (JPEG/PNG/GIF/WebP/HEIC/AVIF), filename sanitisation, email rendering/escaping, Resend errors, rate limiting. |
-| `tests/newsletter.test.js` | newsletter handler — validation, consent, honeypot, idempotent "already subscribed", Resend errors, rate limiting. |
-| `tests/flash-status.test.js` | flash-status handler — protocol + the live claims map. |
+| `tests/index.test.js` | `src/index.js`: the Worker entry/router. Covers path dispatch to the three handlers, trailing-slash normalisation, query-string-insensitive matching, the 404 for unknown paths, that handlers receive the adapted event + `env`, and the 204/empty-body → null Response body rule. The handlers are mocked so only the router is under test. |
+| `tests/http.test.js` | `src/lib/http.js`: CORS allowlist, JSON replies, anti-spoof client-IP extraction, and the Request→event adapter. |
+| `tests/db.test.js` | `src/lib/db.js`: persistence, flash inventory (atomic reserve / release), consent ledger, and the rate limiter's window/daily-ceiling **and fail-open** behaviour. |
+| `tests/enquiry.test.js` | enquiry handler: validation, honeypot, magic-byte image sniffing (JPEG/PNG/GIF/WebP/HEIC/AVIF), filename sanitisation, email rendering/escaping, Resend errors, rate limiting. |
+| `tests/newsletter.test.js` | newsletter handler: validation, consent, honeypot, idempotent "already subscribed", Resend errors, rate limiting. |
+| `tests/flash-status.test.js` | flash-status handler: protocol + the live claims map. |
 
 `fetch` (Resend) is mocked and the D1 binding is an in-memory fake
 (`tests/helpers/fake-d1.js`) that runs the real storage logic, so the suite is
-hermetic — no network, no real database.
+hermetic: no network, no real database.
