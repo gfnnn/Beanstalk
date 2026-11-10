@@ -3,7 +3,7 @@
 // or removes the only real backstop against a scripted flood (false negative). The
 // in-memory D1 fake runs the real SQL-issuing code, and a "broken" binding pins
 // the FAIL-SAFE / FAIL-OPEN behaviour (a DB outage must never block a real user).
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   limitsFrom, persistSubmission, persistConsent, getFlashClaims,
   reserveFlashPiece, releaseFlashPiece, rateLimit,
@@ -166,6 +166,14 @@ describe('limitsFrom', () => {
 })
 
 describe('rateLimit', () => {
+  // The day bucket is keyed on the UTC date, sampled separately by the test and by
+  // rateLimit(). Pin the clock to midday so a run that straddles UTC midnight can't
+  // see two different dates (only Date is faked, so async code runs normally).
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-06-15T12:00:00Z'))
+  })
+  afterEach(() => { vi.useRealTimers() })
   const today = () => new Date().toISOString().slice(0, 10)
 
   it('honours env-configured limits when no explicit options are passed', async () => {

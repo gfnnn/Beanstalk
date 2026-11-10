@@ -467,6 +467,17 @@
                 <span class="field-hint">Allergies, skin conditions, medication, pregnancy, a history of fainting, anything relevant. This stays private between us.</span>
                 <textarea id="allergies" name="allergies" rows="3" maxlength="600"
                           placeholder="None / e.g. sensitive skin, plaster allergy"></textarea>
+                <!-- Explicit consent for special-category (health) data, as the privacy
+                     policy promises. Only required once something is typed above:
+                     modules/enquire.js toggles `required`, and the Worker enforces the
+                     same rule server-side. -->
+                <div class="checkbox-group">
+                  <div class="checkbox-row">
+                    <input type="checkbox" id="check-health" name="health_consent">
+                    <label class="checkbox-box" for="check-health" aria-hidden="true"></label>
+                    <label class="checkbox-label" for="check-health">If I've shared health details above, I agree to them being used only to plan and carry out my tattoo safely, as explained in the <a href="/privacy/">privacy policy</a>.</label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -522,6 +533,7 @@
                     <label class="checkbox-label" for="check-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. Deposits are handled securely.</label>
                   </div>
                 </div>
+                <span class="field-hint">How I look after your details is explained in the <a href="/privacy/">privacy policy</a>.</span>
               </div>
             </div>
 

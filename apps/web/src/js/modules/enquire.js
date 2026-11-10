@@ -102,6 +102,20 @@ export function initEnquire() {
     if (el) el.min = today
   })
 
+  // Health details are special-category data, so the privacy policy promises
+  // explicit consent for them. The consent box is only required once something
+  // has actually been typed in the health field (the Worker enforces the same
+  // rule). Synced on every keystroke so step validation always sees the truth.
+  const healthEl    = document.getElementById('allergies')
+  const healthCheck = document.getElementById('check-health')
+  if (healthEl && healthCheck) {
+    const syncHealth = () => {
+      healthCheck.required = healthEl.value.trim() !== ''
+    }
+    healthEl.addEventListener('input', syncHealth)
+    syncHealth()
+  }
+
   // ── Per-field error display ───────────────────────────────────────────────
   function fieldErrorFor(el) {
     if (el.disabled) return ''
