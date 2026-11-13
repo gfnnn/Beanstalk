@@ -13,8 +13,8 @@ import { live } from '../src/data/flash.js'
 // While the drop is held back (flash.js `live: false`) /flash/ redirects to the
 // portfolio, so the claim flow can't be driven; it's covered again the moment the
 // flag flips. The held-back behaviour itself is asserted in the last test.
-test.beforeEach(({}, testInfo) => {
-  test.skip(!live && !testInfo.title.startsWith('held back'), 'flash page is held back (flash.js live: false)')
+test.beforeEach(() => {
+  test.skip(!live && !test.info().title.startsWith('held back'), 'flash page is held back (flash.js live: false)')
 })
 
 const availableCard = page => page.locator('.flash-card:has(.claim-btn[data-piece])').first()
