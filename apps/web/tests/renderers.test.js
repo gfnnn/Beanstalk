@@ -250,6 +250,15 @@ describe('renderNotices (toggleable hero bars)', () => {
     expect(html).not.toContain('Guest spot')
   })
 
+  it('drops a notice the day after its `until` date and tags a live one for the client', () => {
+    const dated = { ...clay, until: '2026-07-26' }
+    expect(renderNotices([moss, dated], '2026-07-26')).toContain('data-until="2026-07-26"')
+    const after = renderNotices([moss, dated], '2026-07-27')
+    expect(after).not.toContain('Flash day')
+    expect(after).toContain('Bookings')
+    expect(renderNotices([dated], '2026-07-27')).toBe('')
+  })
+
   it('keeps notice html raw so links render', () => {
     expect(renderNotices([moss])).toContain('<a href="/enquire/">Enquire</a>')
   })

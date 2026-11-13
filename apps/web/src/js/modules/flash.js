@@ -187,6 +187,10 @@ export function initFlash() {
   const priceInput = document.getElementById('modal-price-input')
   const idInput    = document.getElementById('modal-id-input')
   const firstField = document.getElementById('claim-name')
+  // Shown in place of the form once a claim is accepted (see the submit handler).
+  const success     = document.getElementById('claim-success')
+  const successName = document.getElementById('claim-success-piece')
+  const successDone = document.getElementById('claim-success-close')
 
   let lastFocused = null
   // Synchronous open/closed state — NOT derived from the .open class, which only
@@ -202,6 +206,9 @@ export function initFlash() {
     if (pieceInput) pieceInput.value      = name
     if (priceInput) priceInput.value      = price
     if (idInput)    idInput.value         = id || ''
+    // Always open on the form, never on a previous claim's confirmation.
+    if (form)    form.hidden    = false
+    if (success) success.hidden = true
 
     overlay.hidden = false
     // Commit the un-hidden frame before .open lands: with [hidden] now genuinely
@@ -250,6 +257,7 @@ export function initFlash() {
 
   if (closeBtn)  closeBtn.addEventListener('click', closeModal)
   if (cancelBtn) cancelBtn.addEventListener('click', closeModal)
+  if (successDone) successDone.addEventListener('click', closeModal)
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal() })
 
   document.addEventListener('keydown', e => {
@@ -288,6 +296,15 @@ export function initFlash() {
       if (submitBtn?.dataset.loading === 'true') return
       clearModalError()
 
+      // The 18+ and deposit acknowledgements are required to claim (the Worker
+      // enforces them too); say so here rather than after a round-trip.
+      const unticked = form.querySelector('input[type="checkbox"][required]:not(:checked)')
+      if (unticked) {
+        showModalError('Please tick both boxes to send your claim.')
+        unticked.focus()
+        return
+      }
+
       setButtonLoading(submitBtn, 'Sending…')
 
       const fields = {}
@@ -313,7 +330,16 @@ export function initFlash() {
 
         track('generate_lead', { form: 'flash' })
         markCard('pending')
-        closeModal()
+        // Confirm in place: the claimant has just handed over their details for a
+        // one-of-a-kind piece, so the modal must say it worked, not just vanish.
+        if (success) {
+          if (successName && pieceInput) successName.textContent = pieceInput.value
+          form.hidden = true
+          success.hidden = false
+          success.focus()
+        } else {
+          closeModal()
+        }
         form.reset()
         clearButtonLoading(submitBtn)
       } catch (err) {
@@ -333,7 +359,7 @@ export function initFlash() {
     // would let Tab escape the modal when a wrap lands on one.
     const focusable = [...overlay.querySelectorAll(
       'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
-    )].filter(el => !el.disabled)
+    )].filter(el => !el.disabled && el.type !== 'hidden' && !el.closest('[hidden]'))
     if (!focusable.length) return
     const first = focusable[0]
     const last  = focusable[focusable.length - 1]

@@ -147,23 +147,23 @@
   </div><!-- /contact-info -->
 
   <!--
-    MAP BLOCK — interactive Google map to the studio
+    MAP BLOCK — Google map to the studio, loaded ONLY when the visitor asks.
     (Tiny Knives Tattoo · 41 Southgate Street, Winchester · SO23 9EH).
-    Keyless Google Maps embed (`output=embed`): pan / zoom / Street View,
-    no API token or billing account required, so nothing secret ships in the
-    repo. Google's own place card (address, rating, directions) renders in the
-    corner of the embed, so we don't overlay a second one. To re-point the
-    studio: update the address in the iframe `src` query.
+    A Google Maps iframe sends the visitor's IP to Google and lets Google set
+    cookies, so it must not load on its own: this block ships as the address + a
+    button, and modules/map.js swaps in the keyless `output=embed` iframe (no API
+    token, nothing secret in the repo) on click. The link-out works without JS.
+    To re-point the studio: update `data-map-src` and the link-out `href`.
   -->
-  <div class="map-block reveal">
-    <iframe
-      id="studio-map"
-      class="map-embed"
-      title="Map showing Tiny Knives Tattoo studio at 41 Southgate Street, Winchester SO23 9EH"
-      src="https://maps.google.com/maps?q=Tiny%20Knives%20Tattoo%2C%2041%20Southgate%20Street%2C%20Winchester%20SO23%209EH&z=16&output=embed"
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade"
-      allowfullscreen></iframe>
+  <div class="map-block reveal" id="studio-map"
+       data-map-src="https://maps.google.com/maps?q=Tiny%20Knives%20Tattoo%2C%2041%20Southgate%20Street%2C%20Winchester%20SO23%209EH&z=16&output=embed"
+       data-map-title="Map showing Tiny Knives Tattoo studio at 41 Southgate Street, Winchester SO23 9EH">
+    <div class="map-consent">
+      <p class="map-consent-address">Tiny Knives Tattoo<br>41 Southgate Street, Winchester SO23&nbsp;9EH</p>
+      <button type="button" class="btn btn-primary" id="map-load">Show the map</button>
+      <p class="map-consent-note">The map comes from Google. Showing it shares your IP address with Google, which may set its own cookies.</p>
+      <a class="map-consent-link" href="https://www.google.com/maps/search/?api=1&amp;query=Tiny%20Knives%20Tattoo%2C%2041%20Southgate%20Street%2C%20Winchester%20SO23%209EH" target="_blank" rel="noopener noreferrer">Or open it in Google Maps ↗</a>
+    </div>
   </div>
 
 </div><!-- /contact-shell -->

@@ -58,3 +58,34 @@ test('reconciles live availability — a piece claimed since the build shows cla
   await expect(card.locator('.card-status')).toContainText(/claimed/i)
   await expect(card.locator('.claim-btn')).toBeDisabled()
 })
+
+test('a claim needs both consent ticks, then confirms inside the modal', async ({ page }) => {
+  await stubWorker(page)
+  await page.goto('/flash/')
+
+  const card = availableCard(page)
+  const piece = await card.locator('.claim-btn[data-piece]').getAttribute('data-piece')
+  await card.locator('.claim-btn[data-piece]').click()
+  await expect(page.locator('#claim-modal')).toHaveClass(/open/)
+
+  await page.locator('#claim-name').fill('Ada Lovelace')
+  await page.locator('#claim-email').fill('ada@example.com')
+
+  // Unticked → blocked client-side with a message, the form stays up.
+  await page.locator('#modal-submit').click()
+  await expect(page.locator('#claim-error')).toContainText(/tick both boxes/i)
+  await expect(page.locator('#claim-success')).toBeHidden()
+
+  // The native inputs are visually hidden; visitors tick via the drawn box.
+  await page.locator('label.checkbox-box[for="claim-age"]').click()
+  await page.locator('label.checkbox-box[for="claim-deposit"]').click()
+  await page.locator('#modal-submit').click()
+
+  await expect(page.locator('#claim-success')).toBeVisible()
+  await expect(page.locator('#claim-success-piece')).toHaveText(piece)
+  await expect(page.locator('#claim-form')).toBeHidden()
+  await expect(card).toHaveAttribute('data-status', 'pending')
+
+  await page.locator('#claim-success-close').click()
+  await expect(page.locator('#claim-modal')).not.toHaveClass(/open/)
+})

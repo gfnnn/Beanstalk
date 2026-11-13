@@ -1,0 +1,34 @@
+# Daily health check of the deployed site + Worker, so a broken form is noticed
+# from a failed run (GitHub emails the repository owner) instead of from enquiries
+# quietly stopping. Runs scripts/smoke-test.mjs, which uses the forms' honeypot
+# path: it stores nothing in D1 and sends no email.
+#
+# Skipped until the SMOKE_SITE_URL repository variable is set (the staging URL
+# before launch, https://beansprout.ink after). SMOKE_WORKER_URL is optional — the
+# script falls back to its built-in production Worker URL.
+#
+# Read-only, no secrets, never triggered by untrusted input (schedule + manual).
+name: Smoke test
+
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: vars.SMOKE_SITE_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Probe the site and Worker
+        env:
+          SITE: ${{ vars.SMOKE_SITE_URL }}
+          WORKER: ${{ vars.SMOKE_WORKER_URL }}
+        run: node scripts/smoke-test.mjs "$SITE" ${WORKER:+--worker "$WORKER"}

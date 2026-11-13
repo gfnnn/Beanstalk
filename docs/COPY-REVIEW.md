@@ -346,7 +346,7 @@ slot *is*; this table only adds source location + anything tracker-specific.
 | VISIT-05 | 🟠+🟡 | `visit/index.html` access block | 6 access/prep points incl. "up a flight of stairs, not step-free" — match how a session actually runs |
 | FLASH-01 | 🟠+🟡 | `flash/index.html` header | Drop number auto-derived from data; season label → facts table; intro voice open |
 | FLASH-02 | ⚪ | `flash/index.html` filter bar | All / Available / Claimed / Past drops + sort |
-| FLASH-03..05 | 🟡 | `flash/index.html` (empty state, custom CTA, claim modal) | Copy applied; review with the real drop |
+| FLASH-03..05 | 🟡 | `flash/index.html` (empty state, custom CTA, claim modal) | Copy applied; review with the real drop. **New, unreviewed (Nov 2026):** the modal's two consent ticks + the "Claim sent" confirmation; the confirmation emails sent to enquirers/claimants (`sendConfirmation` in `apps/functions/src/handlers/enquiry.js`); the "Show the map" placeholder on `/visit/`; the international-transfers paragraph on `/privacy/` |
 | FLASH-D1 | 🟠 | `src/data/flash.js` `season` | → facts table ("Flash" row) |
 | FLASH-D2 | 🟠 | `src/data/flash.js` pieces | 12 placeholder names/specs/prices until a real drop (→ facts table) |
 | PORT-01, PORT-02, PORT-03, PORT-04 | ✅ 🟡/⚪ | `portfolio/index.html` | Round 1 approved (incl. the 3 style categories); PORT-02 + PORT-04 ⚪ filter / count + load-more UI |

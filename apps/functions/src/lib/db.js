@@ -14,13 +14,15 @@
 const nowIso = () => new Date().toISOString()
 const rand   = () => Math.random().toString(36).slice(2, 8)
 
-// Env-tunable abuse limits (Resend free tier = 100 sends/day, so default ceiling
-// sits under it). Read from `env` so they're configurable per-deploy.
+// Env-tunable abuse limits. Resend's free tier is 100 sends/day and each
+// submission sends TWO emails (the artist's notification + the sender's
+// confirmation), so the default daily ceiling sits under half of it. On a paid
+// Resend plan, raise RATE_MAX_PER_DAY before a flash drop.
 export function limitsFrom(env = {}) {
   return {
     maxPerIp:  Number(env.RATE_MAX_PER_IP)    || 5,
     windowMs: (Number(env.RATE_IP_WINDOW_MIN) || 15) * 60_000,
-    maxPerDay: Number(env.RATE_MAX_PER_DAY)   || 80,
+    maxPerDay: Number(env.RATE_MAX_PER_DAY)   || 45,
   }
 }
 
@@ -86,6 +88,36 @@ export async function persistConsent(env, record) {
   } catch (err) {
     console.error('persistConsent failed (continuing):', err?.message || err)
     return null
+  }
+}
+
+// Submissions whose notification never reached the artist: a 'failed' send, or
+// one still 'pending' well after it was received (the Worker died mid-send).
+// Read by the daily digest (handlers/failed-digest.js) so a stored-but-unemailed
+// lead is surfaced instead of sitting unseen in D1. Fails safe to [].
+export async function listUnsentSubmissions(env, olderThanIso) {
+  try {
+    const { results } = await env.DB.prepare(
+      `SELECT id, kind, email, received_at FROM submissions
+        WHERE email_status = 'failed'
+           OR (email_status = 'pending' AND received_at < ?1)
+        ORDER BY received_at`,
+    ).bind(olderThanIso).all()
+    return results || []
+  } catch (err) {
+    console.error('listUnsentSubmissions failed:', err?.message || err)
+    return []
+  }
+}
+
+// Mark digest-reported rows so each lost lead is reported once, not daily.
+export async function markSubmissionsReported(env, ids) {
+  try {
+    await env.DB.batch(ids.map(id =>
+      env.DB.prepare("UPDATE submissions SET email_status = 'failed_reported' WHERE id = ?1").bind(id),
+    ))
+  } catch (err) {
+    console.error('markSubmissionsReported failed:', err?.message || err)
   }
 }
 

@@ -197,6 +197,44 @@ Gmail). All six must pass before the launch is "done":
    original" shows `SPF`/`DKIM`/`DMARC` all **PASS**. If it spams, re-check the Resend
    domain verification + DMARC (`EMAIL-DOMAIN-SETUP.md`).
 
+## C+. Go-live audit follow-ups (three-persona review, Nov 2026)
+
+A customer / studio / auditor review looked for gaps the lists above missed. Fixed in
+code: the `/visit/` Google map now loads only on request (it set Google cookies with
+no consent); the flash claim form requires the 18+ and deposit ticks; a claim confirms
+in the modal; enquirers and claimants get a confirmation email; a daily digest emails
+the artist any submission whose notification failed; Worker logs are kept; the
+rate-limit message no longer accuses a first-time visitor; dated homepage notices
+expire. The day-to-day runbook is [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md) →
+*Running it day to day*. **Still open:**
+
+- [ ] **A1 · New copy needs the artist's eye** — the flash consent ticks + "Claim sent"
+      panel, both confirmation emails, the map placeholder, the privacy transfers
+      paragraph (listed in `COPY-REVIEW.md`, FLASH-03..05 row). 👤
+- [ ] **A2 · Portfolio titles/alt text for the Dropbox-imported pieces** — about 25
+      carry one-word machine titles ("Fan", "Peace", "Window") that become the alt
+      text ("Fine line tattoo of Fan on a body"). C8 signed off the photos, not these.
+      👤 supply a real subject per piece → 🛠 update `pieces.js`.
+- [ ] **A3 · Deposit wording vs. how deposits are really taken** — `/services/` says
+      "Card or bank" and `/enquire/` says "Deposits are handled securely" while
+      deposits are arranged by email. 👤 confirm the method → 🛠 align the copy.
+- [ ] **A4 · Questions for the legal reviewer (adds to C3)** — is a flat 50% deposit,
+      fully forfeited inside 48h, a fair term under the Consumer Rights Act 2015; and
+      is the transfers paragraph on `/privacy/` accurate for each provider.
+- [ ] **A5 · Stale homepage notice** — "Books are open for summer" is still showing
+      (the 26 July flash-day bar now expires by itself). 👤 new wording or switch off.
+- [ ] **A6 · Set the `SMOKE_SITE_URL` repo variable** so the daily health check runs
+      (staging URL now, the apex after cutover). 👤
+- [ ] **A7 · Monthly off-platform D1 export** — the only copy of every lead, consent
+      record and payment is one D1 database ([`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md)
+      → *Backup & recovery*). 👤
+- [ ] **A8 · Going live from the artist's side** — the Dropbox sync opens its PR
+      against `develop` (staging); reaching the live site still needs a
+      `develop → main` release, and changing prices / the "Books open" light / notices
+      is a code edit. Until the CMS exists, agree who does those and how fast. 👤
+- [ ] **A9 · After launch: tighten DMARC** from `p=none` to `quarantine` once a few
+      weeks of reports are clean ([`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md)). 👤
+
 ## D. The apex cutover — LAST, only after A–C are green  (👤 + 🛠)
 
 > ### 🚩 MILESTONE — v2 launch / apex cutover · status: **blocked-on-content**

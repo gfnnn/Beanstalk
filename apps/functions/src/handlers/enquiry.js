@@ -72,7 +72,10 @@ const FORMS = {
   },
   flash: {
     required: ['name', 'email', 'piece', 'piece_id'],
-    consent:  [],
+    // A claim is an intent to book a tattoo, so it carries the same 18+ and
+    // deposit acknowledgements as the enquiry form (the privacy notice is linked
+    // in the modal itself).
+    consent:  ['age_confirmed', 'deposit_understood'],
     images:   false,
     title:    'Flash claim',
     subject:  f => `Flash claim — ${String(f.piece || 'piece').trim()}` +
@@ -81,6 +84,7 @@ const FORMS = {
       ['Piece',   [['piece', 'Flash piece'], ['price', 'Price']]],
       ['Contact', [['name', 'Name'], ['email', 'Email']]],
       ['Details', [['placement', 'Placement'], ['available_dates', 'Availability']]],
+      ['Consent', [['age_confirmed', 'Confirmed 18+'], ['deposit_understood', 'Understands deposit']]],
     ],
   },
 }
@@ -147,7 +151,10 @@ export async function handler(event, env = {}) {
   // successful send below, so genuine throttling accounting is unchanged.
   const limiter = await rateLimit(env, clientIp(event), { storeName: 'enquiry-rate' })
   if (!limiter.ok) {
-    return reply(429, { error: 'You’ve sent a few messages already. Please email hello@beansprout.ink directly and we’ll pick it up.' })
+    // Worded for BOTH limits: the per-IP window and the global daily ceiling. The
+    // ceiling can turn away a first-time visitor on a busy day, so the message
+    // must not accuse them of having sent anything.
+    return reply(429, { error: 'The form is having a busy spell. Please email hello@beansprout.ink directly and I’ll pick it up from there.' })
   }
 
   // ── Attachments (enquiries only) ────────────────────────────────────────────
@@ -251,12 +258,56 @@ export async function handler(event, env = {}) {
     }
     await limiter.commit()   // record the successful send against the limits
     await persistSubmission(env, { ...record, emailStatus: 'sent' }, submissionId)
+    await sendConfirmation({ kind, fields, from, env })
     return reply(200, { ok: true })
   } catch (err) {
     console.error('Send failed', err)
     await persistSubmission(env, { ...record, emailStatus: 'failed' }, submissionId)
     if (reservedHere) await releaseFlashPiece(env, pieceId)
     return reply(502, { error: 'We couldn’t send your message just now. Please try again shortly.' })
+  }
+}
+
+// Receipt to the person who submitted, so they know it arrived (a flash claimant
+// otherwise hears nothing until the artist replies) and a mistyped address shows
+// up as a bounce in Resend instead of a silently dead lead. BEST-EFFORT: the
+// submission is already stored and the artist already notified, so a failure
+// here is logged and never fails the request. The body is fixed copy plus the
+// server-side flash price — NO user-entered text — so the form can't be used to
+// send someone else a message of the sender's choosing.
+async function sendConfirmation({ kind, fields, from, env }) {
+  const flash = kind === 'flash'
+  const subject = flash ? 'Your flash claim — Beansprout' : 'Your enquiry — Beansprout'
+  const lines = flash
+    ? [
+        'Thanks for claiming a flash piece — your claim has reached me.',
+        `I’ve put a hold on the piece (£${fields.price}) while we sort the details. I’ll email you from this address to arrange the deposit and a date.`,
+      ]
+    : [
+        'Thanks for your enquiry — it’s reached me safely.',
+        'I read every enquiry myself and will reply from this address. Nothing is booked until we’ve agreed the details and a deposit is paid.',
+      ]
+  lines.push('If you didn’t send this, or anything needs changing, just reply to this email.')
+  const sign = 'Roxy · beansprout.ink'
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from,
+        // No reply_to: replies go to FROM_EMAIL (the public studio address).
+        // ARTIST_EMAIL is the private inbox and must never reach a customer.
+        to: [String(fields.email).trim()],
+        subject,
+        html: `<!doctype html><html><body style="margin:0;background:#F7F1E3;padding:24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#2C2A24;font-size:15px;line-height:1.6">${
+          lines.map(l => `<p style="margin:0 0 14px">${esc(l)}</p>`).join('')
+        }<p style="margin:22px 0 0;color:#5C5A52">${esc(sign)}</p></body></html>`,
+        text: `${lines.join('\n\n')}\n\n${sign}`,
+      }),
+    })
+    if (!res.ok) console.error('Confirmation email not sent', res.status, await res.text().catch(() => ''))
+  } catch (err) {
+    console.error('Confirmation email failed', err?.message || err)
   }
 }
 
