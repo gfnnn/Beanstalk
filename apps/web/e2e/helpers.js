@@ -1,3 +1,4 @@
+import { live as flashLive } from '../src/data/flash.js'
 // Shared helpers for the Playwright E2E/smoke tier.
 import { expect } from '@playwright/test'
 import { pieces } from '../src/data/pieces.js'
@@ -15,7 +16,7 @@ export const PAGES = [
   { path: '/',                       name: 'home' },
   { path: '/portfolio/',             name: 'portfolio' },
   { path: `/portfolio/${pieces[0].slug}/`, name: `piece page (${pieces[0].slug})` },
-  { path: '/flash/',                 name: 'flash' },
+  ...(flashLive ? [{ path: '/flash/', name: 'flash' }] : []),   // redirects while held back
   { path: '/services/',              name: 'services' },
   { path: '/enquire/',               name: 'enquire' },
   { path: '/about/',                 name: 'about' },

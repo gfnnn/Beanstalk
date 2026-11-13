@@ -208,6 +208,18 @@ rate-limit message no longer accuses a first-time visitor; dated homepage notice
 expire. The day-to-day runbook is [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md) →
 *Running it day to day*. **Still open:**
 
+**MVP launch changes (Nov 2026 — the gates in D are unchanged and still need the
+operator's decision):** no hero clip is being produced, so both hero frames now show
+stills of existing portfolio photos (`media.js`, `kind: 'image'`); `og-image.jpg` is a
+strip of three real pieces; and the flash page is **held back** while its 12 pieces are
+placeholders — `live: false` in `flash.js` removes the Flash link from every menu,
+redirects `/flash/` to the portfolio and keeps it out of search
+(`src/build/flash-gate.js`). Set `live: true` once a real drop is in.
+
+- [ ] **A0 · Decide the MVP gate (👤)** — with flash held back and no clip coming, C4
+      and C6 can't be met as written, and the flash-page / switched-off-slot copy
+      markers no longer face visitors. Whoever owns the go/no-go should amend the
+      gates in D and [`CUTOVER.md`](./CUTOVER.md) to match, or keep them as they are.
 - [ ] **A1 · New copy needs the artist's eye** — the flash consent ticks + "Claim sent"
       panel, both confirmation emails, the map placeholder, the privacy transfers
       paragraph (listed in `COPY-REVIEW.md`, FLASH-03..05 row). 👤

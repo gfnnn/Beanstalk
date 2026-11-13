@@ -8,6 +8,14 @@
 // The Worker is stubbed, so we control the claim map without a real backend.
 import { test, expect } from '@playwright/test'
 import { stubWorker } from './helpers.js'
+import { live } from '../src/data/flash.js'
+
+// While the drop is held back (flash.js `live: false`) /flash/ redirects to the
+// portfolio, so the claim flow can't be driven; it's covered again the moment the
+// flag flips. The held-back behaviour itself is asserted in the last test.
+test.beforeEach(({}, testInfo) => {
+  test.skip(!live && !testInfo.title.startsWith('held back'), 'flash page is held back (flash.js live: false)')
+})
 
 const availableCard = page => page.locator('.flash-card:has(.claim-btn[data-piece])').first()
 
@@ -88,4 +96,13 @@ test('a claim needs both consent ticks, then confirms inside the modal', async (
 
   await page.locator('#claim-success-close').click()
   await expect(page.locator('#claim-modal')).not.toHaveClass(/open/)
+})
+
+test('held back: /flash/ sends visitors to the portfolio and no menu links to it', async ({ page }) => {
+  test.skip(live, 'flash page is live')
+  await stubWorker(page)
+  await page.goto('/flash/')
+  await expect(page).toHaveURL(/\/portfolio\/$/)
+  await page.goto('/')
+  await expect(page.locator('a[href="/flash/"]')).toHaveCount(0)
 })

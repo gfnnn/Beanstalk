@@ -45,6 +45,16 @@
 // ARTIST-COPY · FLASH-D1 · pending approval — see docs/COPY-REVIEW.md
 export const season = 'Summer 2026'
 
+// ── live — is the flash page open to visitors? ───────────────────────────────
+//   false → the page is held back: the "Flash" link is removed from every menu
+//           and footer, /flash/ sends visitors to the portfolio, and search
+//           engines are told to skip it (src/build/flash-gate.js).
+//   true  → the page and its links are shown.
+// Keep this false until the pieces below are REAL designs with real photos and
+// prices — while they are placeholders a visitor could claim a tattoo that
+// does not exist. Then set it to true and rebuild; nothing else needs changing.
+export const live = false
+
 // NOTE: titles, specs and prices below are placeholders matched to each card's
 // line-art glyph so the grid reads sensibly until real flash photos are added.
 // Swap in the real piece names, sizes and prices (and `img`) per drop.

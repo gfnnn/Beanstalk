@@ -21,6 +21,11 @@
 //   kind     'video' → a muted looping <video> (preferred — far smaller files)
 //            'gif'   → an animated <img> (use only if a true GIF was supplied;
 //                      a re-encoded muted MP4/WebM is ~10× smaller — see README)
+//            'image' → a still photo, no clip needed. Set `img` to a portfolio
+//                      photo's base path (no size/extension, as in pieces.js),
+//                      `w`/`h` to its dimensions, and `sizes` to the frame width.
+//                      This is what the site launches with; to move to a clip
+//                      later, change `kind` back and fill in poster/sources.
 //   alt      accessible description of the clip (it's decorative motion, but
 //            screen readers still announce the frame)                    (COPY)
 //   poster   a still frame shown before/instead of playback — REQUIRED for
@@ -41,9 +46,12 @@ export const media = {
   // Homepage hero — the process clip in the right-hand media column.
   // Shoot brief lives in index.html above the marker (16:9, < 4 MB, seamless loop).
   hero: {
-    show:   false,
-    kind:   'video',
-    alt:    'Tattooing process, hands at work',
+    show:   true,
+    kind:   'image',
+    img:    '/images/tattoos/lioness',
+    w: 800, h: 1063,
+    sizes:  '(min-width:900px) 55vw, 100vw',
+    alt:    'Black and grey realism tattoo of a lioness on an arm',
     poster: '/videos/hero-poster.jpg',
     sources: [
       { src: '/videos/hero.webm', type: 'video/webm' },
@@ -77,9 +85,12 @@ export const media = {
   // the artist at work reads warmer here than a still). 4:5 portrait crop.
   // Same component as the homepage hero — see src/build/media.js.
   aboutHero: {
-    show:    false,
-    kind:    'video',
-    alt:     'Roxy tattooing in the studio',
+    show:    true,
+    kind:    'image',
+    img:     '/images/tattoos/highland-cow',
+    w: 800, h: 1063,
+    sizes:   '(min-width:900px) 40vw, 100vw',
+    alt:     'Fine line tattoo of a highland cow with sunflowers on a leg',
     poster:  '/videos/about-portrait-poster.jpg',
     sources: [
       { src: '/videos/about-portrait.webm', type: 'video/webm' },

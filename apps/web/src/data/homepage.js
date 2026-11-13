@@ -73,7 +73,7 @@ export const homepage = {
   },
 
   notices: [
-    { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open for summer. <a href="/enquire/">Request a slot</a>' },
+    { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open. <a href="/enquire/">Request a slot</a>' },
     { show: true,  tone: 'clay',  label: 'Flash day',  html: 'Next flash day 26 July. <a href="/flash/">Preview the sheet</a>', until: '2026-07-26' },
     { show: false, tone: 'faint', label: 'Guest spot', html: 'Guest artist [Name], [Dates].' },
   ],
