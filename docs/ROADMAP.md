@@ -233,8 +233,8 @@ redirects `/flash/` to the portfolio and keeps it out of search
 - [ ] **A4 · Questions for the legal reviewer (adds to C3)** — is a flat 50% deposit,
       fully forfeited inside 48h, a fair term under the Consumer Rights Act 2015; and
       is the transfers paragraph on `/privacy/` accurate for each provider.
-- [ ] **A5 · Stale homepage notice** — "Books are open for summer" is still showing
-      (the 26 July flash-day bar now expires by itself). 👤 new wording or switch off.
+- [ ] **A5 · Homepage notice** — now reads "Books are open." (the 26 July flash-day bar
+      expires by itself). 👤 confirm it's still true at launch.
 - [ ] **A6 · Set the `SMOKE_SITE_URL` repo variable** so the daily health check runs
       (staging URL now, the apex after cutover). 👤
 - [ ] **A7 · Monthly off-platform D1 export** — the only copy of every lead, consent
@@ -249,38 +249,36 @@ redirects `/flash/` to the portfolio and keeps it out of search
 
 ## D. The apex cutover — LAST, only after A–C are green  (👤 + 🛠)
 
-> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **blocked-on-content**
-> Move the live apex `beansprout.ink` from **v1 → v2**. The ICO number is now in hand
-> (`ZC165794`, applied to `/privacy/`); the remaining long pole is **content + a legal
-> review**. **Hard gates (all must be green to start):**
-> - **ICO number published** in the privacy policy (`/privacy/`) — ✅ applied; still needs
->   the tattoo-reg number + legal review to strip the PRIV marker (C3).
-> - **Copy grep-gate at zero** — `grep -rn "pending approval" apps/web/
->   --exclude-dir=dist --exclude-dir=node_modules` returns nothing (A above).
-> - **Real images in** — no placeholder flash art (C4), the hero clip live (C6), and a
->   real `og-image.jpg` (C5).
+> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **ready-pending-go/no-go**
+> Move the live apex `beansprout.ink` from **v1 → v2**. Engineering is green (2026-11-14:
+> tests, build, lint, staging smoke 18/18). **v1 is also on GitHub Pages under the same
+> account, so the switch is a Pages custom-domain handover between the two repos — not a
+> DNS change.** What's left is the operator's go/no-go on the MVP content gate (**A0**):
+> the legal review of `/privacy/` + `/terms/` (C3/A4), the artist's eye on ENQ-06/07, and
+> the deposit wording (A3). Flash, the hero clip and the optional slots are out of the MVP gate.
 >
-> The full launch-day procedure — pre-flight go/no-go gate, the command-by-command
-> cutover, the smoke test, the rollback, and post-cutover — is the **runbook in
-> [`CUTOVER.md`](./CUTOVER.md)**. The reusable post-deploy probe is
-> `npm run smoke -- <url>` (`scripts/smoke-test.mjs`), run at cutover and on every
-> release to `main`. The boxes below stay the **state tracker** (who owns what, what's
-> done); CUTOVER.md is the **how**.
+> The full procedure — prep, the go/no-go gate, release + handover, smoke test, rollback,
+> post-cutover — is the **runbook in [`CUTOVER.md`](./CUTOVER.md)**. The boxes below are the
+> **state tracker**; CUTOVER.md is the **how**.
 
-Moves `beansprout.ink` from **v1 → v2**. Two test→prod flips happen together (DNS +
-email). **X2 (re-add CNAME) only at cutover** — never earlier, or Pages claims the
-apex off v1 (the guardrail in `CLAUDE.md`).
+Moves `beansprout.ink` from **v1 → v2**: a release, the domain handover, and the email
+flip. **X2 (re-add CNAME) only at cutover** — never earlier (the guardrail in `CLAUDE.md`).
 
-- [ ] **X1 · A day ahead: lower apex DNS TTL to 300 s** (👤 GoDaddy) on the apex `A` /
-      `www` `CNAME` — so cutover *and* rollback propagate in minutes. Raise back after.
-- [ ] **X2 · Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), let Pages deploy.
-- [ ] **X3 · Point DNS at GitHub Pages** (👤 GoDaddy) — apex `A` → Pages IPs + `www`
-      `CNAME` → `<user>.github.io`. *This is what moves traffic off v1.*
+- [ ] **X1 · Verify `beansprout.ink` on the GitHub account** (👤, one TXT record at
+      GoDaddy) so no other repo can claim it during the handover. *(Replaces the old
+      TTL-lowering step — no A/CNAME records change.)*
+- [ ] **R1 · Release PR `develop → main`** (🛠 + 👤) — first release since June; deploys
+      the web build (still staging mode) and the Worker.
+- [ ] **X2 · Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) via `develop → main`
+      — flips the build to production mode (indexable, real sitemap).
+- [ ] **X3 · Release the domain from v1** (👤) — `gfnnn/beansprout` → Settings → Pages →
+      remove the custom domain. *Immediately followed by X5.*
 - [ ] **X4 · Flip Worker email secrets test → prod** (👤): `FROM_EMAIL` →
       `roxy@beansprout.ink`, `ARTIST_EMAIL` → the artist's Gmail. Needs
       `beansprout.ink` verified in Resend. Saving redeploys the Worker.
-- [ ] **X5 · Add `beansprout.ink` as the verified custom domain** in Pages settings;
-      enable **Enforce HTTPS** once the cert provisions. 👤
+- [ ] **X5 · Claim `beansprout.ink` in v2's Pages settings** (👤) — this is what moves
+      traffic (Actions-deployed Pages ignore the `CNAME` file for routing); enable
+      **Enforce HTTPS** once the cert provisions.
 - [ ] **X6 · Confirm the Worker CORS allowlist** includes the apex — it already does
       (`src/lib/http.js`); just verify.
 - [ ] **X7 · Smoke-test the live apex** — the acceptance test above as production
@@ -296,9 +294,10 @@ apex off v1 (the guardrail in `CLAUDE.md`).
 
 ### Rollback plan (if the cutover goes wrong)
 
-Every step is reversible; with the TTL pre-lowered a revert is minutes — roll back the
-moment the live apex is broken rather than debugging on the live domain. The
-authoritative step-by-step (DNS first → email → remove the CNAME → data is safe) lives
+Every step is reversible; the domain handover runs in reverse in minutes, with no DNS
+propagation — roll back the moment the live apex is broken rather than debugging on the
+live domain. The authoritative step-by-step (domain back to v1 → email → remove the
+CNAME → data is safe) lives
 once in **[`CUTOVER.md`](./CUTOVER.md) → Phase 4**, alongside the abort conditions that
 trigger it.
 
