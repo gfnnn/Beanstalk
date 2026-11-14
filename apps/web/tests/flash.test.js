@@ -356,6 +356,62 @@ describe('initFlash', () => {
       expect(vi.mocked(track)).toHaveBeenCalledWith('generate_lead', { form: 'flash' })
     })
 
+    // The real page carries the consent ticks + an in-modal confirmation; the
+    // base fixture omits both, so these add them before init.
+    function setupFull() {
+      setup()
+      byId('claim-form').insertAdjacentHTML('afterbegin',
+        '<input type="checkbox" id="claim-age" name="age_confirmed" required>' +
+        '<input type="checkbox" id="claim-deposit" name="deposit_understood" required>')
+      byId('claim-form').insertAdjacentHTML('afterend',
+        '<div id="claim-success" tabindex="-1" hidden><strong id="claim-success-piece"></strong>' +
+        '<button type="button" id="claim-success-close">Done</button></div>')
+      initFlash()
+    }
+    const submit = () => $('#claim-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    const okResponse = { ok: true, status: 200, json: () => Promise.resolve({ ok: true }) }
+
+    it('blocks the claim (no POST) until both consent boxes are ticked', async () => {
+      global.fetch = mockFetch({ submit: okResponse })
+      setupFull()
+      click(cardById('p1').querySelector('.claim-btn'))
+      await raf()
+      byId('claim-age').checked = true // deposit box still unticked
+      submit()
+      await flush()
+      expect(global.fetch.mock.calls.some(([, o]) => o && o.method === 'POST')).toBe(false)
+      expect(byId('claim-error').textContent).toMatch(/tick both boxes/i)
+      expect(cardById('p1').dataset.status).toBe('available')
+    })
+
+    it('sends the consents and confirms in the modal instead of closing', async () => {
+      global.fetch = mockFetch({ submit: okResponse })
+      setupFull()
+      click(cardById('p1').querySelector('.claim-btn'))
+      await raf()
+      byId('claim-age').checked = true
+      byId('claim-deposit').checked = true
+      submit()
+      await flush()
+
+      const post = global.fetch.mock.calls.find(([, o]) => o && o.method === 'POST')
+      const { fields } = JSON.parse(post[1].body)
+      expect(fields.age_confirmed).toBe('on')
+      expect(fields.deposit_understood).toBe('on')
+
+      expect(byId('claim-modal').hidden).toBe(false)        // still open
+      expect(byId('claim-success').hidden).toBe(false)      // confirmation shown
+      expect(byId('claim-form').hidden).toBe(true)
+      expect(byId('claim-success-piece').textContent).toBe('Piece p1')
+      expect(document.activeElement).toBe(byId('claim-success'))
+
+      // Dismiss, then open another piece: back on the form, not the old confirmation.
+      click(byId('claim-success-close'))
+      click(cardById('p4').querySelector('.claim-btn'))
+      expect(byId('claim-form').hidden).toBe(false)
+      expect(byId('claim-success').hidden).toBe(true)
+    })
+
     it('fires no lead on a 409 or a failed claim', async () => {
       await openAndSubmit({ ok: false, status: 409, json: () => Promise.resolve({ error: 'Taken.' }) })
       await flush()

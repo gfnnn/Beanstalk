@@ -10,6 +10,8 @@ import { initEnquire } from './modules/enquire.js'
 import { initFlash } from './modules/flash.js'
 import { initNewsletter } from './modules/newsletter.js'
 import { initMedia } from './modules/media.js'
+import { initMap } from './modules/map.js'
+import { initNotices } from './modules/notices.js'
 import { initAnalytics } from './modules/analytics.js'
 import { initPageLoader, pageReady } from './modules/loader.js'
 import { initMobileCta } from './modules/cta.js'
@@ -62,6 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 10. Newsletter page — signup form → Resend Audience
   initNewsletter()
+
+  // 10°. Homepage — drop any dated studio notice whose day has passed.
+  initNotices()
+
+  // 10·. Visit page — the Google map loads only when the visitor asks for it.
+  initMap()
 
   // 10a. Hero media clips (homepage + About hero) — reduced-motion +
   //      on-screen-only playback. No-ops when the page has no generated clip.

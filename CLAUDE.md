@@ -176,7 +176,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email +
   migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
 docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
-.github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
+.github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml, smoke.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
@@ -339,7 +339,9 @@ collapse for tight filter rows — used by filter and flash), `filter-collapse` 
 collapses the whole filter bar behind a deterministic "Filters" toggle — a tap, not a
 scroll-driven auto-hide, so it can't flicker on mobile browser-chrome motion; also shared by
 filter and flash), `aftercare`, `faq`, `enquire`,
-`flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
+`flash`, `newsletter`, `map` (the `/visit/` Google map — created only when the visitor presses
+"Show the map", never on load, because the embed sets Google cookies), `notices` (hides a dated
+homepage notice after its `until` day), `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
 on-screen-only playback), `analytics` (GA4 behind `track()`: gtag.js loads at runtime only on a
 host with an ID in `src/data/analytics.js` and only if the visitor hasn't opted out via GPC
 or the `/privacy/` control; `track()` sends only an allowlist of events/params, so no form
@@ -400,6 +402,12 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   MIME isn't trusted, `Buffer` via the `nodejs_compat` flag), with request-body and
   per-image size caps. It **persists the submission before emailing**, and for flash claims
   **reserves the piece server-side** so it can't be double-claimed. Sends via **Resend**.
+  After the artist's notification it sends the **sender a fixed-copy receipt** (best-effort,
+  no user text echoed, never exposing `ARTIST_EMAIL`). Flash claims require the same 18+ and
+  deposit consents as enquiries, and a manual claim **never expires by itself** — the artist
+  releases or marks it sold (`docs/ENQUIRY-SETUP.md` → *Running it day to day*).
+- `src/handlers/failed-digest.js` is the Worker's **daily cron** (`[triggers]` in
+  `wrangler.toml`): it emails the artist any submission whose notification failed, once each.
 - `src/handlers/newsletter.js` adds a subscriber to a Resend Audience and files a consent row.
 - `src/handlers/flash-status.js` is a **read-only** `GET` endpoint the flash grid calls on
   load to reflect *live* availability. The grid ships as static HTML (status baked in at
@@ -612,7 +620,7 @@ the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security
 
-The repo ships four workflows (`.github/workflows/`) and **no AI/agent action** — keep it
+The repo ships five workflows (`.github/workflows/`) and **no AI/agent action** — keep it
 that way unless there's a clear reason, and follow these rules if that changes. (The Worker
 deploys via **Cloudflare Workers Builds** — Git-connected on Cloudflare's side, holding its
 own scoped API token there — so there is intentionally no Cloudflare token in GitHub.)

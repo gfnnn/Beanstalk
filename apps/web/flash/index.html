@@ -269,6 +269,19 @@
                   placeholder="Weekends are easiest, sometime in the next month or two…"></textarea>
       </div>
 
+      <div class="checkbox-group modal-consent">
+        <div class="checkbox-row">
+          <input type="checkbox" id="claim-age" name="age_confirmed" required>
+          <label class="checkbox-box" for="claim-age" aria-hidden="true"></label>
+          <label class="checkbox-label" for="claim-age">I confirm I'm 18 or over and will bring photo ID to my appointment.</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="claim-deposit" name="deposit_understood" required>
+          <label class="checkbox-box" for="claim-deposit" aria-hidden="true"></label>
+          <label class="checkbox-label" for="claim-deposit">I understand a deposit is required to book, comes off my final total, and isn't refundable if I cancel late or don't show. See the <a href="/terms/">booking terms</a>.</label>
+        </div>
+      </div>
+
       <p class="field-hint">I'll only use these details to arrange this tattoo. See the <a href="/privacy/">privacy policy</a>.</p>
 
       <div class="modal-foot">
@@ -277,6 +290,14 @@
       </div>
 
     </form>
+
+<!-- ARTIST-COPY · FLASH-05 · pending approval (claim confirmation shown after a successful claim) — see docs/COPY-REVIEW.md -->
+    <div class="claim-success" id="claim-success" role="status" tabindex="-1" hidden>
+      <h3 class="claim-success-title">Claim <em>sent.</em></h3>
+      <p>I've put a hold on <strong id="claim-success-piece">your piece</strong> while we sort the details.</p>
+      <p>A confirmation is on its way to your inbox, and I'll email you to arrange the deposit and a date. If nothing arrives, check your spam folder or write to <a href="mailto:hello@beansprout.ink">hello@beansprout.ink</a>.</p>
+      <button type="button" class="modal-submit" id="claim-success-close">Back to the flash sheet</button>
+    </div>
   </div>
 </div>
 

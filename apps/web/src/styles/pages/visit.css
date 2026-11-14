@@ -142,7 +142,8 @@
 
 /* ── Map block ───────────────────────────────────────────────────────────── */
 /*
-  Interactive Google map (keyless `output=embed` iframe — see visit/index.html).
+  Interactive Google map (keyless `output=embed` iframe), created by modules/map.js
+  only after the visitor presses "Show the map" — see visit/index.html.
   A subtle desaturate/warm filter blends Google's default tiles into the earthy
   palette without harming legibility; it lifts on hover/focus so the live map is
   always fully readable while a visitor is using it.
@@ -164,6 +165,22 @@
   filter: saturate(0.85) contrast(0.96) sepia(0.06);
   transition: filter var(--dur);
 }
+/* Placeholder shown until the visitor chooses to load Google's map. */
+.map-consent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px var(--pad-x);
+  text-align: center;
+}
+.map-consent-address { font-family: var(--serif); font-size: 20px; line-height: 1.4; color: var(--ink); }
+.map-consent-note { max-width: 340px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.map-consent-link { font-size: 14px; color: var(--moss); border-bottom: 1px solid rgba(var(--moss-rgb), 0.35); }
+
 .map-block:hover .map-embed,
 .map-embed:focus-within { filter: none; }
 

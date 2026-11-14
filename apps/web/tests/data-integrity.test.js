@@ -212,6 +212,7 @@ describe('homepage data (homepage.js)', () => {
   })
 
   it.each(homepage.notices)('notice "$label" is structurally valid', (n) => {
+    if (n.until !== undefined) expect(n.until, 'until is YYYY-MM-DD').toMatch(/^\d{4}-\d{2}-\d{2}$/)
     expect(typeof n.show, 'show is a boolean').toBe('boolean')
     expect(TONES, `notice tone "${n.tone}"`).toContain(n.tone)
     expect(n.label, 'label').toBeTruthy()

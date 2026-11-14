@@ -149,7 +149,7 @@ export function injectSeoHead(html) {
  * real-life SEO artifacts. Self-disarming: adding the apex CNAME flips this to the
  * production variant, same switch as everything else here.
  */
-export function renderRobots({ production = isProductionBuild() } = {}) {
+export function renderRobots({ production = isProductionBuild(), disallow = [] } = {}) {
   if (!production) {
     return [
       '# Staging / preview build — keep the pre-launch copy out of search.',
@@ -167,6 +167,7 @@ export function renderRobots({ production = isProductionBuild() } = {}) {
     '',
     "# Post-submit confirmation — also noindex'd on the page itself.",
     'Disallow: /enquiry-received/',
+    ...disallow.map(path => `Disallow: ${path}`),
     '',
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     '',

@@ -442,8 +442,26 @@
    the modal footer). Colour comes from the palette — never a hard-coded hex —
    matching the enquiry form's .form-error-banner. */
 .claim-error {
-  margin: 0 0 4px;
+  margin: 10px 0 4px;
   font-size: 13px;
   line-height: 1.45;
   color: var(--clay);
 }
+
+/* Claim-modal consent ticks (the .checkbox-row pattern from the enquiry form). */
+.modal-consent { margin: 18px 0 10px; border-top: 1px solid var(--line-soft); }
+
+/* Confirmation shown in place of the form after a successful claim. */
+.claim-success { padding: 28px var(--pad-x) 32px; }
+.claim-success:focus { outline: none; }
+.claim-success-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+.claim-success-title em { font-style: italic; color: var(--moss); }
+.claim-success p { color: var(--ink-soft); line-height: 1.6; margin-bottom: 14px; }
+.claim-success a { color: var(--moss); border-bottom: 1px solid rgba(var(--moss-rgb), 0.35); }
+.claim-success .modal-submit { margin-top: 10px; }

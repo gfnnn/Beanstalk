@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { pieces } from './src/data/pieces.js'
 import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
-import { flash, season } from './src/data/flash.js'
+import { flash, season, live as flashLive } from './src/data/flash.js'
+import { applyFlashGate } from './src/build/flash-gate.js'
 import { renderFlashCards, renderFlashDrop, renderFlashSeason } from './src/build/flash-cards.js'
 import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderRobots, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
@@ -36,6 +37,9 @@ const generatedGrids = {
   transformIndexHtml: {
     order: 'pre',
     handler(html) {
+      // Hold /flash/ back (links stripped everywhere, the page redirects) until
+      // flash.js says the drop is real — see src/build/flash-gate.js.
+      html = applyFlashGate(html, { live: flashLive, isFlashPage: html.includes('<!-- flash:grid -->') })
       if (html.includes('<!-- pieces:masonry -->')) {
         html = html.replace('<!-- pieces:masonry -->', () => renderPortfolioTiles(pieces))
       }
@@ -229,7 +233,7 @@ const piecePages = {
         piecePagesData(pieces).find(d => d.piece.slug === m[1])
       try {
         const html = await server.transformIndexHtml(
-          req.url, renderPiecePage(piece, { prev, next: older }),
+          req.url, applyFlashGate(renderPiecePage(piece, { prev, next: older }), { live: flashLive }),
         )
         res.setHeader('Content-Type', 'text/html')
         res.end(html)
@@ -259,7 +263,7 @@ const piecePages = {
       this.emitFile({
         type: 'asset',
         fileName: `portfolio/${piece.slug}/index.html`,
-        source: renderPiecePage(piece, { prev, next, cssHref, jsHref, securityMeta, robotsMeta }),
+        source: applyFlashGate(renderPiecePage(piece, { prev, next, cssHref, jsHref, securityMeta, robotsMeta }), { live: flashLive }),
       })
     }
   },
@@ -274,14 +278,15 @@ const piecePages = {
 // Both are served from the dev server too so they can be verified locally.
 // The sitemap includes the per-piece portfolio routes.
 const pieceRoutes = pieces.map(p => ({ path: `/portfolio/${p.slug}/`, priority: '0.6' }))
-const allRoutes = [...ROUTES, ...pieceRoutes]
+const allRoutes = [...ROUTES.filter(r => flashLive || r.path !== '/flash/'), ...pieceRoutes]
+const robotsOpts = { disallow: flashLive ? [] : ['/flash/'] }
 const sitemap = {
   name: 'beansprout-sitemap',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
       if (req.url === '/robots.txt') {
         res.setHeader('Content-Type', 'text/plain')
-        res.end(renderRobots())
+        res.end(renderRobots(robotsOpts))
         return
       }
       if (req.url === '/sitemap.xml') {
@@ -293,7 +298,7 @@ const sitemap = {
     })
   },
   generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots() })
+    this.emitFile({ type: 'asset', fileName: 'robots.txt', source: renderRobots(robotsOpts) })
     // Staging emits no sitemap — robots.txt blocks crawlers and a sitemap would
     // only publish the real apex URLs onto the pre-launch copy.
     if (isProductionBuild()) {

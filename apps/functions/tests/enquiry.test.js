@@ -122,10 +122,19 @@ describe('enquiry handler — validation', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('does not require consent boxes for a flash claim', async () => {
-    const res = await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03' } }))
+  it('accepts a flash claim carrying the 18+ and deposit acknowledgements', async () => {
+    const res = await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', age_confirmed: 'on', deposit_understood: 'on' } }))
     expect(res.statusCode).toBe(200)
-    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(sentBody(fetchMock).html).toContain('Confirmed 18+')
+  })
+
+  it.each(['age_confirmed', 'deposit_understood'])('rejects a flash claim missing %s and reserves nothing', async (box) => {
+    const fields = { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', age_confirmed: 'on', deposit_understood: 'on' }
+    delete fields[box]
+    const res = await H(post({ kind: 'flash', fields }))
+    expect(res.statusCode).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(d1.data.flash.size).toBe(0)
   })
 })
 
@@ -153,6 +162,53 @@ describe('enquiry handler — happy path & email', () => {
   it('returns 502 when Resend responds with an error', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 422, text: async () => 'bad', json: async () => ({}) })
     expect((await H(post(validEnquiry()))).statusCode).toBe(502)
+  })
+})
+
+describe('enquiry handler — confirmation to the sender', () => {
+  const confirmation = () => JSON.parse(fetchMock.mock.calls[1][1].body)
+
+  it('sends the enquirer a receipt after the artist notification', async () => {
+    await H(post(validEnquiry({ idea: 'PRIVATE-IDEA-TEXT' })))
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const c = confirmation()
+    expect(c.to).toEqual(['ada@example.com'])
+    expect(c.subject).toContain('enquiry')
+    // Fixed copy only: nothing the sender typed, and never the private inbox.
+    expect(JSON.stringify(c)).not.toContain('PRIVATE-IDEA-TEXT')
+    expect(JSON.stringify(c)).not.toContain('Ada')
+    expect(JSON.stringify(c)).not.toContain('artist@studio.test')
+  })
+
+  it('quotes the server-side price, not the client one, on a flash receipt', async () => {
+    await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', price: '1', age_confirmed: 'on', deposit_understood: 'on' } }))
+    const c = confirmation()
+    expect(c.subject).toContain('flash claim')
+    expect(c.text).toMatch(/£\d+/)
+    expect(c.text).not.toContain('(£1)')
+  })
+
+  it('still returns 200 and keeps the claim when only the receipt fails', async () => {
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, text: async () => '', json: async () => ({}) })
+      .mockRejectedValueOnce(new Error('resend down'))
+    const res = await H(post({ kind: 'flash', fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', age_confirmed: 'on', deposit_understood: 'on' } }))
+    expect(res.statusCode).toBe(200)
+    expect(flashMap(d1.data)).toEqual({ 'flash-03': 'pending' })
+    expect([...d1.data.submissions.values()][0].email_status).toBe('sent')
+  })
+
+  it('sends no receipt when the artist notification fails', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 422, text: async () => 'bad', json: async () => ({}) })
+    await H(post(validEnquiry()))
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('does not accuse the visitor in the rate-limit message', async () => {
+    for (let i = 0; i < 5; i++) await H(post(validEnquiry()))
+    const res = await H(post(validEnquiry()))
+    expect(res.statusCode).toBe(429)
+    expect(JSON.parse(res.body).error).not.toMatch(/you’ve sent/i)
   })
 })
 
@@ -277,7 +333,7 @@ describe('enquiry handler — email rendering details', () => {
   })
 
   it('builds the flash-claim subject from the piece and claimant names', async () => {
-    await H(post({ kind: 'flash', fields: { name: 'Ada Lovelace', email: 'ada@example.com', piece: 'Luna Moth', piece_id: 'flash-03' } }))
+    await H(post({ kind: 'flash', fields: { name: 'Ada Lovelace', email: 'ada@example.com', piece: 'Luna Moth', piece_id: 'flash-03', age_confirmed: 'on', deposit_understood: 'on' } }))
     expect(sentBody(fetchMock).subject).toBe('Flash claim — Luna Moth — Ada Lovelace')
   })
 
@@ -323,7 +379,7 @@ describe('enquiry handler — persistence & size limits', () => {
   it('still delivers the enquiry (200) when the DB is down — a storage outage never blocks a real send', async () => {
     const res = await H(post(validEnquiry()), { ...env, DB: brokenD1() })
     expect(res.statusCode).toBe(200)
-    expect(fetchMock).toHaveBeenCalledOnce() // the email went out regardless
+    expect(fetchMock).toHaveBeenCalledTimes(2) // notification + receipt went out regardless
   })
 
   it('drops a single image that exceeds the per-image ceiling, but still sends', async () => {
@@ -420,13 +476,13 @@ describe('enquiry handler — persistence & size limits', () => {
 describe('enquiry handler — flash inventory', () => {
   const flashClaim = (over = {}) => ({
     kind: 'flash',
-    fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', ...over },
+    fields: { name: 'Ada', email: 'ada@example.com', piece: 'Moth', piece_id: 'flash-03', age_confirmed: 'on', deposit_understood: 'on', ...over },
   })
 
-  it('reserves the piece on a successful claim and emails once', async () => {
+  it('reserves the piece on a successful claim and emails the artist + the claimant', async () => {
     const res = await H(post(flashClaim()))
     expect(res.statusCode).toBe(200)
-    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(flashMap(d1.data)).toEqual({ 'flash-03': 'pending' })
   })
 
@@ -518,12 +574,12 @@ describe('enquiry handler — rate limiting', () => {
     }
     const blocked = await H(post({
       kind: 'flash',
-      fields: { name: 'Bo', email: 'bo@example.com', piece: 'Moth', piece_id: 'flash-99' },
+      fields: { name: 'Bo', email: 'bo@example.com', piece: 'Moth', piece_id: 'flash-99', age_confirmed: 'on', deposit_understood: 'on' },
     }))
     expect(blocked.statusCode).toBe(429)
     // The expensive path never ran: no piece reserved, no submission row written.
     expect(flashMap(d1.data)['flash-99']).toBeUndefined()
     expect(d1.data.submissions.size).toBe(5) // only the 5 that got through
-    expect(fetchMock).toHaveBeenCalledTimes(5)
+    expect(fetchMock).toHaveBeenCalledTimes(10) // 5 × (notification + receipt)
   })
 })

@@ -310,6 +310,12 @@ the flash behaviour is unchanged.
 The studio/operator work to take the shipped-dark backbone live — **none of it is in the repo**.
 Do it in **test mode first**, verify end-to-end, then swap to live keys.
 
+**Before `PAYMENTS_ENABLED` is switched on (legal copy, not code):** add **Stripe** to the
+"Who I share it with" section of `/privacy/` (it processes the payer's name, email and card
+details, and transfers data to the US), and add terms for **paying a flash piece in full
+online** to `/terms/` (what is being bought, cancellation and refund rights) — today's terms
+describe only a 50% deposit arranged by email. Put both in front of the legal reviewer.
+
 **0. Prerequisites.** A **Monzo Business** account (Lite £0/mo is enough to *receive* Stripe
 payouts — §10); its sort code + account number. Wrangler installed & logged in. The Worker
 already deployed (`beansprout-forms`) with D1 bound.

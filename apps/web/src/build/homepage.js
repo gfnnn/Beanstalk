@@ -20,11 +20,16 @@ export function renderStatus(status = {}, { center = false } = {}) {
 // The toggleable bars under the hero text. Only show:true items render; if none
 // do, the whole block (and its top border) is omitted so there's no empty frame.
 // `html` is intentionally raw (author-controlled copy may include a link).
-export function renderNotices(notices = []) {
-  const items = (notices || []).filter(n => n?.show)
+//
+// A notice with `until: 'YYYY-MM-DD'` stops showing after that day, so a dated
+// announcement can't linger once it has passed: it is dropped here if the build
+// runs later, and carries `data-until` so modules/notices.js hides it on a page
+// built earlier.
+export function renderNotices(notices = [], today = new Date().toISOString().slice(0, 10)) {
+  const items = (notices || []).filter(n => n?.show && !(n.until && n.until < today))
   if (!items.length) return ''
   const rows = items.map(n => `
-      <div class="notice-item">
+      <div class="notice-item"${n.until ? ` data-until="${esc(n.until)}"` : ''}>
         <span class="notice-dot ${tone(n.tone)}" aria-hidden="true"></span>
         <span class="notice-label">${esc(n.label)}</span>
         <span>${n.html ?? ''}</span>

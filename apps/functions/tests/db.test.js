@@ -150,8 +150,8 @@ describe('persistConsent', () => {
 
 describe('limitsFrom', () => {
   it('falls back to the built-in defaults when nothing is configured', () => {
-    expect(limitsFrom()).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
-    expect(limitsFrom({})).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+    expect(limitsFrom()).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 45 })
+    expect(limitsFrom({})).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 45 })
   })
 
   it('reads per-deploy overrides from env (minutes → ms for the window)', () => {
@@ -161,7 +161,7 @@ describe('limitsFrom', () => {
 
   it('ignores a non-numeric / zero override and keeps the default (|| fallback)', () => {
     expect(limitsFrom({ RATE_MAX_PER_IP: 'nope', RATE_MAX_PER_DAY: '0' }))
-      .toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+      .toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 45 })
   })
 })
 
@@ -260,7 +260,7 @@ describe('rateLimit', () => {
   it('blocks on the global daily ceiling regardless of IP', async () => {
     const d1 = makeD1()
     for (let i = 0; i < 80; i++) d1.data.rate.push({ bucket: `s:day:${today()}`, ts: Date.now() })
-    const limiter = await rateLimit({ DB: d1.DB }, 'fresh-ip', { storeName: 's', maxPerDay: 80 })
+    const limiter = await rateLimit({ DB: d1.DB }, 'fresh-ip', { storeName: 's', maxPerDay: 45 })
     expect(limiter.ok).toBe(false)
   })
 

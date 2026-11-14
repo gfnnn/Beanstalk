@@ -47,6 +47,25 @@ function gifEl(slot) {
 
 // The placeholders shown until each hero's clip is switched on — the exact frames
 // that are on the pages today, so the off state is byte-identical.
+// A still photo in the same frame (kind: 'image') — for launching without a clip.
+// `img` is a no-extension base path following the portfolio's multi-size
+// convention (<img>-400/-800/-1200 in avif/webp/jpg). The homepage hero is the
+// page's largest paint, so it loads eagerly at high priority; the About frame
+// sits lower and stays lazy.
+function imageEl(slot, { eager = false } = {}) {
+  const base = esc(slot.img)
+  const srcset = ext => [400, 800, 1200].map(w => `${base}-${w}.${ext} ${w}w`).join(', ')
+  const sizes = esc(slot.sizes || '100vw')
+  const dims = slot.w && slot.h ? ` width="${esc(slot.w)}" height="${esc(slot.h)}"` : ''
+  const load = eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'
+  return `<picture>`
+    + `<source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">`
+    + `<source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">`
+    + `<img class="media-clip" src="${base}-1200.jpg" srcset="${srcset('jpg')}" sizes="${sizes}"${dims} `
+    + `alt="${esc(slot.alt)}" ${load} decoding="async">`
+    + `</picture>`
+}
+
 const PLACEHOLDERS = {
   hero: `<div class="video-placeholder" role="img" aria-label="Tattooing process, hands at work">
       <div class="video-placeholder-inner">
@@ -76,6 +95,12 @@ const PLACEHOLDERS = {
 // The one hero-media component, shared by both pages. `variant` only picks the
 // placeholder for the off state; the live clip is rendered identically either way.
 export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
+  if (slot?.show && slot.kind === 'image') {
+    const caption = slot.caption
+      ? `\n    <span class="media-caption">${esc(slot.caption)}</span>`
+      : ''
+    return imageEl(slot, { eager: variant === 'hero' }) + caption
+  }
   if (slot?.show) {
     // A portrait clip (homepage mobile only) makes the landscape one the
     // desktop-only sibling; without it the lone landscape clip covers both, so
