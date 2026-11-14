@@ -430,9 +430,12 @@ describe('entryLinesFor + renderSummary', () => {
 
 describe('LANE_DEFAULTS', () => {
   it('maps lanes to the documented output dirs and data files', () => {
-    expect(LANE_DEFAULTS.portfolio.out).toMatch(/public\/images\/tattoos$/)
-    expect(LANE_DEFAULTS.flash.out).toMatch(/public\/images\/flash$/)
-    expect(LANE_DEFAULTS.portfolio.dataFile).toMatch(/src\/data\/pieces\.js$/)
-    expect(LANE_DEFAULTS.flash.dataFile).toMatch(/src\/data\/flash\.js$/)
+    // The defaults are native paths (path.join), so compare separator-agnostically —
+    // on Windows they carry backslashes.
+    const posix = (p) => p.split(path.sep).join('/')
+    expect(posix(LANE_DEFAULTS.portfolio.out)).toMatch(/public\/images\/tattoos$/)
+    expect(posix(LANE_DEFAULTS.flash.out)).toMatch(/public\/images\/flash$/)
+    expect(posix(LANE_DEFAULTS.portfolio.dataFile)).toMatch(/src\/data\/pieces\.js$/)
+    expect(posix(LANE_DEFAULTS.flash.dataFile)).toMatch(/src\/data\/flash\.js$/)
   })
 })
