@@ -28,6 +28,9 @@
 //     label  short mono label, e.g. 'Bookings' / 'Flash day' / 'Guest spot'  (COPY)
 //     html   the message — RAW HTML, so it may contain a link, e.g.
 //              'New designs drop 14 Jun. <a href="/flash/">Preview flash</a>'
+//     until  OPTIONAL last day to show it, 'YYYY-MM-DD'. Set it on anything with a
+//            date in it (a flash day, a guest spot) so it disappears by itself
+//            the day after instead of advertising a past event.
 //   Turn a bar off with show:false (e.g. no guest spot this month). If every bar
 //   is off, the whole block — including its divider — is omitted, no empty gap.
 //
@@ -70,8 +73,8 @@ export const homepage = {
   },
 
   notices: [
-    { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open for summer. <a href="/enquire/">Request a slot</a>' },
-    { show: true,  tone: 'clay',  label: 'Flash day',  html: 'Next flash day 26 July. <a href="/flash/">Preview the sheet</a>' },
+    { show: true,  tone: 'moss',  label: 'Bookings',   html: 'Books are open. <a href="/enquire/">Request a slot</a>' },
+    { show: true,  tone: 'clay',  label: 'Flash day',  html: 'Next flash day 26 July. <a href="/flash/">Preview the sheet</a>', until: '2026-07-26' },
     { show: false, tone: 'faint', label: 'Guest spot', html: 'Guest artist [Name], [Dates].' },
   ],
 

@@ -6,8 +6,11 @@ discovery can run in parallel (often on mobile) and hand off cleanly to delivery
 - **Claude Project** (claude.ai, mobile/web) — the *design* surface. Go deep on a request, read
   the relevant repo parts, **challenge the design** for correctness, best practice and this repo's
   scope discipline, and produce a tight **feature brief**. No code is written here.
-- **Claude Code** (this repo — web session or CI) — the *delivery* surface. Pick up the brief and
-  ship a tested, secure feature on the `develop → main` flow.
+- **Claude Code** (this repo) — the *delivery* surface. Pick up the brief and ship a tested,
+  secure feature on the `develop → main` flow. It runs in two modes — a **full local session**
+  (a real machine — laptop or desktop: a shell, full git, an installable browser) or a **constrained
+  web/mobile session** (an ephemeral cloud sandbox) — and the mode, not the task, decides what you
+  can actually run; see [Where to run what](#where-to-run-what-local-session-vs-web-session) below.
 
 The brief is the contract between them. Architecture lives in [`CLAUDE.md`](../CLAUDE.md); the
 branch/release runbook in [`BRANCHING.md`](./BRANCHING.md); launch state + backlog in
@@ -17,7 +20,7 @@ branch/release runbook in [`BRANCHING.md`](./BRANCHING.md); launch state + backl
 
 | | **Claude Project** (design) | **Claude Code** (delivery) |
 |---|---|---|
-| Where | claude.ai, mobile/web | this repo (web session / CI / local) |
+| Where | claude.ai, mobile/web | this repo — a **full local session**, a web/mobile session, or CI |
 | Job | explore intent, review the codebase, **query/pressure-test the design**, write the brief | branch, build, test, secure, PR into `develop` |
 | Writes code? | **No** — decisions only | Yes — on a `feat/*` branch off `develop` |
 | Output | a **feature brief** (template below) | a green PR into `develop`, brief as the PR body |
@@ -128,3 +131,30 @@ monitors and reacts, does a final review, and hands it to you — **your merge i
    what it finds, then hands you the PR with a summary. **You confirm any final changes and do the
    squash-merge** into `develop` (or tell Claude to) — it never self-merges. From there it batches
    into the next `develop → main` release per [`BRANCHING.md`](./BRANCHING.md).
+
+## Where to run what (local session vs web session)
+
+Delivery runs in one of two Claude Code modes, and the **mode — not the task — decides what's
+actually exercisable**. A **full local session** (a real machine with a shell, full git, and a
+browser you can install) can run everything end-to-end. A **web/mobile
+session** is an ephemeral cloud sandbox — ideal for kicking off `/deliver` and the unit loop, but it
+has no display and the git proxy only lets it touch its own branch. Match the action to the surface:
+
+| Action | Full local session | Web/mobile session |
+|---|---|---|
+| `/deliver`, edit code, open the PR | ✅ | ✅ |
+| `npm test` (both Vitest suites) + `npm run build` + `npm run lint` | ✅ | ✅ |
+| **E2E / Playwright** (`npm run test:e2e`, needs Chromium) | ✅ install + run | ⏭️ skips cleanly — the PR's E2E job is the gate |
+| **Pre-PR visual check** (dev server + eyes on the page, screenshots) | ✅ | ❌ no display → hand to the E2E job + human review |
+| **Branch / ref cleanup** (the Backlog-hygiene prune, rebasing others' branches) | ✅ | ❌ proxy 403s on remote-ref deletion |
+| **Run the Worker for real** (`wrangler dev` + `apps/functions/.dev.vars`, local D1) | ✅ | ❌ |
+| **Review a branch locally** (`npm run preview:branch -- <branch>`) | ✅ | — local-only helper |
+| **Content / media scripts** (`npm run media:dropbox`, `process-media.mjs` / `process-video.mjs`, `master-metadata.mjs`, `npm run smoke`) | ✅ | ⚠️ network-gated, run locally |
+
+So the rhythm is: do the **build + unit loop + PR** from whichever surface is to hand — a web/mobile
+session is fine, and is the whole point of the PR-driven loop — but bring the **browser-bound checks**
+(E2E, the visual check), **ref surgery** (branch cleanup, cross-branch rebases), **the real Worker**,
+and **the media/Dropbox scripts** back to a **full local session**. The exhaustive
+web-session ground rules — *why* E2E skips, why the proxy 403s, exactly where the browser coverage
+really runs — live in [`CLAUDE.md`](../CLAUDE.md) → *Working in a Claude Code web session*; this table
+is just the routing on top of them.

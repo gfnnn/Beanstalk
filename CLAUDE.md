@@ -46,6 +46,13 @@ worth. These rules exist to hold the line. Follow them, and flag it when a reque
 
 ## Working in a Claude Code web session (read this first)
 
+Delivery happens in one of two Claude Code modes — a **full local session** (a real machine like a
+laptop: a shell, full git, an installable browser, so it can run *everything* end-to-end) or this
+constrained **web session**. This section is the operating manual for the **web** one; for which
+actions are best brought back to a full local session (the E2E/visual check, branch/ref cleanup,
+the real Worker via `wrangler dev`, the media/Dropbox scripts), see
+[`docs/WORKFLOW.md`](docs/WORKFLOW.md) → *Where to run what*.
+
 When this repo is opened in **Claude Code on the web** (a remote, ephemeral container —
 not your laptop), these are the ground rules so a session is productive from the first
 command instead of rediscovering the environment each time:
@@ -155,7 +162,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   index.html (home) + 404.html + page folders:
     portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
     newsletter/ enquiry-received/ privacy/ terms/
-  src/data/      pieces, flash, homepage, testimonials, media, palette, business, taxonomy  (content = single sources of truth)
+  src/data/      pieces, flash, homepage, testimonials, media, palette, business, taxonomy, analytics  (content/config = single sources of truth)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
@@ -169,7 +176,7 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email +
   migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
 docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
-.github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
+.github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml, smoke.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
@@ -304,7 +311,8 @@ Two layers, both centralised so new pages/responses inherit them:
   build points the forms at — derived from the `VITE_*_FN_URL` vars, falling back to the
   `config.js` default. The allowances map 1:1 to what the site loads (inline palette
   style + `style=""` attrs → `style-src 'unsafe-inline'`; Google Fonts; `blob:` image
-  previews; the `/visit/` Google-Maps iframe). **Build/preview only** — a strict CSP
+  previews; the `/visit/` Google-Maps iframe; GA4's documented host set for gtag.js and
+  its collect hits, nothing wider). **Build/preview only** — a strict CSP
   breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**
   set `frame-ancestors`/`X-Frame-Options`/HSTS on Pages — that clickjacking gap waits for
   the Cloudflare-front consolidation (`ROADMAP.md` → infrastructure consolidation).
@@ -331,9 +339,13 @@ collapse for tight filter rows — used by filter and flash), `filter-collapse` 
 collapses the whole filter bar behind a deterministic "Filters" toggle — a tap, not a
 scroll-driven auto-hide, so it can't flicker on mobile browser-chrome motion; also shared by
 filter and flash), `aftercare`, `faq`, `enquire`,
-`flash`, `newsletter`, `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
-on-screen-only playback), `analytics` (vendor-agnostic `track()` scaffold that no-ops until
-a provider is wired in — no cookie banner owed yet), `loader` (dismisses the full-page
+`flash`, `newsletter`, `map` (the `/visit/` Google map — created only when the visitor presses
+"Show the map", never on load, because the embed sets Google cookies), `notices` (hides a dated
+homepage notice after its `until` day), `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
+on-screen-only playback), `analytics` (GA4 behind `track()`: gtag.js loads at runtime only on a
+host with an ID in `src/data/analytics.js` and only if the visitor hasn't opted out via GPC
+or the `/privacy/` control; `track()` sends only an allowlist of events/params, so no form
+values can leak — call sites never touch gtag; see `docs/ANALYTICS.md`), `loader` (dismisses the full-page
 preloader — see below), `spinner` (shared button busy-state: swaps a button's label for an
 animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by
 load-more and the enquiry/flash/newsletter submits), `cta` (the mobile sticky "Enquire"
@@ -390,6 +402,12 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   MIME isn't trusted, `Buffer` via the `nodejs_compat` flag), with request-body and
   per-image size caps. It **persists the submission before emailing**, and for flash claims
   **reserves the piece server-side** so it can't be double-claimed. Sends via **Resend**.
+  After the artist's notification it sends the **sender a fixed-copy receipt** (best-effort,
+  no user text echoed, never exposing `ARTIST_EMAIL`). Flash claims require the same 18+ and
+  deposit consents as enquiries, and a manual claim **never expires by itself** — the artist
+  releases or marks it sold (`docs/ENQUIRY-SETUP.md` → *Running it day to day*).
+- `src/handlers/failed-digest.js` is the Worker's **daily cron** (`[triggers]` in
+  `wrangler.toml`): it emails the artist any submission whose notification failed, once each.
 - `src/handlers/newsletter.js` adds a subscriber to a Resend Audience and files a consent row.
 - `src/handlers/flash-status.js` is a **read-only** `GET` endpoint the flash grid calls on
   load to reflect *live* availability. The grid ships as static HTML (status baked in at
@@ -602,7 +620,7 @@ the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security
 
-The repo ships four workflows (`.github/workflows/`) and **no AI/agent action** — keep it
+The repo ships five workflows (`.github/workflows/`) and **no AI/agent action** — keep it
 that way unless there's a clear reason, and follow these rules if that changes. (The Worker
 deploys via **Cloudflare Workers Builds** — Git-connected on Cloudflare's side, holding its
 own scoped API token there — so there is intentionally no Cloudflare token in GitHub.)

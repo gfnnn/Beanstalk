@@ -10,6 +10,7 @@
 //   POST /checkout        begin a flash payment (Stripe PaymentIntent)
 //   POST /webhooks/stripe Stripe payment confirmation (server-to-server)
 //   GET  /flash-status    live flash availability
+//   (cron) daily          digest of submissions whose email never sent
 //
 // Bindings/vars come from wrangler.toml + Worker secrets (RESEND_API_KEY,
 // STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, …) and the D1 database (`DB`). See
@@ -21,6 +22,7 @@ import { handler as newsletter } from './handlers/newsletter.js'
 import { handler as flashStatus } from './handlers/flash-status.js'
 import { handler as checkout } from './handlers/checkout.js'
 import { handler as stripeWebhook } from './handlers/stripe-webhook.js'
+import { failedDigest } from './handlers/failed-digest.js'
 
 const ROUTES = {
   '/enquiry': enquiry,
@@ -44,5 +46,8 @@ export default {
     const res = await handler(event, env)
     // 204 (and any empty-body reply) must have a null body, per the Fetch spec.
     return new Response(res.body || null, { status: res.statusCode, headers: res.headers })
+  },
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil(failedDigest(env))
   },
 }

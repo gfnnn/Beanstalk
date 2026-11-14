@@ -17,6 +17,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 vi.mock('../src/js/modules/lenis.js', () => ({ pauseScroll: vi.fn(), resumeScroll: vi.fn() }))
 
 import { initFlash } from '../src/js/modules/flash.js'
+import { track } from '../src/js/modules/analytics.js'
+// Observe the lead event without loading any analytics.
+vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn() }))
 
 const $  = sel => document.querySelector(sel)
 const $$ = sel => [...document.querySelectorAll(sel)]
@@ -101,7 +104,7 @@ beforeEach(() => {
   document.body.innerHTML = ''
   global.fetch = mockFetch() // default: no live claims
 })
-afterEach(() => { vi.restoreAllMocks(); delete global.fetch; document.body.style.overflow = '' })
+afterEach(() => { vi.restoreAllMocks(); vi.mocked(track).mockClear(); delete global.fetch; document.body.style.overflow = '' })
 
 describe('initFlash', () => {
   it('no-ops when there is no flash grid', () => {
@@ -348,6 +351,73 @@ describe('initFlash', () => {
       expect(cardById('p1').dataset.status).toBe('pending') // markCard('pending')
       expect(byId('claim-modal').classList.contains('open')).toBe(false) // closed
       expect(byId('claim-name').value).toBe('Robin') // form.reset() restored the default
+      // One lead, with only the fixed form param: no piece, name or email.
+      expect(vi.mocked(track)).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(track)).toHaveBeenCalledWith('generate_lead', { form: 'flash' })
+    })
+
+    // The real page carries the consent ticks + an in-modal confirmation; the
+    // base fixture omits both, so these add them before init.
+    function setupFull() {
+      setup()
+      byId('claim-form').insertAdjacentHTML('afterbegin',
+        '<input type="checkbox" id="claim-age" name="age_confirmed" required>' +
+        '<input type="checkbox" id="claim-deposit" name="deposit_understood" required>')
+      byId('claim-form').insertAdjacentHTML('afterend',
+        '<div id="claim-success" tabindex="-1" hidden><strong id="claim-success-piece"></strong>' +
+        '<button type="button" id="claim-success-close">Done</button></div>')
+      initFlash()
+    }
+    const submit = () => $('#claim-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    const okResponse = { ok: true, status: 200, json: () => Promise.resolve({ ok: true }) }
+
+    it('blocks the claim (no POST) until both consent boxes are ticked', async () => {
+      global.fetch = mockFetch({ submit: okResponse })
+      setupFull()
+      click(cardById('p1').querySelector('.claim-btn'))
+      await raf()
+      byId('claim-age').checked = true // deposit box still unticked
+      submit()
+      await flush()
+      expect(global.fetch.mock.calls.some(([, o]) => o && o.method === 'POST')).toBe(false)
+      expect(byId('claim-error').textContent).toMatch(/tick both boxes/i)
+      expect(cardById('p1').dataset.status).toBe('available')
+    })
+
+    it('sends the consents and confirms in the modal instead of closing', async () => {
+      global.fetch = mockFetch({ submit: okResponse })
+      setupFull()
+      click(cardById('p1').querySelector('.claim-btn'))
+      await raf()
+      byId('claim-age').checked = true
+      byId('claim-deposit').checked = true
+      submit()
+      await flush()
+
+      const post = global.fetch.mock.calls.find(([, o]) => o && o.method === 'POST')
+      const { fields } = JSON.parse(post[1].body)
+      expect(fields.age_confirmed).toBe('on')
+      expect(fields.deposit_understood).toBe('on')
+
+      expect(byId('claim-modal').hidden).toBe(false)        // still open
+      expect(byId('claim-success').hidden).toBe(false)      // confirmation shown
+      expect(byId('claim-form').hidden).toBe(true)
+      expect(byId('claim-success-piece').textContent).toBe('Piece p1')
+      expect(document.activeElement).toBe(byId('claim-success'))
+
+      // Dismiss, then open another piece: back on the form, not the old confirmation.
+      click(byId('claim-success-close'))
+      click(cardById('p4').querySelector('.claim-btn'))
+      expect(byId('claim-form').hidden).toBe(false)
+      expect(byId('claim-success').hidden).toBe(true)
+    })
+
+    it('fires no lead on a 409 or a failed claim', async () => {
+      await openAndSubmit({ ok: false, status: 409, json: () => Promise.resolve({ error: 'Taken.' }) })
+      await flush()
+      await openAndSubmit({ ok: false, status: 500, json: () => Promise.resolve({ error: 'Server error' }) })
+      await flush()
+      expect(vi.mocked(track)).not.toHaveBeenCalled()
     })
 
     it('ignores a re-entrant submit while a claim is in flight (no duplicate claim)', async () => {

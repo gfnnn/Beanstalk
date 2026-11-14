@@ -26,3 +26,9 @@ blob-report/
 # Masters fetched from Dropbox by scripts/sync-dropbox-media.mjs — staging only;
 # only the generated web tiers under public/images/ are committed.
 .dropbox-cache/
+
+# Local logs and databases (wrangler dev, D1 exports)
+*.log
+*.sqlite
+*.sqlite3
+.dev.vars.*

@@ -6,7 +6,9 @@
 import { test, expect } from '@playwright/test'
 import { stubWorker } from './helpers.js'
 
-const PAGES = ['/portfolio/', '/flash/']
+// /flash/ redirects away while the drop is held back (flash.js `live: false`).
+import { live } from '../src/data/flash.js'
+const PAGES = live ? ['/portfolio/', '/flash/'] : ['/portfolio/']
 
 test.describe('mobile — bar collapses behind a "Filters" toggle', () => {
   test.use({ viewport: { width: 390, height: 844 } }) // iPhone-ish portrait

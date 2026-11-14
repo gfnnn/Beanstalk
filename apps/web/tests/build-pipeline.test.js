@@ -96,16 +96,29 @@ describe('transformIndexHtml pipeline', () => {
     expect(out).toContain(`reply by email, usually ${replyTime}.`)
   })
 
-  it('replaces the hero-media marker (placeholder while the clip is off)', () => {
+  it('replaces the hero-media marker with the launch still', () => {
     const out = transformHtml(page('<!-- homepage:hero-media -->'))
     expect(out).not.toContain('<!-- homepage:hero-media -->')
-    expect(out).toContain('class="video-placeholder"')
+    expect(out).toContain('<img class="media-clip"')
+    expect(out).not.toContain('class="video-placeholder"')
   })
 
-  it('replaces the about:hero-media marker (placeholder while the clip is off)', () => {
+  it('replaces the about:hero-media marker with the launch still', () => {
     const out = transformHtml(page('<!-- about:hero-media -->'))
     expect(out).not.toContain('<!-- about:hero-media -->')
-    expect(out).toContain('class="portrait-placeholder"')
+    expect(out).toContain('<img class="media-clip"')
+    expect(out).not.toContain('class="portrait-placeholder"')
+  })
+
+  it('holds the flash page back while flash.js says the drop is not live', () => {
+    const nav = '<ul>\n  <li><a href="/portfolio/">Portfolio</a></li>\n  <li><a href="/flash/">Flash</a></li>\n</ul>\n<a href="/flash/">Flash</a>'
+    const other = transformHtml(page(nav))
+    expect(other).not.toContain('/flash/')
+    expect(other).toContain('/portfolio/')
+    expect(other).not.toContain('http-equiv="refresh"')
+    const flashPage = transformHtml(page(`${nav}<!-- flash:grid -->`))
+    expect(flashPage).toContain('<meta http-equiv="refresh" content="0; url=/portfolio/">')
+    expect(flashPage).toContain('noindex')
   })
 
   it('injects the palette <style> and repoints theme-color at the palette bg', () => {

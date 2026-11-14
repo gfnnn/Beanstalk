@@ -156,6 +156,14 @@
   background: var(--bg-alt);
 }
 
+/* A still (kind:'image') arrives wrapped in <picture>; dissolve the wrapper so the
+   <img class="media-clip"> sizes against the frame exactly as a <video> does. */
+.hero-media picture,
+.portrait-wrap picture { display: contents; }
+/* The line-art sprig is ornament for an empty/abstract frame; over a photo of a
+   real tattoo it would sit on top of the artwork, so it steps aside. */
+.hero-media:has(> picture) .hero-sprig { display: none; }
+
 /* Placeholder — remove once video is ready */
 .video-placeholder {
   width: 100%;

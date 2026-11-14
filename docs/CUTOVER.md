@@ -1,166 +1,210 @@
-# v2 launch — apex cutover runbook
+# v2 launch — go-live & apex cutover runbook
 
-The launch-day operational script for moving `beansprout.ink` from **v1**
-(`gfnnn/beansprout`) to **v2** (this repo). It is deliberately version-controlled
-(not improvised on the day) so the sequence is **rehearsed and reversible**, with an
-explicit go/no-go gate and a documented rollback to v1.
+The launch-day script for moving `beansprout.ink` from **v1** (`gfnnn/beansprout`) to
+**v2** (this repo). It is version-controlled so the sequence is **rehearsed and
+reversible**, with an explicit go/no-go gate and a rollback to v1.
 
-This is the **procedure**. The launch **state / tick-list / owners** live once in
-[`ROADMAP.md` → section D](./ROADMAP.md#d-the-apex-cutover--last-only-after-ac-are-green-) — don't
-duplicate them here; tick the boxes there as you go. Architecture/guardrails are in
-[`CLAUDE.md`](../CLAUDE.md); the email round-trip detail is the "run b" acceptance test
-in `ROADMAP.md`; data/erasure is [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md).
+This is the **procedure**. Launch **state / owners** live once in
+[`ROADMAP.md` → section D](./ROADMAP.md#d-the-apex-cutover--last-only-after-ac-are-green-);
+tick the boxes there as you go. Architecture/guardrails are in [`CLAUDE.md`](../CLAUDE.md),
+the email round-trip is the "run b" acceptance test in `ROADMAP.md`, data/erasure is
+[`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md).
 
-**Owner:** 👤 the operator runs every step below (all DNS / secret / flag actions and
-the go/no-go call). 🛠 the only code action is the `CNAME` commit (X2). Nothing here
-runs itself.
+**Owner:** 👤 the operator runs every step (settings, secrets, the go/no-go call). 🛠 the
+code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs itself.
 
-**Status:** `blocked-on-ICO` — do not start Phase 1 until the pre-flight gate is green
-(ICO is the long pole, ~2 weeks out as of this writing).
+**Status:** `ready-pending-go/no-go` — engineering is green (checked 2026-11-14: 845 web +
+235 Worker tests, build, lint, staging smoke 18/18). What's left is the content/legal gate
+in Phase 1, which is the operator's call (ROADMAP **A0**).
 
 > **Hard guardrail (from `CLAUDE.md`):** until the moment of cutover there is **no
-> `apps/web/public/CNAME`**. Re-adding it (X2) is what makes GitHub Pages claim the
-> apex — so it happens **in Phase 2 and never earlier**, or Pages steals the apex off
-> v1 prematurely.
+> `apps/web/public/CNAME`**. It lands in Phase 2 and never earlier.
+
+---
+
+## How the switch actually works (read first)
+
+**v1 is already on GitHub Pages, on the same account.** DNS for the apex already points at
+GitHub (apex `A` → `185.199.108–111.153`, `www` `CNAME` → `gfnnn.github.io`), and GitHub
+routes the domain to whichever repo **claims it as its Pages custom domain** — today that's
+`gfnnn/beansprout` (legacy branch build, a `CNAME` file on `main`, cert valid to Jan 2027).
+
+So **the cutover is not a DNS change.** It's a custom-domain handover between two repos:
+
+1. release `beansprout.ink` from v1's Pages settings, then
+2. claim it in v2's Pages settings.
+
+Consequences:
+- **No TTL lowering, no GoDaddy A-record edits** (the old X1/X3 steps are obsolete).
+- **Downtime is the gap between the two clicks** (seconds) plus HTTPS certificate
+  re-issue for v2 (usually minutes, can be up to an hour; HTTP serves meanwhile). Do it at
+  a quiet hour.
+- **Rollback is the same handover in reverse** — just as quick, no propagation wait.
+- **v2 deploys through Actions, so GitHub ignores the `CNAME` *file* for routing.** The
+  custom domain **must** be set in v2's Pages settings (step X5). The file still matters:
+  it's what flips the build to production mode (`isProductionBuild()` in
+  `apps/web/src/build/seo.js` — indexable pages, real `robots.txt` + `sitemap.xml`).
+
+---
+
+## Phase 0 — Prep (any time before launch day, no visitor impact)
+
+- [ ] **P1 · Verify `beansprout.ink` on the GitHub account** (👤, recommended). GitHub →
+      Settings → Pages → *Add a domain* → add the `_github-pages-challenge-gfnnn` TXT record
+      at GoDaddy → *Verify*. This is the only DNS edit, and it stops anyone else's repo
+      claiming the domain in the seconds it's unclaimed during the handover.
+- [ ] **P2 · Confirm D1 migrations are applied** (👤) — from `apps/functions`:
+      `npx wrangler d1 migrations list beansprout --remote` should say none to apply
+      (0001–0003). The pending release has no schema change.
+- [ ] **P3 · Take a D1 export** before the first production release
+      (`DATA-COMPLIANCE.md` → *Backup & recovery*). Also closes ROADMAP **A7** for this month.
+- [ ] **P4 · Resend capacity.** Each submission now sends **two** emails (artist
+      notification + sender receipt), and the daily ceiling defaults to 45 submissions. On
+      Resend's free tier (100/day) that's fine for launch; raise `RATE_MAX_PER_DAY` only on
+      a paid plan.
+- [ ] **P5 · Set `SMOKE_SITE_URL`** (repo Actions variable) to the staging URL now, so the
+      daily health check runs (ROADMAP **A6**); switch it to `https://beansprout.ink` in Phase 5.
+- [ ] **P6 · Gmail "Send mail as" `roxy@beansprout.ink`** (ROADMAP **O1**), so manual replies
+      are DKIM-aligned from day one.
 
 ---
 
 ## Phase 1 — Pre-flight go/no-go gate
 
-Run through this the day before. **Every line must be green.** If any is red, the
-launch is **NO-GO** — fix it and re-gate; do not start Phase 2.
+Run the day before. **Every line must be green, or explicitly waived by the operator
+(record the waiver in ROADMAP A0).** If any is red and not waived → NO-GO.
 
-### Content & privacy gates
-- [ ] **ICO registration reference is in the privacy policy.** The ZA###### number is
-      published on `/privacy/`. Verify it renders on the live staging build, not just in
-      source. *(This is the milestone's blocking dependency — see ROADMAP C3.)*
-- [ ] **Copy grep-gate is at zero.** From the repo root:
-      ```bash
-      grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules
-      ```
-      No matches = all artist copy signed off. Any match = NO-GO.
-- [ ] **Real images are in — no placeholders.** All flash pieces in `apps/web/src/data/flash.js`
-      have a real `img` (none `null`); the hero clip is live (`media.js` `show: true`); the
-      OpenGraph image (`apps/web/public/images/og-image.jpg`) is the real 1200×630 photo, not
-      the committed brand placeholder. *(ROADMAP C4/C5/C6.)*
+### Engineering (all ✅ on `develop` as of 2026-11-14)
+- [ ] `npm test` green, `npm run build` succeeds, `npm run lint` clean, on the release commit.
+- [ ] `npm run smoke -- https://beanstalk-e61.pages.dev` → all checks pass.
+- [ ] `PAYMENTS_ENABLED` is unset/`false` on the Worker (smoke asserts `/checkout` → 503).
+      Payments are a **separate post-launch step**.
+- [ ] Worker CORS already allows `https://beansprout.ink` + `https://www.beansprout.ink`
+      (`apps/functions/src/lib/http.js`) — read-only check.
 
-### Privacy / security gates (before any real data is collected)
-- [ ] **Delete-by-email erasure path is proven.** The GDPR delete-by-email runbook has
-      been dry-run against D1 (access `SELECT` + prune preview) — see `DATA-COMPLIANCE.md`.
-- [ ] **Resend sending domain is verified.** `beansprout.ink` shows verified in Resend
-      (SPF/DKIM/DMARC), so production mail from `roxy@beansprout.ink` is DKIM-aligned and
-      won't spam. Required before X4 flips the secrets.
+### Privacy & email
+- [ ] ICO reference `ZC165794` renders on staging `/privacy/` (✅ applied).
+- [ ] Erasure path dry-run done (✅ O5, 2026-06-08).
+- [ ] `beansprout.ink` shows **Verified** in Resend (SPF/DKIM/DMARC) — needed before X4.
 
-### Engineering gates
-- [ ] **`npm test` is green** on the commit being released (both workspaces).
-- [ ] **`npm run build` succeeds** with the production Worker URLs.
-- [ ] **`PAYMENTS_ENABLED` is `false`** (or unset) on the Worker. Payments stay dark
-      through launch — turning them on is a **separate post-launch step**, explicitly not
-      part of this cutover.
-- [ ] **TTL was pre-lowered (X1).** A day ahead, lower the apex `A` / `www` `CNAME` TTL to
-      **300 s** at GoDaddy (external DNS, not Cloudflare-proxied) so both cutover *and*
-      rollback propagate in minutes.
+### Content — the MVP gate (operator decision, ROADMAP A0)
 
-### Abort conditions for Phase 1
-**NO-GO — do not proceed** if any of: the ICO number is missing; the copy grep-gate is
-non-zero; any placeholder image remains; the erasure path or Resend domain is unverified;
-`npm test` is red; or `PAYMENTS_ENABLED` is `true`. Park the launch and clear the gate.
+The original gate (copy grep at zero, all flash art, a hero clip) no longer matches the MVP:
+flash is held back (`live: false` in `flash.js` hides and redirects `/flash/`), the heroes use
+portfolio stills, and `og-image.jpg` is a strip of real pieces. Proposed MVP gate:
+
+| Item | Status | Go-live needs |
+|---|---|---|
+| Hero media | ✅ stills (`media.js`, `kind: 'image'`) | nothing |
+| `og-image.jpg` | ✅ real pieces | nothing |
+| Flash page | held back (`live: false`) | nothing — FLASH-* markers don't face visitors |
+| Optional slots (ABOUT-04, HOME-08/10, DATA-MEDIA, DATA-TEST) | off / hidden | nothing |
+| **PRIV-01..05, TERMS-01..03** | pending legal review | 👤 **decide:** legal review before launch, or launch on the current text and review after |
+| **ENQ-06 / ENQ-07** (enquiry hints, consent wording) | pending artist eye | 👤 artist approves, or accept as-is |
+| A3 deposit wording ("Card or bank" vs. email-arranged) | open | 👤 confirm method → 🛠 one-line copy fix |
+| A5 homepage notice | now reads "Books are open." (`homepage.js`) | 👤 confirm it's still true |
+| A2 one-word portfolio titles / alt text | open | nice-to-have; fine to fix after launch |
+
+Visitor-facing gate command (excludes the held-back/off slots):
+```bash
+grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules \
+  | grep -v -E "FLASH-|ABOUT-04|HOME-08|HOME-10|DATA-MEDIA|DATA-TEST"
+```
+Zero lines = content green. Any remaining line must be fixed or waived in A0.
+
+### Abort conditions
+NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENABLED` is
+`true`; or a visitor-facing content item above is neither green nor waived.
 
 ---
 
-## Phase 2 — Cutover
+## Phase 2 — Release & cutover (launch day)
 
-Two test→prod flips happen together (DNS + email). Do them in this order.
+`main` has not been released since June — the first release ships **every** change on
+`develop` (GA4 scaffold, confirmation emails, failed-send digest cron, MVP heroes, flash
+hold-back, ICO number, …). Do the release first, check it, *then* move the domain.
 
-1. **X2 · Add the apex CNAME (🛠 code).** Add `apps/web/public/CNAME` containing
-   `beansprout.ink`, land it on `main` via the normal release PR, and let GitHub Pages
-   deploy. This flips the build to **production** mode (the noindex/staging switch keys off
-   this file — `apps/web/src/build/seo.js` — so the site becomes indexable and emits a real
-   sitemap/robots.txt automatically). *Do not point DNS yet.*
-2. **X5 · Add the custom domain in Pages.** GitHub repo → Settings → Pages → add
-   `beansprout.ink` as the custom domain so Pages provisions the TLS cert. Leave **Enforce
-   HTTPS** unchecked until the cert finishes provisioning (next step), then enable it.
-3. **X3 · Point DNS at GitHub Pages (👤 GoDaddy).** Apex `A` records → the four GitHub Pages
-   IPs; `www` `CNAME` → `<user>.github.io`. **This is the step that moves live traffic off
-   v1.** With TTL at 300 s it propagates in minutes.
-4. **X5 (cont.) · Enforce HTTPS** in Pages settings once the cert shows provisioned.
-5. **X4 · Flip the Worker email secrets test → prod (👤).** Set `FROM_EMAIL` =
-   `roxy@beansprout.ink` and `ARTIST_EMAIL` = the artist's Gmail (`wrangler secret put …`, or
-   the Cloudflare dashboard). Saving redeploys the Worker. Requires the Resend domain verified
-   (Phase 1).
-6. **X6 · Verify CORS (👤).** Confirm the Worker's `ALLOWED_ORIGINS` already includes
-   `https://beansprout.ink` + `https://www.beansprout.ink` — it does
-   (`apps/functions/src/lib/http.js`); this is a read-only verify, no change expected.
+1. **R1 · Release PR `develop → main`** (🛠 + 👤 review). `gh pr create --base main --head
+   develop --title "release: <date> — v2 go-live"`, review the combined diff, **merge-commit**
+   (not squash). This deploys:
+   - the web build to `https://gfnnn.github.io/Beanstalk/` (still staging mode, noindex), and
+   - the Worker via Cloudflare Workers Builds (`wrangler deploy`), which also registers the
+     08:00 UTC failed-send digest cron.
+   Watch both deploys go green (Actions tab; Cloudflare → Workers → Deployments).
+2. **R2 · Smoke the Worker after its deploy:**
+   `npm run smoke -- https://beanstalk-e61.pages.dev` (still uses the same Worker).
+3. **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), via a one-line PR to
+   `develop` → a second small release PR to `main`. Pages redeploys in **production mode**
+   (indexable, real sitemap). It's still only served at `gfnnn.github.io/Beanstalk/` at this
+   point; v1 still owns the apex.
+4. **X4 · Flip the Worker email secrets test → prod** (👤): `FROM_EMAIL` =
+   `roxy@beansprout.ink`, `ARTIST_EMAIL` = the artist's Gmail (`wrangler secret put …` or the
+   Cloudflare dashboard; saving redeploys). Requires Resend verified. Do it now so the first
+   live enquiry uses production mail.
+5. **X3 · Release the domain from v1** (👤): `gfnnn/beansprout` → Settings → Pages → Custom
+   domain → **Remove**. (On a branch build this commits the removal of v1's `CNAME` file.)
+   *The apex now 404s — go straight to step 6.*
+6. **X5 · Claim the domain in v2** (👤): `gfnnn/Beanstalk` → Settings → Pages → Custom domain
+   → `beansprout.ink` → Save. (CLI equivalent:
+   `gh api -X PUT repos/gfnnn/Beanstalk/pages -f cname=beansprout.ink`.) Wait for the DNS
+   check to pass and the certificate to show provisioned, then tick **Enforce HTTPS**.
+7. **X7b · Production analytics** (👤 + 🛠 one line). Create the production GA4 property, run
+   its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*), paste the `G-…` ID
+   into `production.measurementId` in `apps/web/src/data/analytics.js`, ship via a small
+   release. Can follow on the same day or later — with no ID the apex sends nothing.
 
 ---
 
 ## Phase 3 — Smoke test
 
-Two layers: the automated probe (every check below in one command) then the manual
-acceptance round-trip (real email, which the probe deliberately does not send).
-
-1. **Automated smoke test** — from a clone, against the live apex:
+1. **Automated probe** against the live apex:
    ```bash
    npm run smoke -- https://beansprout.ink
-   # or explicitly: node scripts/smoke-test.mjs https://beansprout.ink \
-   #                  --worker https://beansprout-forms.<subdomain>.workers.dev
    ```
-   It asserts: key pages 200 over HTTPS; the CSP + Referrer-Policy `<meta>` are present; the
-   apex is **not** a noindex staging build; the Worker's JSON security headers are set;
-   `GET /flash-status` returns a claims map; `POST /checkout` returns **503** (payments still
-   dark); and `/enquiry` + `/newsletter` accept a request. The form checks use the **honeypot
-   path** — they prove the routes are live and the production secrets are configured **without
-   writing any D1 row or sending any email** (no real PII, no Stripe keys). The script exits
-   non-zero on any failure. **Any red check is an abort trigger → Phase 4.**
-2. **Manual acceptance — the email round-trip ("run b").** The automated probe can't prove
-   deliverability, so run the six-point end-to-end email test from `ROADMAP.md`
-   (enquiry → inbox with photos; reply-path = enquirer; flash claim reserves + re-claim 409;
-   newsletter → Audience; the D1 source-of-truth `SELECT`; SPF/DKIM/DMARC all PASS, lands in
-   inbox not spam). Use clearly-marked test submissions and prune them from D1 afterwards.
+   Asserts key pages 200 over HTTPS, CSP + Referrer-Policy present, the apex is **not** a
+   noindex build, Worker security headers, `/flash-status` map, `/checkout` → 503, and
+   `/enquiry` + `/newsletter` accept (honeypot path — no D1 row, no email). Also check by hand:
+   `https://beansprout.ink/robots.txt` allows crawling and `/sitemap.xml` exists, and
+   `https://www.beansprout.ink` redirects to the apex.
+2. **Manual acceptance — run "b"** (ROADMAP → *The end-to-end email test*), minus the flash
+   claim step while flash is held back. Use clearly-marked test submissions; prune them from
+   D1 afterwards.
+3. **Analytics** (once X7b is in): Realtime shows `page_view`, `generate_lead`, `sign_up`;
+   opting out on `/privacy/` stops all Google requests. Not an abort trigger — fix forward.
 
-### Abort conditions for Phase 3
-Roll back (Phase 4) if: any page is non-200 or served without HTTPS; the apex serves a
-noindex/staging build; `/checkout` is anything other than 503 (payments must not be live);
-the security headers/`<meta>` are missing; or a real enquiry/newsletter does not arrive (or
-lands in spam) in the manual round-trip. **Roll back rather than debug on the live apex.**
+### Abort conditions
+Roll back (Phase 4) if: any page is non-200 or HTTPS won't provision within ~1 hour; the apex
+serves a noindex build; `/checkout` isn't 503; security `<meta>` missing; or a real enquiry
+doesn't arrive (or lands in spam). **Roll back rather than debug on the live apex.**
 
 ---
 
-## Phase 4 — Rollback (if the cutover goes wrong)
+## Phase 4 — Rollback
 
-Every step is reversible; with the TTL pre-lowered to 300 s a revert is minutes. **Roll
-back the moment the live apex is broken — don't debug on the live domain.** Reverse in
-this order:
+Same handover in reverse; minutes, no DNS propagation.
 
-1. **DNS first (this moves traffic back).** Restore the apex `A` / `www` `CNAME` at GoDaddy
-   to the **v1** target. Traffic returns to the working v1 site within the TTL window.
-2. **Email — only if production sending is what broke.** Flip the Worker secrets `FROM_EMAIL`
-   / `ARTIST_EMAIL` back to their test values; saving redeploys the Worker.
-3. **Pages — stop it claiming the apex.** Revert the X2 commit (remove
-   `apps/web/public/CNAME`) so Pages releases the apex and the build reverts to staging mode.
-   Remove the custom domain in Pages settings if it was added.
-4. **Data is safe.** D1 is untouched by a DNS rollback — any enquiries captured during the
-   live window are persisted (persist-before-email), and Cloudflare **Time Travel** covers
-   operator error (`DATA-COMPLIANCE.md`). Nothing to restore.
+1. **Traffic:** `gfnnn/Beanstalk` → Pages → Custom domain → **Remove**; then
+   `gfnnn/beansprout` → Pages → Custom domain → `beansprout.ink` → Save (re-commits v1's
+   `CNAME`), and re-tick Enforce HTTPS once its cert shows.
+2. **Email — only if production sending broke:** set `FROM_EMAIL` / `ARTIST_EMAIL` back to
+   their test values.
+3. **Build mode:** revert the X2 commit (remove `apps/web/public/CNAME`) through
+   `develop → main` so the v2 build returns to noindex staging mode.
+4. **Data is safe.** D1 is untouched by any of this; enquiries taken during the live window
+   are persisted (persist-before-email), and Time Travel covers operator error.
 
-v1 stays **idle, not deleted** (see Phase 5), so it is always a working rollback target.
+v1 stays **idle, not deleted**, so it's always a working rollback target.
 
 ---
 
 ## Phase 5 — Post-cutover
 
-Once the apex is healthy and both smoke layers are green:
-
-- [ ] **Raise the apex DNS TTL back up** (e.g. 3600 s) at GoDaddy now that propagation
-      speed is no longer needed.
-- [ ] **Keep v1 idle, not deleted, for 1–2 weeks (X8).** It is the rollback target; only
-      decommission/redirect it once v2 has been healthy for that window.
-- [ ] **Watch for the first day:** check the D1 source-of-truth `SELECT` shows real
-      enquiries landing with `email_status = 'sent'`, the inbox is receiving, and deliverability
-      stays out of spam.
-- [ ] **Tick ROADMAP section D** to record the cutover as done, and move the launch milestone
-      to shipped.
-- [ ] **Schedule the deferred post-launch steps** (explicitly *not* part of this cutover):
-      enabling payments (`PAYMENTS_ENABLED` → `true` + live Stripe keys, see
-      [`PAYMENTS.md`](./PAYMENTS.md)) and wiring the analytics vendor
-      ([`ANALYTICS.md`](./ANALYTICS.md)).
+- [ ] Set `SMOKE_SITE_URL` = `https://beansprout.ink` so the daily health check watches prod.
+- [ ] **First day:** the D1 `SELECT` from run "b" shows real enquiries with
+      `email_status = 'sent'`; no failed-send digest email arrives at 08:00 UTC.
+- [ ] **Search Console:** add the `beansprout.ink` property and submit `/sitemap.xml`.
+- [ ] **Keep v1 idle 1–2 weeks (X8)**, then archive `gfnnn/beansprout` (and disable its Pages).
+- [ ] **A9:** after a few clean weeks of DMARC reports, tighten `p=none` → `quarantine`.
+- [ ] Tick ROADMAP section D and mark the launch milestone shipped.
+- [ ] Deferred, not part of this cutover: flash goes live (`live: true` once a real drop is
+      in); payments (`PAYMENTS_ENABLED` + live Stripe keys, [`PAYMENTS.md`](./PAYMENTS.md)).

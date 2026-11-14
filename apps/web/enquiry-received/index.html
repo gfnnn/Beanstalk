@@ -138,16 +138,8 @@
   padding:clamp(48px,8vw,96px) var(--pad-x);
 }
 .confirm-inner{max-width:560px;text-align:center}
-.confirm-mark{
-  width:84px;height:84px;margin:0 auto 24px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  border-radius:50%;background:var(--cream);border:1.5px dashed var(--line);
-  font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--ink-faint);
-}
-.confirm-mark::before{
-  content:'⬚';font-family:sans-serif;font-size:22px;line-height:1;color:var(--line);
-}
+/* The mark itself (the injected brand sprig) is sized in pages/enquire.css. */
+.confirm-mark{display:flex;justify-content:center;margin-bottom:8px}
 .confirm .page-eyebrow{justify-content:center}
 .confirm-title{
   font-family:var(--serif);font-weight:300;font-size:clamp(36px,5vw,60px);

@@ -100,3 +100,27 @@ test('a Worker error surfaces the inline banner and keeps the user on the form',
   await expect(page).toHaveURL(/\/enquire\/$/)               // not redirected on failure
   await expect(page.locator('#submit-btn')).toBeEnabled()    // restored for a retry
 })
+
+test('health details need the health-consent box before the enquiry will send', async ({ page }) => {
+  let payload = null
+  await stubWorker(page)
+  await page.route('**/enquiry', async route => {
+    payload = route.request().postDataJSON()
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' })
+  })
+
+  await page.goto('/enquire/')
+  await fillEnquiry(page, { attachImage: false })
+  await page.fill('#allergies', 'Plaster allergy')
+
+  // Without the box ticked, submit is held on the form and nothing is sent.
+  await page.click('#submit-btn')
+  await expect(page).toHaveURL(/\/enquire\/$/)
+  expect(payload).toBeNull()
+
+  await tick(page, '#check-health')
+  await page.click('#submit-btn')
+  await page.waitForURL(/\/enquiry-received\/$/)
+  expect(payload.fields.allergies).toBe('Plaster allergy')
+  expect(payload.fields.health_consent).toBe('on')
+})

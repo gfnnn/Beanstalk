@@ -27,12 +27,24 @@ Image **bytes are never stored** — only filenames/counts — so an erasure onl
 to clear the structured row. (The artist's *email inbox* is a separate copy they
 control; erasure there is a manual delete in Gmail.)
 
+**Outside D1: Google Analytics (GA4).** Pseudonymous usage statistics only (page views,
+`generate_lead`, `sign_up`; never form contents), held by Google with **14-month**
+retention. Basis: legitimate interests + the DUAA statistics-only cookie exemption, with
+an opt-out on `/privacy/` and GPC honoured. GA4 data can involve transfer to Google in the
+US under its Data Processing Terms. There's nothing of ours to erase per person (no
+identifiers we can look up); a subject request is answered by pointing to the opt-out and
+Google's own deletion tools. Decision + risk: [`ANALYTICS.md`](./ANALYTICS.md).
+
 ## Retention policy (matches the privacy page)
 
 - **Enquiries that don't lead to a booking:** kept **up to 12 months**, then deleted.
 - **Records for a tattoo actually carried out** (consent + health): kept for the
   insurer/local-authority-mandated period (years) — do **not** age-prune these.
-- **Newsletter consent:** kept until the subscriber unsubscribes.
+- **Newsletter consent:** kept until the subscriber unsubscribes. Unsubscribing
+  happens in Resend (the link in each newsletter) and does **not** remove the D1
+  `newsletter_consent` row, so when you run the quarterly prune also delete the
+  consent rows of anyone Resend lists as unsubscribed:
+  `DELETE FROM newsletter_consent WHERE email = 'person@example.com';`
 - **Payments (`payments` table):** a **paid** row is a financial/accounting record —
   kept for the **HMRC-mandated period (6 years)**, *not* the 12-month enquiry window;
   don't age-prune these. Unpaid rows (`awaiting`/`failed`/`expired`) carry no money and
@@ -140,6 +152,16 @@ re-enter it from the artist's Gmail copy of the enquiry. Time Travel does **not*
 database being deleted/recreated, and it is **not** a GDPR loophole: a genuine erasure
 must not be silently restored — only use restore to recover from an *operator error*,
 and re-run the erasure afterwards if the subject's data comes back with it.
+
+**Off-platform copy (not yet set up — 👤).** Time Travel lives inside the database,
+so deleting the database or losing the Cloudflare account loses everything, including
+paid `payments` rows that must be kept six years. Once a month, and before any
+migration, take an export and store it somewhere private and encrypted (it contains
+personal and health data, so it falls under the same retention and erasure rules):
+
+```bash
+wrangler d1 export beansprout --remote --output beansprout-$(date +%F).sql
+```
 
 ## Strategic direction (post-launch)
 

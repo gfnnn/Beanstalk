@@ -95,7 +95,7 @@ instead of repeating them, so a value can never drift.
 | Flash | Next flash day + the season + 12 names/sizes/prices | "Summer 2026" + placeholders | ⏳ **Next flash day 26 July** set; season label + the 12 pieces still to confirm |
 | Legal dates | Effective date for Privacy + Terms | "June 2026" | ✅ **Approved (June 2026)** |
 | Trading name + insurance | Legal pages' "who I am" / liability | blanks | ✅ **"Beansprout Tattoo"** + **public liability insurance** confirmed |
-| ⚖️ ICO number | Your ICO registration reference (**ZA######**) | blank | ⏳ held — need the **public ZA###### reference** (not the account/certificate number) |
+| ⚖️ ICO number | Your ICO registration reference (**ZA######**) | blank | ✅ **ZC165794** applied to `/privacy/` (public register reference) |
 | ⚖️ Tattoo reg | Winchester City Council registration number | blank | _still to confirm_ |
 
 ---
@@ -346,7 +346,7 @@ slot *is*; this table only adds source location + anything tracker-specific.
 | VISIT-05 | 🟠+🟡 | `visit/index.html` access block | 6 access/prep points incl. "up a flight of stairs, not step-free" — match how a session actually runs |
 | FLASH-01 | 🟠+🟡 | `flash/index.html` header | Drop number auto-derived from data; season label → facts table; intro voice open |
 | FLASH-02 | ⚪ | `flash/index.html` filter bar | All / Available / Claimed / Past drops + sort |
-| FLASH-03..05 | 🟡 | `flash/index.html` (empty state, custom CTA, claim modal) | Copy applied; review with the real drop |
+| FLASH-03..05 | 🟡 | `flash/index.html` (empty state, custom CTA, claim modal) | Copy applied; review with the real drop. **New, unreviewed (Nov 2026):** the modal's two consent ticks + the "Claim sent" confirmation; the confirmation emails sent to enquirers/claimants (`sendConfirmation` in `apps/functions/src/handlers/enquiry.js`); the "Show the map" placeholder on `/visit/`; the international-transfers paragraph on `/privacy/` |
 | FLASH-D1 | 🟠 | `src/data/flash.js` `season` | → facts table ("Flash" row) |
 | FLASH-D2 | 🟠 | `src/data/flash.js` pieces | 12 placeholder names/specs/prices until a real drop (→ facts table) |
 | PORT-01, PORT-02, PORT-03, PORT-04 | ✅ 🟡/⚪ | `portfolio/index.html` | Round 1 approved (incl. the 3 style categories); PORT-02 + PORT-04 ⚪ filter / count + load-more UI |
@@ -358,6 +358,7 @@ slot *is*; this table only adds source location + anything tracker-specific.
 | CONFIRM-01 | 🟡 | `enquiry-received/index.html` | Still open + the "We"→"I" voice flag; quotes reply time (BUS-01) |
 | E404-01 | 🟡 | `404.html` | Still open |
 | PRIV-01, PRIV-02, PRIV-03, PRIV-04 | 🔵/🟠 | `privacy/index.html` | Trading name confirmed (PRIV-03); ICO + tattoo-reg refs → facts table; **legal review due**; PRIV-02 effective date approved |
+| PRIV-05 | 🟠 | `privacy/index.html` "Cookies & analytics" | GA4 disclosure + opt-out wording (what's collected, 14-month retention, `_ga` cookie, GPC). **Legal review due** (DUAA statistics exemption, see `ANALYTICS.md`). Keep it true to the facts in the comment above it |
 | TERMS-01, TERMS-02, TERMS-03 | 🔵/🟠 | `terms/index.html` | Trading name + liability insurance confirmed (TERMS-03); TERMS-02 effective date approved; keep deposit figures aligned with SERV-03; **legal review due** |
 | BUS-01 | 🟠 | `src/data/business.js` `replyTime` | "within 3 days" — set real turnaround (updates `/enquire/` + `/enquiry-received/` together) |
 | DATA-TEST | 🟣 | `src/data/testimonials.js` | Empty array — add **real, approved** quotes, then remove `hidden` on HOME-08. Never fabricate. |

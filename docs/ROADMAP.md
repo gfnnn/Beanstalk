@@ -120,9 +120,9 @@ source and its `ARTIST-COPY · <REF>` marker flipped, then stripped before cutov
       `/enquire/` budget bands mirror them.
 - [~] **C3 · Terms/privacy effective date + legal review** — deposit figures match
       `/services/`, the **effective date is approved** ("June 2026"), and the **CCR 2013
-      deposit/cancellation wording was clarified** (#204). **Open:** the **ICO public
-      registration reference** (ZA###### — the account/cert number must never be
-      published), the **tattoo-registration number** (TBC), and a professional review.
+      deposit/cancellation wording was clarified** (#204). **ICO public registration
+      reference — ✅ `ZC165794` applied to `/privacy/`.** **Open:** the
+      **tattoo-registration number** (Winchester City Council, TBC), and a professional review.
 - [ ] **C4 · Flash art + copy** — all **12** pieces in `flash.js` are `img: null`
       (line-art glyphs; titles/specs/prices placeholder). 👤 supply photos + real copy
       → 🛠 add to `flash.js` + `public/images/flash/`.
@@ -197,51 +197,107 @@ Gmail). All six must pass before the launch is "done":
    original" shows `SPF`/`DKIM`/`DMARC` all **PASS**. If it spams, re-check the Resend
    domain verification + DMARC (`EMAIL-DOMAIN-SETUP.md`).
 
+## C+. Go-live audit follow-ups (three-persona review, Nov 2026)
+
+A customer / studio / auditor review looked for gaps the lists above missed. Fixed in
+code: the `/visit/` Google map now loads only on request (it set Google cookies with
+no consent); the flash claim form requires the 18+ and deposit ticks; a claim confirms
+in the modal; enquirers and claimants get a confirmation email; a daily digest emails
+the artist any submission whose notification failed; Worker logs are kept; the
+rate-limit message no longer accuses a first-time visitor; dated homepage notices
+expire. The day-to-day runbook is [`ENQUIRY-SETUP.md`](./ENQUIRY-SETUP.md) →
+*Running it day to day*. **Still open:**
+
+**MVP launch changes (Nov 2026 — the gates in D are unchanged and still need the
+operator's decision):** no hero clip is being produced, so both hero frames now show
+stills of existing portfolio photos (`media.js`, `kind: 'image'`); `og-image.jpg` is a
+strip of three real pieces; and the flash page is **held back** while its 12 pieces are
+placeholders — `live: false` in `flash.js` removes the Flash link from every menu,
+redirects `/flash/` to the portfolio and keeps it out of search
+(`src/build/flash-gate.js`). Set `live: true` once a real drop is in.
+
+- [ ] **A0 · Decide the MVP gate (👤)** — with flash held back and no clip coming, C4
+      and C6 can't be met as written, and the flash-page / switched-off-slot copy
+      markers no longer face visitors. Whoever owns the go/no-go should amend the
+      gates in D and [`CUTOVER.md`](./CUTOVER.md) to match, or keep them as they are.
+- [ ] **A1 · New copy needs the artist's eye** — the flash consent ticks + "Claim sent"
+      panel, both confirmation emails, the map placeholder, the privacy transfers
+      paragraph (listed in `COPY-REVIEW.md`, FLASH-03..05 row). 👤
+- [ ] **A2 · Portfolio titles/alt text for the Dropbox-imported pieces** — about 25
+      carry one-word machine titles ("Fan", "Peace", "Window") that become the alt
+      text ("Fine line tattoo of Fan on a body"). C8 signed off the photos, not these.
+      👤 supply a real subject per piece → 🛠 update `pieces.js`.
+- [ ] **A3 · Deposit wording vs. how deposits are really taken** — `/services/` says
+      "Card or bank" and `/enquire/` says "Deposits are handled securely" while
+      deposits are arranged by email. 👤 confirm the method → 🛠 align the copy.
+- [ ] **A4 · Questions for the legal reviewer (adds to C3)** — is a flat 50% deposit,
+      fully forfeited inside 48h, a fair term under the Consumer Rights Act 2015; and
+      is the transfers paragraph on `/privacy/` accurate for each provider.
+- [ ] **A5 · Homepage notice** — now reads "Books are open." (the 26 July flash-day bar
+      expires by itself). 👤 confirm it's still true at launch.
+- [ ] **A6 · Set the `SMOKE_SITE_URL` repo variable** so the daily health check runs
+      (staging URL now, the apex after cutover). 👤
+- [ ] **A7 · Monthly off-platform D1 export** — the only copy of every lead, consent
+      record and payment is one D1 database ([`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md)
+      → *Backup & recovery*). 👤
+- [ ] **A8 · Going live from the artist's side** — the Dropbox sync opens its PR
+      against `develop` (staging); reaching the live site still needs a
+      `develop → main` release, and changing prices / the "Books open" light / notices
+      is a code edit. Until the CMS exists, agree who does those and how fast. 👤
+- [ ] **A9 · After launch: tighten DMARC** from `p=none` to `quarantine` once a few
+      weeks of reports are clean ([`EMAIL-DOMAIN-SETUP.md`](./EMAIL-DOMAIN-SETUP.md)). 👤
+
 ## D. The apex cutover — LAST, only after A–C are green  (👤 + 🛠)
 
-> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **blocked-on-ICO**
-> Move the live apex `beansprout.ink` from **v1 → v2**. The long pole is **ICO
-> registration** (~2 weeks out); content is the parallel gate. **Hard gates (all must
-> be green to start):**
-> - **ICO number published** in the privacy policy (`/privacy/`) — see C3.
-> - **Copy grep-gate at zero** — `grep -rn "pending approval" apps/web/
->   --exclude-dir=dist --exclude-dir=node_modules` returns nothing (A above).
-> - **Real images in** — no placeholder flash art (C4), the hero clip live (C6), and a
->   real `og-image.jpg` (C5).
+> ### 🚩 MILESTONE — v2 launch / apex cutover · status: **ready-pending-go/no-go**
+> Move the live apex `beansprout.ink` from **v1 → v2**. Engineering is green (2026-11-14:
+> tests, build, lint, staging smoke 18/18). **v1 is also on GitHub Pages under the same
+> account, so the switch is a Pages custom-domain handover between the two repos — not a
+> DNS change.** What's left is the operator's go/no-go on the MVP content gate (**A0**):
+> the legal review of `/privacy/` + `/terms/` (C3/A4), the artist's eye on ENQ-06/07, and
+> the deposit wording (A3). Flash, the hero clip and the optional slots are out of the MVP gate.
 >
-> The full launch-day procedure — pre-flight go/no-go gate, the command-by-command
-> cutover, the smoke test, the rollback, and post-cutover — is the **runbook in
-> [`CUTOVER.md`](./CUTOVER.md)**. The reusable post-deploy probe is
-> `npm run smoke -- <url>` (`scripts/smoke-test.mjs`), run at cutover and on every
-> release to `main`. The boxes below stay the **state tracker** (who owns what, what's
-> done); CUTOVER.md is the **how**.
+> The full procedure — prep, the go/no-go gate, release + handover, smoke test, rollback,
+> post-cutover — is the **runbook in [`CUTOVER.md`](./CUTOVER.md)**. The boxes below are the
+> **state tracker**; CUTOVER.md is the **how**.
 
-Moves `beansprout.ink` from **v1 → v2**. Two test→prod flips happen together (DNS +
-email). **X2 (re-add CNAME) only at cutover** — never earlier, or Pages claims the
-apex off v1 (the guardrail in `CLAUDE.md`).
+Moves `beansprout.ink` from **v1 → v2**: a release, the domain handover, and the email
+flip. **X2 (re-add CNAME) only at cutover** — never earlier (the guardrail in `CLAUDE.md`).
 
-- [ ] **X1 · A day ahead: lower apex DNS TTL to 300 s** (👤 GoDaddy) on the apex `A` /
-      `www` `CNAME` — so cutover *and* rollback propagate in minutes. Raise back after.
-- [ ] **X2 · Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), let Pages deploy.
-- [ ] **X3 · Point DNS at GitHub Pages** (👤 GoDaddy) — apex `A` → Pages IPs + `www`
-      `CNAME` → `<user>.github.io`. *This is what moves traffic off v1.*
+- [ ] **X1 · Verify `beansprout.ink` on the GitHub account** (👤, one TXT record at
+      GoDaddy) so no other repo can claim it during the handover. *(Replaces the old
+      TTL-lowering step — no A/CNAME records change.)*
+- [ ] **R1 · Release PR `develop → main`** (🛠 + 👤) — first release since June; deploys
+      the web build (still staging mode) and the Worker.
+- [ ] **X2 · Re-add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) via `develop → main`
+      — flips the build to production mode (indexable, real sitemap).
+- [ ] **X3 · Release the domain from v1** (👤) — `gfnnn/beansprout` → Settings → Pages →
+      remove the custom domain. *Immediately followed by X5.*
 - [ ] **X4 · Flip Worker email secrets test → prod** (👤): `FROM_EMAIL` →
       `roxy@beansprout.ink`, `ARTIST_EMAIL` → the artist's Gmail. Needs
       `beansprout.ink` verified in Resend. Saving redeploys the Worker.
-- [ ] **X5 · Add `beansprout.ink` as the verified custom domain** in Pages settings;
-      enable **Enforce HTTPS** once the cert provisions. 👤
+- [ ] **X5 · Claim `beansprout.ink` in v2's Pages settings** (👤) — this is what moves
+      traffic (Actions-deployed Pages ignore the `CNAME` file for routing); enable
+      **Enforce HTTPS** once the cert provisions.
 - [ ] **X6 · Confirm the Worker CORS allowlist** includes the apex — it already does
       (`src/lib/http.js`); just verify.
 - [ ] **X7 · Smoke-test the live apex** — the acceptance test above as production
       run "b", incl. deliverability.
+- [ ] **X7b · Turn on production analytics** (👤): create the production GA4 property
+      (admin setup per [`ANALYTICS.md`](./ANALYTICS.md)), paste its ID into
+      `production.measurementId` in `apps/web/src/data/analytics.js` (🛠 one-line PR to
+      `develop` → release), mark `generate_lead` + `sign_up` as key events, set the
+      internal-traffic filter *Active*, register the `form` custom dimension, turn on data
+      redaction, verify in Realtime.
 - [ ] **X8 · Decommission/redirect v1** once v2 is healthy — keep v1 **idle, not
       deleted** for 1–2 weeks as the rollback target.
 
 ### Rollback plan (if the cutover goes wrong)
 
-Every step is reversible; with the TTL pre-lowered a revert is minutes — roll back the
-moment the live apex is broken rather than debugging on the live domain. The
-authoritative step-by-step (DNS first → email → remove the CNAME → data is safe) lives
+Every step is reversible; the domain handover runs in reverse in minutes, with no DNS
+propagation — roll back the moment the live apex is broken rather than debugging on the
+live domain. The authoritative step-by-step (domain back to v1 → email → remove the
+CNAME → data is safe) lives
 once in **[`CUTOVER.md`](./CUTOVER.md) → Phase 4**, alongside the abort conditions that
 trigger it.
 
@@ -258,9 +314,12 @@ A content + B wiring  (parallel)
   stays dark behind `PAYMENTS_ENABLED`; the embedded Payment Element frontend + account
   setup are the post-launch item ([`PAYMENTS.md`](./PAYMENTS.md)). The engine decision
   (**Stripe → Monzo Business**) is settled — it's what shipped.
-- **Analytics — NOT live at launch.** **Plausible**, post-launch (cookieless, no
-  banner; the read-only shared link is the artist's view). GA4 is out. The `track()`
-  scaffold no-ops until wired, so the site is launch-legal without it
+- **Analytics — GA4, shipped on staging; production at cutover.** Statistics-only under
+  the UK DUAA cookie exemption (no banner; opt-out on `/privacy/` + GPC honoured;
+  signals/ad personalisation off). Reverses the earlier Plausible pick, with the
+  joint-controller risk accepted on the record and Plausible kept as the fallback. The
+  staging ID is still to be supplied (👤); the production ID stays empty until cutover
+  (`CUTOVER.md` → Phase 2), so production is a no-op until then
   ([`ANALYTICS.md`](./ANALYTICS.md)).
 
 ---
@@ -280,7 +339,7 @@ The per-feature decisions live in the stubs ([`PAYMENTS.md`](./PAYMENTS.md),
 Launch (D above)
   │
   ├─0. Quick wins (independent, front-load) ─ reduced-motion as a tested invariant +
-  │     axe-core a11y in the Playwright tier · wire the analytics vendor
+  │     axe-core a11y in the Playwright tier · (analytics: GA4 shipped)
   │
   ├─1. /studio artist dashboard ──────────┐  (token-protected read/manage over D1:
   │      enquiry/claim status lifecycle +  │   the shared substrate the next three reuse)

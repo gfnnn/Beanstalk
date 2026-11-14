@@ -24,6 +24,18 @@ export function makeD1() {
       data.submissions.set(id, { id, kind, email, received_at, ip, fields, image_count, image_names, skipped, email_status })
       return { meta: { changes: 1 } }
     }
+    if (s.startsWith('SELECT id, kind, email, received_at FROM submissions')) {
+      const [olderThan] = args
+      return { results: [...data.submissions.values()]
+        .filter(r => r.email_status === 'failed' || (r.email_status === 'pending' && r.received_at < olderThan))
+        .sort((a, b) => a.received_at.localeCompare(b.received_at))
+        .map(({ id, kind, email, received_at }) => ({ id, kind, email, received_at })) }
+    }
+    if (s.startsWith("UPDATE submissions SET email_status = 'failed_reported'")) {
+      const row = data.submissions.get(args[0])
+      if (row) row.email_status = 'failed_reported'
+      return { meta: { changes: row ? 1 : 0 } }
+    }
     if (s.startsWith('INSERT INTO newsletter_consent')) {
       const [id, email, first_name, consented_at, statement, version, source, ip] = args
       data.consent.set(id, { id, email, first_name, consented_at, statement, version, source, ip })

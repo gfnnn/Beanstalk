@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 // Build-time renderer tests — src/build/portfolio-tiles.js & flash-cards.js.
 // These are pure (data in → HTML string out), so they're cheap to pin down and
 // they guard the static markup that ships for SEO/LCP/no-JS. We assert structure
@@ -250,6 +252,15 @@ describe('renderNotices (toggleable hero bars)', () => {
     expect(html).not.toContain('Guest spot')
   })
 
+  it('drops a notice the day after its `until` date and tags a live one for the client', () => {
+    const dated = { ...clay, until: '2026-07-26' }
+    expect(renderNotices([moss, dated], '2026-07-26')).toContain('data-until="2026-07-26"')
+    const after = renderNotices([moss, dated], '2026-07-27')
+    expect(after).not.toContain('Flash day')
+    expect(after).toContain('Bookings')
+    expect(renderNotices([dated], '2026-07-27')).toBe('')
+  })
+
   it('keeps notice html raw so links render', () => {
     expect(renderNotices([moss])).toContain('<a href="/enquire/">Enquire</a>')
   })
@@ -318,6 +329,19 @@ describe('renderVideoCredit (hero media credit line)', () => {
 })
 
 describe('renderHeroMedia (the one shared hero component — both pages)', () => {
+  it('renders a still as a responsive <picture>, eager on the homepage and lazy on About', () => {
+    const slot = { show: true, kind: 'image', img: '/images/tattoos/x', w: 800, h: 1063, alt: 'A "quoted" alt', sizes: '50vw', caption: 'Cap' }
+    const hero = renderHeroMedia(slot, { variant: 'hero' })
+    expect(hero).toContain('<source type="image/avif" srcset="/images/tattoos/x-400.avif 400w, /images/tattoos/x-800.avif 800w, /images/tattoos/x-1200.avif 1200w" sizes="50vw">')
+    expect(hero).toContain('class="media-clip" src="/images/tattoos/x-1200.jpg"')
+    expect(hero).toContain('width="800" height="1063"')
+    expect(hero).toContain('alt="A &quot;quoted&quot; alt"')
+    expect(hero).toContain('loading="eager" fetchpriority="high"')
+    expect(hero).toContain('<span class="media-caption">Cap</span>')
+    expect(hero).not.toContain('<video')
+    expect(renderHeroMedia(slot, { variant: 'about' })).toContain('loading="lazy"')
+  })
+
   it('falls back to each page placeholder when off, per variant', () => {
     // homepage variant
     expect(renderHeroMedia({ show: false }, { variant: 'hero' })).toContain('class="video-placeholder"')
@@ -441,9 +465,19 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
 })
 
 describe('media data (src/data/media.js)', () => {
-  it('ships with both hero clips OFF so the pages render their placeholders until assets land', () => {
-    expect(media.hero.show).toBe(false)
-    expect(media.aboutHero.show).toBe(false)
+  it('launches both hero frames as stills of real portfolio photos (no placeholder, no clip needed)', () => {
+    for (const slot of [media.hero, media.aboutHero]) {
+      expect(slot.show).toBe(true)
+      expect(slot.kind).toBe('image')
+      expect(slot.alt).toBeTruthy()
+      // Every size/format the <picture> asks for must exist on disk.
+      for (const w of [400, 800, 1200]) {
+        for (const ext of ['avif', 'webp', 'jpg']) {
+          const file = resolve(process.cwd(), 'public', `.${slot.img}-${w}.${ext}`)
+          expect(existsSync(file), file).toBe(true)
+        }
+      }
+    }
   })
 
   it('points every clip at /videos/ (the public/ folder copied to the site root)', () => {

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   image_count  INTEGER NOT NULL DEFAULT 0,
   image_names  TEXT NOT NULL DEFAULT '[]',    -- JSON array
   skipped      INTEGER NOT NULL DEFAULT 0,
-  email_status TEXT NOT NULL DEFAULT 'pending' -- 'pending' | 'sent' | 'failed'
+  email_status TEXT NOT NULL DEFAULT 'pending' -- 'pending' | 'sent' | 'failed' | 'failed_reported'
 );
 CREATE INDEX IF NOT EXISTS idx_submissions_email       ON submissions(email);
 CREATE INDEX IF NOT EXISTS idx_submissions_received_at ON submissions(received_at);

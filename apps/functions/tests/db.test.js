@@ -3,7 +3,7 @@
 // or removes the only real backstop against a scripted flood (false negative). The
 // in-memory D1 fake runs the real SQL-issuing code, and a "broken" binding pins
 // the FAIL-SAFE / FAIL-OPEN behaviour (a DB outage must never block a real user).
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   limitsFrom, persistSubmission, persistConsent, getFlashClaims,
   reserveFlashPiece, releaseFlashPiece, rateLimit,
@@ -150,8 +150,8 @@ describe('persistConsent', () => {
 
 describe('limitsFrom', () => {
   it('falls back to the built-in defaults when nothing is configured', () => {
-    expect(limitsFrom()).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
-    expect(limitsFrom({})).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+    expect(limitsFrom()).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 45 })
+    expect(limitsFrom({})).toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 45 })
   })
 
   it('reads per-deploy overrides from env (minutes → ms for the window)', () => {
@@ -161,11 +161,19 @@ describe('limitsFrom', () => {
 
   it('ignores a non-numeric / zero override and keeps the default (|| fallback)', () => {
     expect(limitsFrom({ RATE_MAX_PER_IP: 'nope', RATE_MAX_PER_DAY: '0' }))
-      .toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 80 })
+      .toEqual({ maxPerIp: 5, windowMs: 15 * 60_000, maxPerDay: 45 })
   })
 })
 
 describe('rateLimit', () => {
+  // The day bucket is keyed on the UTC date, sampled separately by the test and by
+  // rateLimit(). Pin the clock to midday so a run that straddles UTC midnight can't
+  // see two different dates (only Date is faked, so async code runs normally).
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-06-15T12:00:00Z'))
+  })
+  afterEach(() => { vi.useRealTimers() })
   const today = () => new Date().toISOString().slice(0, 10)
 
   it('honours env-configured limits when no explicit options are passed', async () => {
@@ -252,7 +260,7 @@ describe('rateLimit', () => {
   it('blocks on the global daily ceiling regardless of IP', async () => {
     const d1 = makeD1()
     for (let i = 0; i < 80; i++) d1.data.rate.push({ bucket: `s:day:${today()}`, ts: Date.now() })
-    const limiter = await rateLimit({ DB: d1.DB }, 'fresh-ip', { storeName: 's', maxPerDay: 80 })
+    const limiter = await rateLimit({ DB: d1.DB }, 'fresh-ip', { storeName: 's', maxPerDay: 45 })
     expect(limiter.ok).toBe(false)
   })
 

@@ -18,9 +18,10 @@ import { initEnquire } from '../src/js/modules/enquire.js'
 import { track } from '../src/js/modules/analytics.js'
 
 // Stub analytics so the success path's track() call is observable and side-effect
-// free (the real module no-ops until a provider is wired in, but mocking lets us
-// assert the event fires and keeps the suite independent of that).
-vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn() }))
+// free (the real module is covered in analytics.test.js).
+// The mock runs the navigate-after callback straight away, like track() does when
+// analytics is off.
+vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn((_e, _p, done) => done?.()) }))
 
 function setup() {
   document.body.innerHTML = `
@@ -113,6 +114,51 @@ describe('initEnquire', () => {
       click($('step1-next')) // → step 2
       click($('step2-back')) // → step 1, no validation gate
       expect($('progress-pct').textContent).toBe('Step 1 of 4')
+    })
+  })
+
+  describe('health-data consent box', () => {
+    // A step-4-like field: the health textarea plus its consent box, as on the page.
+    function setupHealth() {
+      setup()
+      $('step-1').insertAdjacentHTML('beforeend', `
+        <div class="field" id="health-field">
+          <textarea id="allergies" name="allergies"></textarea>
+          <input type="checkbox" id="check-health" name="health_consent">
+        </div>`)
+    }
+    const input = el => el.dispatchEvent(new window.Event('input', { bubbles: true }))
+
+    it('is optional while the health field is empty', () => {
+      setupHealth()
+      initEnquire()
+      expect($('check-health').required).toBe(false)
+      document.querySelector('[name="name"]').value = 'Robin'
+      click($('step1-next'))
+      expect($('progress-pct').textContent).toBe('Step 2 of 4')
+    })
+
+    it('becomes required once health details are typed, and blocks the step until ticked', () => {
+      setupHealth()
+      initEnquire()
+      document.querySelector('[name="name"]').value = 'Robin'
+      $('allergies').value = 'Plaster allergy'
+      input($('allergies'))
+      expect($('check-health').required).toBe(true)
+      click($('step1-next'))
+      expect($('health-field').classList.contains('error')).toBe(true)
+      expect($('progress-pct').textContent).toBe('')
+      $('check-health').checked = true
+      click($('step1-next'))
+      expect($('progress-pct').textContent).toBe('Step 2 of 4')
+    })
+
+    it('drops the requirement again if the health details are cleared', () => {
+      setupHealth()
+      initEnquire()
+      $('allergies').value = 'x'; input($('allergies'))
+      $('allergies').value = '  '; input($('allergies'))
+      expect($('check-health').required).toBe(false)
     })
   })
 
@@ -435,7 +481,7 @@ describe('initEnquire', () => {
         fields: { first_name: 'Robin', email: 'robin@example.com', dob: DOB, tattoo_type: 'custom', consent: 'on' },
         images: [],
       })
-      expect(vi.mocked(track)).toHaveBeenCalledWith('enquiry_submit', { type: 'custom' })
+      expect(vi.mocked(track)).toHaveBeenCalledWith('generate_lead', { form: 'enquiry' }, expect.any(Function))
       expect(sessionStorage.getItem('beansprout_step')).toBeNull()
     })
 
@@ -507,14 +553,23 @@ describe('initEnquire', () => {
       expect($('form-error-banner').textContent).toMatch(/something went wrong/i)
     })
 
-    it('tracks the submit type as "unknown" when no tattoo_type was chosen', async () => {
+    it('sends the lead with no form values (no PII leaves via analytics)', async () => {
       global.fetch = mockFetch(true, { ok: true })
       const form = fullForm()
-      document.querySelector('[name="tattoo_type"]').remove()
       initEnquire()
       fillValid()
       submit(form); await flush()
-      expect(vi.mocked(track)).toHaveBeenCalledWith('enquiry_submit', { type: 'unknown' })
+      const sent = JSON.stringify(vi.mocked(track).mock.calls.map(([e, p]) => [e, p]))
+      for (const value of ['Robin', 'robin@example.com', DOB, 'custom']) expect(sent).not.toContain(value)
+    })
+
+    it('fires no lead when the Worker rejects the enquiry', async () => {
+      global.fetch = mockFetch(false, { error: 'nope' })
+      const form = fullForm()
+      initEnquire()
+      fillValid()
+      submit(form); await flush()
+      expect(vi.mocked(track)).not.toHaveBeenCalled()
     })
 
     it('treats a missing step as valid (a trimmed form still submits)', async () => {

@@ -15,8 +15,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.8",
-    "vitest": "^4.1.8",
-    "wrangler": "^4.0.0"
+    "@vitest/coverage-v8": "^4.1.12",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.159.0"
   }
 }

@@ -73,7 +73,8 @@ function wireForm(form) {
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
-      track('newsletter_signup', { already: !!json.already })
+      // A re-subscribe isn't a new sign-up, so it isn't counted.
+      if (!json.already) track('sign_up', { method: 'newsletter' })
 
       // Success — swap the form for its confirmation panel.
       if (successEl) {

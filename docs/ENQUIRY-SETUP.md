@@ -181,6 +181,60 @@ claim** (`/flash/`) and the **newsletter** (`/newsletter/`).
   **`DATA-COMPLIANCE.md`** (plain SQL via `wrangler d1 execute`).
 - **No secrets in the repo.** Keys live only in Cloudflare (Worker secrets); `.env`
   and `.dev.vars` are gitignored.
+- **The sender gets a receipt.** After the artist's notification is sent, the Worker
+  emails the enquirer / claimant a short fixed-copy confirmation (no text they typed
+  is echoed, and replies go to `FROM_EMAIL`, never the private `ARTIST_EMAIL`). It is
+  best-effort: a failed receipt is logged, not surfaced. A bounced receipt in the
+  Resend dashboard means the person mistyped their address.
+
+---
+
+## Running it day to day
+
+Run the SQL below in the Cloudflare dashboard (**Storage & Databases → D1 →
+beansprout → Console**) or with `wrangler d1 execute beansprout --remote --command "…"`.
+
+**A submission didn't reach the inbox.** A daily cron (08:00 UTC,
+`src/handlers/failed-digest.js`) emails `ARTIST_EMAIL` a list of any enquiry or claim
+whose notification failed, once each (the row then reads `failed_reported`). Read the
+full details, then reply to the person by hand:
+
+```sql
+SELECT received_at, kind, email, fields FROM submissions
+ WHERE email_status IN ('failed', 'failed_reported') ORDER BY received_at DESC;
+```
+
+If the digest itself can't send (Resend is down or the key/domain lapsed), it retries
+the next day. Worker logs are kept under **Workers → beansprout-forms → Logs**.
+
+**Flash claims — releasing or selling a piece.** A claim puts the piece on
+"Pending deposit" and it stays there until you change it. Nothing expires by itself
+(a paid piece must never quietly go back on sale), so after each claim do one of:
+
+```sql
+-- See what is held:
+SELECT piece_id, status, updated_at FROM flash_claims ORDER BY updated_at DESC;
+-- The claimant went quiet or backed out: put the piece back on sale.
+DELETE FROM flash_claims WHERE piece_id = 'flash-03' AND status = 'pending';
+-- The deposit is paid: mark it sold ("Claimed" on the grid).
+UPDATE flash_claims SET status = 'claimed', updated_at = datetime('now') WHERE piece_id = 'flash-03';
+```
+
+The grid picks either change up on its next load, no rebuild needed. (At the next
+drop, also set the piece's `status` in `apps/web/src/data/flash.js` so the static
+page agrees.)
+
+**Before a flash drop or a busy day.** The form accepts 45 submissions a day in
+total (`RATE_MAX_PER_DAY`), because each one sends two emails and Resend's free plan
+allows 100 a day. Visitors past the ceiling are asked to email instead. For a bigger
+day, move Resend to a paid plan and raise `RATE_MAX_PER_DAY` in the Worker's
+variables beforehand.
+
+**Is the site still up?** `.github/workflows/smoke.yml` runs `scripts/smoke-test.mjs`
+every morning against the URL in the `SMOKE_SITE_URL` repository variable (unset =
+skipped); a failure emails the repository owner. It uses the honeypot path, so it
+stores nothing and sends no email. GitHub pauses scheduled workflows after 60 days
+without a commit, so re-enable it from the Actions tab if the repo goes quiet.
 
 ---
 

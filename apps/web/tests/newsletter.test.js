@@ -10,6 +10,10 @@
 // from config.js, so we assert the request happened rather than the exact URL.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { initNewsletter } from '../src/js/modules/newsletter.js'
+import { track } from '../src/js/modules/analytics.js'
+
+// Observe the sign_up event without loading any analytics.
+vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn() }))
 
 const $ = sel => document.querySelector(sel)
 const submit = form => form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
@@ -40,7 +44,7 @@ const mockFetch = (ok, json, status = 200) =>
   vi.fn().mockResolvedValue({ ok, status, json: () => Promise.resolve(json) })
 
 beforeEach(() => { document.body.innerHTML = '' })
-afterEach(() => { vi.restoreAllMocks(); delete global.fetch })
+afterEach(() => { vi.restoreAllMocks(); vi.mocked(track).mockClear(); delete global.fetch })
 
 describe('initNewsletter', () => {
   it('no-ops when there is no newsletter form on the page', () => {
@@ -191,5 +195,42 @@ describe('initNewsletter', () => {
       expect($('[data-nl-feedback]').hidden).toBe(false)
       expect($('[data-nl-feedback]').textContent).toBe('offline')
     })
+  })
+})
+
+describe('analytics (sign_up fires only on a real Worker success)', () => {
+  const run = async fetchMock => {
+    global.fetch = fetchMock
+    const form = setup()
+    initNewsletter()
+    fillValid(form)
+    submit(form)
+    await flush()
+  }
+
+  it('sends sign_up { method: "newsletter" } and no email on success', async () => {
+    await run(mockFetch(true, { ok: true }))
+    expect(vi.mocked(track)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(track)).toHaveBeenCalledWith('sign_up', { method: 'newsletter' })
+    expect(JSON.stringify(vi.mocked(track).mock.calls)).not.toContain('reader@example.com')
+  })
+
+  it('does not count a re-subscribe (already: true)', async () => {
+    await run(mockFetch(true, { already: true }))
+    expect(vi.mocked(track)).not.toHaveBeenCalled()
+  })
+
+  it('sends nothing when the Worker errors', async () => {
+    await run(mockFetch(false, { error: 'nope' }, 500))
+    expect(vi.mocked(track)).not.toHaveBeenCalled()
+  })
+
+  it('sends nothing on a submit click that fails validation', async () => {
+    global.fetch = mockFetch(true, {})
+    const form = setup()
+    initNewsletter()
+    submit(form) // empty email
+    await flush()
+    expect(vi.mocked(track)).not.toHaveBeenCalled()
   })
 })

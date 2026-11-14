@@ -102,6 +102,20 @@ export function initEnquire() {
     if (el) el.min = today
   })
 
+  // Health details are special-category data, so the privacy policy promises
+  // explicit consent for them. The consent box is only required once something
+  // has actually been typed in the health field (the Worker enforces the same
+  // rule). Synced on every keystroke so step validation always sees the truth.
+  const healthEl    = document.getElementById('allergies')
+  const healthCheck = document.getElementById('check-health')
+  if (healthEl && healthCheck) {
+    const syncHealth = () => {
+      healthCheck.required = healthEl.value.trim() !== ''
+    }
+    healthEl.addEventListener('input', syncHealth)
+    syncHealth()
+  }
+
   // ── Per-field error display ───────────────────────────────────────────────
   function fieldErrorFor(el) {
     if (el.disabled) return ''
@@ -552,9 +566,9 @@ export function initEnquire() {
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'Something went wrong. Please try again.')
 
-      track('enquiry_submit', { type: fields.tattoo_type || 'unknown' })
       try { sessionStorage.removeItem('beansprout_step') } catch (_) {}
-      window.location.href = '/enquiry-received/'
+      // Navigating away straight after, so let the lead send first (bounded wait).
+      track('generate_lead', { form: 'enquiry' }, () => { window.location.href = '/enquiry-received/' })
     } catch (err) {
       console.error('Enquiry error:', err)
       showFormError(err.message || 'Something went wrong. Please try again, or email hello@beansprout.ink directly.')
