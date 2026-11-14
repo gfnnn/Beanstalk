@@ -95,7 +95,7 @@ export const homepage = {
     { style: 'black-grey', fill: true, em: 'soft', body: 'Smooth black and grey with gentle, smoky shading, for work with depth, contrast and a soft edge.' },
   ],
 
-  // ARTIST-COPY · HOME-10 · pending approval — see docs/COPY-REVIEW.md
+  // ARTIST-COPY · HOME-10 · pending approval
   videoCredit: {
     show:  false,
     label: 'Film by',

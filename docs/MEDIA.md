@@ -321,8 +321,8 @@ the lean-baseline rules in `../CLAUDE.md`. Self-host is the right answer at this
 **Revisit when the scope changes.** If video grows into *many* clips, *longer* durations,
 or anything with *sound / controls / seeking* — or if bandwidth ever becomes a concern —
 re-evaluate an external host. The natural fit is **Cloudflare Stream** (or R2 behind the
-CDN), and it lands cleanly once the post-launch Cloudflare-front consolidation does (see
-`ROADMAP.md` → infrastructure consolidation), since the origin moves to Cloudflare anyway.
+CDN), and it lands cleanly if the site ever moves behind a Cloudflare front, since the origin
+would move to Cloudflare anyway.
 Until then, don't pre-build it.
 
 ## Where the files live
