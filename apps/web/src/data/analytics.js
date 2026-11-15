@@ -7,7 +7,7 @@
 // hostname here and loads gtag.js only when the matching ID is non-empty, so:
 //
 //   • a staging host with an empty ID     → no script, track() is a no-op
-//   • the production host with an empty ID → no script (the state until cutover)
+//   • the production host with an empty ID → no script (how to switch it off)
 //   • any other host (localhost, previews of other projects, unknown) → no script
 //
 // FIELDS (per environment)
@@ -23,15 +23,14 @@
 // Pages staging project. Keep the two lists in step if a project is renamed.
 //
 // 👤 Owner steps (see docs/ANALYTICS.md): paste the staging property's ID into
-// staging.measurementId; at cutover paste the production ID into
-// production.measurementId (docs/CUTOVER.md).
+// staging.measurementId. The production ID is set.
 export const analytics = {
   staging: {
     measurementId: '',
     hosts: ['gfnnn.github.io', 'beanstalk-e61.pages.dev'],
   },
   production: {
-    measurementId: '',
+    measurementId: 'G-8EM7KZMDW4',
     hosts: ['beansprout.ink'],
   },
 }
