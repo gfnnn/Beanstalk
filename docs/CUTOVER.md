@@ -49,22 +49,25 @@ Consequences:
 
 ## Phase 0 — Prep (any time before launch day, no visitor impact)
 
-- [ ] **P1 · Verify `beansprout.ink` on the GitHub account** (👤, recommended). GitHub →
+- [x] **P1 · Verify `beansprout.ink` on the GitHub account** (👤) — ✅ 2026-11-15; keep the TXT record. GitHub →
       Settings → Pages → *Add a domain* → add the `_github-pages-challenge-gfnnn` TXT record
       at GoDaddy → *Verify*. This is the only DNS edit, and it stops anyone else's repo
       claiming the domain in the seconds it's unclaimed during the handover.
-- [ ] **P2 · Confirm D1 migrations are applied** (👤) — from `apps/functions`:
-      `npx wrangler d1 migrations list beansprout --remote` should say none to apply
-      (0001–0003). The 2026-11-14 release had no schema change.
-- [ ] **P3 · Take a D1 export** before the first production release
-      (`DATA-COMPLIANCE.md` → *Backup & recovery*). Counts as this month's off-platform export.
-- [ ] **P4 · Resend capacity.** Each submission now sends **two** emails (artist
+- [x] **P2 · Confirm D1 migrations are applied** (👤) — ✅ 2026-11-15. `0002` and `0003` had
+      never been applied to the remote database (the first tables were created outside
+      Wrangler); all three are now applied and recorded.
+      `npx wrangler d1 migrations list beansprout --remote --config apps/functions/wrangler.toml`
+      says none to apply.
+- [x] **P3 · Take a D1 export** — skipped 2026-11-15: the database holds test submissions
+      only. The monthly off-platform export (`DATA-COMPLIANCE.md` → *Backup & recovery*)
+      starts once real enquiries arrive.
+- [x] **P4 · Resend capacity** — ✅ 2026-11-15, free plan (3,000/month, 100/day). Each submission now sends **two** emails (artist
       notification + sender receipt), and the daily ceiling defaults to 45 submissions. On
       Resend's free tier (100/day) that's fine for launch; raise `RATE_MAX_PER_DAY` only on
       a paid plan.
-- [ ] **P5 · Set `SMOKE_SITE_URL`** (repo Actions variable) to the staging URL now, so the
-      daily health check runs; switch it to `https://beansprout.ink` in Phase 5.
-- [ ] **P6 · Gmail "Send mail as" `roxy@beansprout.ink`** (`EMAIL-DOMAIN-SETUP.md`), so manual replies
+- [x] **P5 · Set `SMOKE_SITE_URL`** (repo Actions variable) — ✅ 2026-11-15, set to the staging
+      URL and the daily health check ran green; switch it to `https://beansprout.ink` in Phase 5.
+- [x] **P6 · Gmail "Send mail as" `roxy@beansprout.ink`** (`EMAIL-DOMAIN-SETUP.md`) — ✅ 2026-11-15, so manual replies
       are DKIM-aligned from day one.
 
 ---
@@ -100,9 +103,9 @@ portfolio stills, and `og-image.jpg` is a strip of real pieces. Proposed MVP gat
 | Flash page | held back (`live: false`) | nothing — FLASH-* markers don't face visitors |
 | Optional slots (ABOUT-04, HOME-08/10, DATA-MEDIA, DATA-TEST) | off / hidden | nothing |
 | **PRIV-01..05, TERMS-01..03** | pending legal review | 👤 **decide:** legal review before launch, or launch on the current text and review after |
-| **ENQ-06 / ENQ-07** (enquiry hints, consent wording) | pending artist eye | 👤 artist approves, or accept as-is |
-| Deposit wording ("Card or bank" vs. email-arranged) | open | 👤 confirm method → 🛠 one-line copy fix |
-| Homepage notice | now reads "Books are open." (`homepage.js`) | 👤 confirm it's still true |
+| **ENQ-06 / ENQ-07** (enquiry hints, consent wording) | ✅ approved by the artist (2026-11-15) | nothing |
+| Deposit wording on `/services/` | ✅ now "Deposit paid by · Bank transfer" (2026-11-15) | nothing |
+| Homepage "Bookings" notice | ✅ switched off (`homepage.js`, 2026-11-15) | nothing |
 | One-word portfolio titles / alt text | open | nice-to-have; fine to fix after launch |
 
 Visitor-facing gate command (excludes the held-back/off slots):
@@ -142,7 +145,7 @@ docs and commits cite, not a sequence.
    Watch both deploys go green (Actions tab; Cloudflare → Workers → Deployments).
 - [x] **R2 · Smoke the Worker after its deploy** — ✅ 2026-11-14, 18/18:
    `npm run smoke -- https://beanstalk-e61.pages.dev` (still uses the same Worker).
-- [ ] **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), via a one-line PR to
+- [x] **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) — ✅ 2026-11-15, via a one-line PR to
    `develop` → a second small release PR to `main`. Pages redeploys in **production mode**
    (indexable, real sitemap). It's still only served at `gfnnn.github.io/Beanstalk/` at this
    point; v1 still owns the apex.
