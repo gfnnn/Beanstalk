@@ -203,7 +203,8 @@ Cloudflare API token lives in GitHub** — keeping the CI-security posture in `C
 
 Today, `main` → GitHub Pages is the **staging** stand-in (the apex `beansprout.ink` is
 still v1 — see the deploy guardrail in `CLAUDE.md`). With this model in place, the only
-go-live change is the cutover: point the apex at the `main`/GitHub-Pages site (add
-`apps/web/public/CNAME` + DNS). From that moment `main` releases *are* production on the
+go-live change is the cutover: hand the apex to the `main`/GitHub-Pages site (add
+`apps/web/public/CNAME`, then move the Pages custom domain from the v1 repo to this one —
+no DNS change). From that moment `main` releases *are* production on the
 apex, `develop`'s `*.pages.dev` remains the pre-prod staging site, and nothing about the
 day-to-day flow changes. Do **not** make that switch until the go/no-go gate in [`CUTOVER.md`](./CUTOVER.md) clears.

@@ -27,6 +27,9 @@ blob-report/
 # only the generated web tiers under public/images/ are committed.
 .dropbox-cache/
 
+# Private planning notes kept beside the checkout — never committed.
+project-docs/
+
 # Local logs and databases (wrangler dev, D1 exports)
 *.log
 *.sqlite
