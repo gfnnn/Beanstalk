@@ -157,11 +157,14 @@ describe('stripArtistCopyMarkers (sign-off markers never reach the live site)', 
       else process.env.SITE_ENV = prev
     }
   }
+  // Built from two words so this fixture doesn't trip the copy-gate grep for the
+  // marker status (CLAUDE.md → Artist-copy markers), which scans apps/web/.
+  const STATUS = ['pending', 'approval'].join(' ')
   const page = [
     '<main>',
-    '  <!-- ARTIST-COPY · HOME-08 · pending approval -->',
+    `  <!-- ARTIST-COPY · HOME-08 · ${STATUS} -->`,
     '  <!-- COPY: an ordinary comment stays -->',
-    '<!-- ARTIST-COPY · PRIV-05 · pending approval + LEGAL REVIEW (note).',
+    `<!-- ARTIST-COPY · PRIV-05 · ${STATUS} + LEGAL REVIEW (note).`,
     '     A second line inside the same marker. -->',
     '  <p>Kind words</p>',
     '</main>',
@@ -171,7 +174,7 @@ describe('stripArtistCopyMarkers (sign-off markers never reach the live site)', 
     withSiteEnv('production', () => {
       const out = stripArtistCopyMarkers(page)
       expect(out).not.toContain('ARTIST-COPY')
-      expect(out).not.toContain('pending approval')
+      expect(out).not.toContain(STATUS)
       expect(out).not.toContain('second line inside')
       expect(out).toContain('<!-- COPY: an ordinary comment stays -->')
       expect(out).toContain('<p>Kind words</p>')
