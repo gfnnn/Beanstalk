@@ -15,9 +15,8 @@ workflow*; this file is the full runbook plus the one-time GitHub/Cloudflare set
 
 Everything else is a short-lived `feat/*`, `fix/*`, or `docs/*` branch cut off `develop`.
 
-> **Pre-launch reality:** both long-lived branches exist. What's deferred to launch is the
-> **apex cutover** (adding `apps/web/public/CNAME` — see "How this maps to go-live" below), not
-> `main` itself: until then `main` → GitHub Pages is a staging stand-in.
+> **Since the 2026-11-15 cutover** `main` → GitHub Pages **is** the live site at
+> `beansprout.ink` (see "How this maps to go-live" below).
 
 ```
 feat/x ─┐
@@ -201,10 +200,7 @@ Cloudflare API token lives in GitHub** — keeping the CI-security posture in `C
 
 ## How this maps to go-live (apex cutover)
 
-Today, `main` → GitHub Pages is the **staging** stand-in (the apex `beansprout.ink` is
-still v1 — see the deploy guardrail in `CLAUDE.md`). With this model in place, the only
-go-live change is the cutover: hand the apex to the `main`/GitHub-Pages site (add
-`apps/web/public/CNAME`, then move the Pages custom domain from the v1 repo to this one —
-no DNS change). From that moment `main` releases *are* production on the
-apex, `develop`'s `*.pages.dev` remains the pre-prod staging site, and nothing about the
-day-to-day flow changes. Do **not** make that switch until the go/no-go gate in [`CUTOVER.md`](./CUTOVER.md) clears.
+The cutover happened on 2026-11-15 ([`CUTOVER.md`](./CUTOVER.md)): `apps/web/public/CNAME`
+was added and the Pages custom domain moved from the v1 repo to this one (no DNS change). So
+`main` releases **are** production on the apex, `develop`'s `*.pages.dev` remains the pre-prod
+staging site, and nothing about the day-to-day flow changed.

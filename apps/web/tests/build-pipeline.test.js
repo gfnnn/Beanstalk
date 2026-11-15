@@ -234,8 +234,7 @@ describe('sitemap + robots generateBundle (production / apex build)', () => {
 })
 
 describe('sitemap + robots generateBundle (staging build — no real-life SEO artifacts)', () => {
-  const emitted = emitWithEnv(undefined)
-  // Pre-launch repo invariant: no apex CNAME, so SITE_ENV unset → staging.
+  const emitted = emitWithEnv('staging')
   const isStaging = !emitted.some(f => f.fileName === 'sitemap.xml')
 
   it('emits NO sitemap.xml on a staging build', () => {

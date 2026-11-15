@@ -12,13 +12,14 @@ Architecture/guardrails are in [`CLAUDE.md`](../CLAUDE.md), the email round-trip
 **Owner:** 👤 the operator runs every step (settings, secrets, the go/no-go call). 🛠 the
 code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs itself.
 
-**Status:** `ready-pending-go/no-go` — engineering is green (checked 2026-11-14: 845 web +
-235 Worker tests, build, lint, staging smoke 18/18), and the first release to `main` is
-done (R1/R2, 2026-11-14). What's left is the content/legal gate in Phase 1, which is the
-operator's go/no-go, then the handover from X2 on.
+**Status:** `live` — `beansprout.ink` has been served by v2 since **2026-11-15 16:10 UTC**
+(the handover took three seconds; the certificate carried over, so there was no HTTPS wait;
+the CDN kept v1's cached homepage for about six minutes). The automated probe passes on the
+apex. Still open: the manual email test (run "b"), production analytics (X7b) and Phase 5.
 
-> **Hard guardrail (from `CLAUDE.md`):** until the moment of cutover there is **no
-> `apps/web/public/CNAME`**. It lands in Phase 2 and never earlier.
+> `apps/web/public/CNAME` is now committed, so a plain build is a production build. The
+> Cloudflare Pages staging site is the exception: it builds in staging mode (noindex, no
+> sitemap) because Cloudflare sets `CF_PAGES=1` (`CLAUDE.md` → *SEO structure*).
 
 ---
 
@@ -78,16 +79,16 @@ Run the day before. **Every line must be green, or explicitly waived by the oper
 (record the waiver privately — not in this public repo or its PRs).** If any is red and not waived → NO-GO.
 
 ### Engineering (all ✅ on `develop` as of 2026-11-14)
-- [ ] `npm test` green, `npm run build` succeeds, `npm run lint` clean, on the release commit.
-- [ ] `npm run smoke -- https://beanstalk-e61.pages.dev` → all checks pass.
-- [ ] `PAYMENTS_ENABLED` is unset/`false` on the Worker (smoke asserts `/checkout` → 503).
+- [x] `npm test` green, `npm run build` succeeds, `npm run lint` clean, on the release commit.
+- [x] `npm run smoke -- https://beanstalk-e61.pages.dev` → all checks pass.
+- [x] `PAYMENTS_ENABLED` is unset/`false` on the Worker (smoke asserts `/checkout` → 503).
       Payments are a **separate post-launch step**.
-- [ ] Worker CORS already allows `https://beansprout.ink` + `https://www.beansprout.ink`
+- [x] Worker CORS already allows `https://beansprout.ink` + `https://www.beansprout.ink`
       (`apps/functions/src/lib/http.js`) — read-only check.
 
 ### Privacy & email
-- [ ] ICO reference `ZC165794` renders on staging `/privacy/` (✅ applied).
-- [ ] Erasure path dry-run done (✅ 2026-06-08).
+- [x] ICO reference `ZC165794` renders on staging `/privacy/` (✅ applied).
+- [x] Erasure path dry-run done (✅ 2026-06-08).
 - [ ] `beansprout.ink` shows **Verified** in Resend (SPF/DKIM/DMARC) — needed before X4.
 
 ### Content — the MVP gate (operator go/no-go)
@@ -149,27 +150,29 @@ docs and commits cite, not a sequence.
    `develop` → a second small release PR to `main`. Pages redeploys in **production mode**
    (indexable, real sitemap). It's still only served at `gfnnn.github.io/Beanstalk/` at this
    point; v1 still owns the apex.
-- [ ] **X4 · Flip the Worker email secrets test → prod** (👤): `FROM_EMAIL` =
+- [x] **X4 · Flip the Worker email secrets test → prod** (👤) — ✅ 2026-11-15: `FROM_EMAIL` =
    `roxy@beansprout.ink`, `ARTIST_EMAIL` = the artist's Gmail (`wrangler secret put …` or the
    Cloudflare dashboard; saving redeploys). Requires Resend verified. Do it now so the first
    live enquiry uses production mail.
-- [ ] **X3 · Release the domain from v1** (👤): `gfnnn/beansprout` → Settings → Pages → Custom
+- [x] **X3 · Release the domain from v1** (👤) — ✅ 2026-11-15, via the Pages API (v1's `CNAME` file is still in its repo; harmless while v2 holds the domain): `gfnnn/beansprout` → Settings → Pages → Custom
    domain → **Remove**. (On a branch build this commits the removal of v1's `CNAME` file.)
    *The apex now 404s — go straight to X5.*
-- [ ] **X5 · Claim the domain in v2** (👤): `gfnnn/Beanstalk` → Settings → Pages → Custom domain
+- [x] **X5 · Claim the domain in v2** (👤) — ✅ 2026-11-15, Enforce HTTPS on: `gfnnn/Beanstalk` → Settings → Pages → Custom domain
    → `beansprout.ink` → Save. (CLI equivalent:
    `gh api -X PUT repos/gfnnn/Beanstalk/pages -f cname=beansprout.ink`.) Wait for the DNS
    check to pass and the certificate to show provisioned, then tick **Enforce HTTPS**.
 - [ ] **X7b · Production analytics** (👤 + 🛠 one line). Create the production GA4 property, run
    its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*), paste the `G-…` ID
    into `production.measurementId` in `apps/web/src/data/analytics.js`, ship via a small
-   release. Can follow on the same day or later — with no ID the apex sends nothing.
+   release. Can follow on the same day or later — with no ID the apex sends nothing. Then opt
+   each owner browser out of the numbers on the apex (`ANALYTICS.md` → *Owner traffic*); a
+   flag set on staging doesn't carry over.
 
 ---
 
 ## Phase 3 — Smoke test
 
-- [ ] **Automated probe** against the live apex:
+- [x] **Automated probe** against the live apex — ✅ 2026-11-15, 19/19:
    ```bash
    npm run smoke -- https://beansprout.ink
    ```
@@ -238,7 +241,7 @@ v1 stays **idle, not deleted**, so it's always a working rollback target.
 
 ## Phase 5 — Post-cutover
 
-- [ ] Set `SMOKE_SITE_URL` = `https://beansprout.ink` so the daily health check watches prod.
+- [x] Set `SMOKE_SITE_URL` = `https://beansprout.ink` so the daily health check watches prod — ✅ 2026-11-15.
 - [ ] **First day:** the D1 `SELECT` from run "b" shows real enquiries with
       `email_status = 'sent'`; no failed-send digest email arrives at 08:00 UTC.
 - [ ] **Search Console:** add the `beansprout.ink` property and submit `/sitemap.xml`.

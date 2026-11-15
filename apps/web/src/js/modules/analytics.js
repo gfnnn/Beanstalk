@@ -21,6 +21,11 @@
 import { analytics as CONFIG } from '../../data/analytics.js'
 
 export const OPT_OUT_KEY = 'beansprout_analytics_optout'
+// Owner flag: set per browser with ?owner=1, cleared with ?owner=0. While set,
+// every hit carries traffic_type=internal, which the GA4 property's Internal
+// Traffic data filter excludes (docs/ANALYTICS.md → Owner traffic).
+export const OWNER_KEY = 'bs_owner'
+const OWNER_PARAM = 'owner'
 const GTAG_SRC = 'https://www.googletagmanager.com/gtag/js'
 const ID_RE = /^G-[A-Z0-9]+$/
 // Keep the _ga cookies to ~13 months (GA's default is 2 years), in step with the
@@ -99,6 +104,41 @@ function clearGaCookies(hostname = location.hostname) {
   }
 }
 
+/** True when this browser carries the owner flag (false if storage is unreadable). */
+export function isOwner() {
+  try { return localStorage.getItem(OWNER_KEY) === '1' } catch { return false }
+}
+
+// Act on ?owner=1 / ?owner=0, then take the param off the address bar. Runs
+// before gtag's config call, so page_location never records it. Any other value
+// changes nothing but is still stripped.
+function applyOwnerParam() {
+  let url
+  try { url = new URL(location.href) } catch { return }
+  if (!url.searchParams.has(OWNER_PARAM)) return
+  const value = url.searchParams.get(OWNER_PARAM)
+  try {
+    if (value === '1') localStorage.setItem(OWNER_KEY, '1')
+    else if (value === '0') localStorage.removeItem(OWNER_KEY)
+  } catch { /* storage blocked: analytics is off for this browser anyway */ }
+  url.searchParams.delete(OWNER_PARAM)
+  try {
+    history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`)
+  } catch { /* leave the URL as it is */ }
+}
+
+// A small footer line so an owner can see the flag is set on this browser (the
+// only check available on a phone or in an in-app browser).
+function showOwnerNote() {
+  const row = document.querySelector('.footer-bottom')
+  if (!row || row.querySelector('[data-owner-mode]')) return
+  const note = document.createElement('p')
+  note.className = 'footer-copy'
+  note.dataset.ownerMode = ''
+  note.textContent = 'Owner mode · visits from this browser aren’t counted'
+  row.appendChild(note)
+}
+
 function loadGtag(id) {
   window[`ga-disable-${id}`] = false
   activeId = id
@@ -114,6 +154,7 @@ function loadGtag(id) {
     allow_google_signals: false,
     allow_ad_personalization_signals: false,
     cookie_expires: COOKIE_EXPIRES_S,
+    ...(isOwner() ? { traffic_type: 'internal' } : {}),
   })
   const s = document.createElement('script')
   s.async = true
@@ -176,7 +217,7 @@ const STATUS = {
   storage: 'Your browser is blocking site storage, so analytics stays off for you.',
   choice: 'Analytics is off in this browser. This choice is saved for future visits.',
   on: 'Analytics is on in this browser.',
-  // A host with no Measurement ID (production before cutover, localhost) loads nothing.
+  // A host with no Measurement ID (staging until its ID is set, localhost) loads nothing.
   none: 'Analytics isn’t running on this site right now. You can still turn it off here, and the choice is saved for later.',
 }
 
@@ -210,6 +251,8 @@ function initOptOutControl(id) {
 
 // Called once from main.js on every page.
 export function initAnalytics({ hostname = location.hostname } = {}) {
+  applyOwnerParam()
+  if (isOwner()) showOwnerNote()
   const id = measurementIdFor(hostname)
   initOptOutControl(id)
   if (!id) return

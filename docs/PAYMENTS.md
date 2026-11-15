@@ -108,7 +108,7 @@ The executable plan. Steps 1–3 & 5 are **shipped dark**; step 4 (frontend) is 
 slice. Decisions locked with the studio (2026-06): in-flow embedded on-site, flash-only for now,
 flash = full payment, one Stripe integration carries every method, server-side amount authority,
 reference format `BSF-<piece-id>-<8char>`, stale-pending window 48h (PaymentIntent expires ~30
-min), staging-only until the apex cutover (no `apps/web/public/CNAME` — guardrail in `CLAUDE.md`),
+min), tested on staging first,
 test-mode keys first behind `PAYMENTS_ENABLED`.
 
 ## 5. Dependencies & secrets
@@ -328,7 +328,7 @@ fees/refunds/disputes from this account.)
 minus fees, Klarna carries the credit risk); **PayPal** — "Turn on" (eligible UK accounts; then
 appears in the Payment Element via `automatic_payment_methods`, no code); **Apple/Google Pay** —
 enable, and for **Apple Pay register the web domain** (Settings → Payment methods → Apple Pay → Add
-domain — the staging Pages domain now, the apex at cutover). These map 1:1 to what the Element
+domain — the staging Pages domain for testing, then `beansprout.ink`). These map 1:1 to what the Element
 renders; the Worker already requests them all.
 
 **4. Get the API keys** (Developers → API keys, Test mode): **Publishable** `pk_test_…` (**not
@@ -376,8 +376,7 @@ a `payment_intent.canceled` marks it `expired`. Confirm the **CSP** doesn't bloc
 (load the **built** flash page — CSP is build/preview only — console clean for
 `js.stripe.com`/`api.stripe.com`/`hooks.stripe.com`).
 
-**9. Go live.** Only after §8 is clean **and** the apex guardrail allows it (`CLAUDE.md` — no
-`apps/web/public/CNAME` until the apex cutover, `CUTOVER.md`; until then payments run on **staging only**): flip
+**9. Go live.** Only after §8 is clean on staging (the site itself is already live on the apex): flip
 Stripe to **Live mode** (complete KYC if prompted); re-do §3 (live), §4 (`pk_live_…`/`sk_live_…`),
 §5 (a **live** webhook → new `whsec_…`); re-run §6 with live keys (and
 `VITE_STRIPE_PUBLISHABLE_KEY=pk_live_…` + rebuild) and §7 `migrate` against the live D1; do **one
