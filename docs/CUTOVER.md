@@ -17,8 +17,9 @@ code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs i
 the CDN kept v1's cached homepage for about six minutes). The automated probe passes on the
 apex. Still open: the manual email test (run "b"), production analytics (X7b) and Phase 5.
 
-> `apps/web/public/CNAME` is now committed, so **every** build is a production build —
-> including the Cloudflare Pages staging build from `develop` (`CLAUDE.md` → *SEO structure*).
+> `apps/web/public/CNAME` is now committed, so a plain build is a production build. The
+> Cloudflare Pages staging site is the exception: it builds in staging mode (noindex, no
+> sitemap) because Cloudflare sets `CF_PAGES=1` (`CLAUDE.md` → *SEO structure*).
 
 ---
 

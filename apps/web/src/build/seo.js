@@ -29,19 +29,25 @@ export const OG_IMAGE = `${SITE_URL}/images/og-image.jpg`
 // matching alt; this is the default for everything that uses the brand image.
 export const OG_IMAGE_ALT = 'Beansprout: fine line, high detail and realism tattoo, Winchester.'
 
-// ── Staging vs apex: keep the pre-launch staging site out of search ──────────
-// The whole site lives on the GitHub Pages *.github.io URL until the apex
-// cut-over, which (per docs/CUTOVER.md → Phase 2) is the moment
-// `apps/web/public/CNAME` is added so Pages serves beansprout.ink. We key
-// indexability off that exact file: no CNAME → staging → noindex every page;
-// CNAME present → the apex build → index normally. That makes this
-// self-disarming — adding the CNAME for go-live turns indexing back on by
-// itself, so it can never strand the live site on a forgotten noindex. Set
-// SITE_ENV=production to force the apex behaviour for a manual/local build.
+// ── Staging vs apex: keep the staging copy out of search ─────────────────────
+// The apex build is the one GitHub Pages deploys from `main`. It is recognised
+// by `apps/web/public/CNAME`, which is committed, so a plain build is a
+// production build: indexable, real robots.txt + sitemap. That default is
+// deliberate — the live site can never be stranded on a forgotten noindex.
+//
+// The staging copy is built by Cloudflare Pages from the same tree, so it needs
+// an explicit opt-out or it would be an indexable duplicate of the live site:
+//   • CF_PAGES=1 — set by Cloudflare Pages on every build it runs (staging and
+//     branch previews), so those are staging builds with no dashboard setting.
+//   • SITE_ENV=staging — the same opt-out by hand, for a local staging build.
+// SITE_ENV=production wins over both, to force the apex behaviour anywhere.
 const CNAME_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '../../public/CNAME')
 
 export function isProductionBuild() {
-  return process.env.SITE_ENV === 'production' || existsSync(CNAME_PATH)
+  const { SITE_ENV, CF_PAGES } = process.env
+  if (SITE_ENV === 'production') return true
+  if (SITE_ENV === 'staging' || CF_PAGES === '1') return false
+  return existsSync(CNAME_PATH)
 }
 
 export const ROBOTS_NOINDEX = '<meta name="robots" content="noindex, nofollow">'

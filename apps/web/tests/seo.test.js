@@ -129,12 +129,38 @@ describe('injectStagingNoindex (keep the pre-launch staging site out of search)'
     })
   })
 
-  it('adds a site-wide noindex on a staging build (no apex CNAME)', () => {
-    withEnv(undefined, () => {
-      // Repo invariant pre-launch: no apps/web/public/CNAME → staging build.
-      if (isProductionBuild()) return // a CNAME/apex build legitimately wouldn't noindex
+  it('adds a site-wide noindex on a staging build (SITE_ENV=staging)', () => {
+    withEnv('staging', () => {
+      expect(isProductionBuild()).toBe(false)
       expect(injectStagingNoindex(ogPage())).toContain(ROBOTS_NOINDEX)
     })
+  })
+
+  // The apex CNAME is committed, so a plain build is production. Cloudflare Pages
+  // builds the staging copy from the same tree and sets CF_PAGES=1 on every build.
+  it('treats a Cloudflare Pages build as staging (CF_PAGES=1), unless forced', () => {
+    const prevCf = process.env.CF_PAGES
+    process.env.CF_PAGES = '1'
+    try {
+      withEnv(undefined, () => {
+        expect(isProductionBuild()).toBe(false)
+        expect(injectStagingNoindex(ogPage())).toContain(ROBOTS_NOINDEX)
+      })
+      withEnv('production', () => expect(isProductionBuild()).toBe(true))
+    } finally {
+      if (prevCf === undefined) delete process.env.CF_PAGES
+      else process.env.CF_PAGES = prevCf
+    }
+  })
+
+  it('a plain build with the committed CNAME is a production build', () => {
+    const prevCf = process.env.CF_PAGES
+    delete process.env.CF_PAGES
+    try {
+      withEnv(undefined, () => expect(isProductionBuild()).toBe(true))
+    } finally {
+      if (prevCf !== undefined) process.env.CF_PAGES = prevCf
+    }
   })
 
   it('never doubles up on a page that already declares robots noindex', () => {
@@ -182,8 +208,7 @@ describe('stripArtistCopyMarkers (sign-off markers never reach the live site)', 
   })
 
   it('leaves staging builds untouched (the markers are the review aid there)', () => {
-    withSiteEnv(undefined, () => {
-      if (isProductionBuild()) return // the apex CNAME makes every build a production build
+    withSiteEnv('staging', () => {
       expect(stripArtistCopyMarkers(page)).toBe(page)
     })
   })
