@@ -17,7 +17,7 @@ vi.mock('../src/data/analytics.js', () => ({
 
 import {
   track, initAnalytics, measurementIdFor, optOutReason, safeParams,
-  OPT_OUT_KEY, _resetForTests,
+  OPT_OUT_KEY, OWNER_KEY, isOwner, _resetForTests,
 } from '../src/js/modules/analytics.js'
 
 const ID = 'G-TEST123'
@@ -301,5 +301,88 @@ describe('the /privacy/ opt-out control', () => {
   it('no-ops on pages without the control', () => {
     document.body.innerHTML = '<p>nothing here</p>'
     expect(() => initAnalytics({ hostname: 'localhost' })).not.toThrow()
+  })
+})
+
+describe('the owner flag (?owner=1 → traffic_type=internal)', () => {
+  const config = () => pushed().find(a => a[0] === 'config')[2]
+  const visit = path => history.replaceState(null, '', path)
+  afterEach(() => visit('/'))
+
+  it('sends no traffic_type for an ordinary visitor', () => {
+    initAnalytics({ hostname: 'staging.example' })
+    expect(isOwner()).toBe(false)
+    expect(config()).not.toHaveProperty('traffic_type')
+    expect(document.querySelector('[data-owner-mode]')).toBeNull()
+  })
+
+  it('?owner=1 saves the flag and tags the config call on that same page load', () => {
+    visit('/flash/?owner=1')
+    initAnalytics({ hostname: 'staging.example' })
+    expect(localStorage.getItem(OWNER_KEY)).toBe('1')
+    expect(config().traffic_type).toBe('internal')
+  })
+
+  it('the flag persists: a later visit without the param is still internal', () => {
+    localStorage.setItem(OWNER_KEY, '1')
+    initAnalytics({ hostname: 'staging.example' })
+    expect(config().traffic_type).toBe('internal')
+  })
+
+  it('?owner=0 clears the flag', () => {
+    localStorage.setItem(OWNER_KEY, '1')
+    visit('/?owner=0')
+    initAnalytics({ hostname: 'staging.example' })
+    expect(localStorage.getItem(OWNER_KEY)).toBeNull()
+    expect(config()).not.toHaveProperty('traffic_type')
+    expect(location.search).toBe('')
+  })
+
+  it('strips the param before gtag is configured, keeping the rest of the URL', () => {
+    visit('/portfolio/?style=fine-line&owner=1#top')
+    let urlAtConfig
+    // loadGtag reuses an existing dataLayer, so seed one that notes the URL.
+    window.dataLayer = []
+    window.dataLayer.push = function (entry) {
+      if (entry?.[0] === 'config') urlAtConfig = location.href
+      return Array.prototype.push.call(this, entry)
+    }
+    initAnalytics({ hostname: 'staging.example' })
+    expect(urlAtConfig).toMatch(/\/portfolio\/\?style=fine-line#top$/)
+    expect(location.href).not.toContain('owner')
+  })
+
+  it('strips the param on a host with no ID too, and ignores other values', () => {
+    visit('/?owner=yes')
+    initAnalytics({ hostname: 'localhost' })
+    expect(location.search).toBe('')
+    expect(isOwner()).toBe(false)
+  })
+
+  it('shows a footer note while the flag is set, once', () => {
+    document.body.innerHTML = '<footer><div class="footer-bottom"></div></footer>'
+    localStorage.setItem(OWNER_KEY, '1')
+    initAnalytics({ hostname: 'localhost' })
+    initAnalytics({ hostname: 'localhost' })
+    const notes = document.querySelectorAll('.footer-bottom [data-owner-mode]')
+    expect(notes).toHaveLength(1)
+    expect(notes[0].textContent).toMatch(/Owner mode/)
+  })
+
+  it('an opted-out owner still sends nothing', () => {
+    localStorage.setItem(OPT_OUT_KEY, '1')
+    visit('/?owner=1')
+    initAnalytics({ hostname: 'staging.example' })
+    expect(gtagScript()).toBeNull()
+    expect(location.search).toBe('')
+  })
+
+  it('unreadable storage: not an owner, and the param is still stripped', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    visit('/?owner=1')
+    expect(() => initAnalytics({ hostname: 'staging.example' })).not.toThrow()
+    expect(isOwner()).toBe(false)
+    expect(location.search).toBe('')
   })
 })
