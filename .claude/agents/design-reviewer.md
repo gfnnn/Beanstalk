@@ -14,8 +14,9 @@ Ground every judgement in how this codebase actually works:
 
 1. **Read first.** Start from `CLAUDE.md` (architecture, the data→build-time-HTML pipeline, the
    Worker/D1/Resend backend, the design system, the develop→main flow, and the **scope-discipline
-   rules**). Then read the relevant `docs/` (`ROADMAP.md` for priorities/launch state, plus the
-   topic doc — `PAYMENTS.md`, `MEDIA.md`, `MOTION.md`, `DATA-COMPLIANCE.md`, etc.) and the actual
+   rules**). Then read the relevant technical `docs/` (the topic doc — `PAYMENTS.md`, `MEDIA.md`,
+   `MOTION.md`, `DATA-COMPLIANCE.md`, `CUTOVER.md`, etc.; priorities and launch state come from
+   the brief you are given, not the repo) and the actual
    source the design touches. Identify existing functions/patterns the design should **reuse**.
 
 2. **Review across these axes:**

@@ -5,7 +5,7 @@
 // point at a live site + Worker to assert the deploy is wired and safe. It is the
 // automatable, reusable half of the launch runbook (docs/CUTOVER.md → Phase 3) —
 // the human acceptance round-trip (real enquiry email, deliverability) stays manual
-// (docs/ROADMAP.md → "the end-to-end email test, run b"). Run it on the apex at
+// (docs/CUTOVER.md → "the end-to-end email test", run b). Run it on the apex at
 // cutover AND on every release to main thereafter.
 //
 //   node scripts/smoke-test.mjs                         # apex + production Worker
@@ -179,7 +179,7 @@ async function run() {
   //   configured (a missing RESEND_API_KEY etc. would 500 first), while writing
   //   NO D1 row and sending NO email. That is exactly the "no real PII, no Stripe
   //   keys" probe the runbook needs on every deploy. The full email round-trip is
-  //   the manual acceptance test (ROADMAP → run "b").
+  //   the manual acceptance test (docs/CUTOVER.md → run "b").
   console.log('\nWorker forms (honeypot happy-path — no PII stored, no email sent):')
   await check('POST /enquiry → 200 ok', async () => {
     const res = await fetchWithTimeout(`${worker}/enquiry`, {

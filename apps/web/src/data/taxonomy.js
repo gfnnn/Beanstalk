@@ -35,7 +35,7 @@ export const STYLE_LABELS = {
 //   arm  = forearm / upper-arm / wrist / hand     body = torso / back / chest / neck-down
 //   leg  = anything on the leg
 // (a deliberate, post-launch-refinable choice — split finer spots back out later
-// if real usage wants them; see docs/ROADMAP.md.)
+// if real usage wants them.)
 export const PLACEMENT_LABELS = {
   arm: 'Arm', body: 'Body', leg: 'Leg',
 }

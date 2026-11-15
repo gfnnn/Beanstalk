@@ -31,7 +31,7 @@ export const OG_IMAGE_ALT = 'Beansprout: fine line, high detail and realism tatt
 
 // ── Staging vs apex: keep the pre-launch staging site out of search ──────────
 // The whole site lives on the GitHub Pages *.github.io URL until the apex
-// cut-over, which (per docs/ROADMAP.md → go-live plan, Phase 6) is the moment
+// cut-over, which (per docs/CUTOVER.md → Phase 2) is the moment
 // `apps/web/public/CNAME` is added so Pages serves beansprout.ink. We key
 // indexability off that exact file: no CNAME → staging → noindex every page;
 // CNAME present → the apex build → index normally. That makes this

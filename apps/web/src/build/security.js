@@ -13,8 +13,8 @@
 // What a <meta> CSP CAN'T do (a real GitHub Pages limitation): `frame-ancestors`,
 // `X-Frame-Options`, `Strict-Transport-Security` and `X-Content-Type-Options` are
 // response-header-only — ignored as meta tags — so clickjacking defence on the
-// HTML pages waits for the Cloudflare-front consolidation (ROADMAP → Tier 3 /
-// "infrastructure consolidation"). The Worker's JSON responses set their own
+// HTML pages waits until the site sits behind a Cloudflare front (post-launch).
+// The Worker's JSON responses set their own
 // header set in apps/functions/src/lib/http.js.
 
 // The Worker origin(s) the forms fetch() to, pinned in `connect-src`. Mirrors the

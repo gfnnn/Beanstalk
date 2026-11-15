@@ -21,15 +21,6 @@ switch-over.
   rate limiter. See [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md).
 - **Costs nothing to run:** everything sits inside free service tiers.
 
-## Planned (not built yet)
-
-- **Online booking:** choosing and confirming an appointment date on the site. Planned
-  for after launch; see [`docs/SCHEDULING.md`](docs/SCHEDULING.md).
-- **Card payments for flash and deposits:** planned. Part of the back end exists but is
-  switched off and not offered on the site; see [`docs/PAYMENTS.md`](docs/PAYMENTS.md).
-- **Artist dashboard and content editor:** planned; see [`docs/DASHBOARD.md`](docs/DASHBOARD.md)
-  and [`docs/CMS.md`](docs/CMS.md).
-
 ## How it's built
 
 | Part | What it is | Runs on |
@@ -123,12 +114,8 @@ Think of this project as **your website plus a tiny receptionist.**
 
 ### Making changes to the site
 
-Most of the wording and images are content. The plan is a simple editor so you can
-change them yourself after launch (see [`docs/CMS.md`](docs/CMS.md)). Until then, note
-**which page** and **what you'd like it to say or show**, and hand that over.
-
-The remaining "before we go live" checklist is in
-[`docs/ROADMAP.md`](docs/ROADMAP.md), under *Remaining launch actions*.
+Most of the wording and images are content. To change something, note **which page** and
+**what you'd like it to say or show**, and hand that over.
 
 ---
 
@@ -143,19 +130,14 @@ deploys a staging copy; `main` is updated only by batched release PRs
 ### Docs
 
 - [`CLAUDE.md`](CLAUDE.md): architecture and conventions (**start here**)
-- [`docs/ROADMAP.md`](docs/ROADMAP.md): the living plan, launch checklist and backlog
 - [`docs/BRANCHING.md`](docs/BRANCHING.md): branch and release model
+- [`docs/CUTOVER.md`](docs/CUTOVER.md): go-live runbook
 - [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md): enquiry and flash-claim form plus email setup
 - [`docs/NEWSLETTER-SETUP.md`](docs/NEWSLETTER-SETUP.md): newsletter (Resend Audience) setup
 - [`docs/EMAIL-DOMAIN-SETUP.md`](docs/EMAIL-DOMAIN-SETUP.md): sending domain and inbox forwarding
 - [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md): UK GDPR retention and erasure runbook, D1 backup
 - [`docs/MEDIA.md`](docs/MEDIA.md): portfolio and flash image pipeline, hero video
 - [`docs/MOTION.md`](docs/MOTION.md): loader, entrance and page-transition motion
-- [`docs/PAYMENTS.md`](docs/PAYMENTS.md): planned Stripe payments (back end built but switched off)
-- [`docs/SCHEDULING.md`](docs/SCHEDULING.md): appointment booking plan (not built)
-- [`docs/DASHBOARD.md`](docs/DASHBOARD.md): artist dashboard plan (not built)
-- [`docs/CMS.md`](docs/CMS.md): content editor plan (not built)
+- [`docs/PAYMENTS.md`](docs/PAYMENTS.md): Stripe payments (back end built but switched off)
 - [`docs/ANALYTICS.md`](docs/ANALYTICS.md): GA4 analytics (statistics only, with opt-out and Global Privacy Control)
-- [`docs/COPY-REVIEW.md`](docs/COPY-REVIEW.md): copy sign-off tracker
-- [`docs/WORKFLOW.md`](docs/WORKFLOW.md): how features are designed and handed to Claude Code
 - [`.env.example`](.env.example): environment variables
