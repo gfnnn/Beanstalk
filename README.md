@@ -1,11 +1,18 @@
 # Beanstalk: website and enquiry system for a tattoo artist
 
+[![Tests](https://github.com/gfnnn/beanstalk/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/gfnnn/beanstalk/actions/workflows/test.yml)
+[![E2E](https://github.com/gfnnn/beanstalk/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/gfnnn/beanstalk/actions/workflows/e2e.yml)
+[![Deploy](https://github.com/gfnnn/beanstalk/actions/workflows/deploy-web.yml/badge.svg?branch=main)](https://github.com/gfnnn/beanstalk/actions/workflows/deploy-web.yml)
+
+**Live site: [beansprout.ink](https://beansprout.ink)**
+
 **Status: live.** This is version 2 of the site for Beansprout Tattoo, a
 self-employed tattoo artist (Roxy) working from a studio in Winchester. It has been live at
 [beansprout.ink](https://beansprout.ink) since 15 November 2026, when it replaced the old
 version 1 site.
 
-**An unpaid personal project.** I'm building it for Roxy for free; it is not client work.
+**An unpaid personal project.** I built it for Roxy for free and keep it running; it is
+not paid client work.
 
 ## What it does
 
@@ -28,7 +35,7 @@ version 1 site.
 | `apps/web` | The website: plain HTML, CSS and JavaScript, built with Vite (no framework) | GitHub Pages |
 | `apps/functions` | A small back end that receives the forms, stores them in a database and sends email | Cloudflare Workers, Cloudflare D1 (SQLite), Resend |
 
-Automated checks: about 1,000 unit and integration tests (Vitest), browser tests
+Automated checks: over 1,000 unit and integration tests (Vitest), browser tests
 (Playwright) and a linter (Biome), run by GitHub Actions on every change. The tests use
 fake data and mocked email and database services, so no real enquiries are involved.
 
@@ -39,6 +46,31 @@ co-authored with it. Most of the code, including the SQL for the D1 database, wa
 written with Claude. My part is setting the requirements and priorities, making the
 product, design and privacy decisions, and reviewing and testing changes before they
 are merged. [`CLAUDE.md`](CLAUDE.md) is the brief the assistant works from.
+
+## My role: running it as a delivery project
+
+I don't write the code by hand. I run the project the way I would run a client
+delivery: working out what the artist actually needs, deciding what to build and what
+to leave out, briefing the work, checking it, and managing the releases and the launch.
+
+- **Requirements and scope.** Each feature starts as a written brief with decisions,
+  non-goals, acceptance criteria and privacy notes. The rule is the smallest thing that
+  genuinely helps a one-person business, so bigger ideas (booking, a dashboard, a CMS)
+  stay unbuilt until real use calls for them.
+- **Working with the client.** Prices, policies and every line of copy in the artist's
+  voice were agreed with her, and each block stays flagged until she approves it (see
+  [Artist-copy markers in `CLAUDE.md`](CLAUDE.md#artist-copy-markers)).
+- **Change and release control.** Over 260 pull requests merged since May 2026, each
+  one tested in CI. Features collect on a staging site and go live in batched,
+  reviewed releases ([`docs/BRANCHING.md`](docs/BRANCHING.md)).
+- **Launch.** A phased go-live runbook with a go/no-go gate, smoke test and rollback
+  plan, used to switch the domain from the old site on 15 November 2026
+  ([`docs/CUTOVER.md`](docs/CUTOVER.md)).
+- **Privacy and compliance.** UK GDPR built in from the start: data minimisation,
+  explicit consent for health details, retention and erasure routines, and analytics
+  limited to statistics with an opt-out ([`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md),
+  [`docs/ANALYTICS.md`](docs/ANALYTICS.md)).
+- **Running costs.** Hosting, database, email and analytics all sit within free tiers.
 
 ## Run it locally
 
