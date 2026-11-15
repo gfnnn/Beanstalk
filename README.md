@@ -1,9 +1,9 @@
 # Beanstalk: website and enquiry system for a tattoo artist
 
-**Status: in development.** This is version 2 of the site for Beansprout Tattoo, a
-self-employed tattoo artist (Roxy) working from a studio in Winchester. It runs on a
-preview link only. `beansprout.ink` still shows the old version 1 site until the planned
-switch-over.
+**Status: live.** This is version 2 of the site for Beansprout Tattoo, a
+self-employed tattoo artist (Roxy) working from a studio in Winchester. It has been live at
+[beansprout.ink](https://beansprout.ink) since 15 November 2026, when it replaced the old
+version 1 site.
 
 **An unpaid personal project.** I'm building it for Roxy for free; it is not client work.
 

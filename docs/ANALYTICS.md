@@ -4,8 +4,8 @@ The runbook for site measurement: what the code guarantees, the events it sends,
 GA4 admin setup.
 
 > Status: **shipped on staging** (code live, inert until the staging Measurement ID is set in
-> `apps/web/src/data/analytics.js`). Production stays a no-op until cutover
-> ([`CUTOVER.md`](./CUTOVER.md)).
+> `apps/web/src/data/analytics.js`). The site is live on the apex, but production stays a no-op
+> until its Measurement ID is set ([`CUTOVER.md`](./CUTOVER.md) → X7b).
 
 **Constraint:** GA4 loaded directly as `gtag.js` (no GTM, no npm dependency, no build step),
 statistics only, no consent banner, with an opt-out (the control on `/privacy/` plus Global
@@ -16,7 +16,7 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
 ## What the code guarantees (`apps/web/src/js/modules/analytics.js`)
 - **Runtime hostname → ID** from `src/data/analytics.js`: staging hosts (`gfnnn.github.io`,
   `beanstalk-e61.pages.dev` + its branch previews) → staging ID; `beansprout.ink`/`www` →
-  production ID (**empty until cutover**); anything else (localhost, unknown) → no script.
+  production ID (**empty until X7b**); anything else (localhost, unknown) → no script.
   An empty ID means no script, no errors.
 - **Opt-out before load:** Global Privacy Control, a saved opt-out (the control on `/privacy/`),
   or unreadable storage all mean gtag is never injected and no `dataLayer` exists: zero Google
@@ -28,7 +28,7 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   values); anything else is dropped. Call sites never touch gtag.
 - **Two properties:** staging and production are separate GA4 properties (separate IDs
   in the data file), so test traffic never mixes with real numbers. The production ID stays
-  empty until cutover (`CUTOVER.md` → X7b).
+  empty until the production property exists (`CUTOVER.md` → X7b).
 - **CSP** (`src/build/security.js`) widened only to Google's GA4 host set: `script-src
   www.googletagmanager.com`; `img-src`/`connect-src` `*.google-analytics.com`,
   `*.analytics.google.com` (connect only), `*.googletagmanager.com`.

@@ -30,7 +30,7 @@ the brief; if a brief is silent on something that matters, ask rather than guess
 
 1. **Ship before you build ahead.** Don't write a feature's *code* — even gated/"dark" — before
    the thing it serves is live and the dependency is real. **Plans are cheap (and kept outside
-   this repo); inert backbones are not.** (The site isn't on the apex yet; resist building the next speculative tier
+   this repo); inert backbones are not.** (Resist building the next speculative tier
    until real usage pulls it.)
 2. **One doc per concern; consolidate on sight.** If two docs cross-reference each other to stay
    in step, they should be one doc. A commit whose job is "reconcile docs / de-dup / fix counts"
@@ -188,7 +188,7 @@ apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
   src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
-  public/        raster favicons, manifest, images/ (copied to dist root; no CNAME yet — robots.txt + sitemap.xml + favicon.svg are generated, see SEO/palette)
+  public/        raster favicons, manifest, images/ (copied to dist root, incl. the apex `CNAME` — robots.txt + sitemap.xml + favicon.svg are generated, see SEO/palette)
   vite.config.js  vitest.config.js  tests/
 apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email + payments app)
   src/index.js                           # Worker entry — routes /enquiry /newsletter /checkout /webhooks/stripe /flash-status
@@ -300,8 +300,9 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
   authored by hand in each page — only the derived/constant tags are injected. The same
   plugin also wraps `injectStagingNoindex`, which adds a **site-wide** `noindex, nofollow`
-  robots `<meta>` to every page on a **staging build** (no apex CNAME) so the pre-launch
-  GitHub Pages / Cloudflare Pages preview can't be indexed; it's a no-op on the apex build
+  robots `<meta>` to every page on a **staging build** (no apex CNAME) so a preview
+  can't be indexed. **Since the cutover the CNAME is committed, so every build — the Cloudflare
+  Pages staging build included — is a production build.** It's a no-op on the apex build
   and on any page that already declares its own robots tag (so it never doubles up).
 - **`sitemap` plugin** emits `robots.txt` + `/sitemap.xml` at build (and serves both in
   dev). The sitemap is built from the `ROUTES` list in `seo.js` **plus** a
@@ -467,8 +468,7 @@ The two workspaces deploy to **different places**, each gated so only relevant c
   to the `config.js` defaults) and publishes `apps/web/dist`. It is
   **path-gated** (`paths: apps/web/**`, lockfile, the workflow itself), so a functions-only
   change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`)
-  is copied to the site root as-is. **No `public/CNAME`** until the apex cutover (see the
-  guardrail below). This is the **production** web deploy — fed only by batched
+  is copied to the site root as-is, including `public/CNAME` (`beansprout.ink`). This is the **production** web deploy — fed only by batched
   `develop → main` release PRs (see the Git workflow above).
 - **Staging (the `develop` branch) → Cloudflare Pages.** A Git-connected **Cloudflare
   Pages** project builds `develop` (production branch = `develop`, build `npm run build`,
@@ -623,15 +623,13 @@ here), so every squash-merge removes its own head. The residue auto-delete can't
 session can't (the proxy 403s on remote-ref deletion). The ready-made prune commands and the
 three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backlog hygiene*, step 5.
 
-## Deploy guardrail — do NOT switch the apex domain
+## Live domain — `main` is production
 
-`beansprout.ink` (apex) is intentionally still served by the **v1** repo
-(`gfnnn/beansprout`). This v2 repo publishes only to GitHub Pages (the staging Pages
-URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
-**no `apps/web/public/CNAME`**, and don't set `beansprout.ink` as this repo's Pages custom
-domain — until the go/no-go gate in `docs/CUTOVER.md` clears. (DNS already points at GitHub
-Pages for v1; the cutover is a custom-domain handover between the two repos, not a DNS change.)
-Cloudflare hosts
+`beansprout.ink` (apex) has been served by **this repo** since the 2026-11-15 cutover: it is the
+Pages custom domain here, and `apps/web/public/CNAME` is what makes the build a production build.
+**A merge to `main` is a deploy to the live site.** Don't remove the `CNAME` file or the Pages
+custom domain except as the rollback in `docs/CUTOVER.md` → Phase 4. The old **v1** repo
+(`gfnnn/beansprout`) is kept idle as that rollback target. Cloudflare hosts
 the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
 ## CI / GitHub Actions security
