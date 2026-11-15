@@ -8,7 +8,7 @@
   color: var(--moss);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .eyebrow::before {

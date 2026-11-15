@@ -12,7 +12,7 @@
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 12px var(--pad-x);
+  padding: var(--space-3) var(--pad-x);
   transition: box-shadow var(--dur) var(--ease);
 }
 /* Bottom divider as an animatable hairline (was border-bottom) — grows/retracts
@@ -28,7 +28,7 @@
   background: var(--line);
 }
 .filter-bar.stuck {
-  box-shadow: 0 4px 20px rgba(var(--ink-rgb), 0.06);
+  box-shadow: var(--shadow-stuck);
 }
 
 /* ── Mobile: collapse the bar behind a "Filters" toggle ───────────────────────
@@ -46,10 +46,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-2);
     width: 100%;
     min-height: 44px; /* touch target */
-    padding: 9px 16px;
+    padding: 9px var(--space-4);
     font-family: var(--sans);
     font-size: 13px;
     letter-spacing: 0.02em;
@@ -174,7 +174,7 @@
 .filter-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-shrink: 0;
   width: 100%; /* full-width row on mobile */
 }
@@ -209,7 +209,7 @@
   color: var(--moss);
   display: none;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   order: -1; /* appears before selects on mobile */
   width: 100%;
 }
@@ -240,20 +240,20 @@
     align-items: center;
     flex-wrap: wrap;
     min-height: var(--filter-h);
-    padding: 8px var(--pad-x);
+    padding: var(--space-2) var(--pad-x);
     justify-content: space-between;
     column-gap: 20px;
-    row-gap: 8px;
+    row-gap: var(--space-2);
   }
 
   .filter-right {
     width: auto;
-    gap: 12px;
+    gap: var(--space-3);
   }
 
   .filter-select {
     flex: none;
-    padding: 7px 32px 7px 14px;
+    padding: 7px var(--space-8) 7px 14px;
     min-height: auto;
   }
 

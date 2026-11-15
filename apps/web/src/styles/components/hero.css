@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 40px var(--pad-x) 48px;
+  padding: var(--space-10) var(--pad-x) var(--space-12);
   will-change: transform, opacity;
 }
 
@@ -27,8 +27,8 @@
   color: var(--moss);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 .hero-eyebrow::before {
   content: '';
@@ -59,9 +59,9 @@
 .hero-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 }
 
 /* ── Studio notices ──────────────────────────────────────────────────────── */
@@ -71,7 +71,7 @@
      these tracks via subgrid, keeping its own per-row border/padding. */
   display: grid;
   grid-template-columns: auto auto 1fr;
-  column-gap: 12px;
+  column-gap: var(--space-3);
   border-top: 1px solid var(--line-soft);
   padding-top: 20px;
   max-width: 420px;
@@ -193,7 +193,7 @@
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  margin-top: 16px;
+  margin-top: var(--space-4);
   color: rgba(var(--cream-rgb), 0.4);
 }
 
@@ -313,9 +313,9 @@ a.video-credit-name:focus-visible {
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
-  .hero-text  { padding: 56px var(--pad-x); }
+  .hero-text  { padding: var(--space-14) var(--pad-x); }
   .hero-body  { font-size: 17px; }
-  .hero h1    { margin-bottom: 24px; }
+  .hero h1    { margin-bottom: var(--space-6); }
   .video-placeholder,
   .hero-media .media-clip { min-height: 55vw; }
 }
@@ -341,15 +341,15 @@ a.video-credit-name:focus-visible {
   }
 
   .hero-text {
-    padding: 80px var(--pad-x);
-    padding-right: 48px;
+    padding: var(--space-20) var(--pad-x);
+    padding-right: var(--space-12);
   }
 
   .hero-body { font-size: 18px; margin-bottom: 36px; }
 
   .hero-actions { gap: 14px; margin-bottom: 36px; }
 
-  .studio-notices { padding-top: 24px; }
+  .studio-notices { padding-top: var(--space-6); }
   .notice-item    { padding: 11px 0; }
 
   .video-placeholder { min-height: 100%; }
@@ -488,6 +488,6 @@ a.video-credit-name:focus-visible {
     position: relative;
     z-index: 1;
     background: var(--bg);
-    padding: 48px var(--pad-x) 8px;
+    padding: var(--space-12) var(--pad-x) var(--space-2);
   }
 }

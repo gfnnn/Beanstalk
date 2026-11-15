@@ -53,12 +53,12 @@
   line-height: 1.04;
   letter-spacing: -0.03em;
   color: var(--ink);
-  margin: 6px 0 16px;
+  margin: 6px 0 var(--space-4);
 }
 .piece-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 22px;
 }
 .piece-tag {
@@ -70,19 +70,19 @@
   background: var(--moss-bg);
   border: 1px solid var(--line);
   border-radius: 100px;
-  padding: 5px 12px;
+  padding: 5px var(--space-3);
 }
 .piece-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 /* Pager */
 .piece-pager {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   margin-top: clamp(40px, 6vw, 72px);
   padding-top: clamp(20px, 3vw, 32px);
   border-top: 1px solid var(--line);
@@ -90,7 +90,7 @@
 .piece-pager-link {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
   max-width: 45%;
 }
 .piece-pager-link.next { text-align: right; align-items: flex-end; }
@@ -116,5 +116,5 @@
     gap: clamp(48px, 6vw, 80px);
     align-items: start;
   }
-  .piece-detail { position: sticky; top: calc(var(--nav-h) + 32px); padding-top: 8px; }
+  .piece-detail { position: sticky; top: calc(var(--nav-h) + 32px); padding-top: var(--space-2); }
 }

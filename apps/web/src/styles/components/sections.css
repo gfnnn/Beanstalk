@@ -2,14 +2,14 @@
 .specialism-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .specialism-card {
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 28px 24px;
+  padding: 28px var(--space-6);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -79,7 +79,7 @@
   font-size: 28px;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 .specialism-title em { font-style: italic; color: var(--moss); }
 
@@ -87,7 +87,7 @@
   font-size: 15px;
   color: var(--ink-soft);
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 
 .specialism-link {
@@ -107,7 +107,7 @@
 
 @media (min-width: 640px) {
   .specialism-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
-  .specialism-card { padding: 32px; }
+  .specialism-card { padding: var(--space-8); }
   .specialism-num  { margin-bottom: 44px; }
   .specialism-title { font-size: 32px; }
 }
@@ -130,7 +130,7 @@
 .process-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: var(--space-6);
   position: relative;
 }
 
@@ -151,7 +151,7 @@
   line-height: 1;
   color: var(--moss-soft);
   letter-spacing: -0.04em;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   display: block;
 }
 
@@ -160,7 +160,7 @@
   font-weight: 300;
   font-size: 22px;
   letter-spacing: -0.01em;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .process-body {
@@ -170,8 +170,8 @@
 }
 
 @media (min-width: 640px) {
-  .process-grid  { grid-template-columns: 1fr 1fr; gap: 32px; }
-  .process-num   { font-size: 100px; margin-bottom: 16px; }
+  .process-grid  { grid-template-columns: 1fr 1fr; gap: var(--space-8); }
+  .process-num   { font-size: 100px; margin-bottom: var(--space-4); }
   .process-title { font-size: 24px; margin-bottom: 10px; }
 }
 
@@ -217,7 +217,7 @@
   line-height: 0.6;
   color: var(--clay);
   opacity: 0.65;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
   display: block;
 }
 
@@ -248,7 +248,7 @@
   .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
 
   .testimonial {
-    padding: 32px 32px 32px 32px;
+    padding: var(--space-8) var(--space-8) var(--space-8) var(--space-8);
     border-top: none;
     border-left: 1px solid var(--line);
   }
@@ -256,7 +256,7 @@
     border-left: none;
     padding-left: 0;
     border-top: none;
-    padding-top: 32px;
+    padding-top: var(--space-8);
   }
 }
 

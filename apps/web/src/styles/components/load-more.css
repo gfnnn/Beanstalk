@@ -5,7 +5,7 @@
 
 .load-more {
   text-align: center;
-  padding: 0 var(--pad-x) 80px;
+  padding: 0 var(--pad-x) var(--space-20);
 }
 
 .load-more-meta {
@@ -45,16 +45,16 @@
 .empty-state {
   display: none;
   text-align: center;
-  padding: 80px var(--pad-x);
+  padding: var(--space-20) var(--pad-x);
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .empty-state.visible { display: flex; }
 
 .empty-state svg {
   color: var(--line);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 .empty-state h3 {
   font-family: var(--serif);

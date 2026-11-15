@@ -10,13 +10,13 @@
    ─────────────────────────────────────────────────────────────────────────── */
 
 .grid-wrapper {
-  padding: 24px var(--pad-x) 64px;
+  padding: var(--space-6) var(--pad-x) var(--space-16);
 }
 
 .masonry {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .masonry-tile {
@@ -103,14 +103,14 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
-  .grid-wrapper { padding: 28px var(--pad-x) 72px; }
+  .grid-wrapper { padding: 28px var(--pad-x) var(--space-18); }
 }
 
 @media (min-width: 900px) {
   .masonry      { grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tile-title   { font-size: 15px; }
-  .tile-overlay { padding: 16px; }
-  .grid-wrapper { padding: 32px var(--pad-x) 80px; }
+  .tile-overlay { padding: var(--space-4); }
+  .grid-wrapper { padding: var(--space-8) var(--pad-x) var(--space-20); }
 }
 
 @media (min-width: 1200px) {

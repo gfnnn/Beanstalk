@@ -4,7 +4,7 @@
 .intro {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 40px;
+  gap: var(--space-10);
   padding: clamp(48px, 7vw, 96px) var(--pad-x);
   align-items: start;
 }
@@ -75,8 +75,8 @@
   color: var(--moss);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 .intro-eyebrow::before {
   content: '';
@@ -92,7 +92,7 @@
   font-size: clamp(40px, 5vw, 64px);
   line-height: 1;
   letter-spacing: -0.025em;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 }
 .intro-heading em { font-style: italic; color: var(--moss); }
 
@@ -112,7 +112,7 @@
   float: left;
   line-height: 0.82;
   padding-right: 10px;
-  padding-top: 8px;
+  padding-top: var(--space-2);
 }
 
 /* ── Approach — what I draw / don't ─────────────────────────────────────── */
@@ -122,7 +122,7 @@
   border-bottom: 1px solid var(--line);
   padding: clamp(48px, 6vw, 80px) var(--pad-x);
 }
-.approach-header { margin-bottom: 48px; }
+.approach-header { margin-bottom: var(--space-12); }
 
 .approach-eyebrow {
   font-family: var(--mono);
@@ -132,8 +132,8 @@
   color: var(--moss);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 .approach-eyebrow::before {
   content: '';
@@ -152,7 +152,7 @@
 }
 .approach-title em { font-style: italic; color: var(--moss); }
 
-.approach-grid { display: grid; grid-template-columns: 1fr; gap: 48px; }
+.approach-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-12); }
 
 .approach-col h3 {
   font-family: var(--mono);
@@ -160,7 +160,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 
 .approach-list { display: flex; flex-direction: column; }
@@ -168,7 +168,7 @@
 .approach-item {
   display: flex;
   align-items: baseline;
-  gap: 16px;
+  gap: var(--space-4);
   padding: 18px 0;
   border-top: 1px solid var(--line);
   font-family: var(--serif);
@@ -206,7 +206,7 @@
   line-height: 1;
   letter-spacing: -0.03em;
   color: var(--ink);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 .cred-label {
   font-family: var(--mono);
@@ -257,14 +257,14 @@
   font-size: clamp(36px, 5vw, 64px);
   line-height: 1;
   letter-spacing: -0.025em;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
 .page-cta h2 em { font-style: italic; color: var(--moss); }
 .page-cta p {
   font-size: 18px;
   color: var(--ink-soft);
   max-width: min(480px, 100%);
-  margin: 0 auto 32px;
+  margin: 0 auto var(--space-8);
   line-height: 1.6;
 }
 
