@@ -50,8 +50,9 @@ A single Stripe integration, embedded on-site:
   transfer is a manual, off-page option reconciled by hand, *not* an on-page method.
 - **Server-side amount authority.** The client never sends the price (see §6.2).
 
-So the customer sees **card · Klarna · PayPal**, and the whole on-site journey is a single
-Stripe Payment Element.
+So on the page the customer sees **card · Klarna · PayPal**, and the whole on-site journey is a
+single Stripe Payment Element. **Bank transfer** (listed in §1) is an off-page, manual route —
+not a method in the Element.
 
 ## 3. Status — shipped dark, and the isolation contract
 

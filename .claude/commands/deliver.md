@@ -38,8 +38,11 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
    only skips — the PR's E2E job is the real gate). Do a security pass: input validation, PII/GDPR,
    rate limits, CORS/CSP, secrets never in the repo.
 
-5. **Open the PR.** `git push -u origin feat/<thing>` and open the PR into `develop` with the brief
-   as the body. State plainly that the sandbox can't run the visual/E2E check — that's left to the
+5. **Open the PR.** `git push -u origin feat/<thing>` and open the PR into `develop` with a
+   short, high-level summary as the body (what changed, how it was verified). **The repo is public
+   and the brief may carry private planning detail** (fees, legal reasoning, the artist's copy
+   worksheet) — never paste the brief, or that detail, into a PR body, commit message or repo
+   file. State plainly that the sandbox can't run the visual/E2E check — that's left to the
    PR's E2E workflow + the user's review. This is the default now: open it, don't wait to be asked.
 
 6. **Monitor and react until green.** `subscribe_pr_activity` for the PR, then watch CI + review

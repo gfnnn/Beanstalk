@@ -71,7 +71,7 @@ Consequences:
 ## Phase 1 — Pre-flight go/no-go gate
 
 Run the day before. **Every line must be green, or explicitly waived by the operator
-(note the waiver in the release PR).** If any is red and not waived → NO-GO.
+(record the waiver privately — not in this public repo or its PRs).** If any is red and not waived → NO-GO.
 
 ### Engineering (all ✅ on `develop` as of 2026-11-14)
 - [ ] `npm test` green, `npm run build` succeeds, `npm run lint` clean, on the release commit.
@@ -111,6 +111,10 @@ grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modu
 ```
 Zero lines = content green. Any remaining line must be fixed or waived by the operator.
 
+- [ ] `ARTIST-COPY` markers stripped from the visitor-facing pages (`CLAUDE.md` →
+      *Artist-copy markers*). Markers on held-back or switched-off content stay until that
+      content is approved.
+
 ### Abort conditions
 NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENABLED` is
 `true`; or a visitor-facing content item above is neither green nor waived.
@@ -123,31 +127,31 @@ NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENAB
 `develop` (GA4 scaffold, confirmation emails, failed-send digest cron, MVP heroes, flash
 hold-back, ICO number, …). Do the release first, check it, *then* move the domain.
 
-1. **R1 · Release PR `develop → main`** (🛠 + 👤 review). `gh pr create --base main --head
+- [ ] **R1 · Release PR `develop → main`** (🛠 + 👤 review). `gh pr create --base main --head
    develop --title "release: <date> — v2 go-live"`, review the combined diff, **merge-commit**
    (not squash). This deploys:
    - the web build to `https://gfnnn.github.io/Beanstalk/` (still staging mode, noindex), and
    - the Worker via Cloudflare Workers Builds (`wrangler deploy`), which also registers the
      08:00 UTC failed-send digest cron.
    Watch both deploys go green (Actions tab; Cloudflare → Workers → Deployments).
-2. **R2 · Smoke the Worker after its deploy:**
+- [ ] **R2 · Smoke the Worker after its deploy:**
    `npm run smoke -- https://beanstalk-e61.pages.dev` (still uses the same Worker).
-3. **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), via a one-line PR to
+- [ ] **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), via a one-line PR to
    `develop` → a second small release PR to `main`. Pages redeploys in **production mode**
    (indexable, real sitemap). It's still only served at `gfnnn.github.io/Beanstalk/` at this
    point; v1 still owns the apex.
-4. **X4 · Flip the Worker email secrets test → prod** (👤): `FROM_EMAIL` =
+- [ ] **X4 · Flip the Worker email secrets test → prod** (👤): `FROM_EMAIL` =
    `roxy@beansprout.ink`, `ARTIST_EMAIL` = the artist's Gmail (`wrangler secret put …` or the
    Cloudflare dashboard; saving redeploys). Requires Resend verified. Do it now so the first
    live enquiry uses production mail.
-5. **X3 · Release the domain from v1** (👤): `gfnnn/beansprout` → Settings → Pages → Custom
+- [ ] **X3 · Release the domain from v1** (👤): `gfnnn/beansprout` → Settings → Pages → Custom
    domain → **Remove**. (On a branch build this commits the removal of v1's `CNAME` file.)
-   *The apex now 404s — go straight to step 6.*
-6. **X5 · Claim the domain in v2** (👤): `gfnnn/Beanstalk` → Settings → Pages → Custom domain
+   *The apex now 404s — go straight to X5.*
+- [ ] **X5 · Claim the domain in v2** (👤): `gfnnn/Beanstalk` → Settings → Pages → Custom domain
    → `beansprout.ink` → Save. (CLI equivalent:
    `gh api -X PUT repos/gfnnn/Beanstalk/pages -f cname=beansprout.ink`.) Wait for the DNS
    check to pass and the certificate to show provisioned, then tick **Enforce HTTPS**.
-7. **X7b · Production analytics** (👤 + 🛠 one line). Create the production GA4 property, run
+- [ ] **X7b · Production analytics** (👤 + 🛠 one line). Create the production GA4 property, run
    its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*), paste the `G-…` ID
    into `production.measurementId` in `apps/web/src/data/analytics.js`, ship via a small
    release. Can follow on the same day or later — with no ID the apex sends nothing.
@@ -156,7 +160,7 @@ hold-back, ICO number, …). Do the release first, check it, *then* move the dom
 
 ## Phase 3 — Smoke test
 
-1. **Automated probe** against the live apex:
+- [ ] **Automated probe** against the live apex:
    ```bash
    npm run smoke -- https://beansprout.ink
    ```
@@ -165,10 +169,10 @@ hold-back, ICO number, …). Do the release first, check it, *then* move the dom
    `/enquiry` + `/newsletter` accept (honeypot path — no D1 row, no email). Also check by hand:
    `https://beansprout.ink/robots.txt` allows crawling and `/sitemap.xml` exists, and
    `https://www.beansprout.ink` redirects to the apex.
-2. **Manual acceptance — run "b"** (*The end-to-end email test* below), minus the flash
+- [ ] **Manual acceptance — run "b"** (*The end-to-end email test* below), minus the flash
    claim step while flash is held back. Use clearly-marked test submissions; prune them from
    D1 afterwards.
-3. **Analytics** (once X7b is in): Realtime shows `page_view`, `generate_lead`, `sign_up`;
+- [ ] **Analytics** (once X7b is in): Realtime shows `page_view`, `generate_lead`, `sign_up`;
    opting out on `/privacy/` stops all Google requests. Not an abort trigger — fix forward.
 
 ### The end-to-end email test (go-live acceptance — run "b" at cutover)
