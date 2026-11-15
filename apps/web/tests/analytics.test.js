@@ -304,42 +304,45 @@ describe('the /privacy/ opt-out control', () => {
   })
 })
 
-describe('the owner flag (?owner=1 → traffic_type=internal)', () => {
-  const config = () => pushed().find(a => a[0] === 'config')[2]
+describe('the owner flag (?owner=1 → gtag never loads)', () => {
   const visit = path => history.replaceState(null, '', path)
   afterEach(() => visit('/'))
+  const nothingLoaded = () => gtagScript() === null && window.dataLayer === undefined
 
-  it('sends no traffic_type for an ordinary visitor', () => {
+  it('an ordinary visitor loads gtag and sees no owner note', () => {
     initAnalytics({ hostname: 'staging.example' })
     expect(isOwner()).toBe(false)
-    expect(config()).not.toHaveProperty('traffic_type')
+    expect(gtagScript()).not.toBeNull()
     expect(document.querySelector('[data-owner-mode]')).toBeNull()
   })
 
-  it('?owner=1 saves the flag and tags the config call on that same page load', () => {
+  it('?owner=1 saves the flag and loads nothing on that same page load', () => {
     visit('/flash/?owner=1')
     initAnalytics({ hostname: 'staging.example' })
     expect(localStorage.getItem(OWNER_KEY)).toBe('1')
-    expect(config().traffic_type).toBe('internal')
+    expect(nothingLoaded()).toBe(true)
   })
 
-  it('the flag persists: a later visit without the param is still internal', () => {
+  it('the flag persists: a later visit loads nothing and track() is a no-op', () => {
     localStorage.setItem(OWNER_KEY, '1')
     initAnalytics({ hostname: 'staging.example' })
-    expect(config().traffic_type).toBe('internal')
+    const done = vi.fn()
+    track('generate_lead', { form: 'enquiry' }, done)
+    expect(nothingLoaded()).toBe(true)
+    expect(done).toHaveBeenCalledTimes(1)
   })
 
-  it('?owner=0 clears the flag', () => {
+  it('?owner=0 clears the flag and analytics loads again', () => {
     localStorage.setItem(OWNER_KEY, '1')
     visit('/?owner=0')
     initAnalytics({ hostname: 'staging.example' })
     expect(localStorage.getItem(OWNER_KEY)).toBeNull()
-    expect(config()).not.toHaveProperty('traffic_type')
+    expect(gtagScript()).not.toBeNull()
     expect(location.search).toBe('')
   })
 
   it('strips the param before gtag is configured, keeping the rest of the URL', () => {
-    visit('/portfolio/?style=fine-line&owner=1#top')
+    visit('/portfolio/?style=fine-line&owner=0#top')
     let urlAtConfig
     // loadGtag reuses an existing dataLayer, so seed one that notes the URL.
     window.dataLayer = []
@@ -369,12 +372,27 @@ describe('the owner flag (?owner=1 → traffic_type=internal)', () => {
     expect(notes[0].textContent).toMatch(/Owner mode/)
   })
 
-  it('an opted-out owner still sends nothing', () => {
-    localStorage.setItem(OPT_OUT_KEY, '1')
-    visit('/?owner=1')
+  it('expires _ga cookies left from before the flag was set', () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: seeding a GA cookie for the test
+    document.cookie = '_ga=GA1.1.1.1; path=/'
+    localStorage.setItem(OWNER_KEY, '1')
     initAnalytics({ hostname: 'staging.example' })
-    expect(gtagScript()).toBeNull()
-    expect(location.search).toBe('')
+    expect(document.cookie).not.toContain('_ga')
+  })
+
+  it('the /privacy/ control says owner mode, and its toggle cannot load gtag', () => {
+    document.body.innerHTML = `
+      <div data-analytics-optout hidden>
+        <p data-analytics-status></p>
+        <button data-analytics-toggle></button>
+      </div>`
+    localStorage.setItem(OWNER_KEY, '1')
+    initAnalytics({ hostname: 'staging.example' })
+    expect(document.querySelector('[data-analytics-status]').textContent).toMatch(/Owner mode/)
+    const btn = document.querySelector('[data-analytics-toggle]')
+    btn.click() // opt out
+    btn.click() // opt back in
+    expect(nothingLoaded()).toBe(true)
   })
 
   it('unreadable storage: not an owner, and the param is still stripped', () => {

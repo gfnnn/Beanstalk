@@ -22,8 +22,8 @@ import { analytics as CONFIG } from '../../data/analytics.js'
 
 export const OPT_OUT_KEY = 'beansprout_analytics_optout'
 // Owner flag: set per browser with ?owner=1, cleared with ?owner=0. While set,
-// every hit carries traffic_type=internal, which the GA4 property's Internal
-// Traffic data filter excludes (docs/ANALYTICS.md → Owner traffic).
+// gtag.js is never loaded, so the owners' own visits send nothing at all
+// (docs/ANALYTICS.md → Owner traffic).
 export const OWNER_KEY = 'bs_owner'
 const OWNER_PARAM = 'owner'
 const GTAG_SRC = 'https://www.googletagmanager.com/gtag/js'
@@ -140,6 +140,10 @@ function showOwnerNote() {
 }
 
 function loadGtag(id) {
+  // Owner browsers never load the tag. (Tagging their hits instead doesn't work:
+  // the Google tag configures itself from the script URL and drops the params of
+  // the on-page config call, so nothing set here reaches the first page_view.)
+  if (isOwner()) return
   window[`ga-disable-${id}`] = false
   activeId = id
   if (scriptLoaded) return
@@ -154,7 +158,6 @@ function loadGtag(id) {
     allow_google_signals: false,
     allow_ad_personalization_signals: false,
     cookie_expires: COOKIE_EXPIRES_S,
-    ...(isOwner() ? { traffic_type: 'internal' } : {}),
   })
   const s = document.createElement('script')
   s.async = true
@@ -218,6 +221,7 @@ const STATUS = {
   choice: 'Analytics is off in this browser. This choice is saved for future visits.',
   on: 'Analytics is on in this browser.',
   // A host with no Measurement ID (staging until its ID is set, localhost) loads nothing.
+  owner: 'Owner mode is on in this browser, so analytics isn’t loaded and your visits aren’t counted.',
   none: 'Analytics isn’t running on this site right now. You can still turn it off here, and the choice is saved for later.',
 }
 
@@ -229,7 +233,7 @@ function initOptOutControl(id) {
 
   const render = () => {
     const reason = optOutReason()
-    status.textContent = STATUS[reason || (id ? 'on' : 'none')]
+    status.textContent = STATUS[reason || (isOwner() ? 'owner' : id ? 'on' : 'none')]
     btn.hidden = reason === 'gpc' || reason === 'storage'
     btn.textContent = reason === 'choice' ? 'Turn analytics back on' : 'Turn off analytics'
   }
@@ -252,7 +256,10 @@ function initOptOutControl(id) {
 // Called once from main.js on every page.
 export function initAnalytics({ hostname = location.hostname } = {}) {
   applyOwnerParam()
-  if (isOwner()) showOwnerNote()
+  if (isOwner()) {
+    showOwnerNote()
+    clearGaCookies() // left over from visits before the flag was set
+  }
   const id = measurementIdFor(hostname)
   initOptOutControl(id)
   if (!id) return

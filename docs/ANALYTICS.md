@@ -22,13 +22,16 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   or unreadable storage all mean gtag is never injected and no `dataLayer` exists: zero Google
   requests. Opting out mid-visit sets `window['ga-disable-<ID>']`, stops events and expires the
   `_ga` cookies; the choice persists (localStorage) and can be reversed.
-- **gtag config:** `allow_google_signals: false`, `allow_ad_personalization_signals: false`,
-  `cookie_expires` ≈ 13 months.
+- **gtag config:** the code passes `allow_google_signals: false`,
+  `allow_ad_personalization_signals: false` and `cookie_expires` ≈ 13 months, **but the live
+  Google tag drops them**: it configures itself from the script URL and ignores the on-page
+  `config` call's params (seen on the apex, 2026-11-15: `_ga` got the default lifetime, and
+  `send_page_view: false` and `traffic_type` had no effect). So these are enforced in the
+  **GA4 admin setup** below (steps 2 and 3), not by the code.
 - **No PII, enforced centrally:** `track()` sends only an allowlist (events + fixed param
   values); anything else is dropped. Call sites never touch gtag.
-- **Owner flag:** a browser opted in with `?owner=1` sends `traffic_type: 'internal'` on every
-  hit, and the `owner` param is taken off the URL before gtag is configured (see *Owner
-  traffic* below).
+- **Owner flag:** a browser opted in with `?owner=1` never loads gtag, so it sends nothing;
+  the `owner` param is taken off the URL straight away (see *Owner traffic* below).
 - **Two properties:** staging and production are separate GA4 properties (separate IDs
   in the data file), so test traffic never mixes with real numbers. The staging ID is empty
   until a staging property exists.
@@ -52,15 +55,14 @@ gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`
 1. Create the property + web stream; paste its `G-…` ID into `src/data/analytics.js`.
 2. **Admin → Data collection:** Google signals **off**; granular location/device data **off**.
    **Account → Data sharing settings:** all **off**. Accept the Data Processing Terms.
-3. **Data retention:** 14 months.
+3. **Data retention:** 14 months. **Cookie lifetime:** web stream → *Configure tag settings* →
+   *Override cookie settings* → set the cookie expiration to 13 months (or the nearest shorter
+   option), to match what `/privacy/` promises. The code can't set this (see above).
 4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn **off** *Form
    interactions* (fires on failed/invalid submits, double-counts) and *Site search* (no search
    exists; it would read `q`/`s` from any crafted URL).
-5. **Internal traffic:** keep the built-in *Internal Traffic* data filter (it excludes
-   `traffic_type` = `internal`, which is what the owner flag sends; no IP rule is needed).
-   **Staging: leave it in *Testing*** (staging traffic is almost all internal, so an *Active*
-   filter would hide the very hits you're verifying). **Production: set it *Active*.** Don't
-   use the *Developer traffic* filter for this: it keys off `debug_mode`.
+5. **Internal traffic:** nothing to set up. The owners' own visits are kept out by the owner
+   flag (below), which needs no data filter or IP rule.
 6. **Custom dimension:** register an **event-scoped** dimension for the `form` param
    (`enquiry` | `flash`) so `generate_lead` can be split by form. `sign_up`'s `method` needs
    nothing: it maps to GA4's built-in *Method* dimension.
@@ -85,8 +87,10 @@ The flag lives in the browser, not the IP address, so it survives changing netwo
 - **Check the footer if numbers look off.** Clearing site data removes the flag, a private
   window never has it, and Safari deletes it after seven days without a visit. No footer line
   means the flag is gone: open the opt-in link again.
-- **Verify:** DevTools → Network → a `/g/collect` request carries `tt=internal` with the flag
-  and no `tt` without it; your visit stays out of GA4 Realtime.
+- **Verify:** with the flag set, DevTools → Network shows no request to
+  `googletagmanager.com` or `/g/collect`, and your visit stays out of GA4 Realtime.
+- **Testing analytics yourself** (e.g. checking an event in Realtime): opt out with
+  `?owner=0` first, then opt back in.
 
 Anyone who finds the link only excludes their own visits, so it needs no secret.
 
