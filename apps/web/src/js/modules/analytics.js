@@ -217,7 +217,7 @@ const STATUS = {
   storage: 'Your browser is blocking site storage, so analytics stays off for you.',
   choice: 'Analytics is off in this browser. This choice is saved for future visits.',
   on: 'Analytics is on in this browser.',
-  // A host with no Measurement ID (production before cutover, localhost) loads nothing.
+  // A host with no Measurement ID (staging until its ID is set, localhost) loads nothing.
   none: 'Analytics isn’t running on this site right now. You can still turn it off here, and the choice is saved for later.',
 }
 
