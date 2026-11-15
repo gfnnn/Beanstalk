@@ -145,7 +145,7 @@ docs and commits cite, not a sequence.
    Watch both deploys go green (Actions tab; Cloudflare → Workers → Deployments).
 - [x] **R2 · Smoke the Worker after its deploy** — ✅ 2026-11-14, 18/18:
    `npm run smoke -- https://beanstalk-e61.pages.dev` (still uses the same Worker).
-- [ ] **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), via a one-line PR to
+- [x] **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠) — ✅ 2026-11-15, via a one-line PR to
    `develop` → a second small release PR to `main`. Pages redeploys in **production mode**
    (indexable, real sitemap). It's still only served at `gfnnn.github.io/Beanstalk/` at this
    point; v1 still owns the apex.
