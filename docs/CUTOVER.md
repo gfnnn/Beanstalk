@@ -35,7 +35,7 @@ So **the cutover is not a DNS change.** It's a custom-domain handover between tw
 2. claim it in v2's Pages settings.
 
 Consequences:
-- **No TTL lowering, no GoDaddy A-record edits** (the old X1/X3 steps are obsolete).
+- **No TTL lowering, no GoDaddy A-record edits.**
 - **Downtime is the gap between the two clicks** (seconds) plus HTTPS certificate
   re-issue for v2 (usually minutes, can be up to an hour; HTTP serves meanwhile). Do it at
   a quiet hour.
@@ -130,6 +130,9 @@ release since June (GA4 scaffold, confirmation emails, failed-send digest cron, 
 flash hold-back, ICO number, …) went out on 2026-11-14, so R1/R2 are ticked. Anything merged
 to `develop` since then rides along with the X2 release — re-run R2 after it.
 
+**Run the steps in the order listed.** The labels (R1, X2, X4, …) are stable IDs that other
+docs and commits cite, not a sequence.
+
 - [x] **R1 · Release PR `develop → main`** (🛠 + 👤 review) — ✅ 2026-11-14 (#251). `gh pr create --base main --head
    develop --title "release: <date> — v2 go-live"`, review the combined diff, **merge-commit**
    (not squash). This deploys:
@@ -172,9 +175,8 @@ to `develop` since then rides along with the X2 release — re-run R2 after it.
    `/enquiry` + `/newsletter` accept (honeypot path — no D1 row, no email). Also check by hand:
    `https://beansprout.ink/robots.txt` allows crawling and `/sitemap.xml` exists, and
    `https://www.beansprout.ink` redirects to the apex.
-- [ ] **Manual acceptance — run "b"** (*The end-to-end email test* below), minus the flash
-   claim step while flash is held back. Use clearly-marked test submissions; prune them from
-   D1 afterwards.
+- [ ] **Manual acceptance — run "b"** (*The end-to-end email test* below). Use
+   clearly-marked test submissions; prune them from D1 afterwards.
 - [ ] **Analytics** (once X7b is in): Realtime shows `page_view`, `generate_lead`, `sign_up`;
    opting out on `/privacy/` stops all Google requests. Not an abort trigger — fix forward.
 
@@ -182,16 +184,19 @@ to `develop` since then rides along with the X2 release — re-run R2 after it.
 
 Repeatable test of the full round-trip, against `https://beansprout.ink` with the
 production secrets (`FROM_EMAIL=roxy@beansprout.ink`, `ARTIST_EMAIL` = the artist's
-Gmail). All six must pass before the launch is "done":
+Gmail). Every step must pass before the launch is "done" — except step 3, which is
+**skipped while flash is held back** (`live: false`) and run when the flash page goes live:
 
-1. **Enquiry → inbox.** Submit `/enquire/` with 1–2 photos → land on
-   `/enquiry-received/`; a "New enquiry — …" email reaches `ARTIST_EMAIL`, photos
-   attached, fields laid out.
+1. **Enquiry → inbox, and a receipt to the sender.** Submit `/enquire/` with 1–2 photos →
+   land on `/enquiry-received/`; a "New enquiry — …" email reaches `ARTIST_EMAIL`, photos
+   attached, fields laid out; and the address you entered gets the confirmation email (it
+   never shows `ARTIST_EMAIL`).
 2. **Reply path.** Hit **Reply** — the `To:` is the *enquirer's* address. Send it;
    confirm it arrives. (Replies go out as `roxy@beansprout.ink` via Gmail "Send mail
    as" — `EMAIL-DOMAIN-SETUP.md`.)
-3. **Flash claim → inbox.** Claim a piece → a "Flash claim — …" email arrives; reload
-   the grid → the piece reads claimed; a second claim is rejected (409).
+3. **Flash claim → inbox** *(skip while flash is held back).* Claim a piece → a
+   "Flash claim — …" email arrives and the claimant gets their confirmation; reload the
+   grid → the piece reads claimed; a second claim is rejected (409).
 4. **Newsletter → Audience.** Sign up → the contact appears in the Resend Audience and
    a row lands in `newsletter_consent`.
 5. **Source-of-truth (independent of mail).** D1 console:
@@ -199,8 +204,8 @@ Gmail). All six must pass before the launch is "done":
    — each test submission present with `email_status = 'sent'` (persist-before-email
    isolates *send* from *deliver*). A `'failed'` row → `wrangler tail` shows the Resend
    response (usually an unverified domain or bad key).
-6. **Deliverability.** The email lands in the **inbox, not spam**, and Gmail → "Show
-   original" shows `SPF`/`DKIM`/`DMARC` all **PASS**. If it spams, re-check the Resend
+6. **Deliverability.** Both emails (the artist's notification and the sender's receipt)
+   land in the **inbox, not spam**, and Gmail → "Show original" shows `SPF`/`DKIM`/`DMARC` all **PASS**. If it spams, re-check the Resend
    domain verification + DMARC (`EMAIL-DOMAIN-SETUP.md`).
 
 ### Abort conditions
@@ -234,7 +239,7 @@ v1 stays **idle, not deleted**, so it's always a working rollback target.
 - [ ] **First day:** the D1 `SELECT` from run "b" shows real enquiries with
       `email_status = 'sent'`; no failed-send digest email arrives at 08:00 UTC.
 - [ ] **Search Console:** add the `beansprout.ink` property and submit `/sitemap.xml`.
-- [ ] **Keep v1 idle 1–2 weeks (X8)**, then archive `gfnnn/beansprout` (and disable its Pages).
+- [ ] **Keep v1 idle 1–2 weeks**, then archive `gfnnn/beansprout` (and disable its Pages).
 - [ ] **DMARC:** after a few clean weeks of reports, tighten `p=none` → `quarantine`
       (`EMAIL-DOMAIN-SETUP.md`).
 - [ ] Deferred, not part of this cutover: flash goes live (`live: true` once a real drop is

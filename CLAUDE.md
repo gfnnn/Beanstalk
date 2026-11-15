@@ -29,15 +29,15 @@ worth. These rules exist to hold the line. Follow them, and flag it when a reque
 the brief; if a brief is silent on something that matters, ask rather than guess.
 
 1. **Ship before you build ahead.** Don't write a feature's *code* — even gated/"dark" — before
-   the thing it serves is live and the dependency is real. **Plans are cheap and welcome; inert
-   backbones are not.** (The site isn't on the apex yet; resist building the next speculative tier
+   the thing it serves is live and the dependency is real. **Plans are cheap (and kept outside
+   this repo); inert backbones are not.** (The site isn't on the apex yet; resist building the next speculative tier
    until real usage pulls it.)
 2. **One doc per concern; consolidate on sight.** If two docs cross-reference each other to stay
    in step, they should be one doc. A commit whose job is "reconcile docs / de-dup / fix counts"
    is a smell that the docs have fragmented — **merge them, don't reconcile them again.**
-3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. A plan
-   for an unbuilt feature is a **short stub of durable decisions**, not a file-by-file build spec
-   (detail goes stale before it's picked up).
+3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. Docs here
+   describe what is **built or being operated**; a plan for an unbuilt feature doesn't get a
+   repo doc at all (see above) — it arrives in the brief.
 4. **State each rule once.** Especially here: say it in one place and link, don't repeat. CLAUDE.md
    is for what changes how an agent *acts* (architecture, the build pipeline, guardrails) — not
    narration of the same caveat three times.
@@ -627,9 +627,9 @@ three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backl
 `beansprout.ink` (apex) is intentionally still served by the **v1** repo
 (`gfnnn/beansprout`). This v2 repo publishes only to GitHub Pages (the staging Pages
 URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
-**no `apps/web/public/CNAME`**, and don't add apex A-records for Pages — until the
-copy and real images are finalised (the go/no-go gate and the procedure are in
-`docs/CUTOVER.md`).
+**no `apps/web/public/CNAME`**, and don't set `beansprout.ink` as this repo's Pages custom
+domain — until the go/no-go gate in `docs/CUTOVER.md` clears. (DNS already points at GitHub
+Pages for v1; the cutover is a custom-domain handover between the two repos, not a DNS change.)
 Cloudflare hosts
 the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
