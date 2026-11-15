@@ -1,5 +1,5 @@
 .section {
-  padding: 56px var(--pad-x);
+  padding: var(--space-14) var(--pad-x);
 }
 
 .section-alt {
@@ -12,11 +12,11 @@
 .page-main { /* intentionally empty — sticky nav handles offset */ }
 
 .page-hero {
-  padding: 48px var(--pad-x) 36px;
+  padding: var(--space-12) var(--pad-x) 36px;
   border-bottom: 1px solid var(--line);
 }
 
-.page-hero .eyebrow { margin-bottom: 16px; }
+.page-hero .eyebrow { margin-bottom: var(--space-4); }
 
 .page-hero__title {
   font-family: var(--serif);
@@ -25,7 +25,7 @@
   line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--ink);
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 /* Section header row — eyebrow+title left, optional CTA right */
@@ -44,20 +44,20 @@
 }
 
 @media (min-width: 640px) {
-  .section      { padding: 72px var(--pad-x); }
-  .page-hero    { padding: 56px var(--pad-x) 40px; }
+  .section      { padding: var(--space-18) var(--pad-x); }
+  .page-hero    { padding: var(--space-14) var(--pad-x) var(--space-10); }
 }
 
 @media (min-width: 900px) {
-  .section      { padding: 80px var(--pad-x); }
-  .page-hero    { padding: 64px var(--pad-x) 48px; }
+  .section      { padding: var(--space-20) var(--pad-x); }
+  .page-hero    { padding: var(--space-16) var(--pad-x) var(--space-12); }
 
   .section-head {
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 32px;
-    margin-bottom: 48px;
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
   }
-  .section-head-left { gap: 16px; }
+  .section-head-left { gap: var(--space-4); }
 }

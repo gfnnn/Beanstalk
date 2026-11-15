@@ -4,10 +4,10 @@
    ─────────────────────────────────────────────────────────────────────────── */
 
 .page-header {
-  padding: 48px var(--pad-x) 36px;
+  padding: var(--space-12) var(--pad-x) 36px;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: var(--space-6);
   position: relative;
 }
 /* The bottom divider as a 1px ::after (not border-bottom) so the motion layer can
@@ -36,7 +36,7 @@
   color: var(--moss);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .page-eyebrow::before {
   content: '';
@@ -75,20 +75,20 @@
 }
 
 @media (min-width: 640px) {
-  .page-header    { padding: 56px var(--pad-x) 44px; }
+  .page-header    { padding: var(--space-14) var(--pad-x) 44px; }
   .page-descriptor { font-size: 19px; }
 }
 
 @media (min-width: 900px) {
   .page-header {
-    padding: 64px var(--pad-x) 48px;
+    padding: var(--space-16) var(--pad-x) var(--space-12);
     grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    gap: var(--space-10);
     align-items: end;
   }
   .page-header-right {
-    padding-bottom: 4px;
-    gap: 24px;
+    padding-bottom: var(--space-1);
+    gap: var(--space-6);
   }
   .page-descriptor { font-size: 20px; }
 }

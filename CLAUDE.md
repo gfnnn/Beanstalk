@@ -61,7 +61,8 @@ command instead of rediscovering the environment each time:
 
 - **Dependencies are installed for you.** A committed **SessionStart hook**
   (`.claude/hooks/session-start.sh`, registered in `.claude/settings.json`) runs
-  `npm install` in the remote container before the session starts, so `npm test` and
+  `npm ci` in the remote container before the session starts (`ci`, so it never rewrites
+  `package-lock.json`), so `npm test` and
   `npm run build` work immediately — there is no "install first" dance. It's a no-op on a
   developer's local machine (gated on `$CLAUDE_CODE_REMOTE`). It is **synchronous** (the
   session waits for install to finish, trading a little startup latency for no race where
@@ -666,10 +667,13 @@ own scoped API token there — so there is intentionally no Cloudflare token in 
 
 ## Design system — don't drift
 
-Warm earthy palette (cream `#F7F1E3`, moss `#4A5D3F`, clay `#C45A3E`, ink `#2C2A24`)
+Warm earthy palette (cream `#F7F1E3`, moss `#4A5D3F`, clay `#B05138`, ink `#2C2A24`)
 with Fraunces (serif display) / Karla (sans body) / JetBrains Mono (labels). Reuse the
 shared nav, footer, button, and JS-module patterns across pages. Placeholder copy is
 marked `<!-- COPY: -->`; image placeholders carry shoot briefs in HTML comments.
+Spacing (padding/margin/gap) uses the `--space-*` scale and shadows/halos use the named
+tokens (`--shadow-*`, `--focus-halo`, …) in `styles/variables.css`; new rules use them, and
+the off-grid literals left in place are legacy.
 
 **Motion is one language too — don't drift it either.** The whole site (load reveal,
 scroll reveal, hover, ambient, page transition) speaks two curves from the `--ease-*`

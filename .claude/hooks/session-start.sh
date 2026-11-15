@@ -17,10 +17,11 @@ fi
 cd "${CLAUDE_PROJECT_DIR:-.}"
 
 # npm workspaces: a single install at the root hoists both apps/web and
-# apps/functions into the root node_modules. `npm install` (not `npm ci`) so a
-# resumed session reuses the cached container layer instead of a clean reinstall.
-echo "[session-start] installing workspace dependencies (npm install)…"
-npm install --no-audit --no-fund
+# apps/functions into the root node_modules. `npm ci` (not `npm install`) so the
+# install never rewrites package-lock.json: the sandbox's npm can differ from the
+# one that last wrote the lockfile, and `npm install` would leave it modified.
+echo "[session-start] installing workspace dependencies (npm ci)…"
+npm ci --no-audit --no-fund
 
 # NB: the Playwright E2E browser binary is deliberately NOT downloaded here.
 # cdn.playwright.dev is outside the web sandbox's network allowlist (the download
