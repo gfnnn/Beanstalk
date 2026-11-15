@@ -300,9 +300,10 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
   authored by hand in each page — only the derived/constant tags are injected. The same
   plugin also wraps `injectStagingNoindex`, which adds a **site-wide** `noindex, nofollow`
-  robots `<meta>` to every page on a **staging build** (no apex CNAME) so a preview
-  can't be indexed. **Since the cutover the CNAME is committed, so every build — the Cloudflare
-  Pages staging build included — is a production build.** It's a no-op on the apex build
+  robots `<meta>` to every page on a **staging build** so a preview can't be indexed.
+  **The build mode is `isProductionBuild()`:** the apex `CNAME` is committed, so a plain build
+  (GitHub Pages from `main`) is production; a **Cloudflare Pages** build (it sets `CF_PAGES=1`)
+  or `SITE_ENV=staging` is staging; `SITE_ENV=production` forces production. It's a no-op on the apex build
   and on any page that already declares its own robots tag (so it never doubles up).
 - **`sitemap` plugin** emits `robots.txt` + `/sitemap.xml` at build (and serves both in
   dev). The sitemap is built from the `ROUTES` list in `seo.js` **plus** a
@@ -310,8 +311,8 @@ plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
   page. **Both are staging-aware** (keyed off the same `isProductionBuild()` apex-CNAME
   switch as the noindex): on a production/apex build `robots.txt` allows crawling,
   disallows `/enquiry-received/` and advertises the sitemap, and `/sitemap.xml` is
-  emitted; on a **staging build** (no apex CNAME — the GitHub Pages preview or the
-  Cloudflare Pages dev environment from `develop`) `robots.txt` is a blanket
+  emitted; on a **staging build** (the Cloudflare Pages staging site from `develop` and its
+  branch previews) `robots.txt` is a blanket
   `Disallow: /` and **no sitemap is emitted**, so the pre-launch copy carries no
   real-life SEO artifacts (no real-URL sitemap, no crawl invite) on top of the
   per-page noindex. `robots.txt` is **generated** (via `renderRobots()` in `seo.js`),
