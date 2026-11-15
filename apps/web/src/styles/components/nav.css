@@ -173,11 +173,11 @@
   text-transform: uppercase;
   color: var(--moss);
   white-space: nowrap;
-  --pill-rgb: 74, 93, 63; /* moss — default */
+  --pill-rgb: var(--moss-rgb); /* moss — default */
 }
-.status-pill.moss  { color: var(--moss);      --pill-rgb: 74, 93, 63; }
-.status-pill.clay  { color: var(--clay);      --pill-rgb: 196, 90, 62; }
-.status-pill.faint { color: var(--ink-faint); --pill-rgb: 142, 139, 129; }
+.status-pill.moss  { color: var(--moss);      --pill-rgb: var(--moss-rgb); }
+.status-pill.clay  { color: var(--clay);      --pill-rgb: var(--clay-rgb); }
+.status-pill.faint { color: var(--ink-faint); --pill-rgb: var(--ink-faint-rgb); }
 .status-pill::before {
   content: '';
   width: 7px;

@@ -40,9 +40,9 @@ approximation.
 | **SOFT** | `--ease-soft` `cubic-bezier(0.16,1,0.3,1)` — fast start, soft landing | **Text**: headings, bodies, eyebrows, the page-header, filter chips, the form rise, generic `.reveal`, the brand-mark ink-rise |
 | **ORGANIC** | `--ease-organic` `cubic-bezier(0.34,1.2,0.64,1)` — a gentle overshoot, a living "stem settle" (§3-F) | **Assets that grow/arrive**: the card/tile grids (`revealGroup`), the hero media. The sprig growth keeps its own `back.out` (also organic) |
 
-**Duration** anchors to `--dur-slow` ≈ 0.64s for reveals (text ~0.6–0.7, headings
-~0.8 with blur, cards ~0.7); `--dur` (220ms) for quick interaction states; `--sway`
-(14s) for the ambient sprig loop.
+**Duration.** Reveals are timed inline in `animations.js` (no CSS token): text
+~0.6–0.7s, headings ~0.8–0.9s with blur, cards ~0.7s. Quick interaction states use
+`--dur` (220ms). The ambient sprig sway is a 6.5s GSAP yoyo (~13s round trip).
 
 **Direction & texture vocabulary.** Text **rises** (`y`); eyebrows **slide from the
 left** (their leading hairline grows in too); the hero media **slides from the

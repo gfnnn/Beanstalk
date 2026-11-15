@@ -499,22 +499,6 @@
 }
 .aftercare-cta-actions .btn { justify-content: center; }
 
-/* ── Mobile sticky CTA ───────────────────────────────────────────────────── */
-.mobile-cta {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 180;
-  padding: 14px 20px;
-  padding-bottom: calc(14px + env(safe-area-inset-bottom));
-  background: var(--bg);
-  border-top: 1px solid var(--line);
-  transform: translateY(100%);
-  transition: transform 300ms var(--ease);
-}
-.mobile-cta.visible { transform: translateY(0); }
-.mobile-cta .btn    { width: 100%; justify-content: center; font-size: 16px; padding: 17px; }
-
 /* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .choice-card,
@@ -563,8 +547,6 @@
   .aftercare-cta    { padding: var(--space-14) var(--pad-x); }
   .aftercare-cta-actions { align-items: flex-start; }
   .aftercare-cta-actions .btn { justify-content: flex-start; }
-
-  .mobile-cta       { display: block; }
 }
 
 @media (min-width: 900px) {
@@ -608,6 +590,4 @@
   }
   .aftercare-cta-actions { align-items: flex-start; }
   .aftercare-cta-actions .btn { justify-content: flex-start; }
-
-  .mobile-cta { display: none; }
 }
