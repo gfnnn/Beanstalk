@@ -15,7 +15,7 @@ code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs i
 **Status:** `live` — `beansprout.ink` has been served by v2 since **2026-11-15 16:10 UTC**
 (the handover took three seconds; the certificate carried over, so there was no HTTPS wait;
 the CDN kept v1's cached homepage for about six minutes). The automated probe passes on the
-apex. Still open: the manual email test (run "b"), the Realtime analytics check and Phase 5.
+apex. Still open: pruning the test submissions from D1, the Realtime analytics check and Phase 5.
 
 > `apps/web/public/CNAME` is now committed, so a plain build is a production build. The
 > Cloudflare Pages staging site is the exception: it builds in staging mode (noindex, no
@@ -181,7 +181,7 @@ docs and commits cite, not a sequence.
    `/enquiry` + `/newsletter` accept (honeypot path — no D1 row, no email). Also check by hand:
    `https://beansprout.ink/robots.txt` allows crawling and `/sitemap.xml` exists, and
    `https://www.beansprout.ink` redirects to the apex.
-- [ ] **Manual acceptance — run "b"** (*The end-to-end email test* below). Use
+- [x] **Manual acceptance — run "b"** (*The end-to-end email test* below) — ✅ 2026-11-15, signed off. Use
    clearly-marked test submissions; prune them from D1 afterwards.
 - [ ] **Analytics** (once X7b is in): Realtime shows `page_view`, `generate_lead`, `sign_up`;
    opting out on `/privacy/` stops all Google requests. Not an abort trigger — fix forward.
