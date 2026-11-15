@@ -59,6 +59,17 @@ export function injectStagingNoindex(html) {
   return html.replace('</head>', `  ${ROBOTS_NOINDEX}\n</head>`)
 }
 
+/**
+ * On the apex build, drop the `<!-- ARTIST-COPY · … -->` sign-off markers so the
+ * live site's page source never carries them. They stay in the source files and
+ * on staging builds, where they are the review aid (CLAUDE.md → Artist-copy
+ * markers). The whole comment goes, including any note inside it.
+ */
+export function stripArtistCopyMarkers(html) {
+  if (!isProductionBuild()) return html
+  return html.replace(/[ \t]*<!--\s*ARTIST-COPY\b[\s\S]*?-->[ \t]*\r?\n?/g, '')
+}
+
 // Public, indexable routes, highest priority first. Single source of truth for
 // the sitemap — keep in sync with the `input` map in vite.config.js when pages
 // are added. The post-submit /enquiry-received/ page is deliberately absent

@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 import {
   injectSeoHead,
   injectStagingNoindex,
+  stripArtistCopyMarkers,
   isProductionBuild,
   ROBOTS_NOINDEX,
   renderRobots,
@@ -143,6 +144,44 @@ describe('injectStagingNoindex (keep the pre-launch staging site out of search)'
 
   it('leaves injectSeoHead itself pure — the SEO injector never adds a robots tag', () => {
     expect(injectSeoHead(ogPage())).not.toContain('robots')
+  })
+})
+
+describe('stripArtistCopyMarkers (sign-off markers never reach the live site)', () => {
+  const withSiteEnv = (val, fn) => {
+    const prev = process.env.SITE_ENV
+    if (val === undefined) delete process.env.SITE_ENV
+    else process.env.SITE_ENV = val
+    try { fn() } finally {
+      if (prev === undefined) delete process.env.SITE_ENV
+      else process.env.SITE_ENV = prev
+    }
+  }
+  const page = [
+    '<main>',
+    '  <!-- ARTIST-COPY · HOME-08 · pending approval -->',
+    '  <!-- COPY: an ordinary comment stays -->',
+    '<!-- ARTIST-COPY · PRIV-05 · pending approval + LEGAL REVIEW (note).',
+    '     A second line inside the same marker. -->',
+    '  <p>Kind words</p>',
+    '</main>',
+  ].join('\n')
+
+  it('removes every marker on the apex build, single- and multi-line', () => {
+    withSiteEnv('production', () => {
+      const out = stripArtistCopyMarkers(page)
+      expect(out).not.toContain('ARTIST-COPY')
+      expect(out).not.toContain('pending approval')
+      expect(out).not.toContain('second line inside')
+      expect(out).toContain('<!-- COPY: an ordinary comment stays -->')
+      expect(out).toContain('<p>Kind words</p>')
+    })
+  })
+
+  it('leaves staging builds untouched (the markers are the review aid there)', () => {
+    withSiteEnv(undefined, () => {
+      expect(stripArtistCopyMarkers(page)).toBe(page)
+    })
   })
 })
 
