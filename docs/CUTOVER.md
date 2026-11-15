@@ -15,7 +15,7 @@ code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs i
 **Status:** `live` — `beansprout.ink` has been served by v2 since **2026-11-15 16:10 UTC**
 (the handover took three seconds; the certificate carried over, so there was no HTTPS wait;
 the CDN kept v1's cached homepage for about six minutes). The automated probe passes on the
-apex. Still open: the manual email test (run "b"), production analytics (X7b) and Phase 5.
+apex. Still open: the manual email test (run "b"), the Realtime analytics check and Phase 5.
 
 > `apps/web/public/CNAME` is now committed, so a plain build is a production build. The
 > Cloudflare Pages staging site is the exception: it builds in staging mode (noindex, no
@@ -161,7 +161,7 @@ docs and commits cite, not a sequence.
    → `beansprout.ink` → Save. (CLI equivalent:
    `gh api -X PUT repos/gfnnn/Beanstalk/pages -f cname=beansprout.ink`.) Wait for the DNS
    check to pass and the certificate to show provisioned, then tick **Enforce HTTPS**.
-- [ ] **X7b · Production analytics** (👤 + 🛠 one line). Create the production GA4 property, run
+- [x] **X7b · Production analytics** (👤 + 🛠 one line) — ✅ 2026-11-15, tag loads on the apex. Create the production GA4 property, run
    its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*), paste the `G-…` ID
    into `production.measurementId` in `apps/web/src/data/analytics.js`, ship via a small
    release. Can follow on the same day or later — with no ID the apex sends nothing. Then opt
@@ -244,7 +244,7 @@ v1 stays **idle, not deleted**, so it's always a working rollback target.
 - [x] Set `SMOKE_SITE_URL` = `https://beansprout.ink` so the daily health check watches prod — ✅ 2026-11-15.
 - [ ] **First day:** the D1 `SELECT` from run "b" shows real enquiries with
       `email_status = 'sent'`; no failed-send digest email arrives at 08:00 UTC.
-- [ ] **Search Console:** add the `beansprout.ink` property and submit `/sitemap.xml`.
+- [x] **Search Console:** add the `beansprout.ink` property and submit `/sitemap.xml` — ✅ 2026-11-15 (Domain property; submit the full URL `https://beansprout.ink/sitemap.xml`).
 - [ ] **Keep v1 idle 1–2 weeks**, then archive `gfnnn/beansprout` (and disable its Pages).
 - [ ] **DMARC:** after a few clean weeks of reports, tighten `p=none` → `quarantine`
       (`EMAIL-DOMAIN-SETUP.md`).
