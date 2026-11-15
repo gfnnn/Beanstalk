@@ -708,10 +708,11 @@ follow the status.)
   copy gate (the visitor-facing variant used at go-live is in `docs/CUTOVER.md` → Phase 1).
 - **Flip on approval.** When a brief supplies the approved words, apply them and change
   `pending approval` → `approved` on that marker. Don't reword marked copy on your own initiative.
-- **Strip before go-live.** The markers are HTML/JS comments and ship in the built page source —
-  a staging review aid only. Remove them from the visitor-facing pages before the apex cutover
-  (`docs/CUTOVER.md` → Phase 1). Markers on held-back or switched-off content (e.g. the flash
-  page while `live: false`) stay until that content is approved.
+- **Never on the live site — the build strips them.** The markers are a staging review aid.
+  They ship in staging page source, but the production build (`stripArtistCopyMarkers` in
+  `src/build/seo.js`, same apex switch as the noindex) removes every `<!-- ARTIST-COPY … -->`
+  comment from the HTML. So leave a marker in the source until its block is approved — don't
+  hand-strip unapproved ones for go-live.
 - **Edit data files, not markup.** Generated copy (hero, specialisms, flash cards, testimonials,
   portfolio tiles) lives in `apps/web/src/data/*.js` — the marker sits there too.
 </content>

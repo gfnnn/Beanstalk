@@ -13,8 +13,9 @@ Architecture/guardrails are in [`CLAUDE.md`](../CLAUDE.md), the email round-trip
 code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs itself.
 
 **Status:** `ready-pending-go/no-go` — engineering is green (checked 2026-11-14: 845 web +
-235 Worker tests, build, lint, staging smoke 18/18). What's left is the content/legal gate
-in Phase 1, which is the operator's go/no-go.
+235 Worker tests, build, lint, staging smoke 18/18), and the first release to `main` is
+done (R1/R2, 2026-11-14). What's left is the content/legal gate in Phase 1, which is the
+operator's go/no-go, then the handover from X2 on.
 
 > **Hard guardrail (from `CLAUDE.md`):** until the moment of cutover there is **no
 > `apps/web/public/CNAME`**. It lands in Phase 2 and never earlier.
@@ -54,7 +55,7 @@ Consequences:
       claiming the domain in the seconds it's unclaimed during the handover.
 - [ ] **P2 · Confirm D1 migrations are applied** (👤) — from `apps/functions`:
       `npx wrangler d1 migrations list beansprout --remote` should say none to apply
-      (0001–0003). The pending release has no schema change.
+      (0001–0003). The 2026-11-14 release had no schema change.
 - [ ] **P3 · Take a D1 export** before the first production release
       (`DATA-COMPLIANCE.md` → *Backup & recovery*). Counts as this month's off-platform export.
 - [ ] **P4 · Resend capacity.** Each submission now sends **two** emails (artist
@@ -111,9 +112,10 @@ grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modu
 ```
 Zero lines = content green. Any remaining line must be fixed or waived by the operator.
 
-- [ ] `ARTIST-COPY` markers stripped from the visitor-facing pages (`CLAUDE.md` →
-      *Artist-copy markers*). Markers on held-back or switched-off content stay until that
-      content is approved.
+The `ARTIST-COPY` markers themselves need no manual strip: the production build removes them
+from the shipped HTML (`CLAUDE.md` → *Artist-copy markers*), so they stay in the source until
+each block is approved. After X2, confirm with
+`curl -s https://gfnnn.github.io/Beanstalk/ | grep -c ARTIST-COPY` → `0`.
 
 ### Abort conditions
 NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENABLED` is
@@ -123,18 +125,19 @@ NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENAB
 
 ## Phase 2 — Release & cutover (launch day)
 
-`main` has not been released since June — the first release ships **every** change on
-`develop` (GA4 scaffold, confirmation emails, failed-send digest cron, MVP heroes, flash
-hold-back, ICO number, …). Do the release first, check it, *then* move the domain.
+The release comes first, is checked, and only *then* does the domain move. The first
+release since June (GA4 scaffold, confirmation emails, failed-send digest cron, MVP heroes,
+flash hold-back, ICO number, …) went out on 2026-11-14, so R1/R2 are ticked. Anything merged
+to `develop` since then rides along with the X2 release — re-run R2 after it.
 
-- [ ] **R1 · Release PR `develop → main`** (🛠 + 👤 review). `gh pr create --base main --head
+- [x] **R1 · Release PR `develop → main`** (🛠 + 👤 review) — ✅ 2026-11-14 (#251). `gh pr create --base main --head
    develop --title "release: <date> — v2 go-live"`, review the combined diff, **merge-commit**
    (not squash). This deploys:
    - the web build to `https://gfnnn.github.io/Beanstalk/` (still staging mode, noindex), and
    - the Worker via Cloudflare Workers Builds (`wrangler deploy`), which also registers the
      08:00 UTC failed-send digest cron.
    Watch both deploys go green (Actions tab; Cloudflare → Workers → Deployments).
-- [ ] **R2 · Smoke the Worker after its deploy:**
+- [x] **R2 · Smoke the Worker after its deploy** — ✅ 2026-11-14, 18/18:
    `npm run smoke -- https://beanstalk-e61.pages.dev` (still uses the same Worker).
 - [ ] **X2 · Add `apps/web/public/CNAME` = `beansprout.ink`** (🛠), via a one-line PR to
    `develop` → a second small release PR to `main`. Pages redeploys in **production mode**

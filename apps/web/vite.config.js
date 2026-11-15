@@ -5,7 +5,7 @@ import { renderPortfolioTiles } from './src/build/portfolio-tiles.js'
 import { flash, season, live as flashLive } from './src/data/flash.js'
 import { applyFlashGate } from './src/build/flash-gate.js'
 import { renderFlashCards, renderFlashDrop, renderFlashSeason } from './src/build/flash-cards.js'
-import { injectSeoHead, injectStagingNoindex, isProductionBuild, ROBOTS_NOINDEX, renderRobots, renderSitemap, ROUTES } from './src/build/seo.js'
+import { injectSeoHead, injectStagingNoindex, stripArtistCopyMarkers, isProductionBuild, ROBOTS_NOINDEX, renderRobots, renderSitemap, ROUTES } from './src/build/seo.js'
 import { renderNewsletterInline } from './src/build/newsletter-inline.js'
 import { replyTime } from './src/data/business.js'
 import { renderReplyTime } from './src/build/business.js'
@@ -164,8 +164,9 @@ const seoHead = {
   transformIndexHtml: {
     order: 'post',
     // Structural SEO tags, then the staging noindex (a no-op on the apex build —
-    // see isProductionBuild in src/build/seo.js).
-    handler: (html) => injectStagingNoindex(injectSeoHead(html)),
+    // see isProductionBuild in src/build/seo.js). On the apex build the
+    // ARTIST-COPY sign-off markers are dropped from the shipped HTML.
+    handler: (html) => stripArtistCopyMarkers(injectStagingNoindex(injectSeoHead(html))),
   },
 }
 
