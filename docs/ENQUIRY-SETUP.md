@@ -123,7 +123,7 @@ The form needs the Worker URL **at build time** (Vite bakes it in).
      run `npm run build`, publish `apps/web/dist/`.
 2. **Apex domain is deferred — do not switch it yet.** `beansprout.ink` is still
    served by **v1**; v2 lives on the Pages project URL. There is intentionally **no
-   `public/CNAME`** until cutover (see `ROADMAP.md` → *D. The apex cutover*, and the
+   `public/CNAME`** until cutover (see `CUTOVER.md`, and the
    guardrail in `CLAUDE.md`). The CORS allowlist in `src/lib/http.js` already permits
    `beansprout.ink`, `www.beansprout.ink`, the GitHub Pages origin, and localhost.
 3. Deploy. Done.

@@ -2,13 +2,12 @@
 
 The minimum that makes Beansprout v2 **launch-compliant under UK GDPR**: a concrete
 retention period, a working **erasure path**, and a privacy page that matches both.
-This clears the go-live blocker flagged in `ROADMAP.md`.
 
 > **Why this got simpler.** Personal data now lives in **Cloudflare D1 (SQLite)**,
 > not a key-value blob store — exactly so access/erasure/retention are plain SQL,
 > queryable and auditable, instead of a scan-all script. This is the "proper,
-> compliance-manageable store" decision recorded in the migration. The
-> artist-facing admin UI (ROADMAP P2) will sit on top of these same tables.
+> compliance-manageable store" decision recorded in the migration. Any future
+> artist-facing admin UI would sit on top of these same tables.
 
 ## What personal data we hold, and where
 
@@ -162,11 +161,3 @@ personal and health data, so it falls under the same retention and erasure rules
 ```bash
 wrangler d1 export beansprout --remote --output beansprout-$(date +%F).sql
 ```
-
-## Strategic direction (post-launch)
-
-D1 is already the "proper store" — queryable, with a DPA and EU/UK data-residency
-options on Cloudflare. The remaining step is **management UI + automation**, folded
-into the artist-facing admin view (ROADMAP P2): a per-subject view, one-click
-erasure, a `booked` status so retention can run automatically, and an audit log of
-who erased what. The SQL runbook covers us until that ships.

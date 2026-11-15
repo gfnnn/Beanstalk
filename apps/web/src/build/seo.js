@@ -31,7 +31,7 @@ export const OG_IMAGE_ALT = 'Beansprout: fine line, high detail and realism tatt
 
 // ── Staging vs apex: keep the pre-launch staging site out of search ──────────
 // The whole site lives on the GitHub Pages *.github.io URL until the apex
-// cut-over, which (per docs/ROADMAP.md → go-live plan, Phase 6) is the moment
+// cut-over, which (per docs/CUTOVER.md → Phase 2) is the moment
 // `apps/web/public/CNAME` is added so Pages serves beansprout.ink. We key
 // indexability off that exact file: no CNAME → staging → noindex every page;
 // CNAME present → the apex build → index normally. That makes this
@@ -57,6 +57,17 @@ export function injectStagingNoindex(html) {
   if (/<meta[^>]+name=["']robots["'][^>]+noindex/i.test(html)) return html
   if (!html.includes('</head>')) return html
   return html.replace('</head>', `  ${ROBOTS_NOINDEX}\n</head>`)
+}
+
+/**
+ * On the apex build, drop the `<!-- ARTIST-COPY · … -->` sign-off markers so the
+ * live site's page source never carries them. They stay in the source files and
+ * on staging builds, where they are the review aid (CLAUDE.md → Artist-copy
+ * markers). The whole comment goes, including any note inside it.
+ */
+export function stripArtistCopyMarkers(html) {
+  if (!isProductionBuild()) return html
+  return html.replace(/[ \t]*<!--\s*ARTIST-COPY\b[\s\S]*?-->[ \t]*\r?\n?/g, '')
 }
 
 // Public, indexable routes, highest priority first. Single source of truth for

@@ -5,7 +5,8 @@ argument-hint: <paste the feature brief, or describe the feature>
 
 You are delivering a feature for the **Beansprout v2** site (the *Beanstalk* repo). The design was
 worked out in a Claude Project; your job is expert, on-point delivery on the `develop → main` flow.
-Read `CLAUDE.md` and `docs/WORKFLOW.md` first — they govern everything below.
+Read `CLAUDE.md` first — it governs everything below. Priorities and settled decisions come from
+the brief, not the repo; where the brief is silent on something that matters, ask.
 
 The brief (or feature request):
 
@@ -14,8 +15,8 @@ $ARGUMENTS
 Run this loop. Don't skip the thinking steps just because the brief looks complete.
 
 1. **Ground yourself.** Read `CLAUDE.md` (architecture, build pipeline, **scope discipline**, the
-   git workflow) and the feature doc(s) the brief touches (`docs/ROADMAP.md` plus e.g. `PAYMENTS.md`,
-   `MEDIA.md`, `MOTION.md`, `DATA-COMPLIANCE.md`). Explore the affected code — find the existing
+   git workflow) and the technical doc(s) the brief touches (e.g. `docs/PAYMENTS.md`,
+   `MEDIA.md`, `MOTION.md`, `DATA-COMPLIANCE.md`, `CUTOVER.md`). Explore the affected code — find the existing
    functions, data files, renderers, handlers and patterns to **reuse** rather than reinvent.
 
 2. **Query the design.** Where the brief is ambiguous, conflicts with how the codebase actually
@@ -37,8 +38,11 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
    only skips — the PR's E2E job is the real gate). Do a security pass: input validation, PII/GDPR,
    rate limits, CORS/CSP, secrets never in the repo.
 
-5. **Open the PR.** `git push -u origin feat/<thing>` and open the PR into `develop` with the brief
-   as the body. State plainly that the sandbox can't run the visual/E2E check — that's left to the
+5. **Open the PR.** `git push -u origin feat/<thing>` and open the PR into `develop` with a
+   short, high-level summary as the body (what changed, how it was verified). **The repo is public
+   and the brief may carry private planning detail** (fees, legal reasoning, the artist's copy
+   worksheet) — never paste the brief, or that detail, into a PR body, commit message or repo
+   file. State plainly that the sandbox can't run the visual/E2E check — that's left to the
    PR's E2E workflow + the user's review. This is the default now: open it, don't wait to be asked.
 
 6. **Monitor and react until green.** `subscribe_pr_activity` for the PR, then watch CI + review

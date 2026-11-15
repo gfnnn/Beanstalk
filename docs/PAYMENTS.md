@@ -1,18 +1,15 @@
 # Payments — Stripe checkout for flash & deposits
 
 The single source of truth for taking money on the site: **the model**, **the architecture**,
-**what's shipped vs what remains**, the **file-by-file build spec**, the **fee maths**, and the
-**operator go-live runbook**. (Consolidates the former `PAYMENTS-ROADMAP`, `-STRIPE-BUILD`,
-`-FEES`, `-SETUP`, and the superseded `-PLAN` into one doc — read top-to-bottom, or jump to a
-section.)
+**what's shipped vs what remains**, the **file-by-file build spec**, and the
+**operator go-live runbook**. Read top-to-bottom, or jump to a section.
 
 **Status in one line:** an integrated **Stripe** checkout — flash = full payment, custom =
 deposit — whose **Worker backbone is built and shipped dark** behind `PAYMENTS_ENABLED`
 (migration `0002`, server-side price authority, `/checkout`, `/webhooks/stripe`, stale-release,
 all unit-tested). What remains: the **step-4 embedded frontend**, the studio's
-account/dashboard setup, and a staging test-mode run before live keys. Scheduling co-ships
-([`SCHEDULING.md`](./SCHEDULING.md)) — a paid deposit is its booking-confirmation trigger; the
-artist-facing reconciliation surface is the [`DASHBOARD.md`](./DASHBOARD.md) `/studio` admin.
+account/dashboard setup, and a staging test-mode run before live keys. Appointment scheduling
+(planned, not built) hangs off this — a paid deposit is its booking-confirmation trigger.
 
 ---
 
@@ -26,7 +23,7 @@ The split the studio asked for, made precise:
   without the consultation. The deposit confirms the booking date; the **balance is quoted and
   paid in person on the day**. The website never charges the custom total.
 - **The deposit is the shared primitive** (flat £ or % of a known price — config-driven) and the
-  trigger that hands off to [`SCHEDULING.md`](./SCHEDULING.md).
+  trigger that hands off to appointment scheduling (planned, not built).
 
 | Path | What the site charges | When | Methods that fit |
 |---|---|---|---|
@@ -36,8 +33,7 @@ The split the studio asked for, made precise:
 
 ## 2. Architecture — one Stripe engine
 
-The studio wanted *"the safest integration with the highest functionality and control,"* plus
-**Klarna**. That resolves to a single Stripe integration, embedded on-site:
+A single Stripe integration, embedded on-site:
 
 - **Stripe is the engine.** One integration surfaces **card · Link · Apple/Google Pay · Klarna ·
   PayPal** via the embedded **Payment Element** + `automatic_payment_methods` — each method
@@ -50,14 +46,13 @@ The studio wanted *"the safest integration with the highest functionality and co
 - **No SDK.** The Worker calls the Stripe **REST API** directly with `fetch` and verifies webhooks
   with a hand-rolled **Web-Crypto HMAC-SHA256** (`src/lib/stripe.js`). Keeps the bundle tiny and
   needs no Node shims — there is intentionally no `stripe` dependency in `package.json`.
-- **Monzo Business is the payout bank, not an integration.** Stripe pays out into it. It also
-  gives the **free bank-transfer route** (Monzo Business "Get Paid", £0 fee — see §9), reconciled
-  **manually in the [`/studio` dashboard](./DASHBOARD.md)**, *not* an on-page method. (Monzo's own
-  card links are Stripe under the hood, so going Stripe-direct is strictly more control.)
+- **Monzo Business is the payout bank, not an integration.** Stripe pays out into it (§9). Bank
+  transfer is a manual, off-page option reconciled by hand, *not* an on-page method.
 - **Server-side amount authority.** The client never sends the price (see §6.2).
 
-So the customer sees **card · Klarna · PayPal · bank transfer**, everything settles into the
-**Monzo Business** account, and the whole on-site journey is a single Stripe Payment Element.
+So on the page the customer sees **card · Klarna · PayPal**, and the whole on-site journey is a
+single Stripe Payment Element. **Bank transfer** (listed in §1) is an off-page, manual route —
+not a method in the Element.
 
 ## 3. Status — shipped dark, and the isolation contract
 
@@ -223,7 +218,7 @@ PaymentIntent with `automatic_payment_methods[enabled]='true'`, so a UK GBP cust
 this **single** integration (each toggled on in the dashboard, no code): **Card** (iframes, SAQ-A)
 · **Link** · **Apple/Google Pay** (Apple Pay needs the domain registered — §9) · **Klarna**
 (redirect) · **PayPal** (redirect; **native Stripe method for UK accounts** — no separate
-integration). Bank transfer stays a manual, off-page option in the [dashboard](./DASHBOARD.md).
+integration). Bank transfer stays a manual, off-page option.
 
 **Files to touch:**
 
@@ -316,8 +311,8 @@ details, and transfers data to the US), and add terms for **paying a flash piece
 online** to `/terms/` (what is being bought, cancellation and refund rights) — today's terms
 describe only a 50% deposit arranged by email. Put both in front of the legal reviewer.
 
-**0. Prerequisites.** A **Monzo Business** account (Lite £0/mo is enough to *receive* Stripe
-payouts — §10); its sort code + account number. Wrangler installed & logged in. The Worker
+**0. Prerequisites.** A **Monzo Business** account (to receive Stripe payouts);
+its sort code + account number. Wrangler installed & logged in. The Worker
 already deployed (`beansprout-forms`) with D1 bound.
 
 **1. Open the Stripe account (test mode).** Create at https://dashboard.stripe.com (UK business,
@@ -382,120 +377,23 @@ a `payment_intent.canceled` marks it `expired`. Confirm the **CSP** doesn't bloc
 `js.stripe.com`/`api.stripe.com`/`hooks.stripe.com`).
 
 **9. Go live.** Only after §8 is clean **and** the apex guardrail allows it (`CLAUDE.md` — no
-`apps/web/public/CNAME` until ROADMAP Phase 6; until then payments run on **staging only**): flip
+`apps/web/public/CNAME` until the apex cutover, `CUTOVER.md`; until then payments run on **staging only**): flip
 Stripe to **Live mode** (complete KYC if prompted); re-do §3 (live), §4 (`pk_live_…`/`sk_live_…`),
 §5 (a **live** webhook → new `whsec_…`); re-run §6 with live keys (and
 `VITE_STRIPE_PUBLISHABLE_KEY=pk_live_…` + rebuild) and §7 `migrate` against the live D1; do **one
 real low-value live transaction** end-to-end and confirm webhook + emails + payout-to-Monzo.
 
-**Reconciliation, refunds, bank transfer** live in the artist [dashboard](./DASHBOARD.md) and the
-Stripe Dashboard, not this flow. **To turn payments OFF again:** unset `PAYMENTS_ENABLED` (Worker)
+**Reconciliation, refunds, bank transfer** are handled in the Stripe Dashboard and by hand, not
+this flow. **To turn payments OFF again:** unset `PAYMENTS_ENABLED` (Worker)
 → `/checkout` 503s and the modal falls back to the enquiry flow; unset `VITE_PAYMENTS_ENABLED` +
 rebuild → the Claim button reverts. No code change either way.
 
----
-
-## 10. Fees — cost reference (UK, verified June 2026)
-
-> Rates change — re-check the provider's own pricing page before relying on a figure. None of this
-> is a code change.
-
-**The finding that reframes the question.** "Monzo vs Stripe" is largely a false choice for cards:
-Monzo Business's "Get Paid" card acceptance is **processed by Stripe under the hood**. So the real
-cost axes are (1) **bank transfer (free) vs card (a Stripe-rate %)**, and (2) **manual
-reconciliation (£0 software, costs your time) vs automated webhooks (a % skim, buys automation)**.
-For small low-volume deposits the cheapest path is a **Monzo Business "Get Paid" easy bank
-transfer**: £0 fee, pre-fills the reference — which is why the live Stripe plan **keeps** that free
-route alongside card/Klarna rather than dropping it.
-
-| Provider / method | Per-transaction fee | Monthly | Notes |
-|---|---|---|---|
-| **Monzo Business — easy bank transfer** | **£0.00** | Lite £0 / Pro £9 | Faster Payments; fee-free, pre-fills the reference. |
-| **Monzo.me** (personal P2P) | **£0.00** | £0 | Free, **but personal accounts aren't for business use** — see note. |
-| **Monzo Business — card (via Stripe)** | **1.4% + 20p** UK · 2.5% + 20p EEA · 2.9% + 20p other | as above | Stripe processes it; Monzo passes the fee through. |
-| **Stripe** (direct) | **1.5% + 20p** UK · 2.5% + 20p EEA · 3.25% + 20p intl | £0 | +2% currency conversion. Chargeback **£20/dispute** (kept even if you win). |
-| **PayPal** — Goods & Services | **2.9% + 30p** UK · +1.29% EEA · +1.99% non-EEA | £0 | +3–4% conversion. |
-| **PayPal** — Friends & Family | £0 | £0 | **Against ToS for business + no buyer protection.** Not a real option. |
-| **Klarna** | ~2.95% flat reported (instalments ~5–6%) | varies | Now delivered via Stripe (just enable). |
-
-**Worked examples** (deposits are small, so the fixed fee dominates):
-
-| £30 deposit | Fee | You keep | | £50 deposit | Fee | You keep |
-|---|---|---|---|---|---|---|
-| Monzo Business transfer | £0.00 | £30.00 (**0%**) | | Monzo Business transfer | £0.00 | £50.00 (**0%**) |
-| Monzo/Stripe card (UK) | ~£0.65 | ~£29.35 (~2.2%) | | Monzo/Stripe card (UK) | ~£0.95 | ~£49.05 (~1.9%) |
-| Klarna (~2.95%) | ~£0.89 | ~£29.11 (~3.0%) | | PayPal G&S (UK) | £1.75 | £48.25 (~3.5%) |
-| PayPal G&S (UK) | £1.17 | £28.83 (**~3.9%**) | | | | |
-
-**Costs that aren't the headline %:** reconciliation labour (the manual model's true cost, which a
-gateway's % buys back via webhooks); chargebacks (~£20/dispute on Stripe; P2P transfers have none);
-refunds (Stripe/PayPal don't return the original fee); PCI scope (Elements keeps card data off the
-site, SAQ-A). **Monzo monthly:** taking free bank transfers only needs **Monzo Business Lite
-(£0/mo)**.
-
-**Note — Monzo.me vs "Get Paid".** Monzo.me is a *personal*-account P2P link, and Monzo's terms say
-personal accounts aren't for business use. The business-correct equivalent is **Monzo Business "Get
-Paid"** — same near-zero-cost path (free easy transfers, pre-filled reference) without the ToS
-issue. Pin which the studio actually uses before going live.
-
-**Bottom line:** low volume + small deposits → **bank transfer wins on cost**; Stripe's ~2% becomes
-worth paying when volume makes manual reconciliation a chore worth automating away — and even then
-Monzo Business already gives Stripe card rails + free transfers without a separate integration.
-
----
-
-## 11. Phase 2 — custom deposits (outline)
-
-Reuse everything above with `kind:'deposit'`: the artist quotes offline → issues a tokenised "pay
-your deposit" link (a `/checkout` call seeded from `/studio` or a `wrangler` one-liner at first) →
-success confirms the **booking date** (hands to [`SCHEDULING.md`](./SCHEDULING.md), optional `.ics`
-invite); customer + artist emailed. **No full price is ever generated for a custom tattoo**; the
-balance is paid in person. Card/bank transfer only (no Klarna on a small deposit). The token-
-protected [`/studio`](./DASHBOARD.md) lists payments, marks a **manual Monzo bank-transfer** deposit
-paid, and issues refunds.
-
-## 12. Phase 3 — more methods & polish (outline)
-
-Refund/cancellation flows matching the cancellation copy (issued from the dashboard / Stripe
-Dashboard); reminders; a reconciliation view. *(PayPal is **not** a separate track — it ships with
-step 4 as a native Stripe method. The embedded on-site Payment Element is the chosen flash model,
-not a later swap.)*
-
-## 13. Open decisions
-
-1. **Stripe as the engine** — OK to open a Stripe account paying out to Monzo Business? *(the
-   load-bearing decision — it's what shipped dark.)*
-2. **Flash:** full-payment-only, or also offer deposit-to-hold + balance on the day?
-3. **Deposit rule:** flat £ or % of price — and the figure?
-4. **Klarna on flash from day one** (cheap via Stripe), or hold it back?
-
-Resolved (no longer open): PayPal scope (ships with step 4 as a native Stripe method, no separate
-integration — June 2026); reference format & stale window (`BSF-<piece>-<8char>` / 48h, as built).
-None of the open items block step 4.
-
-## 14. Superseded — the original manual-links plan
-
-The first decision (2026-06) was **manual PayPal.Me + Monzo.me links, hand-reconciled, no gateway
-to build** — kept here for the record. It was superseded when the studio asked for *"the safest
-integration with the highest functionality and control"* plus **Klarna**, which manual links can't
-give (Klarna is a real gateway; "control/automation" means webhooks). The manual route survives
-only as the **zero-build fallback** and the free Monzo bank-transfer option (§9). The three gaps it
-identified — `pending→claimed` promotion, a customer email, stale-pending release — are exactly
-what the Stripe webhook model now closes automatically.
-
 ## Sources
 
-- Stripe — [UK pricing](https://stripe.com/gb/pricing) ·
-  [PayPal as a Stripe method](https://docs.stripe.com/payments/paypal) /
+- Stripe — [PayPal as a Stripe method](https://docs.stripe.com/payments/paypal) /
   [activate](https://docs.stripe.com/payments/paypal/activate) ·
   [dynamic/automatic payment methods](https://docs.stripe.com/payments/payment-methods/dynamic-payment-methods) ·
   [Payment Element](https://docs.stripe.com/payments/payment-element) ·
   [recommended CSP](https://docs.stripe.com/security/guide) ·
   [add a payout bank account](https://support.stripe.com/questions/add-a-bank-account-for-payouts)
-- Monzo — [Get Paid fees](https://monzo.com/help/business-accounts/business-getpaid-fees) ·
-  [Stripe online card payments](https://monzo.com/help/business-getpaid/business-getpaid-stripe-online-card-payments) ·
-  [Stripe payout to a Monzo Business account](https://monzo.com/help/business-getpaid/stripe-pay-out-web) ·
-  [Business plans & pricing](https://monzo.com/business-banking/plans-pricing)
-- PayPal — [business/merchant fees](https://www.paypal.com/uk/business/paypal-business-fees)
-- Klarna — [merchant fees](https://www.klarna.com/uk/business/merchant-support/how-do-i-pay-klarnas-fees/) ·
-  [Merchant Machine — Klarna UK fees](https://merchantmachine.co.uk/bnpl/klarna/)
+- Monzo — [Stripe payout to a Monzo Business account](https://monzo.com/help/business-getpaid/stripe-pay-out-web)

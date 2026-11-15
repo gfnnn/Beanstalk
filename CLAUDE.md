@@ -25,17 +25,19 @@ enterprise platform. The codebase earns its quality by staying small (a 2-depend
 a 0-dependency Worker, no framework, no formatter); the standing risk is *meta*-bloat — building
 ahead of need and accumulating planning docs that then cost more to keep consistent than they're
 worth. These rules exist to hold the line. Follow them, and flag it when a request would cross one.
+**Priorities, plans and the backlog are not kept in this repo** — what to build next arrives in
+the brief; if a brief is silent on something that matters, ask rather than guess.
 
 1. **Ship before you build ahead.** Don't write a feature's *code* — even gated/"dark" — before
-   the thing it serves is live and the dependency is real. **Plans are cheap and welcome; inert
-   backbones are not.** (The site isn't on the apex yet; resist building the next speculative tier
+   the thing it serves is live and the dependency is real. **Plans are cheap (and kept outside
+   this repo); inert backbones are not.** (The site isn't on the apex yet; resist building the next speculative tier
    until real usage pulls it.)
 2. **One doc per concern; consolidate on sight.** If two docs cross-reference each other to stay
    in step, they should be one doc. A commit whose job is "reconcile docs / de-dup / fix counts"
    is a smell that the docs have fragmented — **merge them, don't reconcile them again.**
-3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. A plan
-   for an unbuilt feature is a **short stub of durable decisions**, not a file-by-file build spec
-   (detail goes stale before it's picked up).
+3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. Docs here
+   describe what is **built or being operated**; a plan for an unbuilt feature doesn't get a
+   repo doc at all (see above) — it arrives in the brief.
 4. **State each rule once.** Especially here: say it in one place and link, don't repeat. CLAUDE.md
    is for what changes how an agent *acts* (architecture, the build pipeline, guardrails) — not
    narration of the same caveat three times.
@@ -51,7 +53,7 @@ laptop: a shell, full git, an installable browser, so it can run *everything* en
 constrained **web session**. This section is the operating manual for the **web** one; for which
 actions are best brought back to a full local session (the E2E/visual check, branch/ref cleanup,
 the real Worker via `wrangler dev`, the media/Dropbox scripts), see
-[`docs/WORKFLOW.md`](docs/WORKFLOW.md) → *Where to run what*.
+[Where to run what](#where-to-run-what-local-session-vs-web-session) at the end of this section.
 
 When this repo is opened in **Claude Code on the web** (a remote, ephemeral container —
 not your laptop), these are the ground rules so a session is productive from the first
@@ -65,7 +67,7 @@ command instead of rediscovering the environment each time:
   session waits for install to finish, trading a little startup latency for no race where
   the agent runs a command before deps exist). The tracked things under `.claude/` are this
   hook + `settings.json`, plus the committed **slash commands** (`.claude/commands/`) and
-  **subagents** (`.claude/agents/`) — see [`docs/WORKFLOW.md`](docs/WORKFLOW.md); everything
+  **subagents** (`.claude/agents/`); everything
   else there (incl. `settings.local.json`) stays git-ignored.
 - **`npm test` is the trustworthy signal here.** Both Vitest suites (web + functions) run
   fully in the sandbox.
@@ -98,6 +100,25 @@ command instead of rediscovering the environment each time:
   rebasing other people's branches, and anything touching a ref other than the session's
   own must be done locally or in the GitHub UI** — not from a web session. Plan around
   this; don't keep retrying the 403.
+
+### Where to run what (local session vs web session)
+
+The **mode — not the task — decides what's actually exercisable**. Match the action to the surface:
+
+| Action | Full local session | Web/mobile session |
+|---|---|---|
+| `/deliver`, edit code, open the PR | ✅ | ✅ |
+| `npm test` (both Vitest suites) + `npm run build` + `npm run lint` | ✅ | ✅ |
+| **E2E / Playwright** (`npm run test:e2e`, needs Chromium) | ✅ install + run | ⏭️ skips cleanly — the PR's E2E job is the gate |
+| **Pre-PR visual check** (dev server + eyes on the page, screenshots) | ✅ | ❌ no display → hand to the E2E job + human review |
+| **Branch / ref cleanup** (the Backlog-hygiene prune, rebasing others' branches) | ✅ | ❌ proxy 403s on remote-ref deletion |
+| **Run the Worker for real** (`wrangler dev` + `apps/functions/.dev.vars`, local D1) | ✅ | ❌ |
+| **Review a branch locally** (`npm run preview:branch -- <branch>`) | ✅ | — local-only helper |
+| **Content / media scripts** (`npm run media:dropbox`, `process-media.mjs` / `process-video.mjs`, `master-metadata.mjs`, `npm run smoke`) | ✅ | ⚠️ network-gated, run locally |
+
+So: do the **build + unit loop + PR** from whichever surface is to hand, but bring the
+**browser-bound checks**, **ref surgery**, **the real Worker** and **the media/Dropbox scripts**
+back to a full local session.
 
 ## Commands
 
@@ -150,7 +171,7 @@ CI (`.github/workflows/test.yml`, alongside the per-workspace Vitest matrix), an
 `npm run lint:fix` applies its safe autofixes. One rule (`useIterableCallbackReturn`) is
 deliberately off in `biome.json` — the side-effecting one-liner `arr.forEach(x => fn(x))`
 is idiomatic here (the `useTemplate`/`useOptionalChain` mechanical sweep already landed,
-so those rules are ON — see `docs/ROADMAP.md`). To exercise the Worker for real locally
+so those rules are ON). To exercise the Worker for real locally
 you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
 `apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
 
@@ -175,26 +196,21 @@ apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email +
   src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
   migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
   wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   ROADMAP.md  BRANCHING.md  WORKFLOW.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  COPY-REVIEW.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md  SCHEDULING.md  DASHBOARD.md  CMS.md
+docs/   BRANCHING.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md
 .github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml, smoke.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
 package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
 ```
 The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
-workspace; nothing needs path edits when adding pages. **`docs/ROADMAP.md` is the single
-living plan** — what's shipped, the remaining launch tick-list (👤 you-vs-🛠 code owners),
-the cutover/rollback narrative, and the post-launch backlog incl. the engineering-quality
-thread; launch state is tracked there and nowhere else. `docs/CMS.md` is the (not-yet-built)
-content-CMS plan; the **payments** plan is `docs/PAYMENTS.md` — the **integrated Stripe
-checkout** (flash = full payment, custom = deposit only; one Stripe engine for card + Klarna +
-PayPal, paying out to **Monzo Business**) whose **Worker backbone is shipped dark** behind
-`PAYMENTS_ENABLED` (the `/checkout` + `/webhooks/stripe` routes, the `payments`/`webhook_events`
-ledger in `0002_payments.sql`, and `flash-prices.json` are all in — the `/checkout` route just
-returns 503 until `PAYMENTS_ENABLED === "true"`), with the embedded Payment Element frontend
-still to come; that one doc holds the model, build spec, fees, and operator runbook;
-`docs/SCHEDULING.md` is the (not-yet-built) **appointment-booking** stub that co-ships with it
-(request/hold + manual confirm, gated by the host studio's chair schedule); `docs/DASHBOARD.md`
-is the artist-dashboard stub. Read `ROADMAP.md` for current priorities before starting larger
-work.
+workspace; nothing needs path edits when adding pages. The **go-live procedure and its
+go/no-go gate** are `docs/CUTOVER.md`. The **payments** doc is `docs/PAYMENTS.md` — the
+**integrated Stripe checkout** (flash = full payment, custom = deposit only; one Stripe engine
+for card + Klarna + PayPal, paying out to **Monzo Business**) whose **Worker backbone is shipped
+dark** behind `PAYMENTS_ENABLED` (the `/checkout` + `/webhooks/stripe` routes, the
+`payments`/`webhook_events` ledger in `0002_payments.sql`, and `flash-prices.json` are all in —
+the `/checkout` route just returns 503 until `PAYMENTS_ENABLED === "true"`), with the embedded
+Payment Element frontend still to come; that one doc holds the model, build spec and operator
+runbook. Appointment booking, an artist dashboard and a content CMS are **not built** — don't
+build towards them without a brief that asks for it.
 
 ### Multi-page Vite build
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
@@ -315,7 +331,7 @@ Two layers, both centralised so new pages/responses inherit them:
   its collect hits, nothing wider). **Build/preview only** — a strict CSP
   breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**
   set `frame-ancestors`/`X-Frame-Options`/HSTS on Pages — that clickjacking gap waits for
-  the Cloudflare-front consolidation (`ROADMAP.md` → infrastructure consolidation).
+  a Cloudflare front (post-launch).
 - **Worker (JSON) — response headers.** `SECURITY_HEADERS` in `src/lib/http.js`
   (`nosniff`, `default-src 'none'`, `no-referrer`) is spread into every `replyWith()`
   reply and the 404; CORS still wins where it overlaps. No clickjacking/HSTS headers —
@@ -479,10 +495,9 @@ Worker changes deploy to Cloudflare, and neither drags the other along.**
 Two long-lived branches, so features can be **tested together** before a **batched,
 deliberate** push to production. Full runbook (branch roles, release process, the GitHub
 ruleset settings, and the Cloudflare Pages staging setup) lives in
-[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow. How a feature
-gets *designed* (in a Claude Project) and handed to Code for delivery on this flow is
-[`docs/WORKFLOW.md`](docs/WORKFLOW.md) — the brief template, the `/deliver` command, and the
-`design-reviewer` subagent.
+[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow. Features are
+designed outside this repo and arrive as a **brief**; delivery on this flow runs through the
+`/deliver` command (`.claude/commands/deliver.md`) and the `design-reviewer` subagent.
 
 - **`develop` is the integration branch.** Feature PRs target it, CI runs on every PR, and
   a push to `develop` deploys the **staging** site (Cloudflare Pages, branch-built) + a
@@ -612,9 +627,9 @@ three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backl
 `beansprout.ink` (apex) is intentionally still served by the **v1** repo
 (`gfnnn/beansprout`). This v2 repo publishes only to GitHub Pages (the staging Pages
 URL) and the Cloudflare Worker. **Do not point the apex at v2** — keep there being
-**no `apps/web/public/CNAME`**, and don't add apex A-records for Pages — until the
-copy and real images are finalised (the remaining launch actions are tracked in
-`docs/ROADMAP.md`).
+**no `apps/web/public/CNAME`**, and don't set `beansprout.ink` as this repo's Pages custom
+domain — until the go/no-go gate in `docs/CUTOVER.md` clears. (DNS already points at GitHub
+Pages for v1; the cutover is a custom-domain handover between the two repos, not a DNS change.)
 Cloudflare hosts
 the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
 
@@ -674,4 +689,30 @@ Add a palette by copying a block; keep its `colors`/`tones` keys in step with th
 others so a switch can't leave a token undefined. The decorative tile/flash/hero
 gradient swatches are defined once in `styles/components/tones.css` from the `tones`
 group — never reintroduce the per-surface `.t-*`/`.ci-*`/`.gradient-*` copies.
+
+## Artist-copy markers
+
+Wording that reads as **the artist speaking to a visitor** carries an inline marker until she has
+approved it. The ref ID (`HOME-03`, `ENQ-07`, `FLASH-D1`, …) ties the block to the owner's copy
+tracker, which is kept outside this repo — keep the ref intact.
+
+```html
+<!-- ARTIST-COPY · HOME-03 · pending approval -->
+```
+
+(`// ARTIST-COPY · HOME-10 · pending approval` in a data file; a short parenthetical note may
+follow the status.)
+
+- **Grep the gate.** `grep -rn "ARTIST-COPY" apps/web/` lists every flagged block;
+  `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` is the
+  copy gate (the visitor-facing variant used at go-live is in `docs/CUTOVER.md` → Phase 1).
+- **Flip on approval.** When a brief supplies the approved words, apply them and change
+  `pending approval` → `approved` on that marker. Don't reword marked copy on your own initiative.
+- **Never on the live site — the build strips them.** The markers are a staging review aid.
+  They ship in staging page source, but the production build (`stripArtistCopyMarkers` in
+  `src/build/seo.js`, same apex switch as the noindex) removes every `<!-- ARTIST-COPY … -->`
+  comment from the HTML. So leave a marker in the source until its block is approved — don't
+  hand-strip unapproved ones for go-live.
+- **Edit data files, not markup.** Generated copy (hero, specialisms, flash cards, testimonials,
+  portfolio tiles) lives in `apps/web/src/data/*.js` — the marker sits there too.
 </content>
