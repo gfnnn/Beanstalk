@@ -709,7 +709,9 @@ follow the status.)
 - **Flip on approval.** When a brief supplies the approved words, apply them and change
   `pending approval` → `approved` on that marker. Don't reword marked copy on your own initiative.
 - **Strip before go-live.** The markers are HTML/JS comments and ship in the built page source —
-  a staging review aid only. Remove them entirely before the apex cutover.
+  a staging review aid only. Remove them from the visitor-facing pages before the apex cutover
+  (`docs/CUTOVER.md` → Phase 1). Markers on held-back or switched-off content (e.g. the flash
+  page while `live: false`) stay until that content is approved.
 - **Edit data files, not markup.** Generated copy (hero, specialisms, flash cards, testimonials,
   portfolio tiles) lives in `apps/web/src/data/*.js` — the marker sits there too.
 </content>
