@@ -103,9 +103,9 @@ portfolio stills, and `og-image.jpg` is a strip of real pieces. Proposed MVP gat
 | Flash page | held back (`live: false`) | nothing — FLASH-* markers don't face visitors |
 | Optional slots (ABOUT-04, HOME-08/10, DATA-MEDIA, DATA-TEST) | off / hidden | nothing |
 | **PRIV-01..05, TERMS-01..03** | pending legal review | 👤 **decide:** legal review before launch, or launch on the current text and review after |
-| **ENQ-06 / ENQ-07** (enquiry hints, consent wording) | pending artist eye | 👤 artist approves, or accept as-is |
-| Deposit wording ("Card or bank" vs. email-arranged) | open | 👤 confirm method → 🛠 one-line copy fix |
-| Homepage notice | now reads "Books are open." (`homepage.js`) | 👤 confirm it's still true |
+| **ENQ-06 / ENQ-07** (enquiry hints, consent wording) | ✅ approved by the artist (2026-11-15) | nothing |
+| Deposit wording on `/services/` | ✅ now "Deposit paid by · Bank transfer" (2026-11-15) | nothing |
+| Homepage "Bookings" notice | ✅ switched off (`homepage.js`, 2026-11-15) | nothing |
 | One-word portfolio titles / alt text | open | nice-to-have; fine to fix after launch |
 
 Visitor-facing gate command (excludes the held-back/off slots):
