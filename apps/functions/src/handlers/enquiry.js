@@ -425,7 +425,7 @@ function buildHtml(form, fields, imageCount, skipped = 0) {
     : `<p style="margin:24px 0 0;font-size:13px;color:#8E8B81">No reference images attached.</p>`
 
   const skipNote = skipped > 0
-    ? `<p style="margin:8px 0 0;font-size:12px;color:#C45A3E">⚠ ${skipped} attached file${skipped > 1 ? 's were' : ' was'} skipped — not a recognised image format. You may want to ask ${esc(String(fields.first_name || 'them'))} to resend.</p>`
+    ? `<p style="margin:8px 0 0;font-size:12px;color:#B05138">⚠ ${skipped} attached file${skipped > 1 ? 's were' : ' was'} skipped — not a recognised image format. You may want to ask ${esc(String(fields.first_name || 'them'))} to resend.</p>`
     : ''
 
   const who = esc(String(fields.first_name || fields.name || 'the enquirer'))

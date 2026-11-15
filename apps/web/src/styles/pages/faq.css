@@ -13,8 +13,8 @@
 .faq-aside {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  padding-bottom: 40px;
+  gap: var(--space-8);
+  padding-bottom: var(--space-10);
   border-bottom: 1px solid var(--line);
   margin-bottom: 0;
 }
@@ -25,7 +25,7 @@
   width: 100%;
   background: var(--cream);
   border: 1px solid var(--line);
-  padding: 13px 16px 13px 44px;
+  padding: 13px var(--space-4) 13px 44px;
   border-radius: 100px;
   font-family: var(--sans);
   font-size: 14px;
@@ -54,7 +54,7 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .faq-cat {
@@ -116,8 +116,8 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 24px;
-  padding: 24px 0;
+  gap: var(--space-6);
+  padding: var(--space-6) 0;
   cursor: pointer;
   background: none;
   border: none;
@@ -168,7 +168,7 @@
   line-height: 1.7;
   max-width: min(640px, 100%);
 }
-.faq-answer-inner p { margin-bottom: 12px; }
+.faq-answer-inner p { margin-bottom: var(--space-3); }
 .faq-answer-inner p:last-child { margin-bottom: 0; }
 .faq-answer-inner a {
   color: var(--moss);
@@ -183,10 +183,10 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--moss);
-  padding: 32px 0 16px;
+  padding: var(--space-8) 0 var(--space-4);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .faq-cta::before {
   content: '';
@@ -212,7 +212,7 @@
   padding: clamp(48px, 6vw, 80px) var(--pad-x);
   display: grid;
   grid-template-columns: 1fr;
-  gap: 32px;
+  gap: var(--space-8);
   align-items: center;
 }
 .faq-cta-text h2 {
@@ -257,7 +257,7 @@
   }
   .faq-cta {
     grid-template-columns: 1fr 1fr;
-    gap: 48px;
+    gap: var(--space-12);
   }
   .faq-cta-actions { align-items: flex-start; }
 }

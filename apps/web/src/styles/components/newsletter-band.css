@@ -26,7 +26,7 @@
   line-height: 1.08;
   letter-spacing: -0.02em;
   color: var(--ink);
-  margin: 8px 0 12px;
+  margin: var(--space-2) 0 var(--space-3);
 }
 .newsletter-band-title em { font-style: italic; color: var(--moss); }
 .newsletter-band-sub {
@@ -44,7 +44,7 @@
 .newsletter-band-row {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
   margin-bottom: 6px;
 }
 .newsletter-band-row .signup-field { margin-bottom: 0; flex: 1 1 auto; }

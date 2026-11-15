@@ -22,6 +22,37 @@
   --radius-sm: 4px;
   --radius:    8px;
 
+  /* ── Spacing ─────────────────────────────────────────────
+     Named by 4px multiple (--space-4 = 16px). Padding, margin and gap use these;
+     off-grid literals (14px, 20px, 28px …) are legacy, left as written. */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-18: 72px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ── Shadows & halos ─────────────────────────────────────
+     Palette-channel form, so a palette switch recolours them. */
+  --shadow-nav-scrolled: 0 2px 20px rgba(var(--ink-rgb), 0.07);
+  --shadow-stuck:        0 4px 20px rgba(var(--ink-rgb), 0.06);   /* pinned bars: filter, aftercare switch, enquiry progress */
+  --shadow-choice-hover: 0 10px 30px rgba(var(--ink-rgb), 0.07);
+  --shadow-flash-hover:  0 12px 32px rgba(var(--ink-rgb), 0.08);
+  --shadow-dropdown:     0 16px 48px rgba(var(--ink-rgb), 0.12);
+  --shadow-sheet:        0 -16px 64px rgba(var(--ink-rgb), 0.18);  /* flash modal < 640px */
+  --shadow-modal:        0 32px 80px rgba(var(--ink-rgb), 0.2);    /* flash modal ≥ 640px */
+  --focus-halo:          0 0 0 3px rgba(var(--moss-rgb), 0.1);
+  --focus-halo-soft:     0 0 0 3px var(--moss-bg);
+  --error-halo:          0 0 0 3px rgba(var(--clay-rgb), 0.1);
+  --selected-inset:      inset 0 0 0 1px var(--moss);
+
   /* ── Motion ──────────────────────────────────────────── */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur:  220ms;
