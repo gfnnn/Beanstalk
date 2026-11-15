@@ -28,8 +28,8 @@ export const OWNER_KEY = 'bs_owner'
 const OWNER_PARAM = 'owner'
 const GTAG_SRC = 'https://www.googletagmanager.com/gtag/js'
 const ID_RE = /^G-[A-Z0-9]+$/
-// Keep the _ga cookies to ~13 months (GA's default is 2 years), in step with the
-// 14-month retention set on the property.
+// ~13 months for the _ga cookies, in step with the 14-month retention on the
+// property. Documentation only: see the note on the config call in loadGtag.
 const COOKIE_EXPIRES_S = 60 * 60 * 24 * 395
 // How long a navigating caller waits for the hit to send before moving on anyway.
 const NAV_TIMEOUT_MS = 800
@@ -154,6 +154,11 @@ function loadGtag(id) {
   // biome-ignore lint/complexity/noArguments: gtag.js requires the arguments object
   window.gtag = function gtag() { window.dataLayer.push(arguments) }
   window.gtag('js', new Date())
+  // These params are NOT what enforces the policy. The Google tag ignores the
+  // on-page config (its "Ignore duplicate instances of on-page configuration"
+  // setting is on), so signals, ad personalisation and the cookie lifetime are
+  // set in GA4 admin (docs/ANALYTICS.md → GA4 admin setup). Kept as a fallback
+  // should that setting ever be turned off.
   window.gtag('config', id, {
     allow_google_signals: false,
     allow_ad_personalization_signals: false,

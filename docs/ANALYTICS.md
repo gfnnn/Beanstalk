@@ -22,12 +22,12 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   or unreadable storage all mean gtag is never injected and no `dataLayer` exists: zero Google
   requests. Opting out mid-visit sets `window['ga-disable-<ID>']`, stops events and expires the
   `_ga` cookies; the choice persists (localStorage) and can be reversed.
-- **gtag config:** the code passes `allow_google_signals: false`,
-  `allow_ad_personalization_signals: false` and `cookie_expires` ≈ 13 months, **but the live
-  Google tag drops them**: it configures itself from the script URL and ignores the on-page
-  `config` call's params (seen on the apex, 2026-11-15: `_ga` got the default lifetime, and
-  `send_page_view: false` and `traffic_type` had no effect). So these are enforced in the
-  **GA4 admin setup** below (steps 2 and 3), not by the code.
+- **gtag config is a no-op; GA4 admin owns these settings.** The code still passes
+  `allow_google_signals: false`, `allow_ad_personalization_signals: false` and
+  `cookie_expires` ≈ 13 months, but the Google tag's *Ignore duplicate instances of on-page
+  configuration* setting is **on** (its default), so the tag configures itself from the
+  script URL and drops every param of the on-page `config` call. What is actually enforced is
+  the **GA4 admin setup** below (steps 2 and 3). **Change policy there, not in code.**
 - **No PII, enforced centrally:** `track()` sends only an allowlist (events + fixed param
   values); anything else is dropped. Call sites never touch gtag.
 - **Owner flag:** a browser opted in with `?owner=1` never loads gtag, so it sends nothing;
@@ -55,9 +55,12 @@ gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`
 1. Create the property + web stream; paste its `G-…` ID into `src/data/analytics.js`.
 2. **Admin → Data collection:** Google signals **off**; granular location/device data **off**.
    **Account → Data sharing settings:** all **off**. Accept the Data Processing Terms.
-3. **Data retention:** 14 months. **Cookie lifetime:** web stream → *Configure tag settings* →
-   *Override cookie settings* → set the cookie expiration to 13 months (or the nearest shorter
-   option), to match what `/privacy/` promises. The code can't set this (see above).
+3. **Data retention:** 14 months. **Cookie lifetime:** *Data streams* → the web stream →
+   *Configure tag settings* (this opens the stream's auto-created Tag Manager container, which
+   is only reachable this way) → *Settings* → *Override cookie settings* → cookie expiration
+   **13 months**, cookie update on (relative to the most recent visit), then **publish** the
+   container. This is the only place the `_ga` lifetime `/privacy/` promises is enforced
+   (production: set 2026-11-15, `_ga` checked at 395 days).
 4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn **off** *Form
    interactions* (fires on failed/invalid submits, double-counts) and *Site search* (no search
    exists; it would read `q`/`s` from any crafted URL).
