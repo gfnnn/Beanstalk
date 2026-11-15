@@ -164,7 +164,9 @@ docs and commits cite, not a sequence.
 - [ ] **X7b · Production analytics** (👤 + 🛠 one line). Create the production GA4 property, run
    its admin setup ([`ANALYTICS.md`](./ANALYTICS.md) → *GA4 admin setup*), paste the `G-…` ID
    into `production.measurementId` in `apps/web/src/data/analytics.js`, ship via a small
-   release. Can follow on the same day or later — with no ID the apex sends nothing.
+   release. Can follow on the same day or later — with no ID the apex sends nothing. Then opt
+   each owner browser out of the numbers on the apex (`ANALYTICS.md` → *Owner traffic*); a
+   flag set on staging doesn't carry over.
 
 ---
 

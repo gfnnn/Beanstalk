@@ -26,6 +26,9 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   `cookie_expires` ≈ 13 months.
 - **No PII, enforced centrally:** `track()` sends only an allowlist (events + fixed param
   values); anything else is dropped. Call sites never touch gtag.
+- **Owner flag:** a browser opted in with `?owner=1` sends `traffic_type: 'internal'` on every
+  hit, and the `owner` param is taken off the URL before gtag is configured (see *Owner
+  traffic* below).
 - **Two properties:** staging and production are separate GA4 properties (separate IDs
   in the data file), so test traffic never mixes with real numbers. The production ID stays
   empty until the production property exists (`CUTOVER.md` → X7b).
@@ -37,7 +40,7 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
 
 | Event | Params | Fired from |
 |---|---|---|
-| `page_view` | GA4 default (page URL/title; URLs carry no PII, the only query string is `?style=`) | gtag `config` |
+| `page_view` | GA4 default (page URL/title; URLs carry no PII, the only query string is `?style=`; `?owner=` is stripped first) | gtag `config` |
 | `generate_lead` | `{ form: 'enquiry' }` | `enquire.js` (waits up to 800 ms for the hit before redirecting) |
 | `generate_lead` | `{ form: 'flash' }` | `flash.js` |
 | `sign_up` | `{ method: 'newsletter' }` (not fired for an already-subscribed address) | `newsletter.js` |
@@ -53,9 +56,11 @@ gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`
 4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn **off** *Form
    interactions* (fires on failed/invalid submits, double-counts) and *Site search* (no search
    exists; it would read `q`/`s` from any crafted URL).
-5. **Internal traffic:** define the rule and add the data filter. **Staging: leave it in
-   *Testing*** (staging traffic is almost all internal, so an *Active* filter would hide the
-   very hits you're verifying). **Production: set it *Active*.**
+5. **Internal traffic:** keep the built-in *Internal Traffic* data filter (it excludes
+   `traffic_type` = `internal`, which is what the owner flag sends; no IP rule is needed).
+   **Staging: leave it in *Testing*** (staging traffic is almost all internal, so an *Active*
+   filter would hide the very hits you're verifying). **Production: set it *Active*.** Don't
+   use the *Developer traffic* filter for this: it keys off `debug_mode`.
 6. **Custom dimension:** register an **event-scoped** dimension for the `form` param
    (`enquiry` | `flash`) so `generate_lead` can be split by form. `sign_up`'s `method` needs
    nothing: it maps to GA4's built-in *Method* dimension.
@@ -65,6 +70,25 @@ gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`
 8. Production only (cutover): mark `generate_lead` and `sign_up` as **key events**.
 
 Verify on staging with GA4 **DebugView/Realtime**: `page_view`, `generate_lead`, `sign_up`.
+
+## 👤 Owner traffic (keep your own visits out of the numbers)
+
+The flag lives in the browser, not the IP address, so it survives changing networks.
+
+- **Opt in:** open `https://beansprout.ink/?owner=1` once in each browser you use. The address
+  bar drops the `?owner=1` straight away and the footer shows *Owner mode · visits from this
+  browser aren't counted* on every page while the flag is set.
+- **Opt out:** open `https://beansprout.ink/?owner=0`.
+- **Once per browser, per site.** Each browser on each device keeps its own flag, and staging
+  and the live site are separate, so opt in on each. The Instagram in-app browser is its own
+  browser too: open the link from inside Instagram (e.g. send it to yourself in a DM).
+- **Check the footer if numbers look off.** Clearing site data removes the flag, a private
+  window never has it, and Safari deletes it after seven days without a visit. No footer line
+  means the flag is gone: open the opt-in link again.
+- **Verify:** DevTools → Network → a `/g/collect` request carries `tt=internal` with the flag
+  and no `tt` without it; your visit stays out of GA4 Realtime.
+
+Anyone who finds the link only excludes their own visits, so it needs no secret.
 
 ---
 
