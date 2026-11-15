@@ -61,7 +61,8 @@ command instead of rediscovering the environment each time:
 
 - **Dependencies are installed for you.** A committed **SessionStart hook**
   (`.claude/hooks/session-start.sh`, registered in `.claude/settings.json`) runs
-  `npm install` in the remote container before the session starts, so `npm test` and
+  `npm ci` in the remote container before the session starts (`ci`, so it never rewrites
+  `package-lock.json`), so `npm test` and
   `npm run build` work immediately — there is no "install first" dance. It's a no-op on a
   developer's local machine (gated on `$CLAUDE_CODE_REMOTE`). It is **synchronous** (the
   session waits for install to finish, trading a little startup latency for no race where
