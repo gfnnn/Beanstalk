@@ -183,6 +183,7 @@ describe('stripArtistCopyMarkers (sign-off markers never reach the live site)', 
 
   it('leaves staging builds untouched (the markers are the review aid there)', () => {
     withSiteEnv(undefined, () => {
+      if (isProductionBuild()) return // the apex CNAME makes every build a production build
       expect(stripArtistCopyMarkers(page)).toBe(page)
     })
   })
