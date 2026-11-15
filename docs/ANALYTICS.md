@@ -49,21 +49,24 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
 | `sign_up` | `{ method: 'newsletter' }` (not fired for an already-subscribed address) | `newsletter.js` |
 
 Outbound clicks come from GA4 enhanced measurement (the old `social_click` custom event is
-gone). Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`.
+gone). GA4 shows `value` and `currency` on `generate_lead` and `sign_up`; the site doesn't send
+them (the allowlist above is everything it sends); they are added on Google's side. Payments events (`begin_checkout`/`purchase`) wait for `PAYMENTS_ENABLED`.
 
 ## 👤 GA4 admin setup (owner, per property)
 1. Create the property + web stream; paste its `G-…` ID into `src/data/analytics.js`.
 2. **Admin → Data collection:** Google signals **off**; granular location/device data **off**.
    **Account → Data sharing settings:** all **off**. Accept the Data Processing Terms.
 3. **Data retention:** 14 months. **Cookie lifetime:** *Data streams* → the web stream →
-   *Configure tag settings* (this opens the stream's auto-created Tag Manager container, which
+   *Configure tag settings* (this opens the stream's auto-created Tag Manager container,
+   `GTM-ML35GH6Z` on production, which
    is only reachable this way) → *Settings* → *Override cookie settings* → cookie expiration
    **13 months**, cookie update on (relative to the most recent visit), then **publish** the
    container. This is the only place the `_ga` lifetime `/privacy/` promises is enforced
    (production: set 2026-11-15, `_ga` checked at 395 days).
-4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn **off** *Form
-   interactions* (fires on failed/invalid submits, double-counts) and *Site search* (no search
-   exists; it would read `q`/`s` from any crafted URL).
+4. **Enhanced measurement:** keep page views, scrolls, outbound clicks; turn everything else
+   **off**: *Form interactions* (fires on failed/invalid submits, double-counts), *Site
+   search* (no search exists; it would read `q`/`s` from any crafted URL), and *Video
+   engagement* and *File downloads* (the site has neither yet).
 5. **Internal traffic:** nothing to set up. The owners' own visits are kept out by the owner
    flag (below), which needs no data filter or IP rule.
 6. **Custom dimension:** register an **event-scoped** dimension for the `form` param
