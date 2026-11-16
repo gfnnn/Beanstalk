@@ -1,0 +1,5 @@
+# Gitignored local files copied into each new Claude Code worktree (.claude/worktrees/).
+# Only files that are ALSO gitignored are copied; nothing here is ever committed.
+.env
+apps/functions/.dev.vars
+CLAUDE.local.md
