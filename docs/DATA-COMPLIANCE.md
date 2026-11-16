@@ -1,6 +1,6 @@
 # Data compliance — retention & erasure (MVP)
 
-The minimum that makes Beansprout v2 **launch-compliant under UK GDPR**: a concrete
+The minimum that keeps Beansprout **compliant under UK GDPR**: a concrete
 retention period, a working **erasure path**, and a privacy page that matches both.
 
 > **Why this got simpler.** Personal data now lives in **Cloudflare D1 (SQLite)**,
@@ -107,12 +107,12 @@ wrangler d1 execute beansprout --remote \
 completed tattoo. Before deleting, eyeball the preview and **keep any record for a
 tattoo that went ahead** (those have the insurer/LA retention). At studio volume
 this manual check is trivial; automating it (a `booked` flag + a scheduled Worker)
-is a post-launch follow-up. The `rate_events` table is largely self-pruning: the
+is a possible follow-up, not built. The `rate_events` table is largely self-pruning: the
 per-IP sliding-window rows are deleted on each commit, and the per-day counter rows
 (one per successful send) are tiny and aged out opportunistically too — so no manual
 retention action is needed.
 
-## Go-live checklist (compliance slice)
+## Compliance checklist
 
 - [x] Concrete retention period defined (12 months) and stated on the privacy page.
 - [x] Working erasure path (delete-by-email) — the SQL above.

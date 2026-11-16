@@ -12,9 +12,11 @@ commands.** You have read-only tools by design.
 
 Ground every judgement in how this codebase actually works:
 
-1. **Read first.** Start from `CLAUDE.md` (architecture, the data→build-time-HTML pipeline, the
-   Worker/D1/Resend backend, the design system, the develop→main flow, and the **scope-discipline
-   rules**). Then read the relevant technical `docs/` (the topic doc — `PAYMENTS.md`, `MEDIA.md`,
+1. **Read first.** Start from `CLAUDE.md` (the **scope-discipline rules**, the architecture
+   map, the develop→main flow), then the path-scoped rule for each area the design touches
+   (`.claude/rules/` — web build pipeline, front end + design system, Worker, CI; read them
+   directly, they don't load by themselves for a design you are only reading about). Then read
+   the relevant technical `docs/` (the topic doc — `PAYMENTS.md`, `MEDIA.md`,
    `MOTION.md`, `DATA-COMPLIANCE.md`, `CUTOVER.md`, etc.; priorities and launch state come from
    the brief you are given, not the repo) and the actual
    source the design touches. Identify existing functions/patterns the design should **reuse**.
@@ -32,7 +34,9 @@ Ground every judgement in how this codebase actually works:
    - **Best practice** — only when it adds value, check current external guidance with WebSearch
      (e.g. Stripe, Cloudflare Workers/D1, Resend, View Transitions) and cite it.
    - **Testing** — what unit coverage fits, and whether it touches a browser-only path the
-     Playwright tier must gate.
+     Playwright tier must gate. If the caller says delivery runs in a cloud session
+     (`$CLAUDE_CODE_REMOTE` is `true` there; you can't read it yourself), say which checks will
+     have to wait for the PR's E2E job or a local review.
 
 3. **Return a structured critique:** a short verdict; **strengths**; **concerns** (ranked, each with
    the file/area and a concrete recommendation); **open questions** the human should answer before

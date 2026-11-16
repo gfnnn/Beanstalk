@@ -57,7 +57,7 @@ not a method in the Element.
 ## 3. Status — shipped dark, and the isolation contract
 
 The feature is built to **develop in the background and toggle on when ready**, with **no effect
-on the launch journey** (marketing site, enquiry form, claim-by-enquiry, newsletter) until the
+on the live journey** (marketing site, enquiry form, claim-by-enquiry, newsletter) until the
 switch is flipped. Enforced in code + tests:
 
 - **Front end is unchanged until a build flag flips it.** The backbone touches **no `apps/web`

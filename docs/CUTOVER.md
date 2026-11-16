@@ -1,10 +1,9 @@
 # v2 launch — go-live & apex cutover runbook
 
-The launch-day script for moving `beansprout.ink` from **v1** (`gfnnn/beansprout`) to
-**v2** (this repo). It is version-controlled so the sequence is **rehearsed and
-reversible**, with an explicit go/no-go gate and a rollback to v1.
+The runbook that moved `beansprout.ink` from **v1** (`gfnnn/beansprout`) to **v2** (this
+repo) on 2026-11-15, kept as the record of what was done, the **rollback procedure**
+(Phase 4) and the open **follow-ups** (Phase 5).
 
-This is the **procedure and the state tracker** — tick the boxes here as you go.
 Architecture/guardrails are in [`CLAUDE.md`](../CLAUDE.md), the email round-trip is the
 "run b" acceptance test in Phase 3 below, data/erasure is
 [`DATA-COMPLIANCE.md`](./DATA-COMPLIANCE.md).
@@ -19,18 +18,18 @@ apex. The launch is closed; what remains is the unticked follow-up in Phase 5.
 
 > `apps/web/public/CNAME` is now committed, so a plain build is a production build. The
 > Cloudflare Pages staging site is the exception: it builds in staging mode (noindex, no
-> sitemap) because Cloudflare sets `CF_PAGES=1` (`CLAUDE.md` → *SEO structure*).
+> sitemap) because Cloudflare sets `CF_PAGES=1` (`.claude/rules/web-build.md` → *SEO structure*).
 
 ---
 
-## How the switch actually works (read first)
+## How the switch works (read first)
 
-**v1 is already on GitHub Pages, on the same account.** DNS for the apex already points at
+**v1 and v2 are both on GitHub Pages, on the same account.** DNS for the apex points at
 GitHub (apex `A` → `185.199.108–111.153`, `www` `CNAME` → `gfnnn.github.io`), and GitHub
-routes the domain to whichever repo **claims it as its Pages custom domain** — today that's
-`gfnnn/beansprout` (legacy branch build, a `CNAME` file on `main`, cert valid to Jan 2027).
+routes the domain to whichever repo **claims it as its Pages custom domain** — v1 before the
+cutover (legacy branch build, a `CNAME` file on `main`), v2 since.
 
-So **the cutover is not a DNS change.** It's a custom-domain handover between two repos:
+So **the cutover was not a DNS change**, and neither is a rollback. It's a custom-domain handover between two repos:
 
 1. release `beansprout.ink` from v1's Pages settings, then
 2. claim it in v2's Pages settings.

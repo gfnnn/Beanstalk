@@ -50,7 +50,7 @@ export async function stubWorker(page, { enquiry, newsletter, flashStatus } = {}
 //
 // Uncaught exceptions (`pageerror`) always fail — that's a broken bundle/page.
 // Console errors fail too, EXCEPT resource-load 404s: real photography is still
-// being shot (CLAUDE.md), so some `/images/...` files legitimately 404 until the
+// being shot (.claude/rules/web-frontend.md), so some `/images/...` files legitimately 404 until the
 // shoot lands. Those are content gaps, not code health, so they're filtered out.
 export function watchForErrors(page) {
   const pageErrors = []

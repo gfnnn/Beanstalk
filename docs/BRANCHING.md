@@ -2,21 +2,21 @@
 
 How code moves from a feature branch to production, set up for **multi-feature testing**
 (features integrate and get exercised together on staging) and **batched delivery to prod**
-(many features ship in one deliberate release, not one deploy per merge). This is the
-go-live-ready flow. The short version lives in [`CLAUDE.md`](../CLAUDE.md) → *Git
-workflow*; this file is the full runbook plus the one-time GitHub/Cloudflare setup.
+(many features ship in one deliberate release, not one deploy per merge). The rules an
+agent follows on every task are in [`CLAUDE.md`](../CLAUDE.md) → *Git workflow*; this file
+is the full runbook plus the one-time GitHub/Cloudflare setup.
 
 ## The two long-lived branches
 
 | Branch     | Role                | Deploys to                                  | Updated by                                  |
 |------------|---------------------|---------------------------------------------|---------------------------------------------|
 | `develop`  | integration / staging | **Cloudflare Pages** (`*.pages.dev`) + Worker *preview* version | squash-merged **feature PRs** |
-| `main`     | release / production  | **GitHub Pages** (apex at go-live) + Worker *deploy* | **release PRs** `develop → main` only |
+| `main`     | release / production  | **GitHub Pages** (`beansprout.ink`) + Worker *deploy* | **release PRs** `develop → main` only |
 
 Everything else is a short-lived `feat/*`, `fix/*`, or `docs/*` branch cut off `develop`.
 
-> **Since the 2026-11-15 cutover** `main` → GitHub Pages **is** the live site at
-> `beansprout.ink` (see "How this maps to go-live" below).
+> `main` → GitHub Pages **is** the live site at `beansprout.ink` (since the 2026-11-15
+> cutover — [`CUTOVER.md`](./CUTOVER.md)); `develop`'s `*.pages.dev` is the staging site.
 
 ```
 feat/x ─┐
@@ -28,8 +28,8 @@ feat/z ─┘                   ▲                                          (me
 ## Day-to-day: shipping a feature
 
 1. **Branch off `develop`** (up to date): `git switch -c feat/<thing> origin/develop`
-   (or a worktree — see `CLAUDE.md`). Never commit directly on `develop`/`main`.
-2. Build it, **visual-check it** (browser proof — see `CLAUDE.md`), `npm test && npm run build`.
+   (or a worktree — recipe in `CLAUDE.md`). Never commit directly on `develop`/`main`.
+2. Build it, **visual-check it** (see `CLAUDE.md` → *Where you are*), `npm test && npm run build`.
 3. **PR into `develop`:** `gh pr create --base develop`. CI (the two Vitest matrix jobs)
    must go green. Squash-merge, delete the branch.
 4. The push to `develop` redeploys **staging**. Exercise the accumulated features there.
@@ -57,6 +57,24 @@ next release. Use sparingly — the normal path is always through `develop`. A h
 any rollback) still goes through a PR: `main` has no admin bypass — see
 [Ruleset A](#ruleset-a--main-production) for the emergency override.
 
+## Several features in flight
+
+The failure mode is branches cut from `develop` that then sit: when one squash-merges, the
+others fall behind and the eventual merge fights conflicts.
+
+1. **One feature = one worktree = one branch = one PR.** Don't switch branches in the main
+   checkout.
+2. **Cap in-flight branches at ~2–3.** Don't open a fourth until one merges or is parked.
+3. **Rebase onto `develop` daily, and immediately after *any* PR merges.**
+4. **Structural refactors run solo.** A change that moves or renames files conflicts with
+   everything: merge it first, fast, with nothing else open, then branch the rest off the new
+   layout.
+5. **Keep branches small and short-lived** (a day or two). Small diffs rebase clean.
+
+**Resolving a stale branch:** from its worktree, `git fetch && git rebase origin/develop`,
+fix conflicts, `npm test && npm run build`, `git push --force-with-lease`, then
+`gh pr merge --squash --delete-branch`.
+
 ## Backlog hygiene (run when open PRs climb past ~5)
 
 Parallel sessions spawn branches + PRs faster than they merge, and the stale ones rot. The
@@ -65,7 +83,7 @@ branch, (b) branches forked from an old `develop` and **left to drift**, and (c)
 **closed / never-merged heads** auto-delete can't reach. A periodic sweep stops it
 compounding — this is the exact routine, in order:
 
-1. **List what's open.** `gh pr list --state open` (or the GitHub MCP equivalent). More than
+1. **List what's open.** `gh pr list --state open`. More than
    a handful → do the rest.
 2. **Close the superseded — don't merge duplicates.** For each PR, test whether its change
    already landed: `git fetch origin develop && git diff origin/develop origin/<head> -- <changed files>`
@@ -80,8 +98,8 @@ compounding — this is the exact routine, in order:
    take it first, before it drifts further.
 4. **Re-target stragglers.** A feature PR accidentally aimed at `main` → switch its base to
    `develop` (or fold it into the next release PR). Feature work never lands on `main` directly.
-5. **Prune the branches** (from a **local** clone, `gh` authenticated — a web session can't: the
-   proxy 403s on remote-ref deletion). Auto-delete already clears *merged* heads; this sweeps the
+5. **Prune the branches** (from a **local** session, `gh` authenticated — a cloud session
+   can't delete remote refs). Auto-delete already clears *merged* heads; this sweeps the
    residue. The authoritative "merged" test under squash-merge is the **PR state**, not
    `git branch --merged`, so drive it off the PR list:
    ```bash
@@ -135,8 +153,9 @@ stays the release target, reachable explicitly in the release PR.
 
 ### 3. Auto-delete merged branches
 **Settings → General → Pull Requests → ✅ "Automatically delete head branches".** Highest-
-leverage hygiene fix — every squash-merge removes its own head, so the `claude/*`/`feat/*`
-pile never forms (a web session can't delete remote refs; the proxy 403s — see `CLAUDE.md`).
+leverage hygiene fix. This repo squash-merges, so a merged branch never becomes an ancestor
+of `main` and looks "unmerged" forever; with this on, every squash-merge removes its own
+head and the `claude/*`/`feat/*` pile never forms.
 
 ### 4. Branch rulesets (Settings → Rules → Rulesets → New branch ruleset)
 
@@ -187,7 +206,8 @@ are `test (@beansprout/web)` and `test (@beansprout/functions)` (from
 ## One-time Cloudflare setup (staging site for `develop`)
 
 Mirrors how the **Worker** already deploys (Cloudflare-side Git integration), so **no
-Cloudflare API token lives in GitHub** — keeping the CI-security posture in `CLAUDE.md`.
+Cloudflare API token lives in GitHub** — keeping the CI-security posture in
+`.claude/rules/ci.md`.
 
 1. **Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git.**
 2. Pick this repo (`gfnnn/beanstalk`). **Production branch: `develop`.**
@@ -208,9 +228,3 @@ Cloudflare API token lives in GitHub** — keeping the CI-security posture in `C
 > staging, add that origin to the Worker's CORS allowlist in
 > `apps/functions/src/lib/http.js` (the *site* origin allowlist) and redeploy the Worker.
 
-## How this maps to go-live (apex cutover)
-
-The cutover happened on 2026-11-15 ([`CUTOVER.md`](./CUTOVER.md)): `apps/web/public/CNAME`
-was added and the Pages custom domain moved from the v1 repo to this one (no DNS change). So
-`main` releases **are** production on the apex, `develop`'s `*.pages.dev` remains the pre-prod
-staging site, and nothing about the day-to-day flow changed.

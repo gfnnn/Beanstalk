@@ -9,7 +9,7 @@
 #
 # Path-gated to web changes (like deploy-web.yml) so a functions-only PR doesn't
 # pay for a browser run. Read-only token, no privileged triggers — same security
-# posture as test.yml (see CLAUDE.md → "CI / GitHub Actions security").
+# posture as test.yml (see .claude/rules/ci.md).
 name: E2E
 
 # Path gate: also the root package.json (workspaces/engines feed npm ci) and

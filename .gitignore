@@ -7,15 +7,20 @@ playwright-report/
 test-results/
 .playwright/
 blob-report/
-# Claude Code config: ship the shared SessionStart hook + settings + the committed
-# slash commands and subagents, but keep personal/local overrides and transient
-# state out of the repo.
+# Claude Code config: ship the shared SessionStart hook + settings, the committed
+# slash commands, subagents and path-scoped rules, and the dev-server launch config,
+# but keep personal/local overrides and transient state (incl. .claude/worktrees/)
+# out of the repo.
 .claude/*
 !.claude/settings.json
+!.claude/launch.json
 !.claude/hooks/
 !.claude/commands/
 !.claude/agents/
+!.claude/rules/
 .claude/settings.local.json
+# Private per-machine notes for Claude Code — never committed.
+CLAUDE.local.md
 .DS_Store
 *.local
 .env

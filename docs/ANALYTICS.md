@@ -75,7 +75,7 @@ them (the allowlist above is everything it sends); they are added on Google's si
 7. **Data redaction** (web stream → *Redact data*): turn on **email** redaction and add the
    query parameter **`payment_intent_client_secret`**. Nothing sends either today; this is
    belt-and-braces for the future Payment Element return URL (see `PAYMENTS.md` §7).
-8. Production only (cutover): mark `generate_lead` and `sign_up` as **key events**.
+8. Production only: mark `generate_lead` and `sign_up` as **key events**.
 
 Verify on staging with GA4 **DebugView/Realtime**: `page_view`, `generate_lead`, `sign_up`.
 

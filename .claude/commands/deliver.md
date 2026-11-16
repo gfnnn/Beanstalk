@@ -22,7 +22,8 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
 2. **Query the design.** Where the brief is ambiguous, conflicts with how the codebase actually
    works, or fights best practice / security / accessibility / the lean baseline, **ask me with
    `AskUserQuestion`** before building — don't guess. For anything non-trivial, delegate a deep look
-   to the **`design-reviewer`** subagent (read-only critique against the codebase, scope discipline,
+   to the **`design-reviewer`** subagent (tell it whether this is a local or a cloud session;
+   read-only critique against the codebase, scope discipline,
    security and best practice) and fold its findings in. Flag any scope-discipline breach (new
    dependency / build step / doc, or code built ahead of a real need) instead of quietly shipping it.
 
@@ -34,19 +35,25 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
 
 4. **Test and secure.** Run `npm test` (both suites) and `npm run build`; `npm run lint` clean. Add
    or extend tests for what you changed — and if it touches a browser-only path (enquiry form,
-   lightbox, mobile nav, flash modal), add/extend an `apps/web/e2e/` spec (the sandbox `test:e2e`
-   only skips — the PR's E2E job is the real gate). Do a security pass: input validation, PII/GDPR,
-   rate limits, CORS/CSP, secrets never in the repo.
+   lightbox, mobile nav, flash modal), add/extend an `apps/web/e2e/` spec. Then run the checks
+   your session can (`CLAUDE.md` → *Where you are*): **locally** (`$CLAUDE_CODE_REMOTE` unset),
+   run `npm run test:e2e` for real and do the Browser-pane visual check, with screenshots for
+   the PR; **in a cloud session**, verify the built markup and leave both to the PR's E2E job.
+   Do a security pass: input validation, PII/GDPR, rate limits, CORS/CSP, secrets never in the
+   repo.
 
 5. **Open the PR.** `git push -u origin feat/<thing>` and open the PR into `develop` with a
    short, high-level summary as the body (what changed, how it was verified). **The repo is public
    and the brief may carry private planning detail** (fees, legal reasoning, the artist's copy
    worksheet) — never paste the brief, or that detail, into a PR body, commit message or repo
-   file. State plainly that the sandbox can't run the visual/E2E check — that's left to the
-   PR's E2E workflow + the user's review. This is the default now: open it, don't wait to be asked.
+   file. Say what was checked: locally, attach the screenshots (or say nothing is visually
+   observable); in a cloud session, state plainly that the visual/E2E check couldn't run and is
+   left to the PR's E2E workflow + the user's review. This is the default now: open it, don't
+   wait to be asked.
 
-6. **Monitor and react until green.** `subscribe_pr_activity` for the PR, then watch CI + review
-   comments. On a CI failure or a clear review ask, **diagnose and push the fix** (autofix when
+6. **Monitor and react until green.** Locally, `gh pr checks <pr> --watch`, then read any
+   review comments (`gh pr view <pr> --comments`); in a cloud session, `subscribe_pr_activity`
+   for the PR, then watch CI + review comments. On a CI failure or a clear review ask, **diagnose and push the fix** (autofix when
    confident); use `AskUserQuestion` only when the fix is ambiguous, architectural, or could be done
    several ways. Re-check CI state proactively — a success isn't always delivered as a webhook event.
    Loop until every check is green.
@@ -57,5 +64,4 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
    with a tight summary + the green status. **Do not merge** — confirming any final changes and
    merging is my call.
 
-Respect the web-session limits in `CLAUDE.md` (no browser/visual check, no remote-ref surgery) and
-match effort to a one-artist business: the smallest thing that genuinely helps.
+Match effort to a one-artist business: the smallest thing that genuinely helps.
