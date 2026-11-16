@@ -1,5 +1,5 @@
 ---
-description: The Cloudflare Worker: form handlers, D1 storage, HTTP plumbing, secrets and response headers
+description: "The Cloudflare Worker - form handlers, D1 storage, HTTP plumbing, secrets and response headers"
 paths:
   - "apps/functions/**"
 ---

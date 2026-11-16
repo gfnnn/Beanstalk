@@ -34,8 +34,9 @@ Ground every judgement in how this codebase actually works:
    - **Best practice** — only when it adds value, check current external guidance with WebSearch
      (e.g. Stripe, Cloudflare Workers/D1, Resend, View Transitions) and cite it.
    - **Testing** — what unit coverage fits, and whether it touches a browser-only path the
-     Playwright tier must gate. If the delivering session is a cloud one (`$CLAUDE_CODE_REMOTE`
-     is `true`), say which checks will have to wait for the PR's E2E job or a local review.
+     Playwright tier must gate. If the caller says delivery runs in a cloud session
+     (`$CLAUDE_CODE_REMOTE` is `true` there; you can't read it yourself), say which checks will
+     have to wait for the PR's E2E job or a local review.
 
 3. **Return a structured critique:** a short verdict; **strengths**; **concerns** (ranked, each with
    the file/area and a concrete recommendation); **open questions** the human should answer before

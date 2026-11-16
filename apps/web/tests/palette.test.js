@@ -79,7 +79,7 @@ describe('themeColor', () => {
   })
 })
 
-// CLAUDE.md: "keep its colors/tones keys in step with the others so a switch
+// .claude/rules/web-frontend.md: "keep its colors/tones keys in step with the others so a switch
 // can't leave a token undefined." A palette swap that referenced a missing token
 // would ship a colourless surface — catch the divergence here instead.
 describe('palette token contract across all palettes', () => {

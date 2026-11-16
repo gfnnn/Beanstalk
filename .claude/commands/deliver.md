@@ -22,7 +22,8 @@ Run this loop. Don't skip the thinking steps just because the brief looks comple
 2. **Query the design.** Where the brief is ambiguous, conflicts with how the codebase actually
    works, or fights best practice / security / accessibility / the lean baseline, **ask me with
    `AskUserQuestion`** before building — don't guess. For anything non-trivial, delegate a deep look
-   to the **`design-reviewer`** subagent (read-only critique against the codebase, scope discipline,
+   to the **`design-reviewer`** subagent (tell it whether this is a local or a cloud session;
+   read-only critique against the codebase, scope discipline,
    security and best practice) and fold its findings in. Flag any scope-discipline breach (new
    dependency / build step / doc, or code built ahead of a real need) instead of quietly shipping it.
 

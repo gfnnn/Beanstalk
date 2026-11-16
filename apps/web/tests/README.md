@@ -25,7 +25,7 @@ renderer/data tests.
 | File | Tests |
 | --- | --- |
 | `tests/renderers.test.js` | `renderPortfolioTiles` / `renderFlashCards` and the homepage/piece-page/testimonials/specialisms/newsletter renderers: responsive `<picture>` vs. placeholder, eager/lazy LCP loading, status-gated claim buttons, HTML escaping, sort order. |
-| `tests/data-integrity.test.js` | `pieces.js` / `flash.js` / `homepage.js` contract: unique slugs/ids, required fields, and every `style`/`placement`/`glyph`/`status`/`tone` token matches the documented set the renderers and filter chips expect (CLAUDE.md: "change them together"). |
+| `tests/data-integrity.test.js` | `pieces.js` / `flash.js` / `homepage.js` contract: unique slugs/ids, required fields, and every `style`/`placement`/`glyph`/`status`/`tone` token matches the documented set the renderers and filter chips expect (`.claude/rules/web-build.md`: "change them together"). |
 | `tests/seo.test.js` | `src/build/seo.js`: `injectSeoHead` (only-missing-tags-added, per-page overrides win, noindex skipped, twitter mirrored from OG) and the sitemap. |
 | `tests/palette.test.js` | `src/build/palette.js`: hex→channels maths and the per-palette token contract. |
 | `tests/html.test.js` | `src/build/html.js`: the shared `esc()` escaper and the `HAS_EXT` image-path predicate. |

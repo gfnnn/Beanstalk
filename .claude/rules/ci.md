@@ -1,5 +1,5 @@
 ---
-description: Security rules for GitHub Actions workflows
+description: "Security rules for GitHub Actions workflows"
 paths:
   - ".github/workflows/**"
 ---

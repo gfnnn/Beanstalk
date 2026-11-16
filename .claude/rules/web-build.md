@@ -1,10 +1,11 @@
 ---
-description: How apps/web pages are built: the Vite plugins, the data-to-HTML pipeline, SEO and the site CSP
+description: "How apps/web pages are built - the Vite plugins, the data-to-HTML pipeline, SEO and the site CSP"
 paths:
   - "apps/web/vite.config.js"
   - "apps/web/src/build/**"
   - "apps/web/src/data/**"
-  - "apps/web/**/*.html"
+  - "apps/web/*.html"
+  - "apps/web/*/index.html"
 ---
 
 # Web build pipeline (`apps/web`)
@@ -76,6 +77,12 @@ first piece that *uses* it still needs a matching filter chip / `<select>` optio
 the filter UI only offers tokens with real work behind them). The other per-data-file tokens
 (`status`, `tone`, `glyph` in `flash.js` / `homepage.js`) must likewise match the HTML and the
 renderer label maps — change them together.
+
+**The flash page is held back by a gate.** While `live` in `src/data/flash.js` is `false`,
+`src/build/flash-gate.js` strips the Flash link from every nav, drawer and footer, turns
+`/flash/` into a redirect to the portfolio and drops it from the sitemap. The link regexes
+match the markup **exactly** (`<li><a href="/flash/">Flash</a></li>` and the drawer's bare
+`<a href="/flash/">Flash</a>`), so keep that shape when adding or editing a page's nav.
 
 ## Per-piece portfolio pages
 Each portfolio piece also gets its own shareable page at `/portfolio/<slug>/` (the masonry

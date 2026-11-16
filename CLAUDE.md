@@ -55,7 +55,9 @@ A real machine: a shell, full git and `gh`, a browser. Everything is exercisable
   page(s) the change touches, exercise the interaction, and confirm there are no console errors.
   Screenshot the changed view at desktop width (and mobile width if layout was touched) and
   attach it to the PR. Leave the server up afterwards so the change can be browsed by hand. If
-  nothing is visually observable (tooling, docs, functions-only), say so in the PR instead.
+  nothing is visually observable (tooling, docs, functions-only), say so in the PR instead. In
+  a terminal session with no Browser pane, run `npm run dev` and use whatever browser tool the
+  session has; if it has none, say in the PR that the visual check was not done.
 - **E2E.** `npm run test:e2e` drives the production build in Chromium for the paths jsdom can't
   reach: the enquiry form (image preview/downscale, multi-step flow), the portfolio lightbox,
   the mobile nav drawer, the flash claim modal, plus a whole-site load sweep. It **skips
@@ -205,13 +207,16 @@ One feature = one worktree = one branch = one PR, so parallel work never churns 
 checkout. Worktrees live under **`.claude/worktrees/`** (gitignored):
 
 ```bash
-claude --worktree <feature>     # creates .claude/worktrees/<feature> on its own branch
-git worktree remove .claude/worktrees/<feature>   # once the PR is merged
+claude --worktree <feature>          # .claude/worktrees/<feature>, on branch worktree-<feature>
+git fetch origin && git switch -c feat/<feature> origin/develop   # inside it: the PR branch
+# once the PR is merged, from the main checkout:
+git worktree remove .claude/worktrees/<feature>
+git branch -D worktree-<feature> feat/<feature>
 ```
 
 A worktree Claude Code creates gets the gitignored local files listed in `.worktreeinclude`
 (`.env`, `apps/functions/.dev.vars`, `CLAUDE.local.md`) copied in; run `npm install` once in
-it. Base the branch on `origin/develop`.
+it.
 
 ## Artist-copy markers
 

@@ -1,8 +1,11 @@
 ---
-description: Front-end JS modules and the design system (palette, contrast, motion) for apps/web
+description: "Front-end JS modules and the design system (palette, contrast, motion) for apps/web"
 paths:
   - "apps/web/src/js/**"
   - "apps/web/src/styles/**"
+  - "apps/web/src/data/palette.js"
+  - "apps/web/*.html"
+  - "apps/web/*/index.html"
 ---
 
 # Web front end (`apps/web/src/js`, `apps/web/src/styles`)

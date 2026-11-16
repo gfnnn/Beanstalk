@@ -195,6 +195,8 @@ That's it — the signup form is live. The Worker route is wired via
 - Submitting the same email again is treated as success (idempotent — the visitor
   is on the list either way).
 
+**Newsletter notes**
+
 - **Single opt-in, with a consent ledger.** Resend Audiences has no native double
   opt-in, and we deliberately *don't* add one — a confirmation email per signup
   would burn the Resend free-tier quota and isn't legally required (single opt-in
