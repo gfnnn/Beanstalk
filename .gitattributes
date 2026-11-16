@@ -5,3 +5,7 @@
 # stay as normal git objects — only the videos go through LFS.
 apps/web/public/videos/*.mp4  filter=lfs diff=lfs merge=lfs -text
 apps/web/public/videos/*.webm filter=lfs diff=lfs merge=lfs -text
+
+# Shell scripts are run by bash (the SessionStart hook, the branch-prune sweep), which
+# chokes on CRLF. Force LF at checkout so core.autocrlf=true on Windows cannot convert them.
+*.sh text eol=lf
