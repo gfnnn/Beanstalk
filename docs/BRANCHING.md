@@ -162,8 +162,11 @@ are `test (@beansprout/web)` and `test (@beansprout/functions)` (from
       your own PR; raise it to 1 only once a second reviewer exists).
     - ✅ Require conversation resolution before merging
   - ✅ **Require status checks to pass**
-    - ✅ Require branches to be up to date before merging
     - Add checks: `test (@beansprout/web)`, `test (@beansprout/functions)`
+    - *(Leave "Require branches to be up to date before merging" **OFF** — switched off
+      2026-11-16. Each release leaves a merge commit on `main` that `develop` never
+      receives, so GitHub always reports `develop` as behind `main`; with no bypass, this
+      rule would block every release PR. The checks still run on `develop`'s head.)*
   - *(Leave "Require linear history" **OFF** for `main`* — releases land as **merge
     commits**, which a linear-history rule forbids.)*
 
@@ -174,7 +177,8 @@ are `test (@beansprout/web)` and `test (@beansprout/functions)` (from
   - ✅ **Restrict deletions**
   - ✅ **Block force pushes**
   - ✅ **Require a pull request before merging** (Required approvals: **0**)
-  - ✅ **Require status checks to pass** → ✅ up to date → add the same two `test (…)` checks
+  - ✅ **Require status checks to pass** → add the same two `test (…)` checks ("up to date"
+    is **OFF** here too)
   - ✅ **Require linear history** *(optional but tidy — feature PRs squash-merge, so `develop`
     stays linear)*
 
