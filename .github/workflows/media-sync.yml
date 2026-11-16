@@ -12,8 +12,8 @@
 #
 # Trigger: workflow_dispatch ONLY. There is no push/PR/comment trigger — this never
 # runs on attacker-controllable input, so the elevated permissions below are safe
-# (same model as deploy-web.yml's manual + push-to-main triggers; see CLAUDE.md →
-# "CI / GitHub Actions security"). It's started by a collaborator clicking
+# (same model as deploy-web.yml's manual + push-to-main triggers; see
+# .claude/rules/ci.md). It's started by a collaborator clicking
 # Actions → "Dropbox media sync" → Run workflow, or via `gh workflow run`.
 #
 # One-time setup — repo → Settings → Secrets and variables → Actions:

@@ -164,8 +164,7 @@ deploys a staging copy; `main` is updated only by batched release PRs
 - [`CLAUDE.md`](CLAUDE.md): architecture and conventions (**start here**)
 - [`docs/BRANCHING.md`](docs/BRANCHING.md): branch and release model
 - [`docs/CUTOVER.md`](docs/CUTOVER.md): the go-live runbook as run on 15 November 2026, its follow-ups and the rollback
-- [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md): enquiry and flash-claim form plus email setup
-- [`docs/NEWSLETTER-SETUP.md`](docs/NEWSLETTER-SETUP.md): newsletter (Resend Audience) setup
+- [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md): enquiry, flash-claim and newsletter forms plus email setup
 - [`docs/EMAIL-DOMAIN-SETUP.md`](docs/EMAIL-DOMAIN-SETUP.md): sending domain and inbox forwarding
 - [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md): UK GDPR retention and erasure runbook, D1 backup
 - [`docs/MEDIA.md`](docs/MEDIA.md): portfolio and flash image pipeline, hero video

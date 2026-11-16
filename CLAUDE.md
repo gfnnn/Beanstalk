@@ -1,709 +1,223 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code in this repository: what changes how an agent acts on **every** task.
+Detail for one area lives in a path-scoped rule (`.claude/rules/`, loaded when you touch that
+area) or in its `docs/` topic file — see [Where the detail lives](#where-the-detail-lives).
 
 # Beansprout — v2 (Beanstalk repo)
 
-Static marketing site for the Beansprout tattoo studio, plus the serverless form/email
-app that backs it. This is an **npm-workspaces monorepo** with two deployable parts:
+The live site for the Beansprout tattoo studio (`beansprout.ink`), plus the serverless
+form/email app that backs it. An **npm-workspaces monorepo** with two deployable parts:
 
-- **`apps/web`** — the frontend. Plain HTML pages bundled by **Vite** (no framework):
-  styling in modular CSS under `apps/web/src/styles/`, behaviour in ES modules under
-  `apps/web/src/js/modules/` wired through `apps/web/src/js/main.js`. Design tokens live in
-  `apps/web/src/styles/variables.css`. **Deploys to GitHub Pages.**
-- **`apps/functions`** — the app. A single Cloudflare Worker (`src/index.js` → handlers in
-  `src/handlers/`) that receives the forms, stores submissions in **D1 (SQLite)**, and sends
-  mail via Resend. **Deploys to Cloudflare Workers only.**
+- **`apps/web`** — the frontend. Plain HTML pages bundled by **Vite** (no framework), modular
+  CSS under `src/styles/`, ES modules under `src/js/modules/` wired through `src/js/main.js`.
+  **Deploys to GitHub Pages.**
+- **`apps/functions`** — a single Cloudflare Worker (`src/index.js` → `src/handlers/`) that
+  receives the forms, stores submissions in **D1 (SQLite)** and sends mail via Resend.
+  **Deploys to Cloudflare Workers.**
 
-Shared docs live in `docs/`; each workspace owns its own `package.json`, `vitest.config.js`
-and `tests/`. The two parts deploy independently — see **Deploy targets** below.
+Each workspace owns its own `package.json`, `vitest.config.js` and `tests/`.
 
 ## Scope discipline — keep it lean (read this before adding anything)
 
 This is a **marketing site + a small form/email Worker for one tattoo artist**, not an
 enterprise platform. The codebase earns its quality by staying small (a 2-dependency frontend,
 a 0-dependency Worker, no framework, no formatter); the standing risk is *meta*-bloat — building
-ahead of need and accumulating planning docs that then cost more to keep consistent than they're
-worth. These rules exist to hold the line. Follow them, and flag it when a request would cross one.
-**Priorities, plans and the backlog are not kept in this repo** — what to build next arrives in
-the brief; if a brief is silent on something that matters, ask rather than guess.
+ahead of need and accumulating docs that cost more to keep consistent than they're worth.
+Follow these rules, and flag it when a request would cross one. **Priorities, plans and the
+backlog are not kept in this repo** — what to build next arrives in the brief; if a brief is
+silent on something that matters, ask rather than guess.
 
 1. **Ship before you build ahead.** Don't write a feature's *code* — even gated/"dark" — before
-   the thing it serves is live and the dependency is real. **Plans are cheap (and kept outside
-   this repo); inert backbones are not.** (Resist building the next speculative tier
-   until real usage pulls it.)
+   the thing it serves is live and the dependency is real. Appointment booking, an artist
+   dashboard and a content CMS are **not built**; don't build towards them without a brief.
 2. **One doc per concern; consolidate on sight.** If two docs cross-reference each other to stay
-   in step, they should be one doc. A commit whose job is "reconcile docs / de-dup / fix counts"
-   is a smell that the docs have fragmented — **merge them, don't reconcile them again.**
-3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. Docs here
-   describe what is **built or being operated**; a plan for an unbuilt feature doesn't get a
-   repo doc at all (see above) — it arrives in the brief.
-4. **State each rule once.** Especially here: say it in one place and link, don't repeat. CLAUDE.md
-   is for what changes how an agent *acts* (architecture, the build pipeline, guardrails) — not
-   narration of the same caveat three times.
+   in step, they should be one doc. **Merge them, don't reconcile them again.**
+3. **A doc must earn its maintenance cost.** Prefer editing an existing doc to adding one. Docs
+   describe what is **built or being operated**; a plan for an unbuilt feature gets no repo doc.
+4. **State each rule once.** Say it in one place and link, don't repeat.
 5. **Guard the lean baseline.** No new runtime dependency, build tool, framework, or process step
-   without a named reason that outweighs its standing cost. The smallness is a feature.
+   without a named reason that outweighs its standing cost.
 6. **Match effort to a one-artist business.** Reach for the smallest thing that genuinely helps
-   day-to-day. "AAA polish" is for the **visitor-facing site**, not for speculative internal tiers.
+   day-to-day. "AAA polish" is for the **visitor-facing site**, not speculative internal tiers.
 
-## Working in a Claude Code web session (read this first)
+## Where you are
 
-Delivery happens in one of two Claude Code modes — a **full local session** (a real machine like a
-laptop: a shell, full git, an installable browser, so it can run *everything* end-to-end) or this
-constrained **web session**. This section is the operating manual for the **web** one; for which
-actions are best brought back to a full local session (the E2E/visual check, branch/ref cleanup,
-the real Worker via `wrangler dev`, the media/Dropbox scripts), see
-[Where to run what](#where-to-run-what-local-session-vs-web-session) at the end of this section.
+Delivery runs in one of two Claude Code modes. `$CLAUDE_CODE_REMOTE` is `true` only in the
+second.
 
-When this repo is opened in **Claude Code on the web** (a remote, ephemeral container —
-not your laptop), these are the ground rules so a session is productive from the first
-command instead of rediscovering the environment each time:
+### Local session (the default)
 
-- **Dependencies are installed for you.** A committed **SessionStart hook**
-  (`.claude/hooks/session-start.sh`, registered in `.claude/settings.json`) runs
-  `npm ci` in the remote container before the session starts (`ci`, so it never rewrites
-  `package-lock.json`), so `npm test` and
-  `npm run build` work immediately — there is no "install first" dance. It's a no-op on a
-  developer's local machine (gated on `$CLAUDE_CODE_REMOTE`). It is **synchronous** (the
-  session waits for install to finish, trading a little startup latency for no race where
-  the agent runs a command before deps exist). The tracked things under `.claude/` are this
-  hook + `settings.json`, plus the committed **slash commands** (`.claude/commands/`) and
-  **subagents** (`.claude/agents/`); everything
-  else there (incl. `settings.local.json`) stays git-ignored.
-- **`npm test` is the trustworthy signal here.** Both Vitest suites (web + functions) run
-  fully in the sandbox.
-- **The Playwright E2E tier is CI/local-only — and that's expected, not a failure.** The
-  browser binary downloads from `cdn.playwright.dev`, which the web sandbox's network
-  allowlist blocks (`403 Host not in allowlist`). `npm run test:e2e` therefore routes
-  through `apps/web/scripts/run-e2e.mjs`, which **skips cleanly (exit 0) when no Chromium
-  is installed**. Real browser coverage comes from CI (`.github/workflows/e2e.yml`, which
-  installs the browser) and from local runs. Don't treat a skipped E2E run as broken, and
-  don't burn time trying to install the browser in a web session. **The same missing
-  browser means a web session can't do the pre-PR *visual* check either** (no display, no
-  Chromium → no screenshot, no driving a page) — that's expected at that stage, not a
-  skipped step; rely on `npm test`/`npm run build` + verifying the served markup, and leave
-  the eyes-on verification to the PR's E2E job and a local/human review. See
-  [Visual check before a feature PR](#visual-check-before-a-feature-pr).
-  - **Where the E2E tier actually runs — so you don't "test" a feature against a no-op.**
-    A skipped sandbox run **validates nothing**: it neither passed nor exercised your code.
-    So when a change touches a **browser-only path the E2E tier owns** — the enquiry-form
-    image preview/downscale + multi-step flow, the portfolio lightbox, the mobile nav
-    drawer, the flash claim modal — the sandbox `test:e2e` skip does **not** cover it.
-    That coverage runs in exactly two places: **(1) the PR's E2E workflow**, which fires
-    automatically on every `pull_request` touching `apps/web/**` (any base branch — see
-    `.github/workflows/e2e.yml`), and **(2) locally**, once you've installed Chromium
-    (`cd apps/web && npx playwright install chromium`, then `npm run test:e2e`). From a web
-    session the move is: rely on `npm test` for the unit signal, then **push the branch and
-    let the PR's E2E job be the gate** — don't read the local skip as a green E2E.
-- **The web git proxy only lets a session push its own branch.** It **rejects remote
-  branch deletion** (`git push origin --delete …` → HTTP 403) and other cross-ref
-  surgery, and the GitHub MCP server exposes no delete-ref tool. So **branch cleanup,
-  rebasing other people's branches, and anything touching a ref other than the session's
-  own must be done locally or in the GitHub UI** — not from a web session. Plan around
-  this; don't keep retrying the 403.
+A real machine: a shell, full git and `gh`, a browser. Everything is exercisable, so do it all:
 
-### Where to run what (local session vs web session)
+- **Visual check before a feature PR.** For any change observable in the browser, start the dev
+  server from `.claude/launch.json` (`web-dev`) in the Desktop **Browser pane**, open the
+  page(s) the change touches, exercise the interaction, and confirm there are no console errors.
+  Screenshot the changed view at desktop width (and mobile width if layout was touched) and
+  attach it to the PR. Leave the server up afterwards so the change can be browsed by hand. If
+  nothing is visually observable (tooling, docs, functions-only), say so in the PR instead.
+- **E2E.** `npm run test:e2e` drives the production build in Chromium for the paths jsdom can't
+  reach: the enquiry form (image preview/downscale, multi-step flow), the portfolio lightbox,
+  the mobile nav drawer, the flash claim modal, plus a whole-site load sweep. It **skips
+  cleanly (exit 0) when Chromium isn't installed, and a skip validates nothing** — install it
+  once (`cd apps/web && npx playwright install chromium`). When you add browser-only behaviour,
+  add or extend a spec under `apps/web/e2e/`. The E2E workflow also runs on every PR that
+  touches `apps/web/**`.
+- **The real Worker** is `wrangler dev` (serves on :8787 with a local D1; secrets in
+  `apps/functions/.dev.vars`). Plain `npm run dev` serves only the static site.
+- **`CLAUDE.local.md`** (gitignored) may hold private per-machine notes. Never commit it or
+  copy its content into the repo, a PR or a commit message.
 
-The **mode — not the task — decides what's actually exercisable**. Match the action to the surface:
+### Cloud session (Claude Code on the web)
 
-| Action | Full local session | Web/mobile session |
-|---|---|---|
-| `/deliver`, edit code, open the PR | ✅ | ✅ |
-| `npm test` (both Vitest suites) + `npm run build` + `npm run lint` | ✅ | ✅ |
-| **E2E / Playwright** (`npm run test:e2e`, needs Chromium) | ✅ install + run | ⏭️ skips cleanly — the PR's E2E job is the gate |
-| **Pre-PR visual check** (dev server + eyes on the page, screenshots) | ✅ | ❌ no display → hand to the E2E job + human review |
-| **Branch / ref cleanup** (the Backlog-hygiene prune, rebasing others' branches) | ✅ | ❌ proxy 403s on remote-ref deletion |
-| **Run the Worker for real** (`wrangler dev` + `apps/functions/.dev.vars`, local D1) | ✅ | ❌ |
-| **Review a branch locally** (`npm run preview:branch -- <branch>`) | ✅ | — local-only helper |
-| **Content / media scripts** (`npm run media:dropbox`, `process-media.mjs` / `process-video.mjs`, `master-metadata.mjs`, `npm run smoke`) | ✅ | ⚠️ network-gated, run locally |
+A remote, ephemeral container. A SessionStart hook (`.claude/hooks/session-start.sh`) has
+already run `npm ci`, so `npm test`, `npm run build` and `npm run lint` work at once and are
+the signal to trust. What it **can't** do — expected limits, not failures to work around:
 
-So: do the **build + unit loop + PR** from whichever surface is to hand, but bring the
-**browser-bound checks**, **ref surgery**, **the real Worker** and **the media/Dropbox scripts**
-back to a full local session.
+- **No browser.** Chromium can't be installed, so `test:e2e` skips and there is no visual
+  check. Verify the served or built markup instead (`curl` the dev server, or grep
+  `apps/web/dist/**`), say plainly in the PR that the visual check wasn't possible, and leave
+  it to the PR's E2E job and a local review (`npm run preview:branch -- <branch>`).
+- **Only its own branch.** The git proxy rejects remote-branch deletion and any other ref
+  surgery (HTTP 403). Branch cleanup happens in a local session or the GitHub UI.
+- **No `wrangler dev`, no media/Dropbox scripts, no `npm run smoke`** (network-gated).
 
 ## Commands
 
 Run from the repo root; the root scripts delegate to the right workspace.
 
 ```bash
-npm install           # install all workspaces (hoisted to the root node_modules)
-npm run dev           # Vite dev server for apps/web at http://localhost:5173
-npm run build         # production build of apps/web → apps/web/dist/
-npm run preview       # serve the built apps/web/dist/ locally
-npm run preview:branch -- <branch>  # LOCAL helper: fetch a branch, install, run its dev server (one command)
-npm test              # run BOTH workspaces' Vitest suites
-npm run test:web      # only apps/web (renderers, data integrity, build pipeline, jsdom modules)
-npm run test:functions # only apps/functions (enquiry, newsletter, flash-status, checkout, stripe-webhook, payments, http, db)
-npm run test:e2e      # apps/web Playwright tier (browser-only paths + whole-site smoke);
-                      #   skips cleanly if no Chromium is installed — see the web-session note above
-npm run lint          # Biome static-analysis floor over apps/**/{src,tests,e2e,scripts} + root scripts
-npm run lint:fix      # same, applying Biome's safe autofixes (biome lint --write)
+npm install            # install all workspaces (hoisted to the root node_modules)
+npm run dev            # Vite dev server for apps/web at http://localhost:5173
+npm run build          # production build of apps/web → apps/web/dist/
+npm run preview        # serve the built apps/web/dist/ (this is where the CSP applies)
+npm test               # both workspaces' Vitest suites (test:web / test:functions for one)
+npm run test:e2e       # apps/web Playwright tier (see "Where you are")
+npm run lint           # Biome lint over apps/**/{src,tests,e2e,scripts} + root scripts
+npm run lint:fix       # the same, applying Biome's safe autofixes
+npm run preview:branch -- <branch>   # local: fetch a branch, install, run its dev server
 ```
 
-You can also run a workspace directly, e.g. `npm run test --workspace @beansprout/functions`
-or `cd apps/web && npm run build`.
-
-**Reviewing a web session's work on your own machine** is one command:
-`npm run preview:branch -- <branch>` (`scripts/preview-branch.mjs`) fetches the branch,
-fast-forwards to its tip, installs, and starts the dev server at
-`http://localhost:5173`. It's a *local* helper — it fails safe (`git switch` +
-`pull --ff-only`, never discarding uncommitted work) and is cross-platform. Add
-`--no-serve` to just prepare the checkout without booting the server.
-
-Tests run on **Vitest** and in CI on every push/PR (`.github/workflows/test.yml`, a matrix
-over both workspaces). `apps/web/tests/` covers the build-time renderers + data integrity;
-`apps/functions/tests/` covers the Worker handlers with the network mocked and an in-memory
-D1 fake (`tests/helpers/fake-d1.js`) running the real storage logic — no real Resend/DB
-calls. There's also a **Playwright E2E/smoke tier** (`apps/web/e2e/`, `npm run test:e2e`, CI
-in `.github/workflows/e2e.yml`) that drives the real production build in a browser for the
-paths jsdom can't reach (lightbox, the enquiry image preview/downscale, the mobile nav
-drawer) plus a whole-site load sweep; it stubs the Worker so it's hermetic, and needs a
-browser binary (`npx playwright install chromium`, done automatically in CI). `test:e2e`
-(via `apps/web/scripts/run-e2e.mjs`) **skips cleanly (exit 0) when that binary isn't
-installed**, so it effectively runs in just two places — the **E2E GitHub workflow**
-(auto-triggered on every `pull_request` under `apps/web/**`, and on push to `main`) and a
-**local run with Chromium** — and a sandbox skip is a no-op, not a pass (see the
-web-session note up top). **Static
-analysis is Biome** (`npm run lint`, config in `biome.json`): a lint-only floor on the
-**recommended** rule set with the **formatter deliberately off** — so there is no enforced
-code style and you should **not** run a formatter or invent `npm run format`. It scans
-`apps/**/{src,tests,e2e,scripts}` plus the root `scripts/`, runs as its own `lint` job in
-CI (`.github/workflows/test.yml`, alongside the per-workspace Vitest matrix), and
-`npm run lint:fix` applies its safe autofixes. One rule (`useIterableCallbackReturn`) is
-deliberately off in `biome.json` — the side-effecting one-liner `arr.forEach(x => fn(x))`
-is idiomatic here (the `useTemplate`/`useOptionalChain` mechanical sweep already landed,
-so those rules are ON). To exercise the Worker for real locally
-you need Wrangler (`wrangler dev`, serves on :8787, with a local D1) plus secrets in
-`apps/functions/.dev.vars`; plain `npm run dev` serves only the static site, not the Worker.
+Vitest runs the Worker handlers against a mocked network and an in-memory D1 fake
+(`apps/functions/tests/helpers/fake-d1.js`) — no real Resend or DB calls. **Biome is lint-only:
+the formatter is deliberately off**, so don't run a formatter or invent `npm run format`.
 
 ## Architecture
 
-### Monorepo layout
 ```
-apps/web/         @beansprout/web        → GitHub Pages (the marketing site)
-  index.html (home) + 404.html + page folders:
-    portfolio/ flash/ services/ enquire/ about/ visit/ faq/ aftercare/
-    newsletter/ enquiry-received/ privacy/ terms/
-  src/data/      pieces, flash, homepage, testimonials, media, palette, business, taxonomy, analytics  (content/config = single sources of truth)
+apps/web/         @beansprout/web        → GitHub Pages
+  index.html (home) + 404.html + one folder per page (portfolio/ flash/ services/ enquire/ …)
+  src/data/      content + config: the single sources of truth
   src/build/     renderers that turn the data files into HTML strings at build time
   src/js/        main.js + modules/  (one orchestrated bundle, shared by every page)
-  src/styles/    main.css → @imports reset/typography/a11y/motion/layout + components/ + pages/
-  public/        raster favicons, manifest, images/ (copied to dist root, incl. the apex `CNAME` — robots.txt + sitemap.xml + favicon.svg are generated, see SEO/palette)
-  vite.config.js  vitest.config.js  tests/
-apps/functions/   @beansprout/functions  → Cloudflare Worker (the form/email + payments app)
-  src/index.js                           # Worker entry — routes /enquiry /newsletter /checkout /webhooks/stripe /flash-status
-  src/handlers/{enquiry,newsletter,flash-status,checkout,stripe-webhook}.js
-  src/lib/{http,db,stripe}.js            # CORS/IP/adapter + D1 storage (persist, rate limit, flash, payments) + Stripe client
-  src/data/flash-prices.json             # server-side flash price authority (the client never sets amounts)
-  migrations/{0001_init,0002_payments,0003_claim_refs}.sql  # D1 schema (forms + the shipped-dark payments ledger)
-  wrangler.toml   vitest.config.js  tests/ (tests/helpers/fake-d1.js)
-docs/   BRANCHING.md  CUTOVER.md  ENQUIRY-SETUP.md  NEWSLETTER-SETUP.md  EMAIL-DOMAIN-SETUP.md  DATA-COMPLIANCE.md  MEDIA.md  MOTION.md  ANALYTICS.md  PAYMENTS.md
-.github/workflows/{test.yml, e2e.yml, deploy-web.yml, media-sync.yml, smoke.yml}   (the Worker deploys via Cloudflare Workers Builds, not GH Actions)
-package.json      root workspace ("workspaces": ["apps/*"]) — scripts delegate to workspaces
+  src/styles/    main.css → @imports every partial; tokens in variables.css
+  public/        copied to the site root as-is, incl. the apex CNAME
+  vite.config.js  tests/  e2e/
+apps/functions/   @beansprout/functions  → Cloudflare Worker
+  src/index.js   routes /enquiry /newsletter /flash-status /checkout /webhooks/stripe
+  src/handlers/  src/lib/{http,db,stripe}.js  migrations/  wrangler.toml  tests/
+docs/             topic runbooks (listed below)
+.github/workflows/{test,e2e,deploy-web,media-sync,smoke}.yml
 ```
-The Vite root is `apps/web`, so page assets referenced as `/src/...` resolve inside that
-workspace; nothing needs path edits when adding pages. The **go-live procedure and its
-go/no-go gate** are `docs/CUTOVER.md`. The **payments** doc is `docs/PAYMENTS.md` — the
-**integrated Stripe checkout** (flash = full payment, custom = deposit only; one Stripe engine
-for card + Klarna + PayPal, paying out to **Monzo Business**) whose **Worker backbone is shipped
-dark** behind `PAYMENTS_ENABLED` (the `/checkout` + `/webhooks/stripe` routes, the
-`payments`/`webhook_events` ledger in `0002_payments.sql`, and `flash-prices.json` are all in —
-the `/checkout` route just returns 503 until `PAYMENTS_ENABLED === "true"`), with the embedded
-Payment Element frontend still to come; that one doc holds the model, build spec and operator
-runbook. Appointment booking, an artist dashboard and a content CMS are **not built** — don't
-build towards them without a brief that asks for it.
 
-### Multi-page Vite build
-Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
-`flash/`, `enquire/`, `services/`, `visit/`, `newsletter/`, `privacy/`, `terms/`, …), plus
-the homepage `index.html` and the branded `404.html`. Each is registered as a Rollup input
-in `apps/web/vite.config.js`. **Add a new page → add the folder/`index.html` AND a matching
-entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's indexable),
-or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
-(which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
+Rules that hold whatever you're touching:
 
-The eight Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
-work: `palette` (inject colour custom properties + emit the palette-coloured `favicon.svg`
-from the traced brand mark in `src/build/favicon.js`), `generatedGrids` (the content pipeline
-below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
-`<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see below),
-`viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
-armed before the `main.css` `@import` waterfall — a late opt-in lets a slow inbound render
-skip the cross-fade; `src/build/transition.js`), `piecePages` (per-piece portfolio pages),
-and `sitemap`. Most run in **both dev and build**
-so what you see on `npm run dev` is what ships — **except `securityHeaders`, which is
-`apply: 'build'`** (a strict CSP would break the dev server's HMR client), so it lands at
-build/preview only.
+- **Never hand-edit generated markup.** Tiles, cards, hero copy, the nav status pill, notices
+  and testimonials are rendered at build time from `apps/web/src/data/*.js`. Edit the data file
+  (its header comment documents every field) and let the build regenerate.
+- **A new page** needs its folder + `index.html` **and** an entry in the `input` map in
+  `apps/web/vite.config.js` (plus a `ROUTES` entry in `src/build/seo.js` if it's indexable), or
+  it won't be built.
+- **One JS bundle runs on every page**, so every module no-ops when its target element is
+  absent. New behaviour = a new `modules/<name>.js` exporting `initX()`, added to `main.js`.
+- **No CSS hard-codes a colour.** Colour comes from `apps/web/src/data/palette.js` as custom
+  properties; spacing, shadows and easing use the tokens in `styles/variables.css`.
+- **The Worker trusts nothing from the client** (MIME types are sniffed, amounts are read
+  server-side) and **its storage fails safe**: a DB outage never blocks a real enquiry.
+- **Secrets are Cloudflare Worker secrets** (`wrangler secret put`), never in the repo.
+- **Payments are shipped dark.** `/checkout` returns 503 until `PAYMENTS_ENABLED === "true"`;
+  don't switch it on or build the frontend without a brief.
 
-### Data → build-time HTML pipeline (the non-obvious part)
-Lots of page content is **generated at build time from data files**, not hand-written
-markup. `src/data/*.js` are the **single sources of truth**; `src/build/*.js` render them to
-HTML strings (sharing escaping/image helpers from `src/build/html.js`); the `generatedGrids`
-plugin replaces an HTML comment marker on the relevant page with that output. Each marker
-lives on only one page, so other pages pass through untouched. The data files' header
-comments document every field — **read them before editing**.
+### Where the detail lives
 
-| Data file               | Renderer (`src/build/`)        | Marker → page                                         |
-|-------------------------|--------------------------------|------------------------------------------------------|
-| `pieces.js` (portfolio) | `portfolio-tiles.js`           | `<!-- pieces:masonry -->` → `portfolio/`             |
-| `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/` (+ `<!-- flash:drop -->` / `<!-- flash:season -->` eyebrow) |
-| `homepage.js`           | `homepage.js`                  | `<!-- homepage:* -->` (status light, notices, hero, specialisms) |
-| `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (previews pulled live from pieces) |
-| `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
-| `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
-| (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
-| `business.js`           | `business.js`                  | `<!-- reply-time -->` → enquire + enquiry-received (shared so the promised turnaround can't drift) |
-| (none)                  | `favicon.js` (`renderMarkSvg`) | `<!-- brand:mark -->` → every page's nav lockup + the `/enquiry-received/` confirmation mark |
+| Area | Read |
+|---|---|
+| Vite plugins, the data → HTML pipeline, per-piece pages, SEO, the site CSP | `.claude/rules/web-build.md` |
+| JS modules, design system (palette, contrast floors, motion language) | `.claude/rules/web-frontend.md` |
+| Worker handlers, D1 storage, CORS, secrets, response headers | `.claude/rules/worker.md` |
+| GitHub Actions security | `.claude/rules/ci.md` |
+| Branch roles, releases, rulesets, staging setup, backlog hygiene | [`docs/BRANCHING.md`](docs/BRANCHING.md) |
+| Loader, entrance, page transitions — read before changing any motion | [`docs/MOTION.md`](docs/MOTION.md) |
+| Image/video pipeline, Dropbox sync | [`docs/MEDIA.md`](docs/MEDIA.md) |
+| Forms, newsletter and email setup; day-to-day operation | [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md), [`docs/EMAIL-DOMAIN-SETUP.md`](docs/EMAIL-DOMAIN-SETUP.md) |
+| GDPR retention, erasure, backup | [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md) |
+| Stripe checkout (model, build spec, operator runbook) | [`docs/PAYMENTS.md`](docs/PAYMENTS.md) |
+| GA4 analytics | [`docs/ANALYTICS.md`](docs/ANALYTICS.md) |
+| The 2026-11-15 cutover record, its follow-ups, the rollback | [`docs/CUTOVER.md`](docs/CUTOVER.md) |
 
-Two markers appear on *every* page's nav, not just the homepage: the **brand mark**
-(`<!-- brand:mark -->`, the traced sprig from `src/build/favicon.js`, filled with
-currentColor inside the `.nav-logo` lockup) and the nav **status "light"**
-(`homepage.status`), which renders in two spots per page (the inline pill via
-`<!-- homepage:status -->` and the mobile-drawer variant via `<!-- homepage:status-drawer -->`).
-The `/flash/` page eyebrow is **fully data-driven from `flash.js`**: the drop *number*
-(`<!-- flash:drop -->`) is the highest `drop` value in the data (lower-numbered records fall
-into the auto-built "Past drops" archive), and the *season* label (`<!-- flash:season -->`)
-comes from the exported `season` string — so "Drop 12 · Summer 2026" never drifts from the
-cards. The homepage "Kind words" section is `hidden` while `testimonials` is empty — add real
-quotes AND remove the `hidden` attribute to switch it on.
+## Deploy targets — `main` is production
 
-**Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
-testimonials) — edit the data file and let the build regenerate it. The portfolio **style +
-placement vocabulary lives once in `src/data/taxonomy.js`** (the `STYLE_LABELS` /
-`PLACEMENT_LABELS` maps): `pieces.js`, the renderers (`portfolio-tiles.js` re-exports the
-label maps), the data-integrity test, and the Dropbox master-filename parser
-(`scripts/master-metadata.mjs`) all read it — so **add a new style/placement token there**,
-not in scattered label maps. A new token is valid in data + filenames immediately, but the
-first piece that *uses* it still needs a matching filter chip / `<select>` option in
-`portfolio/index.html` (the data-integrity test fails with instructions until it exists, so
-the filter UI only offers tokens with real work behind them). The other per-data-file tokens
-(`status`, `tone`, `glyph` in `flash.js` / `homepage.js`) must likewise match the HTML and the
-renderer label maps — change them together.
+One repo, three independent deploys; none drags another along.
 
-### Per-piece portfolio pages
-Each portfolio piece also gets its own shareable page at `/portfolio/<slug>/` (the masonry
-tiles link there). These are generated from `pieces.js` by `src/build/piece-page.js` via the
-`piecePages` plugin — **dev** serves them from a middleware, **build** emits one full HTML
-file each (whole document, including SEO + nav status, pointing at the hashed main bundle).
-The `slug` field on each piece is the URL segment and must be unique. They're added to the
-sitemap automatically (the `sitemap` plugin appends `/portfolio/<slug>/` for every piece).
+- **`main` → GitHub Pages → `beansprout.ink`.** `.github/workflows/deploy-web.yml` builds
+  `apps/web` and is path-gated to `apps/web/**`. **A merge to `main` is a deploy to the live
+  site.** `apps/web/public/CNAME` is what makes a build a production build; don't remove it or
+  the Pages custom domain except as the rollback in `docs/CUTOVER.md` → Phase 4. The old v1
+  repo (`gfnnn/beansprout`) is kept idle as that rollback target.
+- **`develop` → Cloudflare Pages staging** (`*.pages.dev`), built in staging mode (noindex, no
+  sitemap).
+- **Worker → Cloudflare Workers Builds.** Git-connected on Cloudflare's side: a push to `main`
+  runs `wrangler deploy`, other branches upload a preview version. No Cloudflare token lives in
+  GitHub.
 
-### SEO structure
-Core SEO is centralised in `src/build/seo.js` and applied at build/dev via two
-plugins in `vite.config.js`, so it stays consistent and new pages inherit it:
-
-- **`injectSeoHead` plugin** completes each page's `<head>` with the *structural*
-  tags — `<link rel="canonical">` (from the page's own `og:url`), `og:site_name`,
-  `og:locale`, default `og:image`/`twitter:card`, and `twitter:title`/`description`
-  mirrored from the OpenGraph tags. Only missing tags are added (per-page overrides
-  win), and pages marked `noindex` (e.g. `/enquiry-received/`) are skipped. **Per-page
-  content** (`<title>`, description, `og:title`/`og:description`/`og:url`) is still
-  authored by hand in each page — only the derived/constant tags are injected. The same
-  plugin also wraps `injectStagingNoindex`, which adds a **site-wide** `noindex, nofollow`
-  robots `<meta>` to every page on a **staging build** so a preview can't be indexed.
-  **The build mode is `isProductionBuild()`:** the apex `CNAME` is committed, so a plain build
-  (GitHub Pages from `main`) is production; a **Cloudflare Pages** build (it sets `CF_PAGES=1`)
-  or `SITE_ENV=staging` is staging; `SITE_ENV=production` forces production. It's a no-op on the apex build
-  and on any page that already declares its own robots tag (so it never doubles up).
-- **`sitemap` plugin** emits `robots.txt` + `/sitemap.xml` at build (and serves both in
-  dev). The sitemap is built from the `ROUTES` list in `seo.js` **plus** a
-  `/portfolio/<slug>/` entry per piece — keep `ROUTES` in sync when adding an indexable
-  page. **Both are staging-aware** (keyed off the same `isProductionBuild()` apex-CNAME
-  switch as the noindex): on a production/apex build `robots.txt` allows crawling,
-  disallows `/enquiry-received/` and advertises the sitemap, and `/sitemap.xml` is
-  emitted; on a **staging build** (the Cloudflare Pages staging site from `develop` and its
-  branch previews) `robots.txt` is a blanket
-  `Disallow: /` and **no sitemap is emitted**, so the pre-launch copy carries no
-  real-life SEO artifacts (no real-URL sitemap, no crawl invite) on top of the
-  per-page noindex. `robots.txt` is **generated** (via `renderRobots()` in `seo.js`),
-  not a static `public/` file, so this switch can take effect.
-- The homepage carries a JSON-LD `@graph` (`WebSite` + `Person`, with Tiny Knives as
-  `workLocation`) — Beansprout is the artist, not the studio.
-
-### Security headers
-Two layers, both centralised so new pages/responses inherit them:
-
-- **Site (HTML) — CSP + Referrer-Policy `<meta>`.** `src/build/security.js` defines the
-  policy; the `securityHeaders` plugin (`apply: 'build'`) injects both tags into every
-  page's `<head>`, and `piece-page.js` takes the same string for the per-piece pages
-  (which bypass the HTML transform). `connect-src` is pinned to the Worker origin the
-  build points the forms at — derived from the `VITE_*_FN_URL` vars, falling back to the
-  `config.js` default. The allowances map 1:1 to what the site loads (inline palette
-  style + `style=""` attrs → `style-src 'unsafe-inline'`; Google Fonts; `blob:` image
-  previews; the `/visit/` Google-Maps iframe; GA4's documented host set for gtag.js and
-  its collect hits, nothing wider). **Build/preview only** — a strict CSP
-  breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**
-  set `frame-ancestors`/`X-Frame-Options`/HSTS on Pages — that clickjacking gap waits for
-  a Cloudflare front (post-launch).
-- **Worker (JSON) — response headers.** `SECURITY_HEADERS` in `src/lib/http.js`
-  (`nosniff`, `default-src 'none'`, `no-referrer`) is spread into every `replyWith()`
-  reply and the 404; CORS still wins where it overlaps. No clickjacking/HSTS headers —
-  those belong on the HTML, not a JSON API.
-
-### Front-end JS — single orchestrated init
-`src/js/main.js` is the only entry point. On `DOMContentLoaded` it manages the full-page
-preloader first (`initPageLoader()`, which resolves a `pageReady` promise — see below),
-inits Lenis smooth-scroll (so it drives the GSAP ticker) and nav, then **gates the visual
-entrance on `pageReady`**: the `motion-ready` class flip (the FOUC guard) + the hero/scroll
-animations run when the page is ready to be shown, so the entrance plays *as the cover lifts*
-rather than behind it. Everything else (portfolio load-more + filter + lightbox, aftercare,
-faq, enquire, flash, newsletter, hero media, analytics — and finally the mobile sticky CTA)
-inits immediately. **The full motion / page-transition system is mapped in
-[`docs/MOTION.md`](docs/MOTION.md) — read it before changing load/entrance/transition behaviour.**
-**Every module no-ops when its target element is absent**, so the one bundle runs safely
-on every page. Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
-`filter`, `lightbox`, `sticky` (shared sticky-shadow helper for pinned bars — used by
-filter, flash and the enquire progress bar), `chip-overflow` (shared responsive "More"
-collapse for tight filter rows — used by filter and flash), `filter-collapse` (mobile-only:
-collapses the whole filter bar behind a deterministic "Filters" toggle — a tap, not a
-scroll-driven auto-hide, so it can't flicker on mobile browser-chrome motion; also shared by
-filter and flash), `aftercare`, `faq`, `enquire`,
-`flash`, `newsletter`, `map` (the `/visit/` Google map — created only when the visitor presses
-"Show the map", never on load, because the embed sets Google cookies), `notices` (hides a dated
-homepage notice after its `until` day), `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
-on-screen-only playback), `analytics` (GA4 behind `track()`: gtag.js loads at runtime only on a
-host with an ID in `src/data/analytics.js` and only if the visitor hasn't opted out via GPC
-or the `/privacy/` control; `track()` sends only an allowlist of events/params, so no form
-values can leak — call sites never touch gtag; see `docs/ANALYTICS.md`), `loader` (dismisses the full-page
-preloader — see below), `spinner` (shared button busy-state: swaps a button's label for an
-animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by
-load-more and the enquiry/flash/newsletter submits), `cta` (the mobile sticky "Enquire"
-bar — a functional control, deliberately NOT reduced-motion gated), and `config`
-(function URLs). Portfolio
-load-more, filter/sort and lightbox cooperate via callbacks wired in `main.js` (load-more
-owns the visible window; filter re-applies after a reveal/sort). New page behaviour = a new
-`modules/<name>.js` exporting `initX()`, added to `main.js`.
-
-**FOUC guard for entrance animations.** `styles/motion.css` holds animated elements hidden
-until JS is live; `main.js` adds `motion-ready` to `<html>` **on `pageReady`** (as the loader
-lifts on a cold load, or immediately on a warm nav), in the same synchronous tick GSAP sets
-its `.from()` start-states, so the in-between is never painted (no flash of unstyled/
-unanimated content). A pure-CSS failsafe (2s) reveals the guarded elements if the bundle never
-runs. Under `prefers-reduced-motion` the guard's media query is inert and GSAP bails, so
-elements are simply visible — the class flip is a harmless no-op. `styles/a11y.css` carries
-the focus-visible / reduced-motion / screen-reader rules.
-
-**Full-page preloader (the slow-load cover).** Separate from, and complementary to, the
-motion FOUC guard above: `src/build/loader.js` + the `pageLoader` plugin inject an
-**inline-critical `<style>`** (in `<head>`, so it applies before `main.css` and the Google
-Fonts CSS arrive — CSP-safe via `style-src 'unsafe-inline'`) and a `<div id="page-loader">`
-overlay (the calligraphic brand mark on the cream bg, shown complete with a gentle opacity
-breathe — it deliberately does *not* draw/reveal here, since the cover can dismiss before a
-reveal-from-hidden shows; the shared logo "ink-rise" draw lives on the nav logo + confirmation
-mark instead — see `docs/MOTION.md` → *Brand-mark ink-rise*) right after `<body>`, on **every** page
-incl. the per-piece pages (which carry their own copy from `piece-page.js`; the plugin guards
-against a double-inject). It hides the page from the first paint so the render-blocking
-CSS/`display=swap` font arrival never shows as "broken" unstyled content. `modules/loader.js`
-(`initPageLoader()`, called first in `main.js`) dismisses it on `document.fonts.ready` for a
-**cold** first load (JS ceiling 3s **and** a pure-CSS failsafe 6s so a hung resource can never
-trap the page) — **all-or-nothing**: a cover seen ≤0.4s lifts instantly (reads as "no
-preloader"), one seen longer holds to a 1.6s minimum so the animation completes rather than
-flashing half-played (decision table in `docs/MOTION.md`). It drops the cover **instantly on
-warm in-session navigations** (`sessionStorage`; a mid-session *reload* counts as cold) so the
-page-transition cross-fade shows real content, not the cover. It resolves the
-`pageReady` promise that gates the entrance (above). Reduced-motion: removed instantly, no
-animation. **Page transitions** (cross-document View Transitions — opt-in inlined in `<head>`
-via `src/build/transition.js` so it's armed before the CSS `@import` waterfall; animations in
-`atmosphere.css`) and the **animated
-hairline-rule system** (`--rule-scale` / `.divider`) live in `styles/components/atmosphere.css`
-— full map in [`docs/MOTION.md`](docs/MOTION.md).
-
-### Forms → Cloudflare Worker → Resend
-The enquiry and flash-claim forms (and the newsletter signup) `fetch()`-POST JSON to one
-Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js` routes
-`/enquiry`, `/newsletter`, `/flash-status` — plus the **shipped-dark** `/checkout` and
-`/webhooks/stripe` payment routes (see `docs/PAYMENTS.md`) — to the handlers in `src/handlers/`.
-
-- `src/handlers/enquiry.js` handles **both** the enquiry and flash-claim forms,
-  distinguished by a `kind` field (`'enquiry'` | `'flash'`); a `FORMS` table defines the
-  required fields, consent boxes, image support and email layout per kind. Images are
-  downscaled in the browser, then **type-sniffed by magic bytes** server-side (the client's
-  MIME isn't trusted, `Buffer` via the `nodejs_compat` flag), with request-body and
-  per-image size caps. It **persists the submission before emailing**, and for flash claims
-  **reserves the piece server-side** so it can't be double-claimed. Sends via **Resend**.
-  After the artist's notification it sends the **sender a fixed-copy receipt** (best-effort,
-  no user text echoed, never exposing `ARTIST_EMAIL`). Flash claims require the same 18+ and
-  deposit consents as enquiries, and a manual claim **never expires by itself** — the artist
-  releases or marks it sold (`docs/ENQUIRY-SETUP.md` → *Running it day to day*).
-- `src/handlers/failed-digest.js` is the Worker's **daily cron** (`[triggers]` in
-  `wrangler.toml`): it emails the artist any submission whose notification failed, once each.
-- `src/handlers/newsletter.js` adds a subscriber to a Resend Audience and files a consent row.
-- `src/handlers/flash-status.js` is a **read-only** `GET` endpoint the flash grid calls on
-  load to reflect *live* availability. The grid ships as static HTML (status baked in at
-  build), so this overlays pieces claimed since the last build. Returns
-  `{ claims: { "<piece-id>": "pending" | "claimed" } }`; no secrets, no writes, fails safe
-  to an empty map.
-- `src/handlers/checkout.js` + `src/handlers/stripe-webhook.js` are the **payments backbone,
-  shipped dark** (see `docs/PAYMENTS.md`): `/checkout` opens a Stripe PaymentIntent for a
-  flash piece (amount read server-side from `src/data/flash-prices.json`, never the client)
-  and reserves it with a ~48h hold; `/webhooks/stripe` is the verified server-to-server
-  confirmation that promotes the claim and flips the ledger. Both are inert until
-  `PAYMENTS_ENABLED === "true"` — `/checkout` returns 503 otherwise. Signing/HTTP for Stripe
-  lives in `src/lib/stripe.js`.
-- `src/lib/db.js` is the **D1 (SQLite) storage layer** (binding `DB`), and the system of
-  record: `persistSubmission`/`persistConsent`, the **flash inventory** (`reserveFlashPiece`
-  — atomic via `ON CONFLICT DO NOTHING`; `releaseFlashPiece` rolls back if the send fails;
-  `getFlashClaims`; `promoteFlashClaim`/`expirePendingClaims` for the paid/abandoned paths),
-  the **payments ledger** (`recordPayment`/`getPayment`/`markPaymentStatus` +
-  `recordWebhookEvent` for webhook idempotency), and the **rate limiter** (per-IP sliding
-  window + global daily ceiling). Every function **fails safe / fails open** — a DB outage
-  never blocks a real enquiry. Schema in `migrations/0001_init.sql` (+ `0002_payments.sql`
-  for the payments ledger, `0003_claim_refs.sql` tying a flash hold to the payment that
-  created it). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
-- `src/lib/http.js` is the HTTP plumbing: the **CORS origin allowlist** (the *site* origins,
-  not the Worker's own URL), the JSON reply helper, `clientIp` (anti-spoof — trusts only
-  `cf-connecting-ip`), and the Request→event adapter that keeps handlers `(event, env)`-shaped.
-- `apps/web/src/js/modules/config.js` holds the Worker route URLs, overridable at build time
-  via `VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` / `VITE_FLASH_STATUS_FN_URL` (see
-  `.env.example`); the workers.dev subdomain is account-specific so these MUST be set. Rebuild
-  after changing them — Vite bakes them in. Server-side secrets (`RESEND_API_KEY`,
-  `ARTIST_EMAIL`, `FROM_EMAIL`, `RESEND_AUDIENCE_ID`) are **Cloudflare Worker secrets**
-  (`wrangler secret put`), never in the repo. Full setup: `docs/ENQUIRY-SETUP.md`,
-  `docs/NEWSLETTER-SETUP.md`, `docs/EMAIL-DOMAIN-SETUP.md` (Resend domain/DNS).
-
-### Deploy targets — one repo, two independent deploys
-The two workspaces deploy to **different places**, each gated so only relevant changes ship:
-
-- **Frontend → GitHub Pages.** `.github/workflows/deploy-web.yml` builds `apps/web` (with
-  the `VITE_*_FN_URL` Worker routes from repo Actions Variables — any left unset fall back
-  to the `config.js` defaults) and publishes `apps/web/dist`. It is
-  **path-gated** (`paths: apps/web/**`, lockfile, the workflow itself), so a functions-only
-  change never triggers a Pages redeploy. `apps/web/public/` (favicons, `site.webmanifest`)
-  is copied to the site root as-is, including `public/CNAME` (`beansprout.ink`). This is the **production** web deploy — fed only by batched
-  `develop → main` release PRs (see the Git workflow above).
-- **Staging (the `develop` branch) → Cloudflare Pages.** A Git-connected **Cloudflare
-  Pages** project builds `develop` (production branch = `develop`, build `npm run build`,
-  output `apps/web/dist`) and serves it at a `*.pages.dev` staging URL — the always-on
-  preview where batched features are tested together before a release PR. It's wired the
-  **same way the Worker is** (Cloudflare-side Git integration, no GitHub-held Cloudflare
-  token — see "CI / GitHub Actions security"), so the `VITE_*_FN_URL` build vars are set in
-  the **Pages project's** env, not GitHub Actions. Setup steps in `docs/BRANCHING.md`.
-- **Worker → Cloudflare.** `apps/functions/wrangler.toml` defines the Worker (`name`, the D1
-  binding, vars). Deployment is via **Cloudflare Workers Builds** — the Worker is Git-connected
-  to this repo, building from the **repo root** (Root directory `/`, so `npm ci` finds the
-  single workspace lockfile) with wrangler pointed at the config: a push to `main` runs
-  `npx wrangler deploy --config apps/functions/wrangler.toml` (non-`main` branches run
-  `npx wrangler versions upload --config …` for a preview). You can also deploy by hand with
-  `wrangler deploy` from `apps/functions`. Local dev is `wrangler dev` (with a local D1).
-  Chosen over Netlify after Netlify's free tier began pausing the project on a monthly
-  **credit limit**; Cloudflare's free Workers + D1 tiers have no credit-pause model. The
-  canonical site is GitHub Pages.
-
-This separation is the point of the monorepo split: **frontend changes deploy to Pages,
-Worker changes deploy to Cloudflare, and neither drags the other along.**
+The Worker route URLs are baked into the web build from `VITE_*_FN_URL` (see `.env.example`):
+GitHub Actions Variables for production, the Pages project's env for staging. Rebuild after
+changing them.
 
 ## Git workflow — `develop` integrates, `main` releases
 
-Two long-lived branches, so features can be **tested together** before a **batched,
-deliberate** push to production. Full runbook (branch roles, release process, the GitHub
-ruleset settings, and the Cloudflare Pages staging setup) lives in
-[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow. Features are
-designed outside this repo and arrive as a **brief**; delivery on this flow runs through the
-`/deliver` command (`.claude/commands/deliver.md`) and the `design-reviewer` subagent.
+Features are designed outside this repo and arrive as a **brief**; delivery runs through the
+`/deliver` command and the `design-reviewer` subagent. The full runbook is
+[`docs/BRANCHING.md`](docs/BRANCHING.md) — read it before changing the flow.
 
-- **`develop` is the integration branch.** Feature PRs target it, CI runs on every PR, and
-  a push to `develop` deploys the **staging** site (Cloudflare Pages, branch-built) + a
-  Worker preview version. Features accumulate here and get exercised side-by-side.
-- **`main` is the release/production branch.** It is updated **only** by a release PR
-  `develop → main` that batches everything that has landed on `develop`. A push under
-  `apps/web/**` then triggers the GitHub Pages build and the Cloudflare Worker deploy
-  (`wrangler deploy`). So `main` only ever receives reviewed, batched releases — never a
-  single work-in-progress feature, never a direct commit.
+1. **Branch before you build — off `develop`.** Never commit directly on `develop` or `main`.
+2. **Stage only what the task touches.** Explicit paths (`git add path/…`), never `git add -A`.
+3. **Supersession gate.** Skim the open PRs before starting, and before opening yours check the
+   change isn't already on `develop` (`git diff origin/develop -- <your files>`).
+4. **Check it before the PR**: `npm test`, `npm run build`, `npm run lint`, plus the visual and
+   E2E checks your session can run (see [Where you are](#where-you-are)).
+5. **One PR per change → `develop`, squash-merge.** `gh pr create --base develop`. Merging is
+   the owner's call. Rebase your other live branches onto `develop` after any merge.
+6. **Release in batches.** A `develop → main` PR titled `release: <date / summary>`,
+   **merge-committed** (not squashed). `main` receives nothing else: no feature PRs, no direct
+   commits.
+7. **Never rewrite published history on `develop` or `main`.** Rebasing your *own* feature
+   branch and `--force-with-lease`-ing it is fine.
+8. **Verify repo settings before documenting them** — don't assert a setting's state from
+   memory.
 
-1. **Branch before you build — off `develop`.** `git switch -c feat/<thing>` off an
-   up-to-date `develop`. Never commit directly on `develop` or `main`.
-2. **Stage only what the task touches.** Use explicit paths (`git add path/…`), never
-   `git add -A`. If unrelated changes are already sitting in the tree, commit or stash
-   them on their own branch first so they don't get swept into your commit.
-3. **Visualise before you open a feature PR.** For any change that's observable in the
-   browser (a new page, layout, component, animation, copy block), run the site and *look
-   at it* before raising the PR — don't ship a feature you've only typechecked. See
-   [Visual check before a feature PR](#visual-check-before-a-feature-pr) below.
-4. **One PR per change → `develop`, squash-merge, delete the branch.**
-   `gh pr create --base develop` → review the diff → `gh pr merge --squash --delete-branch`.
-   This leaves `develop` with one tidy commit per feature and no stale branches.
-5. **Release in batches: open a `develop → main` PR.** When the accumulated work on
-   `develop` is verified on staging and ready to ship, open `gh pr create --base main
-   --head develop` (title it `release: <date / summary>`), review the combined diff, and
-   **merge-commit** it (not squash — preserve the per-feature history on `main`). That one
-   merge is the production deploy. See `docs/BRANCHING.md` for the release checklist.
-6. **Never rewrite published history on `develop` or `main`.** No force-pushes to either.
-   (Rebasing your *own* feature branch and `--force-with-lease`-ing it is fine and
-   encouraged — see below.)
+Commit messages end with `Co-Authored-By: Claude <model> <noreply@anthropic.com>`. The repo is
+public: never put a brief's private planning detail in a commit, PR body or repo file.
 
-Commit messages end with `Co-Authored-By: Claude <model> <noreply@anthropic.com>`.
+### Worktrees
 
-### Visual check before a feature PR
+One feature = one worktree = one branch = one PR, so parallel work never churns the main
+checkout. Worktrees live under **`.claude/worktrees/`** (gitignored):
 
-CI runs Vitest, but green tests don't prove the page *looks* right. Before opening a PR
-for any user-visible feature, verify it in the browser and attach the proof:
+```bash
+claude --worktree <feature>     # creates .claude/worktrees/<feature> on its own branch
+git worktree remove .claude/worktrees/<feature>   # once the PR is merged
+```
 
-1. **Run the app.** Start the dev server for the feature's worktree (`npm run dev` in
-   `apps/web`, or the preview tooling) — each worktree gets its own port.
-2. **Drive it like a user.** Open the page(s) the change touches, exercise the new
-   interaction (nav, form, animation), and confirm it renders with no console errors.
-3. **Capture the proof.** Take a screenshot of the changed view(s) at desktop width, and
-   at mobile width if layout/responsiveness was touched.
-4. **Attach it to the PR.** Drop the screenshot(s) into the `gh pr create` body so the
-   diff review has a visual reference. If nothing is visually observable (tooling, tests,
-   functions-only), say so explicitly in the PR instead.
-5. **Leave the server up (≥ 15 min).** The dev server is a detached background process, so
-   it keeps serving until explicitly stopped — don't tear it down the moment the screenshot
-   is taken. Keep it running for at least 15 minutes after spin-up so the change can be
-   browsed by hand, and surface its local URL. Only then stop it (or just leave it for the
-   session). Don't block on a timer — carry on with other work while it stays up.
-
-Skip this only when the change genuinely can't be seen in the browser.
-
-**From a Claude Code web session, steps 2–4 (drive the browser + screenshot) can't run — and
-that's expected, not a skipped step** (the sandbox has no display and can't install Chromium —
-see the web-session note up top). Instead: run `npm test` + `npm run build` and verify the
-rendered/served markup directly (`curl` the dev server, or grep `apps/web/dist/**` after a
-build) to prove the change is wired in; then state plainly in the PR that the visual check
-wasn't possible from the sandbox, and hand the *visual* verification to the two places that can
-do it — the **PR's E2E workflow** (auto-runs on every `pull_request` under `apps/web/**`) and a
-**human/local review** (`npm run preview:branch -- <branch>`). A developer on their own machine
-still follows steps 1–5 in full.
-
-**Browser-only interactions also need the E2E gate, not just a screenshot.** If the feature
-touches a path the Playwright tier owns (enquiry form, lightbox, mobile nav drawer, flash
-modal), the jsdom unit suite can't exercise it and a sandbox `test:e2e` only skips — real
-verification is the PR's **E2E workflow** or a **local** run with Chromium. When you add
-browser-only behaviour, add/extend a spec under `apps/web/e2e/` so that gate actually covers it.
-
-### Working on several features at once (avoid the branch tangle)
-
-Solo work still means multiple features in flight. The failure mode is branches cut from
-`develop` that then sit and rot: when one squash-merges, the others fall behind and the
-eventual merge fights conflicts. These rules keep parallel work cheap:
-
-1. **One feature = one worktree = one branch = one PR.** Don't switch branches in the main
-   checkout (stash/checkout churn loses context). Give each in-flight feature its own
-   working copy that shares the one `.git`:
-   ```bash
-   git worktree add ../trees/<feature> -b feat/<feature> origin/develop
-   #   → its own folder, own node_modules (npm install once), own dev-server port.
-   git worktree remove ../trees/<feature>   # once the PR is merged
-   ```
-   Worktrees live under `../trees/` (sibling of the repo), never committed.
-2. **Cap in-flight branches at ~2–3.** Don't open a fourth until one merges or is parked.
-3. **Rebase onto `develop` daily, and immediately after *any* PR merges.** The moment one
-   PR lands on `develop`, rebase every other live branch (`git fetch && git rebase
-   origin/develop`) so it never drifts. Stale branches are the whole problem; this is the
-   fix.
-4. **Structural refactors run solo.** A change that *moves or renames files* (directory
-   restructures, monorepo splits, mass renames) conflicts with everything. Merge it
-   first, fast, with nothing else open — then branch the rest off the new layout. Never
-   let a structural branch sit for days while content PRs pile up behind it.
-5. **Keep branches small and short-lived** (a day or two). Small diffs rebase clean; long
-   ones don't. CI (`.github/workflows/test.yml`) runs Vitest on every PR — merge on green.
-6. **Supersession gate — before you open a PR.** Re-check your change isn't already on
-   `develop` (`git fetch origin develop && git diff origin/develop -- <your files>`; an empty
-   diff = already shipped, so don't open the PR). And skim the open PRs *before starting* a
-   task so you don't re-fix something already in flight — duplicate PRs (the same fix arriving
-   via two branches) are a top source of the pile, and merging them is wasted work.
-7. **Verify repo settings — don't assert them.** Check Settings (or just the live branch / PR
-   list) before *documenting* a setting's state. A PR once baked in the wrong claim that
-   auto-delete head branches was OFF — it's **ON**.
-
-**Periodic cleanup is a documented routine, not archaeology.** When open PRs climb past ~5,
-run the **Backlog hygiene** sweep in [`docs/BRANCHING.md`](docs/BRANCHING.md) (list → close
-superseded → rebase+merge the live ones → re-target stragglers → prune branches) rather than
-re-deriving it each time.
-
-**Resolving a stale branch** (the standard recovery): from its worktree,
-`git fetch && git rebase origin/develop`, fix conflicts, `npm test && npm run build`, then
-`git push --force-with-lease`, then `gh pr merge --squash --delete-branch`.
-
-**Stop the tangle at the source — delete merged branches automatically.** This repo
-squash-merges, so a merged branch never becomes an ancestor of `main` and looks "unmerged"
-forever — that's how dead `claude/*`/`feat/*`/`docs/*` heads pile up. The fix is **GitHub →
-Settings → General → Pull Requests → "Automatically delete head branches"** (already **ON**
-here), so every squash-merge removes its own head. The residue auto-delete can't reach
-(closed-but-unmerged, never-PR'd, re-pushed-after-merge) needs a **local** sweep — a web
-session can't (the proxy 403s on remote-ref deletion). The ready-made prune commands and the
-three residue shapes live in [`docs/BRANCHING.md`](docs/BRANCHING.md) → *Backlog hygiene*, step 5.
-
-## Live domain — `main` is production
-
-`beansprout.ink` (apex) has been served by **this repo** since the 2026-11-15 cutover: it is the
-Pages custom domain here, and `apps/web/public/CNAME` is what makes the build a production build.
-**A merge to `main` is a deploy to the live site.** Don't remove the `CNAME` file or the Pages
-custom domain except as the rollback in `docs/CUTOVER.md` → Phase 4. The old **v1** repo
-(`gfnnn/beansprout`) is kept idle as that rollback target. Cloudflare hosts
-the enquiry/flash/newsletter Worker (Resend for sending, D1 for storage).
-
-## CI / GitHub Actions security
-
-The repo ships five workflows (`.github/workflows/`) and **no AI/agent action** — keep it
-that way unless there's a clear reason, and follow these rules if that changes. (The Worker
-deploys via **Cloudflare Workers Builds** — Git-connected on Cloudflare's side, holding its
-own scoped API token there — so there is intentionally no Cloudflare token in GitHub.)
-
-- **Least-privilege tokens.** `test.yml` and `e2e.yml` both run with `permissions:
-  contents: read` — don't widen them. `deploy-web.yml` declares `id-token: write` **on
-  purpose**: it's GitHub's own OIDC, required by `actions/deploy-pages@v5` to verify the
-  Pages artifact. It is *not* an Anthropic/Claude token exchange, and the workflow only
-  triggers on `push` to `main` and manual `workflow_dispatch` — never on
-  attacker-controllable input — so there's no injection path. Leave it as-is.
-  `media-sync.yml` is the one workflow holding write scope (`contents: write` +
-  `pull-requests: write`, to push a branch and open the Dropbox-sync PR), but it's
-  **`workflow_dispatch`-only** — a collaborator clicks "Run workflow", never an automatic
-  trigger — the same safe model as `deploy-web.yml`'s manual/push-to-`main` triggers, so
-  the elevated scope can't be reached by untrusted input.
-- **Never run a workflow's privileged half on untrusted input.** Don't trigger build/deploy
-  or any token-bearing job from `pull_request_target`, `issue_comment`, `issues`, or
-  `workflow_run`. Untrusted-PR CI stays read-only (as `test.yml` is).
-- **If you ever adopt `anthropics/claude-code-action`** (or any AI-in-CI action): pin it to a
-  commit SHA (not a floating tag) at **v1.0.94 or later**, never set
-  `allowed_non_write_users: "*"`, keep it off issue/PR/comment triggers (or require a
-  human-actor check), and scope its secrets to only the Anthropic API key + `GITHUB_TOKEN`.
-  A 2025 disclosure (CVE-class supply-chain bug, fixed in v1.0.94) let an external attacker
-  bypass the write-access gate via a `[bot]` GitHub App, prompt-inject through a crafted
-  issue, and exfiltrate OIDC/secret tokens — the above settings are the guardrails against it.
-- **The human PR-review gate on `main` is part of the security model**, not just hygiene —
-  every deploy flows through a reviewed squash-merge. Preserve it.
-
-## Design system — don't drift
-
-Warm earthy palette (cream `#F7F1E3`, moss `#4A5D3F`, clay `#B05138`, ink `#2C2A24`)
-with Fraunces (serif display) / Karla (sans body) / JetBrains Mono (labels). Reuse the
-shared nav, footer, button, and JS-module patterns across pages. Placeholder copy is
-marked `<!-- COPY: -->`; image placeholders carry shoot briefs in HTML comments.
-Spacing (padding/margin/gap) uses the `--space-*` scale and shadows/halos use the named
-tokens (`--shadow-*`, `--focus-halo`, …) in `styles/variables.css`; new rules use them, and
-the off-grid literals left in place are legacy.
-
-**Contrast floors (WCAG 2.2 AA).** A form control's resting border uses `--line-field`
-(≥3:1), never the decorative `--line`/`--line-soft` hairlines. The focus ring is clay on light
-surfaces and cream on dark ones (one scoped override in `styles/a11y.css`; add any new dark
-container that holds focusable content to its list). `--moss-soft` is decorative only (borders,
-dots, faint background numerals): text that must be read uses `--moss`.
-
-**Motion is one language too — don't drift it either.** The whole site (load reveal,
-scroll reveal, hover, ambient, page transition) speaks two curves from the `--ease-*`
-tokens — **SOFT** for text, **ORGANIC** for assets that grow/arrive — and the JS
-entrance mirrors them via `CustomEase` so JS == CSS. The first view reveals as one
-top-to-bottom positional wave. New motion uses those tokens/curves; see
-[`docs/MOTION.md`](docs/MOTION.md) → *Motion language* before adding any.
-
-**Colour lives in one place — `apps/web/src/data/palette.js`.** No CSS hard-codes a
-colour; every rule reads a CSS custom property (`var(--moss)`, `rgba(var(--ink-rgb),
-…)`, the `--tone-*` swatch trios). `src/build/palette.js` generates those properties
-from the **active** palette in that data file and the `palette` plugin in
-`vite.config.js` injects them into every page's `<head>` (dev + build) and points the
-`theme-color` meta at the palette background. To recolour the whole site, switch
-`active` (or edit a palette's hexes) and rebuild — it's content, like `homepage.js`.
-Add a palette by copying a block; keep its `colors`/`tones` keys in step with the
-others so a switch can't leave a token undefined. The decorative tile/flash/hero
-gradient swatches are defined once in `styles/components/tones.css` from the `tones`
-group — never reintroduce the per-surface `.t-*`/`.ci-*`/`.gradient-*` copies.
+A worktree Claude Code creates gets the gitignored local files listed in `.worktreeinclude`
+(`.env`, `apps/functions/.dev.vars`, `CLAUDE.local.md`) copied in; run `npm install` once in
+it. Base the branch on `origin/develop`.
 
 ## Artist-copy markers
 
-Wording that reads as **the artist speaking to a visitor** carries an inline marker until she has
-approved it. The ref ID (`HOME-03`, `ENQ-07`, `FLASH-D1`, …) ties the block to the owner's copy
-tracker, which is kept outside this repo — keep the ref intact.
+Wording that reads as **the artist speaking to a visitor** carries an inline marker until she
+has approved it. The ref ID (`HOME-03`, `ENQ-07`, `FLASH-D1`, …) ties the block to the owner's
+copy tracker, which is kept outside this repo — keep the ref intact.
 
 ```html
 <!-- ARTIST-COPY · HOME-03 · pending approval -->
@@ -712,16 +226,11 @@ tracker, which is kept outside this repo — keep the ref intact.
 (`// ARTIST-COPY · HOME-10 · pending approval` in a data file; a short parenthetical note may
 follow the status.)
 
-- **Grep the gate.** `grep -rn "ARTIST-COPY" apps/web/` lists every flagged block;
-  `grep -rn "pending approval" apps/web/ --exclude-dir=dist --exclude-dir=node_modules` is the
-  copy gate (the visitor-facing variant used at go-live is in `docs/CUTOVER.md` → Phase 1).
-- **Flip on approval.** When a brief supplies the approved words, apply them and change
-  `pending approval` → `approved` on that marker. Don't reword marked copy on your own initiative.
-- **Never on the live site — the build strips them.** The markers are a staging review aid.
-  They ship in staging page source, but the production build (`stripArtistCopyMarkers` in
-  `src/build/seo.js`, same apex switch as the noindex) removes every `<!-- ARTIST-COPY … -->`
-  comment from the HTML. So leave a marker in the source until its block is approved — don't
-  hand-strip unapproved ones for go-live.
-- **Edit data files, not markup.** Generated copy (hero, specialisms, flash cards, testimonials,
-  portfolio tiles) lives in `apps/web/src/data/*.js` — the marker sits there too.
-</content>
+- **Don't reword marked copy on your own initiative.** When a brief supplies the approved
+  words, apply them and change `pending approval` → `approved` on that marker.
+- **Grep the gate.** `grep -rn "pending approval" apps/web/ --exclude-dir=dist
+  --exclude-dir=node_modules` lists what is still unapproved.
+- **Don't hand-strip markers.** The production build removes every `<!-- ARTIST-COPY … -->`
+  comment from the HTML (`stripArtistCopyMarkers` in `src/build/seo.js`); staging keeps them as
+  a review aid.
+- **Generated copy is marked in its data file** (`apps/web/src/data/*.js`), not in markup.
