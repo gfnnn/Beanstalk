@@ -32,7 +32,7 @@
    every dark container that holds focusable content; light surfaces keep clay.
    Equal specificity to the floor and later in source, so it wins over it but
    still loses to any component's own :focus-visible. */
-:where(.footer, .services-cta, .deposit-aside, .lightbox)
+:where(.footer, .deposit-aside, .lightbox)
   :where(a[href], button, input, select, textarea, summary,
          [tabindex]:not([tabindex="-1"])):focus-visible {
   outline-color: var(--cream);
