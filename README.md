@@ -74,7 +74,7 @@ to leave out, briefing the work, checking it, and managing the releases and the 
 
 ## Run it locally
 
-You need Node.js 22.13 or later.
+You need Node.js 24 or later.
 
 ```bash
 npm install     # install everything
