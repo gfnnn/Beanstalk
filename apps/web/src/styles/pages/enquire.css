@@ -274,7 +274,7 @@
 .form-shell select,
 .form-shell textarea {
   background: var(--bg);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-field);
   padding: var(--space-3) 14px;
   font-family: var(--sans);
   font-size: 15px;
@@ -308,7 +308,7 @@
   flex: 1;
   min-width: 120px;
   padding: 14px var(--space-4);
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--line-field);
   border-radius: var(--radius);
   background: var(--bg);
   cursor: pointer;
@@ -333,7 +333,7 @@
 .pill-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .pill {
   padding: var(--space-2) 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-field);
   border-radius: 100px;
   background: var(--bg);
   font-size: 13px;
@@ -426,7 +426,7 @@
   height: 18px;
   flex-shrink: 0;
   margin-top: 2px;
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--line-field);
   border-radius: 3px;
   display: flex;
   align-items: center;

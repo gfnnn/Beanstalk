@@ -674,6 +674,12 @@ Spacing (padding/margin/gap) uses the `--space-*` scale and shadows/halos use th
 tokens (`--shadow-*`, `--focus-halo`, …) in `styles/variables.css`; new rules use them, and
 the off-grid literals left in place are legacy.
 
+**Contrast floors (WCAG 2.2 AA).** A form control's resting border uses `--line-field`
+(≥3:1), never the decorative `--line`/`--line-soft` hairlines. The focus ring is clay on light
+surfaces and cream on dark ones (one scoped override in `styles/a11y.css`; add any new dark
+container that holds focusable content to its list). `--moss-soft` is decorative only (borders,
+dots, faint background numerals): text that must be read uses `--moss`.
+
 **Motion is one language too — don't drift it either.** The whole site (load reveal,
 scroll reveal, hover, ambient, page transition) speaks two curves from the `--ease-*`
 tokens — **SOFT** for text, **ORGANIC** for assets that grow/arrive — and the JS

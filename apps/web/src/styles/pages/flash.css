@@ -335,7 +335,7 @@
 .modal-field input,
 .modal-field textarea {
   background: var(--bg);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-field);
   padding: 11px 14px;
   font-family: var(--sans);
   font-size: 15px;

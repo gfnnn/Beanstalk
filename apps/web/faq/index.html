@@ -75,18 +75,22 @@
 
 <!-- PAGE HEADER -->
 <header class="page-header">
-  <div>
+  <div class="page-header-left">
     <p class="page-eyebrow">FAQ</p>
     <h1 class="page-title">Good <em>questions.</em></h1>
   </div>
-  <p class="page-descriptor">The things I get asked most, about booking, the day itself, healing, pricing and policies. Can't find your answer? Just ask me.</p>
+  <div class="page-header-right">
+    <p class="page-descriptor">The things I get asked most, about booking, the day itself, healing, pricing and policies. Can't find your answer? Just ask me.</p>
+  </div>
 </header>
+
+<main id="maincontent">
 
 <!-- FAQ SHELL -->
 <div class="faq-shell">
 
   <!-- ASIDE — search + category nav -->
-  <aside class="faq-aside reveal" aria-label="FAQ navigation">
+  <section class="faq-aside reveal" aria-label="FAQ navigation">
 
     <div class="faq-search">
       <input type="search" placeholder="Search questions…" aria-label="Search FAQ" id="faq-search-input">
@@ -100,37 +104,49 @@
           to show only items with matching data-category attribute.
           COPY: category labels and counts
         -->
-        <button class="faq-cat active" data-cat="all" role="listitem">
-          <span>All questions</span>
-          <span class="cat-count">17</span>
-        </button>
-        <button class="faq-cat" data-cat="before" role="listitem">
-          <span>Before you book</span>
-          <span class="cat-count">7</span>
-        </button>
-        <button class="faq-cat" data-cat="ontheday" role="listitem">
-          <span>On the day</span>
-          <span class="cat-count">3</span>
-        </button>
-        <button class="faq-cat" data-cat="aftercare" role="listitem">
-          <span>Aftercare &amp; healing</span>
-          <span class="cat-count">3</span>
-        </button>
-        <button class="faq-cat" data-cat="pricing" role="listitem">
-          <span>Pricing &amp; deposits</span>
-          <span class="cat-count">2</span>
-        </button>
-        <button class="faq-cat" data-cat="policies" role="listitem">
-          <span>Policies</span>
-          <span class="cat-count">2</span>
-        </button>
+        <div role="listitem">
+          <button class="faq-cat active" data-cat="all">
+            <span>All questions</span>
+            <span class="cat-count">17</span>
+          </button>
+        </div>
+        <div role="listitem">
+          <button class="faq-cat" data-cat="before">
+            <span>Before you book</span>
+            <span class="cat-count">7</span>
+          </button>
+        </div>
+        <div role="listitem">
+          <button class="faq-cat" data-cat="ontheday">
+            <span>On the day</span>
+            <span class="cat-count">3</span>
+          </button>
+        </div>
+        <div role="listitem">
+          <button class="faq-cat" data-cat="aftercare">
+            <span>Aftercare &amp; healing</span>
+            <span class="cat-count">3</span>
+          </button>
+        </div>
+        <div role="listitem">
+          <button class="faq-cat" data-cat="pricing">
+            <span>Pricing &amp; deposits</span>
+            <span class="cat-count">2</span>
+          </button>
+        </div>
+        <div role="listitem">
+          <button class="faq-cat" data-cat="policies">
+            <span>Policies</span>
+            <span class="cat-count">2</span>
+          </button>
+        </div>
       </div>
     </div>
 
-  </aside>
+  </section>
 
   <!-- ACCORDION -->
-  <main id="faq-list" aria-label="Frequently asked questions" tabindex="-1">
+  <section id="faq-list" aria-label="Frequently asked questions" tabindex="-1">
     <div class="faq-list" id="faq-accordion">
 
       <!--
@@ -360,7 +376,7 @@
       </div>
 
     </div>
-  </main>
+  </section>
 </div>
 
 <!-- CTA -->
@@ -374,6 +390,8 @@
     <a href="/aftercare/" class="btn btn-outline">Aftercare guide <span class="arrow">→</span></a>
   </div>
 </section>
+
+</main>
 
 <!-- FOOTER -->
 <footer class="footer" role="contentinfo">
@@ -407,9 +425,9 @@
   </div>
 </footer>
 
-<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+<aside class="mobile-cta" id="mobile-cta" aria-label="Start an enquiry" aria-hidden="true">
   <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
-</div>
+</aside>
 
 <script type="module" src="/src/js/main.js"></script>
 </body>
