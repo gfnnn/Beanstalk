@@ -27,6 +27,17 @@
   border-radius: 3px;
 }
 
+/* On dark surfaces clay is only ~2.8:1 against bg-dark (WCAG 2.4.11 / 1.4.11
+   need 3:1), so the same ring switches to cream there. One scoped override for
+   every dark container that holds focusable content; light surfaces keep clay.
+   Equal specificity to the floor and later in source, so it wins over it but
+   still loses to any component's own :focus-visible. */
+:where(.footer, .services-cta, .deposit-aside, .lightbox)
+  :where(a[href], button, input, select, textarea, summary,
+         [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline-color: var(--cream);
+}
+
 /* ── Windows High Contrast Mode / forced-colors ──────────────────────────────
    The OS swaps in its own palette, so every colour-only cue disappears: the
    border-colour focus highlight on inputs, the clay button fill, hairline

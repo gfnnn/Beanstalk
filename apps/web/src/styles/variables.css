@@ -9,6 +9,7 @@
   --moss-bg:   rgba(var(--moss-rgb), 0.08);
   --line:      rgba(var(--ink-rgb), 0.14);
   --line-soft: rgba(var(--ink-rgb), 0.07);
+  --line-field: rgba(var(--ink-rgb), 0.52); /* resting border of form controls: ≥3:1 on bg/bg-alt/cream (WCAG 1.4.11) */
 
   /* ── Typography ──────────────────────────────────────── */
   --serif: 'Fraunces', Georgia, serif;

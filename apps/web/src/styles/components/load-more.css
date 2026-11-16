@@ -56,7 +56,7 @@
   color: var(--line);
   margin-bottom: var(--space-2);
 }
-.empty-state h3 {
+.empty-state h2 {
   font-family: var(--serif);
   font-weight: 300;
   font-size: 28px;

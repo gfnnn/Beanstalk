@@ -68,16 +68,18 @@
 <!-- PAGE HEADER -->
 <main id="maincontent" tabindex="-1">
 <header class="page-header">
-  <div>
+  <div class="page-header-left">
     <!-- No flash drop is scheduled, so the eyebrow is a generic static label rather than a
          fabricated "Drop N · Season". To restore the data-driven version when a real drop
          lands, put the "flash:drop" / "flash:season" marker comments back here — the
          renderers (vite.config) and the season label (src/data/flash.js) are unchanged. -->
     <p class="page-eyebrow">Available now</p>
     <!-- ARTIST-COPY · FLASH-01 · pending approval (flash page copy + data still to confirm) -->
-  <h1 class="page-title">Flash, ready <em>to claim.</em></h1>
+    <h1 class="page-title">Flash, ready <em>to claim.</em></h1>
   </div>
-  <p class="page-descriptor">Pre-drawn designs, each one tattooed only once. See one you love? Claim it below and I'll be in touch to book you in. New designs always drop here first.</p>
+  <div class="page-header-right">
+    <p class="page-descriptor">Pre-drawn designs, each one tattooed only once. See one you love? Claim it below and I'll be in touch to book you in. New designs always drop here first.</p>
+  </div>
 </header>
 
 <!-- FILTER BAR -->
@@ -202,9 +204,9 @@
   </div>
 </footer>
 
-<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+<aside class="mobile-cta" id="mobile-cta" aria-label="Start an enquiry" aria-hidden="true">
   <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
-</div>
+</aside>
 
 <!-- ==========================================================================
      CLAIM MODAL
