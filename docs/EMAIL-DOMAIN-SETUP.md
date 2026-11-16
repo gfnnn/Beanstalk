@@ -11,17 +11,12 @@ in `ENQUIRY-SETUP.md`.
 > - **Receiving** at `@beansprout.ink` — done by **forwarding** the addresses to a
 >   Gmail account. This is the piece this doc adds.
 >
-> Until receiving is set up, every `mailto:hello@beansprout.ink` link on the site
+> Without receiving, every `mailto:hello@beansprout.ink` link on the site
 > bounces, **and** the app's enquiry emails bounce if `ARTIST_EMAIL` is a
 > non-existent `@beansprout.ink` address. So this is required, not cosmetic.
 
-## Won't this clash with the "don't switch the apex" rule?
-
-No. Email uses **MX + TXT** DNS records; the website uses **A/CNAME** records.
-They're independent. Setting up email does **not** point `beansprout.ink` at the
-v2 site, so the apex guardrail in `CLAUDE.md` is untouched. You only need access
-to the domain's DNS zone, and you must not remove any MX the **v1** setup already
-relies on (check what's there first).
+Email uses **MX + TXT** DNS records; the website uses **A/CNAME** records. They're
+independent, so nothing here touches how `beansprout.ink` serves the site.
 
 ## The address scheme
 
@@ -35,7 +30,7 @@ relies on (check what's there first).
 
 `beansprout.ink`'s DNS is on **GoDaddy**. **Keep the nameservers on GoDaddy** and
 just *add records* — do **not** move DNS to Cloudflare, because changing
-nameservers migrates *every* record (including the v1 website's A/CNAME) and risks
+nameservers migrates *every* record (including the website's A/CNAME) and risks
 taking the live apex down. Email needs only record additions, which is safe.
 
 Use **ImprovMX** (free, works with any DNS host; ForwardEmail.net is an equivalent
@@ -56,7 +51,7 @@ alternative). GoDaddy's own forwarding is now largely paywalled behind Microsoft
 
 3. **Remove GoDaddy's default MX records** at `@` (the ones pointing to
    `*.secureserver.net`) — otherwise mail routes to GoDaddy instead of ImprovMX.
-   ⚠ First confirm no *current* email relies on them; the v1 **website** uses
+   ⚠ First confirm no *current* email relies on them; the **website** uses
    A/CNAME, not MX, so removing default MX is normally safe here.
 4. Back in ImprovMX, hit **verify**, then send a test email to
    `hello@beansprout.ink` from your phone — it should land in Gmail within a minute.
@@ -108,7 +103,6 @@ reply go out as `roxy@beansprout.ink`. No app change needed.
   `quarantine`/`reject` once you've confirmed Resend + Gmail-send-as both pass).
 - **Use Resend's records verbatim** from its dashboard for the sending/DKIM side —
   don't hand-write them.
-- **Don't delete the v1 MX records** if the v1 site still uses the domain for mail.
 
 ## What's in the repo vs. what's external
 
