@@ -11,8 +11,8 @@ self-employed tattoo artist (Roxy) working from a studio in Winchester. It has b
 [beansprout.ink](https://beansprout.ink) since 15 November 2026, when it replaced the old
 version 1 site.
 
-**An unpaid personal project.** I built it for Roxy for free and keep it running; it is
-not paid client work.
+**An unpaid personal project.** I designed and delivered it for Roxy for free and keep it running; it is
+not paid work.
 
 ## What it does
 
@@ -39,25 +39,25 @@ Automated checks: over 1,000 unit and integration tests (Vitest), browser tests
 (Playwright) and a linter (Biome), run by GitHub Actions on every change. The tests use
 fake data and mocked email and database services, so no real enquiries are involved.
 
-## How this was built: AI-assisted
+## How this was built
 
-This project is developed with Claude, Anthropic's AI coding assistant, and commits are
-co-authored with it. Most of the code, including the SQL for the D1 database, was
-written with Claude. My part is setting the requirements and priorities, making the
-product, design and privacy decisions, and reviewing and testing changes before they
-are merged. [`CLAUDE.md`](CLAUDE.md) is the brief the assistant works from.
+Built with Claude Code to my specification. Claude Code writes the code, including the
+SQL for the D1 database, and commits are co-authored with it. My part is the discovery,
+the requirements and priorities, the design and privacy decisions, and reviewing and
+testing every change before it is merged. Hosting, DNS, deployment and merges are done
+by me. [`CLAUDE.md`](CLAUDE.md) is the brief the assistant works from.
 
 ## My role: running it as a delivery project
 
-I don't write the code by hand. I run the project the way I would run a client
-delivery: working out what the artist actually needs, deciding what to build and what
+I don't write the code by hand. I run the project the way I would run a delivery
+project: working out what the artist actually needs, deciding what to build and what
 to leave out, briefing the work, checking it, and managing the releases and the launch.
 
 - **Requirements and scope.** Each feature starts as a written brief with decisions,
   non-goals, acceptance criteria and privacy notes. The rule is the smallest thing that
   genuinely helps a one-person business, so bigger ideas (booking, a dashboard, a CMS)
   stay unbuilt until real use calls for them.
-- **Working with the client.** Prices, policies and every line of copy in the artist's
+- **Working with the artist.** Prices, policies and every line of copy in the artist's
   voice were agreed with her, and each block stays flagged until she approves it (see
   [Artist-copy markers in `CLAUDE.md`](CLAUDE.md#artist-copy-markers)).
 - **Change and release control.** Over 260 pull requests merged since May 2026, each

@@ -24,7 +24,8 @@
 .faq-search input {
   width: 100%;
   background: var(--cream);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-field);
+  background-clip: padding-box; /* border composites over the page bg, not the cream fill: keeps it ≥3:1 on both sides */
   padding: 13px var(--space-4) 13px 44px;
   border-radius: 100px;
   font-family: var(--sans);
@@ -32,7 +33,7 @@
   color: var(--ink);
   transition: border-color var(--dur);
 }
-.faq-search input:focus { outline: none; border-color: var(--moss); }
+.faq-search input:focus { border-color: var(--moss); }
 .faq-search input::placeholder { color: rgba(var(--ink-faint-rgb), 0.6); }
 .faq-search::before {
   content: '';
@@ -42,7 +43,7 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238E8B81' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M13 13l-3-3'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236B6861' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M13 13l-3-3'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-size: contain;
 }
@@ -75,7 +76,7 @@
   text-align: left;
   font-family: var(--sans);
 }
-.faq-cat:last-child { border-bottom: 1px solid var(--line); }
+.faq-cats > :last-child > .faq-cat { border-bottom: 1px solid var(--line); }
 .faq-cat:hover { color: var(--ink); }
 .faq-cat.active { color: var(--moss); font-weight: 500; }
 .faq-cat .cat-count {
@@ -84,7 +85,7 @@
   letter-spacing: 0.1em;
   color: var(--ink-faint);
 }
-.faq-cat.active .cat-count { color: var(--moss-soft); }
+.faq-cat.active .cat-count { color: var(--moss); }
 
 /* ── Accordion ───────────────────────────────────────────────────────────── */
 .faq-list { display: flex; flex-direction: column; }

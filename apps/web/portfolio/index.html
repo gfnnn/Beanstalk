@@ -223,7 +223,9 @@
      LOAD MORE: first 16 tiles shown; load-more reveals the next 16
      and the filter re-applies so reveals respect active filters.
      ========================================================= -->
-<main class="grid-wrapper" id="grid-wrapper" tabindex="-1">
+<main id="maincontent">
+
+<div class="grid-wrapper" id="grid-wrapper" tabindex="-1">
 
   <div class="masonry" id="masonry-grid" aria-label="Portfolio grid">
 
@@ -245,14 +247,14 @@
       <circle cx="18" cy="20" r="2" fill="currentColor"/>
       <circle cx="30" cy="20" r="2" fill="currentColor"/>
     </svg>
-    <h3>No work found</h3>
+    <h2>No work found</h2>
     <p>No pieces match those filters. Try a different style or placement.</p>
     <button class="btn btn-outline" id="empty-clear">
       Clear filters
     </button>
   </div>
 
-</main>
+</div>
 
 
 <!-- =========================================================
@@ -275,6 +277,8 @@
     Load more work →
   </button>
 </div>
+
+</main>
 
 
 <!-- =========================================================
@@ -367,9 +371,9 @@
 </footer>
 
 <!-- Mobile sticky CTA — always visible on portfolio (no hero to scroll past) -->
-<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+<aside class="mobile-cta" id="mobile-cta" aria-label="Start an enquiry" aria-hidden="true">
   <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
-</div>
+</aside>
 
 
 <script type="module" src="/src/js/main.js"></script>

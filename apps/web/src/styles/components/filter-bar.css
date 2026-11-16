@@ -182,7 +182,8 @@
 .filter-select {
   appearance: none;
   background: var(--cream);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-field);
+  background-clip: padding-box; /* border composites over the page bg, not the cream fill: keeps it ≥3:1 on both sides */
   border-radius: 100px;
   padding: 10px 36px 10px 14px;
   min-height: 44px; /* touch target */

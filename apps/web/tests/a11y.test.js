@@ -74,6 +74,40 @@ function assertA11yBaseline(doc, label) {
   for (const img of doc.querySelectorAll('img')) {
     expect(img.hasAttribute('alt'), `${label}: <img src="${img.getAttribute('src')}"> has alt`).toBe(true)
   }
+
+  // Content sits inside a landmark (axe `region`): the portfolio load-more and
+  // the FAQ CTA live in <main>; the mobile sticky bar is its own <aside>.
+  for (const sel of ['.load-more', '.faq-cta']) {
+    for (const el of doc.querySelectorAll(sel)) {
+      expect(el.closest('main'), `${label}: ${sel} is inside <main>`).toBeTruthy()
+    }
+  }
+  const cta = doc.getElementById('mobile-cta')
+  if (cta) {
+    expect(cta.tagName, `${label}: #mobile-cta is an <aside> landmark`).toBe('ASIDE')
+    expect(cta.getAttribute('aria-label'), `${label}: #mobile-cta is labelled`).toBeTruthy()
+  }
+
+  // Every page header is the two-column shape the CSS lays out:
+  // .page-header-left (eyebrow + h1) and .page-header-right (descriptor).
+  for (const header of doc.querySelectorAll('header.page-header')) {
+    const kids = [...header.children].map(c => c.className)
+    expect(kids, `${label}: page-header children`).toEqual(['page-header-left', 'page-header-right'])
+    expect(header.querySelector('.page-header-left h1'), `${label}: h1 in page-header-left`).toBeTruthy()
+  }
+
+  // A button can't take role="listitem" (axe `aria-allowed-role`): the list
+  // item must be a wrapper around it.
+  expect(doc.querySelectorAll('button[role="listitem"], a[href][role="listitem"]').length,
+    `${label}: no interactive element re-roled as a listitem`).toBe(0)
+
+  // Headings never skip a level on the way down (axe `heading-order`).
+  let prev = 0
+  for (const h of doc.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+    const level = Number(h.tagName[1])
+    expect(level <= prev + 1, `${label}: <${h.tagName.toLowerCase()}> "${h.textContent.trim()}" follows h${prev}`).toBe(true)
+    prev = level
+  }
 }
 
 describe('a11y baseline — authored pages', () => {
