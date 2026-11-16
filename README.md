@@ -16,8 +16,8 @@ not paid work.
 
 ## What it does
 
-- **A fast, mobile-friendly portfolio site:** gallery, flash designs, prices, FAQ,
-  aftercare and contact pages, with the content kept in data files so it can't drift
+- **A fast, mobile-friendly portfolio site:** gallery, prices, FAQ, aftercare and
+  contact pages (a flash-designs page is built and opens with the first drop), with the content kept in data files so it can't drift
   between pages.
 - **An enquiry system that replaces Instagram DMs:** a step-by-step enquiry form
   (with reference photos) and a flash-claim form. Each submission is stored first, then
@@ -126,9 +126,9 @@ Think of this project as **your website plus a tiny receptionist.**
 
 | Page | What it's for |
 | --- | --- |
-| **Home** | The first impression: hero, a taste of your work, what you do, kind words. |
+| **Home** | The first impression: hero, a taste of your work, what you do, and kind words once there are some to show. |
 | **Portfolio** | Your gallery of healed work, filterable by style, each piece on its own shareable page. |
-| **Flash** | The current flash drop: ready-to-go designs people can claim. |
+| **Flash** | The current flash drop: ready-to-go designs people can claim. Built, and switched on when the first drop is ready. |
 | **Services** | What you offer and roughly what it costs. |
 | **About** | Your story and how you work. |
 | **Contact and visit** | Where the studio is, hours, how to find it, a map. |
@@ -163,9 +163,8 @@ deploys a staging copy; `main` is updated only by batched release PRs
 
 - [`CLAUDE.md`](CLAUDE.md): architecture and conventions (**start here**)
 - [`docs/BRANCHING.md`](docs/BRANCHING.md): branch and release model
-- [`docs/CUTOVER.md`](docs/CUTOVER.md): go-live runbook
-- [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md): enquiry and flash-claim form plus email setup
-- [`docs/NEWSLETTER-SETUP.md`](docs/NEWSLETTER-SETUP.md): newsletter (Resend Audience) setup
+- [`docs/CUTOVER.md`](docs/CUTOVER.md): the go-live runbook as run on 15 November 2026, its follow-ups and the rollback
+- [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md): enquiry, flash-claim and newsletter forms plus email setup
 - [`docs/EMAIL-DOMAIN-SETUP.md`](docs/EMAIL-DOMAIN-SETUP.md): sending domain and inbox forwarding
 - [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md): UK GDPR retention and erasure runbook, D1 backup
 - [`docs/MEDIA.md`](docs/MEDIA.md): portfolio and flash image pipeline, hero video

@@ -1,6 +1,6 @@
 // Data-contract tests for src/data/pieces.js & src/data/flash.js.
 //
-// CLAUDE.md is explicit that the tokens in these files (styles, placement,
+// .claude/rules/web-build.md is explicit that the tokens in these files (styles, placement,
 // glyph, status) must stay in lockstep with the renderer label maps — "change
 // them together". The renderers fall back silently on an unknown token
 // (`STYLE_LABELS[t] || t`, `GLYPHS[g] || GLYPHS.sprig`), so a typo wouldn't
@@ -16,7 +16,7 @@
 // The filter chips/<select> live in portfolio/index.html — read as text below so
 // the suite also guards the data→HTML side: a token a piece actually USES must be
 // filterable on the page (a labelled-but-chipless token would render fine and be
-// silently unreachable through the filter bar — the drift CLAUDE.md warns about).
+// silently unreachable through the filter bar — the drift .claude/rules/web-build.md warns about).
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

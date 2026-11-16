@@ -68,7 +68,7 @@ cd apps/web && npx playwright install chromium     # add --with-deps on Linux/CI
   `*.workers.dev`.
 - **Tolerate not-yet-shot images.** `watchForErrors` fails on uncaught exceptions
   and console errors but ignores `Failed to load resource`, because real photography is
-  still being added (see CLAUDE.md), so some `/images/...` files 404 until then.
+  still being added (see `.claude/rules/web-frontend.md`), so some `/images/...` files 404 until then.
 - **Keep `PAGES` in step with `src/build/seo.js`** when adding an indexable page.
 - Specs are `*.spec.js` under `e2e/`; the unit suites are `*.test.js` under
   `tests/`. The two runners never see each other's files.

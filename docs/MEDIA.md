@@ -207,11 +207,9 @@ It is **offline dev/CI tooling**, like `process-media.mjs` itself: the live stat
 site and the Worker never call Dropbox. You still review the result — `npm test`
 gates the tokens/order/tier-files, and the photos get eyeballed on staging.
 
-> **A Claude-web session can't run it.** The Dropbox API hosts
-> (`api.dropboxapi.com` / `content.dropboxapi.com`) are blocked by the sandbox
-> network allowlist (`Host not in allowlist`), the same limit as the Playwright CDN.
-> Run it **locally or in CI**. The logic is unit-tested with the network mocked
-> (`tests/sync-dropbox-media.test.js`), so that part still has a signal in the sandbox.
+> **Run it locally or in CI.** A Claude Code cloud session's network allowlist blocks the
+> Dropbox API hosts (`api.dropboxapi.com` / `content.dropboxapi.com`). The logic is
+> unit-tested with the network mocked (`tests/sync-dropbox-media.test.js`).
 
 **Folder layout in Dropbox.** Under one base folder (default `/Beansprout/masters`,
 override with `DROPBOX_MEDIA_PATH` or `--remote-base`), keep a subfolder per lane:

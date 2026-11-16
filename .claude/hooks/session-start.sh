@@ -25,5 +25,5 @@ npm ci --no-audit --no-fund
 
 # NB: the Playwright E2E browser binary is deliberately NOT downloaded here.
 # cdn.playwright.dev is outside the web sandbox's network allowlist (the download
-# 403s), so the E2E tier is CI/local-only — see CLAUDE.md → "Tests in a web session".
+# 403s), so the E2E tier is CI/local-only — see CLAUDE.md → "Where you are".
 echo "[session-start] dependencies ready."
