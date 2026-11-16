@@ -1,0 +1,32 @@
+/* ── Page CTA ────────────────────────────────────────────────────────────────
+   The light closing band a page ends on before the dark footer (About,
+   Services): bg-alt, a hairline above, centred. One primary button; an
+   optional second action sits below it as a ghost link. */
+.page-cta {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--line);
+  padding: clamp(56px, 7vw, 96px) var(--pad-x);
+  text-align: center;
+}
+.page-cta h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin-bottom: var(--space-4);
+}
+.page-cta h2 em { font-style: italic; color: var(--moss); }
+.page-cta p {
+  font-size: 18px;
+  color: var(--ink-soft);
+  max-width: min(480px, 100%);
+  margin: 0 auto var(--space-8);
+  line-height: 1.6;
+}
+/* A second action drops onto its own centred line under the primary. */
+.page-cta .btn + .btn {
+  display: flex;
+  width: fit-content;
+  margin: var(--space-2) auto 0;
+}

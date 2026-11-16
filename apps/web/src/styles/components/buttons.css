@@ -67,30 +67,6 @@
 }
 .btn-ghost:hover { color: var(--moss); }
 
-/* Light — cream button for dark backgrounds */
-.btn-light {
-  background: var(--bg);
-  border-color: var(--bg);
-  color: var(--ink);
-}
-.btn-light:hover {
-  background: var(--cream);
-  border-color: var(--cream);
-}
-
-/* Outline light — cream border for dark backgrounds (the dark-bg twin of
-   .btn-outline; fills cream on hover, flipping the label to ink). */
-.btn-outline-light {
-  background: transparent;
-  border-color: rgba(var(--bg-rgb), 0.4);
-  color: var(--bg);
-}
-.btn-outline-light:hover {
-  background: var(--bg);
-  border-color: var(--bg);
-  color: var(--ink);
-}
-
 /* Ghost light — text-only for dark backgrounds */
 .btn-ghost-light {
   background: transparent;

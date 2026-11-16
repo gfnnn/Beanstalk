@@ -244,29 +244,7 @@
 /* Placeholder swatches (.t-*) are defined once in components/tones.css,
    driven by the palette in src/data/palette.js. */
 
-/* ── Page CTA ────────────────────────────────────────────────────────────── */
-.page-cta {
-  background: var(--bg-alt);
-  border-top: 1px solid var(--line);
-  padding: clamp(56px, 7vw, 96px) var(--pad-x);
-  text-align: center;
-}
-.page-cta h2 {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: clamp(36px, 5vw, 64px);
-  line-height: 1;
-  letter-spacing: -0.025em;
-  margin-bottom: var(--space-4);
-}
-.page-cta h2 em { font-style: italic; color: var(--moss); }
-.page-cta p {
-  font-size: 18px;
-  color: var(--ink-soft);
-  max-width: min(480px, 100%);
-  margin: 0 auto var(--space-8);
-  line-height: 1.6;
-}
+/* The closing .page-cta band lives in components/page-cta.css. */
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
