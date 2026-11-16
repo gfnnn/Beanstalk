@@ -53,7 +53,9 @@ one batch:
 
 **Hotfix exception.** A genuine production emergency may branch `fix/*` off `main`, PR
 straight into `main`, then merge `main` back into `develop` so the fix isn't lost on the
-next release. Use sparingly — the normal path is always through `develop`.
+next release. Use sparingly — the normal path is always through `develop`. A hotfix (and
+any rollback) still goes through a PR: `main` has no admin bypass — see
+[Ruleset A](#ruleset-a--main-production) for the emergency override.
 
 ## Backlog hygiene (run when open PRs climb past ~5)
 
@@ -144,8 +146,12 @@ are `test (@beansprout/web)` and `test (@beansprout/functions)` (from
 
 #### Ruleset A — `main` (production)
 - **Name:** `protect main` · **Enforcement status:** **Active**
-- **Bypass list:** add **Repository admin** (so you're never locked out for a real hotfix —
-  solo repo). Use it only when genuinely needed.
+- **Bypass list:** **empty, deliberately** (Repository admin was removed 2026-11-16). `main`
+  is the live site, so nobody — the repo admin included — can push to it directly, force-push
+  it or delete it; every change, a hotfix or rollback included, lands through a PR.
+  **Emergency override**, only if a PR genuinely can't do the job: in this ruleset,
+  temporarily add **Repository admin** back to the bypass list (or set Enforcement to
+  **Disabled**), do the one thing, then undo the setting straight away.
 - **Target branches:** *Add target → Include default branch* won't apply once `develop` is
   default — instead *Add target → Include by pattern →* `main`.
 - **Rules — enable:**
