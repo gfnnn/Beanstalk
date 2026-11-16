@@ -311,6 +311,13 @@ const sitemap = {
 export default defineConfig({
   root: '.',
   plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, viewTransition, piecePages, sitemap],
+  // The dev server takes its port from PORT when one is handed in (Claude Code's
+  // .claude/launch.json `autoPort` assigns a free one per worktree). Strict in that
+  // case, so it fails loudly rather than drifting to a port nobody is looking at.
+  server: {
+    port: Number(process.env.PORT) || 5173,
+    strictPort: Boolean(process.env.PORT),
+  },
   build: {
     outDir: 'dist',
     rollupOptions: {

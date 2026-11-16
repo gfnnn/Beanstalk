@@ -14,9 +14,8 @@ paths:
 Every page is its own `index.html` in a folder under `apps/web/` (`portfolio/`, `about/`,
 `flash/`, `enquire/`, `services/`, `visit/`, `newsletter/`, `privacy/`, `terms/`, …), plus
 the homepage `index.html` and the branded `404.html`. Each is registered as a Rollup input
-in `apps/web/vite.config.js`. **Add a new page → add the folder/`index.html` AND a matching
-entry in the `input` map** (and a `ROUTES` entry in `src/build/seo.js` if it's indexable),
-or it won't be built. All pages load the same bundle: `<link href="/src/styles/main.css">`
+in `apps/web/vite.config.js` (the add-a-page rule is in `CLAUDE.md` → *Architecture*).
+All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
 The eight Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
@@ -65,8 +64,7 @@ comes from the exported `season` string — so "Drop 12 · Summer 2026" never dr
 cards. The homepage "Kind words" section is `hidden` while `testimonials` is empty — add real
 quotes AND remove the `hidden` attribute to switch it on.
 
-**Never hand-edit generated markup** (tiles, cards, hero copy, status pill, notices,
-testimonials) — edit the data file and let the build regenerate it. The portfolio **style +
+The portfolio **style +
 placement vocabulary lives once in `src/data/taxonomy.js`** (the `STYLE_LABELS` /
 `PLACEMENT_LABELS` maps): `pieces.js`, the renderers (`portfolio-tiles.js` re-exports the
 label maps), the data-integrity test, and the Dropbox master-filename parser

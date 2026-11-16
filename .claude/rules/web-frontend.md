@@ -20,8 +20,7 @@ rather than behind it. Everything else (portfolio load-more + filter + lightbox,
 faq, enquire, flash, newsletter, hero media, analytics — and finally the mobile sticky CTA)
 inits immediately. **The full motion / page-transition system is mapped in
 [`docs/MOTION.md`](../../docs/MOTION.md) — read it before changing load/entrance/transition behaviour.**
-**Every module no-ops when its target element is absent**, so the one bundle runs safely
-on every page. Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
+Modules under `src/js/modules/`: `lenis`, `nav`, `animations`, `loadmore`,
 `filter`, `lightbox`, `sticky` (shared sticky-shadow helper for pinned bars — used by
 filter, flash and the enquire progress bar), `chip-overflow` (shared responsive "More"
 collapse for tight filter rows — used by filter and flash), `filter-collapse` (mobile-only:
@@ -41,8 +40,7 @@ load-more and the enquiry/flash/newsletter submits), `cta` (the mobile sticky "E
 bar — a functional control, deliberately NOT reduced-motion gated), and `config`
 (function URLs). Portfolio
 load-more, filter/sort and lightbox cooperate via callbacks wired in `main.js` (load-more
-owns the visible window; filter re-applies after a reveal/sort). New page behaviour = a new
-`modules/<name>.js` exporting `initX()`, added to `main.js`.
+owns the visible window; filter re-applies after a reveal/sort).
 
 The FOUC guard (`motion-ready`), the full-page preloader, page transitions and the animated
 hairline rules are documented only in [`docs/MOTION.md`](../../docs/MOTION.md).
@@ -70,8 +68,8 @@ entrance mirrors them via `CustomEase` so JS == CSS. The first view reveals as o
 top-to-bottom positional wave. New motion uses those tokens/curves; see
 [`docs/MOTION.md`](../../docs/MOTION.md) → *Motion language* before adding any.
 
-**Colour lives in one place — `apps/web/src/data/palette.js`.** No CSS hard-codes a
-colour; every rule reads a CSS custom property (`var(--moss)`, `rgba(var(--ink-rgb),
+**Colour lives in one place — `apps/web/src/data/palette.js`.** Every rule reads a CSS
+custom property (`var(--moss)`, `rgba(var(--ink-rgb),
 …)`, the `--tone-*` swatch trios). `src/build/palette.js` generates those properties
 from the **active** palette in that data file and the `palette` plugin in
 `vite.config.js` injects them into every page's `<head>` (dev + build) and points the

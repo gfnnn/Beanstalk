@@ -35,8 +35,7 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   shipped dark** (see `docs/PAYMENTS.md`): `/checkout` opens a Stripe PaymentIntent for a
   flash piece (amount read server-side from `src/data/flash-prices.json`, never the client)
   and reserves it with a ~48h hold; `/webhooks/stripe` is the verified server-to-server
-  confirmation that promotes the claim and flips the ledger. Both are inert until
-  `PAYMENTS_ENABLED === "true"` — `/checkout` returns 503 otherwise. Signing/HTTP for Stripe
+  confirmation that promotes the claim and flips the ledger. Signing/HTTP for Stripe
   lives in `src/lib/stripe.js`.
 - `src/lib/db.js` is the **D1 (SQLite) storage layer** (binding `DB`), and the system of
   record: `persistSubmission`/`persistConsent`, the **flash inventory** (`reserveFlashPiece`
@@ -44,8 +43,7 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
   `getFlashClaims`; `promoteFlashClaim`/`expirePendingClaims` for the paid/abandoned paths),
   the **payments ledger** (`recordPayment`/`getPayment`/`markPaymentStatus` +
   `recordWebhookEvent` for webhook idempotency), and the **rate limiter** (per-IP sliding
-  window + global daily ceiling). Every function **fails safe / fails open** — a DB outage
-  never blocks a real enquiry. Schema in `migrations/0001_init.sql` (+ `0002_payments.sql`
+  window + global daily ceiling). Schema in `migrations/0001_init.sql` (+ `0002_payments.sql`
   for the payments ledger, `0003_claim_refs.sql` tying a flash hold to the payment that
   created it). GDPR retention/erasure is plain SQL — see `docs/DATA-COMPLIANCE.md`.
 - `src/lib/http.js` is the HTTP plumbing: the **CORS origin allowlist** (the *site* origins,
@@ -54,9 +52,8 @@ Cloudflare Worker (`apps/functions`); there is no backend server. `src/index.js`
 - `apps/web/src/js/modules/config.js` holds the Worker route URLs, overridable at build time
   via `VITE_ENQUIRY_FN_URL` / `VITE_NEWSLETTER_FN_URL` / `VITE_FLASH_STATUS_FN_URL` (see
   `.env.example`); the workers.dev subdomain is account-specific so these MUST be set. Rebuild
-  after changing them — Vite bakes them in. Server-side secrets (`RESEND_API_KEY`,
-  `ARTIST_EMAIL`, `FROM_EMAIL`, `RESEND_AUDIENCE_ID`) are **Cloudflare Worker secrets**
-  (`wrangler secret put`), never in the repo. Full setup: `docs/ENQUIRY-SETUP.md`
+  after changing them — Vite bakes them in. The server-side secrets are `RESEND_API_KEY`,
+  `ARTIST_EMAIL`, `FROM_EMAIL` and `RESEND_AUDIENCE_ID`. Full setup: `docs/ENQUIRY-SETUP.md`
   (forms + newsletter), `docs/EMAIL-DOMAIN-SETUP.md` (Resend domain/DNS).
 
 ## Security headers (Worker JSON)
