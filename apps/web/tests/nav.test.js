@@ -190,7 +190,6 @@ describe('initNav', () => {
     const observed = []
     vi.stubGlobal('IntersectionObserver', class { observe(el) { observed.push(el) } disconnect() {} })
     window.matchMedia = () => ({ matches: false, addEventListener() {} })
-    document.body.classList.add('page-home')
     document.body.innerHTML = `
       <nav id="main-nav"><div class="nav-links"></div><button id="nav-hamburger" aria-expanded="false"></button></nav>
       <div id="nav-drawer" class="nav-drawer" aria-hidden="true"></div>
@@ -201,7 +200,6 @@ describe('initNav', () => {
     expect(observed).toHaveLength(0)
     vi.unstubAllGlobals()
     delete window.matchMedia
-    document.body.classList.remove('page-home')
   })
 
   describe('scroll state', () => {

@@ -121,7 +121,10 @@ export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
 //     page ("Lioness · Black & grey · Arm"). An unknown slug THROWS, which fails
 //     the build (and shows in the dev overlay) rather than shipping a dead link.
 //   • `caption` — a plain line of text (the About frame's studio credit).
-// Neither set → no caption at all. `slotName` only names the slot in the error.
+// Neither set → no caption at all. A slot that is switched off (show:false) gets
+// no caption either — there is no media to caption — but its `piece` slug is
+// still checked, so a typo can't wait for the day the slot is switched on.
+// `slotName` only names the slot in the error.
 export function renderHeroCaption(slot = {}, pieces = [], slotName = 'hero') {
   if (slot?.piece) {
     const p = pieces.find(x => x.slug === slot.piece)
@@ -130,8 +133,10 @@ export function renderHeroCaption(slot = {}, pieces = [], slotName = 'hero') {
         `src/data/media.js → ${slotName}.piece is "${slot.piece}", but no piece in `
         + 'src/data/pieces.js has that slug. Fix the slug, or remove `piece` to drop the caption.')
     }
+    if (!slot.show) return ''
     return `<p class="media-caption"><a href="/portfolio/${esc(p.slug)}/">`
       + `${esc(p.title)} · ${esc(captionSub(p))}</a></p>`
   }
-  return slot?.caption ? `<p class="media-caption">${esc(slot.caption)}</p>` : ''
+  if (!slot?.show) return ''
+  return slot.caption ? `<p class="media-caption">${esc(slot.caption)}</p>` : ''
 }

@@ -332,7 +332,7 @@ describe('renderHeroCaption (the caption UNDER a hero frame)', () => {
   const sample = [{ slug: 'lion', title: 'Lion & cub', styles: ['black-grey', 'realism'], placement: 'arm' }]
 
   it('names the piece and links to its page: "Title · Style · Placement"', () => {
-    expect(renderHeroCaption({ piece: 'lion' }, sample)).toBe(
+    expect(renderHeroCaption({ show: true, piece: 'lion' }, sample)).toBe(
       '<p class="media-caption"><a href="/portfolio/lion/">Lion &amp; cub · Black &amp; grey · Arm</a></p>')
   })
 
@@ -341,15 +341,21 @@ describe('renderHeroCaption (the caption UNDER a hero frame)', () => {
     expect(renderHeroCaption(undefined, sample)).toBe('')
   })
 
+  it('renders no caption while the slot is switched off, but still checks its slug', () => {
+    expect(renderHeroCaption({ show: false, piece: 'lion' }, sample)).toBe('')
+    expect(renderHeroCaption({ show: false, caption: 'Studio' }, sample)).toBe('')
+    expect(() => renderHeroCaption({ show: false, piece: 'no-such-piece' }, sample)).toThrow(/no-such-piece/)
+  })
+
   it('throws a clear, actionable error for a slug that is not in pieces.js', () => {
     expect(() => renderHeroCaption({ piece: 'no-such-piece' }, sample, 'hero'))
       .toThrow(/media\.js → hero\.piece is "no-such-piece".*pieces\.js/)
   })
 
   it('falls back to a plain, escaped line of text (the About studio credit); `piece` wins', () => {
-    expect(renderHeroCaption({ caption: 'Tiny <b>Knives</b>' }, sample))
+    expect(renderHeroCaption({ show: true, caption: 'Tiny <b>Knives</b>' }, sample))
       .toBe('<p class="media-caption">Tiny &lt;b&gt;Knives&lt;/b&gt;</p>')
-    expect(renderHeroCaption({ caption: 'x', piece: 'lion' }, sample)).toContain('/portfolio/lion/')
+    expect(renderHeroCaption({ show: true, caption: 'x', piece: 'lion' }, sample)).toContain('/portfolio/lion/')
   })
 
   it('resolves every `piece` in the real media.js against the real catalogue', () => {
@@ -703,6 +709,7 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
     const html = renderSpecialisms(sample, [{ style: 'fine-line' }])
     expect(html.match(/<img /g)).toHaveLength(1)
     expect(html).toContain('<a class="specialism-photo tile-media')
+    expect(html).not.toContain('data-full') // a lightbox hook; the cards don't open it
     expect(html).toContain('href="/portfolio/newest-fl/"')
     expect(html).toContain('src="/images/tattoos/Newest.webp"')
     // the older piece and the img-less (newer-dated) piece are not shown

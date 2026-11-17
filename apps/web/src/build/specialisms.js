@@ -42,7 +42,7 @@ export function piecesForStyle(pieces, style, n = PREVIEWS, exclude) {
 // tiles use), built by the portfolio's own <picture> builder so it gets the same
 // responsive tiers and alt text. `.tile-media` is the shared 3:4 photo frame.
 function preview(p) {
-  const img = HAS_EXT.test(p.img) ? singlePhoto(p, false) : photo(p, false, SIZES)
+  const img = HAS_EXT.test(p.img) ? singlePhoto(p, false) : photo(p, false, SIZES, { lightbox: false })
   return `<a class="specialism-photo tile-media ${p.tone}" href="/portfolio/${esc(p.slug)}/">
         ${img}
       </a>`

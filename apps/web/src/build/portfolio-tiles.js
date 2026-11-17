@@ -48,16 +48,18 @@ export const captionSub = p => `${styleLabel(p.styles[0])} · ${placeLabel(p.pla
 // `data-full` points the lightbox at the largest tier — without it the lightbox
 // would upscale whatever small srcset candidate the grid happened to load.
 // `sizes` defaults to the portfolio grid's columns; the specialism cards pass
-// their own (exported so there is one <picture> builder, not a copy per surface).
+// their own (exported so there is one <picture> builder, not a copy per surface)
+// and `lightbox: false`, since their photo links to the piece and never opens it.
 const GRID_SIZES = '(min-width:1200px) 23vw, (min-width:900px) 31vw, 47vw'
-export function photo(p, eager, sizes = GRID_SIZES) {
+export function photo(p, eager, sizes = GRID_SIZES, { lightbox = true } = {}) {
   // esc() like the src/data-full below — attribute context, even for repo paths.
   const srcset = ext => `${esc(p.img)}-400.${ext} 400w, ${esc(p.img)}-800.${ext} 800w, ${esc(p.img)}-1200.${ext} 1200w`
   const loading = eager ? 'eager" fetchpriority="high' : 'lazy'
+  const full = lightbox ? ` data-full="${esc(p.img)}-1200.jpg"` : ''
   return `<picture>
         <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
         <source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">
-        <img src="${esc(p.img)}-800.jpg" alt="${esc(altText(p))}" data-full="${esc(p.img)}-1200.jpg"
+        <img src="${esc(p.img)}-800.jpg" alt="${esc(altText(p))}"${full}
              width="${p.w}" height="${p.h}" loading="${loading}" decoding="async">
       </picture>`
 }

@@ -340,13 +340,17 @@ a.video-credit-name:focus-visible { color: var(--moss); }
     border-radius: var(--radius);
   }
   /* A still photo is shown whole: never taller than the first screen less the
-     column padding and the caption line (44px) under it. */
+     column padding and the lines under it (--hero-under: one caption line, plus
+     the video credit's line when that is switched on). The 360px floor stops it
+     collapsing to a thumbnail in a short window — it scrolls instead. */
+  .hero-figure { --hero-under: 44px; }
+  .hero-figure:has(.hero-video-credit) { --hero-under: 72px; }
   .hero-media img.media-clip {
     width: auto;
     max-width: 100%;
     height: auto;
-    max-height: calc(100vh - var(--nav-h) - var(--space-8) * 2 - 44px);
-    max-height: calc(100svh - var(--nav-h) - var(--space-8) * 2 - 44px);
+    max-height: max(360px, calc(100vh - var(--nav-h) - var(--space-8) * 2 - var(--hero-under)));
+    max-height: max(360px, calc(100svh - var(--nav-h) - var(--space-8) * 2 - var(--hero-under)));
   }
   /* A clip (or the placeholder) has no intrinsic size to shrink-wrap: it takes
      the column width on the landscape 16:9 crop it is shot for. */

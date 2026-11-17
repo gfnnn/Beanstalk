@@ -141,7 +141,7 @@ const fromFor = el => calls.from.find(c => c.targets.includes(el))
 
 beforeEach(() => {
   document.body.innerHTML = ''
-  document.body.className = '' // some tests opt into .page-home; don't leak it
+  document.body.className = ''
   ioInstances = []
   vi.stubGlobal('IntersectionObserver', MockIO)
 })
@@ -267,7 +267,6 @@ describe('initHeroAnimation', () => {
 
     it('never animates the nav on the mobile homepage (it is solid and paints immediately)', async () => {
       const { initHeroAnimation } = await load({ viewport: 'mobile' })
-      document.body.classList.add('page-home')
       document.body.innerHTML = `
         <nav id="main-nav">
           <a class="nav-logo">B</a>
@@ -282,7 +281,6 @@ describe('initHeroAnimation', () => {
       expect(revealed).not.toContain(document.querySelector('.nav-logo'))
       expect(revealed).not.toContain(document.querySelector('.nav-hamburger'))
       expect(revealed).not.toContain(document.querySelector('.nav-right .btn'))
-      document.body.classList.remove('page-home')
     })
   })
 })

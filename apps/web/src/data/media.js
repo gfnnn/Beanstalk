@@ -38,6 +38,7 @@
 //            media shows. Renders a caption UNDER the frame that names the piece
 //            and links to its page, e.g. "Lioness · Black & grey · Arm". Leave it
 //            out for no caption. A slug that isn't in pieces.js fails the build.
+//            No caption renders while the slot is show:false.
 //   caption  OPTIONAL — a plain line of text under the frame instead (used when
 //            the caption isn't a piece, e.g. the studio credit). `piece` wins.
 //
