@@ -354,7 +354,7 @@ a.video-credit-name:focus-visible { color: var(--moss); }
   .hero-media video.media-clip,
   .video-placeholder { height: auto; aspect-ratio: 16 / 9; }
   /* A portrait clip (if set) is for phones; the landscape one fills the column. */
-  .media-clip--portrait { display: none; }
+  .hero-media .media-clip--portrait { display: none; } /* outranks .hero-media .media-clip */
 
   .hero-media .media-caption,
   .hero-video-credit { padding: 0; }
@@ -408,5 +408,5 @@ a.video-credit-name:focus-visible { color: var(--moss); }
 /* Below 900px a portrait clip (media.hero.portrait), when one is set, replaces
    the landscape one; without it the lone .media-clip stays and covers. */
 @media (max-width: 899px) {
-  .media-clip--landscape { display: none; }
+  .hero-media .media-clip--landscape { display: none; } /* outranks .hero-media .media-clip */
 }
