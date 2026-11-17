@@ -6,31 +6,28 @@
 // the cards ship as static HTML (SEO / no-JS / LCP) while staying driven by the
 // single portfolio data file.
 //
-// Each card showcases ONE style. The preview thumbnails are pulled live from
-// src/data/pieces.js — the newest pieces (that have a real photo) carrying that
+// Each card showcases ONE style with ONE photo, pulled live from
+// src/data/pieces.js — the newest piece (that has a real photo) carrying that
 // style — so adding/retiring portfolio pieces keeps the homepage in step with no
 // hand-editing here. Which styles are featured (and the per-card copy) lives in
 // src/data/homepage.js → `specialisms`; this file only turns that into markup.
 
-import { STYLE_LABELS, styleLabel, altText, dateKey } from './portfolio-tiles.js'
+import { STYLE_LABELS, styleLabel, dateKey, photo, singlePhoto } from './portfolio-tiles.js'
 import { esc, HAS_EXT } from './html.js'
 
-// How many preview thumbnails sit in each card (the .specialism-previews row).
-const PREVIEWS = 3
+// One photo per card: large enough to read the work, with the card's label under
+// it (three small thumbnails showed too little of any piece).
+const PREVIEWS = 1
 
-// Image source for a preview thumbnail. Mirrors portfolio-tiles: an export that
-// already carries an extension (e.g. "…/Koi.webp") is served as-is; a no-extension
-// base path resolves to its 400px derivative (these tiles are small squares, so a
-// single small source is plenty — no srcset needed).
-const thumbSrc = p => (HAS_EXT.test(p.img) ? p.img : `${p.img}-400.jpg`)
+// The card is 1 column on phones, 2 on tablet, 3 from 1100px.
+const SIZES = '(min-width:1100px) 30vw, (min-width:640px) 45vw, 100vw'
 
 // The newest pieces with a real photo that carry `style`, up to `n`. Newest-first
 // by date with a stable tiebreak on source order (same as the portfolio grid), so
 // the homepage previews track the catalogue's most recent work in that style.
 // `exclude` is an optional Set of slugs to skip — pieces already previewed on an
 // earlier card — so the same photo never shows twice across the specialism row (a
-// piece can carry several styles, e.g. fine-line + botanical, so its thumbnail
-// would otherwise duplicate between cards).
+// piece can carry several styles, so it would otherwise repeat between cards).
 export function piecesForStyle(pieces, style, n = PREVIEWS, exclude) {
   return (pieces || [])
     .map((p, i) => ({ p, i }))
@@ -41,19 +38,21 @@ export function piecesForStyle(pieces, style, n = PREVIEWS, exclude) {
     .map(o => o.p)
 }
 
-// One preview thumbnail → a link to the piece's own page (same target the masonry
-// tiles use). Decorative-but-described: real alt text for SEO/a11y.
+// The card's photo → a link to the piece's own page (same target the masonry
+// tiles use), built by the portfolio's own <picture> builder so it gets the same
+// responsive tiers and alt text. `.tile-media` is the shared 3:4 photo frame.
 function preview(p) {
-  return `<a class="preview" href="/portfolio/${esc(p.slug)}/">
-          <img src="${esc(thumbSrc(p))}" alt="${esc(altText(p))}"
-               width="${p.w}" height="${p.h}" loading="lazy" decoding="async">
-        </a>`
+  const img = HAS_EXT.test(p.img) ? singlePhoto(p, false) : photo(p, false, SIZES)
+  return `<a class="specialism-photo tile-media ${p.tone}" href="/portfolio/${esc(p.slug)}/">
+        ${img}
+      </a>`
 }
 
 // One specialism card. `style` must be a known portfolio style token; the title's
 // plain part is its label (single source of truth, STYLE_LABELS), `em` + `body`
 // are author copy. `i`/`total` drive the "0X / 0Y" numbering + the background
-// numeral. The CTA deep-links to the matching portfolio style filter.
+// numeral (behind the text, never the photo). The photo comes first and every
+// label sits under it; a style with no photographed piece left renders no photo. The CTA deep-links to the matching portfolio style filter.
 // `i` is the 1-based position among the *numbered* (non-fill) cards, or -1 for a
 // fill card. Fill cards are the tablet-only balance tile: they carry the --fill
 // modifier (CSS shows them only at tablet widths), sit outside the "0X / 0Y"
@@ -69,17 +68,15 @@ function card(spec, pieces, i, total, used = new Set()) {
   const label = styleLabel(style)
   const selected = piecesForStyle(pieces, style, PREVIEWS, used)
   selected.forEach(p => used.add(p.slug))
-  const previews = selected.map(preview).join('\n          ')
+  const photos = selected.map(preview).join('\n      ')
   const em = spec.em ? ` <em>${esc(spec.em)}</em>` : ''
   const cls     = fill ? 'specialism-card specialism-card--fill' : 'specialism-card'
   const dataNum = fill ? String(total + 1).padStart(2, '0') : num
   const counter = fill ? 'Also' : `${num} / ${denom}`
-  return `    <article class="${cls}" data-num="${dataNum}">
-      <div class="specialism-num">${counter}</div>
-      <div class="specialism-content">
-        <div class="specialism-previews">
-          ${previews}
-        </div>
+  return `    <article class="${cls}">
+      ${photos}
+      <div class="specialism-content" data-num="${dataNum}">
+        <div class="specialism-num">${counter}</div>
         <h3 class="specialism-title">${esc(label)}${em}</h3>
         <p class="specialism-body">${esc(spec.body)}</p>
         <a href="/portfolio/?style=${esc(style)}" class="specialism-link">Browse ${esc(label.toLowerCase())} work</a>

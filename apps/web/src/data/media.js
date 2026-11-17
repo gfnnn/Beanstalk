@@ -34,6 +34,12 @@
 //   sources  for `kind:'video'` — ordered best-first; the browser picks the
 //            first type it can play. WebM (VP9/AV1) first, MP4 (H.264) fallback.
 //   gif      for `kind:'gif'` — the single animated-image path
+//   piece    OPTIONAL — the `slug` of the piece in src/data/pieces.js that the
+//            media shows. Renders a caption UNDER the frame that names the piece
+//            and links to its page, e.g. "Lioness · Black & grey · Arm". Leave it
+//            out for no caption. A slug that isn't in pieces.js fails the build.
+//   caption  OPTIONAL — a plain line of text under the frame instead (used when
+//            the caption isn't a piece, e.g. the studio credit). `piece` wins.
 //
 // PLAYBACK is progressive-enhancement (see src/js/modules/media.js): the markup
 // ships WITHOUT autoplay, so no-JS users (and reduced-motion users) just see the
@@ -50,8 +56,11 @@ export const media = {
     kind:   'image',
     img:    '/images/tattoos/lioness',
     w: 800, h: 1063,
-    sizes:  '(min-width:900px) 55vw, 100vw',
+    // Phones crop the portrait photo to fill the first screen (drawn wider than
+    // the viewport); from 900px it is shown whole, well inside the 55% column.
+    sizes:  '(min-width:900px) 42vw, 150vw',
     alt:    'Black and grey realism tattoo of a lioness on an arm',
+    piece:  'lioness',
     poster: '/videos/hero-poster.jpg',
     sources: [
       { src: '/videos/hero.webm', type: 'video/webm' },
@@ -59,7 +68,7 @@ export const media = {
     ],
     gif:    '/videos/hero.gif',
 
-    // OPTIONAL portrait clip — shown on the MOBILE full-screen hero (<900px); the
+    // OPTIONAL portrait clip — shown on the MOBILE first-screen hero (<900px); the
     // landscape `sources` above stay the desktop 45/55 column (≥900px). When this
     // block is present the renderer (src/build/media.js) emits a SECOND <video>
     // tagged .media-clip--portrait and CSS swaps the two by breakpoint; remove it
@@ -67,8 +76,8 @@ export const media = {
     // Leave the homepage on `show:false` until the files land in public/videos/.
     //
     // Portrait shoot brief:
-    //   — Frame:    9:16 portrait, full-bleed. Subject lower-centre; headroom up
-    //               top so the overlaid headline/credit sit over clean negative space.
+    //   — Frame:    9:16 portrait, full-bleed. Nothing is overlaid on it — the
+    //               headline and caption sit underneath.
     //   — Light:    Warm, directional. Same grade as the landscape cut.
     //   — Duration: 25–30 sec seamless loop (last frame matches first). No audio.
     //   — Export:   WebM (VP9) primary + MP4 (H.264) fallback. Target < 5 MB.

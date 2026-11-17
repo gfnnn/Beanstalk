@@ -232,17 +232,6 @@ describe('initHeroAnimation', () => {
       expect(media.vars.ease).toBe(ORGANIC) // an asset settling in
     })
 
-    it('reveals the desktop studio-location tag as a late beat over the media', async () => {
-      const { initHeroAnimation } = await load({ viewport: 'desktop' })
-      mountFullHero()
-      document.querySelector('.hero-media').innerHTML += '<span class="hero-media-tag">Studio</span>'
-      initHeroAnimation()
-      const tag = fromFor(document.querySelector('.hero-media-tag'))
-      expect(tag).toBeTruthy()
-      expect(tag.vars.opacity).toBe(0)
-      expect(tag.vars.ease).toBe(SOFT)
-    })
-
     it('reveals the scroll cue as the hero text timeline\'s last beat', async () => {
       const { initHeroAnimation } = await load()
       mountFullHero()
@@ -264,21 +253,19 @@ describe('initHeroAnimation', () => {
       expect(calls.timelines.some(t => t.defaults && t.defaults.ease === SOFT)).toBe(true)
     })
 
-    it('raises the media column up on mobile (the first beat of the overlay reveal)', async () => {
+    it('only fades the media in on mobile — no travel (the photo fills the first screen)', async () => {
       const { initHeroAnimation } = await load({ viewport: 'mobile' })
       mountFullHero()
       initHeroAnimation()
-      // On mobile the media is the full-screen video opener, revealed as the
-      // first beat of a timeline (so the overlay can stagger in after it) — so
-      // its tween is a timeline .from(), not a bare gsap.from().
-      const mediaEl = document.querySelector('.hero-media')
-      const media = calls.tlFrom.find(c => c.targets.includes(mediaEl))
+      const media = fromFor(document.querySelector('.hero-media'))
       expect(media).toBeTruthy()
-      expect(media.vars.y).toBe(20)
+      expect(media.vars.opacity).toBe(0)
       expect(media.vars.x).toBeUndefined()
+      expect(media.vars.y).toBeUndefined()
+      expect(media.vars.ease).toBe(ORGANIC)
     })
 
-    it('reveals the nav (logo/burger/Enquire) + video credit over the mobile homepage video', async () => {
+    it('never animates the nav on the mobile homepage (it is solid and paints immediately)', async () => {
       const { initHeroAnimation } = await load({ viewport: 'mobile' })
       document.body.classList.add('page-home')
       document.body.innerHTML = `
@@ -287,26 +274,15 @@ describe('initHeroAnimation', () => {
           <div class="nav-right"><a class="btn">Enquire</a><button class="nav-hamburger"></button></div>
         </nav>
         <section class="hero">
-          <div class="hero-intro"><p class="hero-eyebrow">e</p><h1>Quiet ink</h1></div>
-          <div class="hero-media">media<span class="hero-video-credit">Film by</span></div>
+          <p class="hero-eyebrow">e</p><h1>Quiet ink</h1>
+          <div class="hero-media">media</div>
         </section>`
       initHeroAnimation()
-      const revealed = calls.tlFrom.flatMap(c => c.targets)
-      expect(revealed).toContain(document.querySelector('.nav-logo'))
-      expect(revealed).toContain(document.querySelector('.nav-hamburger'))
-      expect(revealed).toContain(document.querySelector('.nav-right .btn'))
-      expect(revealed).toContain(document.querySelector('.hero-video-credit'))
-    })
-
-    it('does NOT reveal the nav on a non-homepage mobile hero', async () => {
-      const { initHeroAnimation } = await load({ viewport: 'mobile' })
-      document.body.classList.remove('page-home')
-      document.body.innerHTML = `
-        <nav id="main-nav"><a class="nav-logo">B</a></nav>
-        <section class="hero"><h1>H</h1><div class="hero-media">m</div></section>`
-      initHeroAnimation()
-      const revealed = calls.tlFrom.flatMap(c => c.targets)
+      const revealed = [...calls.tlFrom, ...calls.from].flatMap(c => [c.targets].flat())
       expect(revealed).not.toContain(document.querySelector('.nav-logo'))
+      expect(revealed).not.toContain(document.querySelector('.nav-hamburger'))
+      expect(revealed).not.toContain(document.querySelector('.nav-right .btn'))
+      document.body.classList.remove('page-home')
     })
   })
 })

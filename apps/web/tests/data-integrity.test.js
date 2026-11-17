@@ -220,7 +220,7 @@ describe('homepage data (homepage.js)', () => {
   })
 
   it('has the hero copy fields the renderer reads', () => {
-    for (const k of ['eyebrow', 'headLead', 'headEm', 'body', 'mediaTag']) {
+    for (const k of ['eyebrow', 'headLead', 'headEm', 'body']) {
       expect(typeof homepage.hero[k], `hero.${k}`).toBe('string')
     }
   })

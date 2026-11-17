@@ -16,32 +16,17 @@
 .masonry {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2);
+  gap: var(--space-6) var(--space-2);
 }
 
+/* The tile is the link; its photo frame (.tile-media) and the caption under it
+   (.tile-caption / .tile-title / .tile-sub) are the shared parts in gallery.css. */
 .masonry-tile {
   display: block;
-  position: relative;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border-radius: var(--radius);
   cursor: pointer;
-  background: var(--bg-alt);
 }
 
-.masonry-tile img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 500ms var(--ease), filter 500ms var(--ease);
-}
-.masonry-tile:hover img {
-  transform: scale(1.04);
-  filter: brightness(1.04); /* co-timed "light falling on it" nudge (§3-F) */
-}
-
-/* Placeholder — line-art glyph filling the (3:4) tile cell */
+/* Placeholder — line-art glyph filling the (3:4) photo frame */
 .tile-placeholder {
   width: 100%;
   height: 100%;
@@ -58,46 +43,6 @@
   opacity: 0.25;
 }
 
-/* Hover overlay */
-.tile-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(transparent 40%, rgba(var(--ink-rgb), 0.72) 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 14px;
-  opacity: 0;
-  transition: opacity var(--dur) var(--ease);
-}
-.masonry-tile:hover .tile-overlay {
-  opacity: 1;
-}
-
-/* Always-visible caption on touch devices */
-@media (hover: none) {
-  .masonry-tile .tile-overlay {
-    opacity: 1;
-    background: linear-gradient(transparent 55%, rgba(var(--ink-rgb), 0.58) 100%);
-  }
-}
-
-.tile-title {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: 14px;
-  color: var(--cream);
-  margin-bottom: 2px;
-  line-height: 1.25;
-}
-.tile-sub {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(var(--cream-rgb), 0.6);
-}
-
 /* Placeholder gradient swatches (.t-*) are defined once in components/tones.css,
    driven by the palette in src/data/palette.js. */
 
@@ -107,9 +52,7 @@
 }
 
 @media (min-width: 900px) {
-  .masonry      { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .tile-title   { font-size: 15px; }
-  .tile-overlay { padding: var(--space-4); }
+  .masonry      { grid-template-columns: repeat(3, 1fr); gap: var(--space-8) var(--space-3); }
   .grid-wrapper { padding: var(--space-8) var(--pad-x) var(--space-20); }
 }
 

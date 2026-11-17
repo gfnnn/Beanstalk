@@ -17,9 +17,9 @@ import { renderSpecialisms, piecesForStyle } from '../src/build/specialisms.js'
 import {
   renderStatus, renderNotices,
   renderHeroEyebrow, renderHeroHeadline, renderHeroBody,
-  renderHeroMediaTag, renderVideoCredit,
+  renderVideoCredit,
 } from '../src/build/homepage.js'
-import { renderHeroMedia } from '../src/build/media.js'
+import { renderHeroMedia, renderHeroCaption } from '../src/build/media.js'
 import { pieces } from '../src/data/pieces.js'
 import { flash } from '../src/data/flash.js'
 import { homepage } from '../src/data/homepage.js'
@@ -46,6 +46,17 @@ describe('renderPortfolioTiles', () => {
     expect(html).toContain('/images/tattoos/foxglove-400.avif 400w')
     expect(html).toContain('width="800"')
     expect(html).toContain('height="1000"')
+  })
+
+  it('puts the caption UNDER the photo — title + "style · placement" — never over it', () => {
+    const html = renderPortfolioTiles([{ ...withImage, placement: 'arm' }])
+    // the photo frame closes before the caption opens: siblings, not an overlay
+    expect(html).toMatch(/<div class="tile-media t-moss">[\s\S]*<\/picture>\s*<\/div>\s*<div class="tile-caption">/)
+    expect(html).toContain('<p class="tile-title">Foxglove</p>')
+    expect(html).toContain('<p class="tile-sub">Fine line · Arm</p>')
+    expect(html).not.toContain('tile-overlay')
+    // alt text reads as a sentence: the placement is lower-cased
+    expect(html).toContain('alt="Fine line tattoo of foxglove on arm"')
   })
 
   it('renders the line-art placeholder (no <picture>) when img is null', () => {
@@ -288,17 +299,6 @@ describe('renderHero copy', () => {
   })
 })
 
-describe('renderHeroMediaTag (click-through studio tag overlaid on the hero)', () => {
-  it('links to /visit/ with the escaped authored label', () => {
-    const html = renderHeroMediaTag({ mediaTag: 'Tiny Knives · Leeds' })
-    expect(html).toBe('<a href="/visit/" class="hero-media-tag-link">Tiny Knives · Leeds</a>')
-  })
-
-  it('escapes the label to prevent markup injection', () => {
-    expect(renderHeroMediaTag({ mediaTag: '<b>x</b>' })).toContain('&lt;b&gt;')
-  })
-})
-
 describe('renderVideoCredit (hero media credit line)', () => {
   it('returns nothing until show is true (no video/credit yet)', () => {
     expect(renderVideoCredit({ show: false, name: 'A' })).toBe('')
@@ -328,6 +328,38 @@ describe('renderVideoCredit (hero media credit line)', () => {
   })
 })
 
+describe('renderHeroCaption (the caption UNDER a hero frame)', () => {
+  const sample = [{ slug: 'lion', title: 'Lion & cub', styles: ['black-grey', 'realism'], placement: 'arm' }]
+
+  it('names the piece and links to its page: "Title · Style · Placement"', () => {
+    expect(renderHeroCaption({ piece: 'lion' }, sample)).toBe(
+      '<p class="media-caption"><a href="/portfolio/lion/">Lion &amp; cub · Black &amp; grey · Arm</a></p>')
+  })
+
+  it('renders nothing when the slot has no `piece` (and no plain caption)', () => {
+    expect(renderHeroCaption({ show: true, kind: 'image' }, sample)).toBe('')
+    expect(renderHeroCaption(undefined, sample)).toBe('')
+  })
+
+  it('throws a clear, actionable error for a slug that is not in pieces.js', () => {
+    expect(() => renderHeroCaption({ piece: 'no-such-piece' }, sample, 'hero'))
+      .toThrow(/media\.js → hero\.piece is "no-such-piece".*pieces\.js/)
+  })
+
+  it('falls back to a plain, escaped line of text (the About studio credit); `piece` wins', () => {
+    expect(renderHeroCaption({ caption: 'Tiny <b>Knives</b>' }, sample))
+      .toBe('<p class="media-caption">Tiny &lt;b&gt;Knives&lt;/b&gt;</p>')
+    expect(renderHeroCaption({ caption: 'x', piece: 'lion' }, sample)).toContain('/portfolio/lion/')
+  })
+
+  it('resolves every `piece` in the real media.js against the real catalogue', () => {
+    for (const [name, slot] of Object.entries(media)) {
+      expect(() => renderHeroCaption(slot, pieces, name)).not.toThrow()
+    }
+    expect(renderHeroCaption(media.hero, pieces)).toContain(`href="/portfolio/${media.hero.piece}/"`)
+  })
+})
+
 describe('renderHeroMedia (the one shared hero component — both pages)', () => {
   it('renders a still as a responsive <picture>, eager on the homepage and lazy on About', () => {
     const slot = { show: true, kind: 'image', img: '/images/tattoos/x', w: 800, h: 1063, alt: 'A "quoted" alt', sizes: '50vw', caption: 'Cap' }
@@ -337,7 +369,7 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
     expect(hero).toContain('width="800" height="1063"')
     expect(hero).toContain('alt="A &quot;quoted&quot; alt"')
     expect(hero).toContain('loading="eager" fetchpriority="high"')
-    expect(hero).toContain('<span class="media-caption">Cap</span>')
+    expect(hero).not.toContain('media-caption') // the caption is rendered under the frame, separately
     expect(hero).not.toContain('<video')
     expect(renderHeroMedia(slot, { variant: 'about' })).toContain('loading="lazy"')
   })
@@ -395,25 +427,14 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
     expect(html).not.toContain('<video')
   })
 
-  it('overlays an optional caption (used by the About hero), omitted when unset', () => {
-    const base = {
-      show: true, kind: 'video', alt: 'Artist at work',
-      sources: [{ src: '/videos/about-hero.mp4', type: 'video/mp4' }],
-    }
-    const withCap = renderHeroMedia({ ...base, caption: 'Tiny Knives · Winchester' }, { variant: 'about' })
-    expect(withCap).toContain('<span class="media-caption">Tiny Knives · Winchester</span>')
-    expect(renderHeroMedia(base, { variant: 'about' })).not.toContain('media-caption')
-  })
-
   it('escapes the slot fields', () => {
     const html = renderHeroMedia({
-      show: true, kind: 'video', alt: '<b>x</b>', poster: 'p"onerror="y', caption: '<i>c</i>',
+      show: true, kind: 'video', alt: '<b>x</b>', poster: 'p"onerror="y',
       sources: [{ src: 'a"b', type: 'video/mp4' }],
     })
     expect(html).not.toContain('<b>x</b>')
     expect(html).toContain('&lt;b&gt;')
     expect(html).toContain('&quot;onerror=')
-    expect(html).toContain('&lt;i&gt;c&lt;/i&gt;') // caption escaped
   })
 
   // The mobile full-screen hero takes a portrait clip; the landscape one becomes
@@ -567,7 +588,7 @@ describe('renderPiecePage', () => {
 
   it('gives the share image a descriptive alt (piece-specific, brand default for placeholders)', () => {
     const withPhoto = renderPiecePage(withImage)
-    const alt = 'Fine line tattoo of foxglove sprig on Arm'
+    const alt = 'Fine line tattoo of foxglove sprig on arm' // placement lower-cased in the sentence
     expect(withPhoto).toContain(`<meta property="og:image:alt" content="${alt}">`)
     expect(withPhoto).toContain(`<meta name="twitter:image:alt" content="${alt}">`)
     // No photo → the brand default alt (matches the og:image fallback).
@@ -582,13 +603,19 @@ describe('renderPiecePage', () => {
     expect(html).toContain('content="https://beansprout.ink/images/tattoos/Koi.webp"') // og:image as-is
   })
 
-  it('shows style + placement tags and the enquiry / back CTAs', () => {
+  it('writes the styles and placement out in words, with the enquiry CTA and the way back', () => {
     const html = renderPiecePage(withImage)
-    expect(html).toContain('>Fine line<')
-    expect(html).toContain('>Dotwork<')
-    expect(html).toContain('>Arm<')
+    expect(html).toContain('<dt>Styles</dt><dd>Fine line and dotwork</dd>')
+    expect(html).toContain('<dt>Placement</dt><dd>Arm</dd>')
+    expect(html).not.toContain('piece-tag')
     expect(html).toContain('href="/enquire/"')
     expect(html).toContain('href="/portfolio/"')
+  })
+
+  it('never shows the date (most are import dates, not the day the piece was made)', () => {
+    const html = renderPiecePage(withImage)
+    expect(html).not.toContain(withImage.date)
+    expect(html).not.toContain('<time')
   })
 
   it('wires the prev/next pager when neighbours are given', () => {
@@ -661,6 +688,8 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
     expect(html).toContain('01 / 02')
     expect(html).toContain('02 / 02')
     expect(html).toContain('data-num="01"')
+    // the numeral sits behind the text block, never the photo
+    expect(html).toContain('<div class="specialism-content" data-num="01">')
   })
 
   it('titles + deep-links each card from its style token (label is the single source of truth)', () => {
@@ -670,13 +699,24 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
     expect(html).toContain('Browse black &amp; grey work')
   })
 
-  it('pulls preview thumbnails from matching pieces, newest first, skipping photoless pieces', () => {
+  it('shows ONE photo per card — the newest matching piece with a photo — above every label', () => {
     const html = renderSpecialisms(sample, [{ style: 'fine-line' }])
-    // newest fine-line piece appears before the older one…
-    expect(html.indexOf('/portfolio/newest-fl/')).toBeLessThan(html.indexOf('/portfolio/older-fl/'))
-    // …and the img-less piece is never previewed (no broken thumbnail)
-    expect(html).not.toContain('/portfolio/no-photo/')
+    expect(html.match(/<img /g)).toHaveLength(1)
+    expect(html).toContain('<a class="specialism-photo tile-media')
+    expect(html).toContain('href="/portfolio/newest-fl/"')
     expect(html).toContain('src="/images/tattoos/Newest.webp"')
+    // the older piece and the img-less (newer-dated) piece are not shown
+    expect(html).not.toContain('/portfolio/older-fl/')
+    expect(html).not.toContain('/portfolio/no-photo/')
+    // the photo comes first; the index, title and copy all sit under it
+    expect(html.indexOf('specialism-photo')).toBeLessThan(html.indexOf('specialism-num'))
+    expect(html.indexOf('specialism-photo')).toBeLessThan(html.indexOf('specialism-title'))
+  })
+
+  it('renders a card with no photo when its style has no photographed piece left', () => {
+    const html = renderSpecialisms(sample, [{ style: 'script', body: 'b' }])
+    expect(html).toContain('class="specialism-card"')
+    expect(html).not.toContain('<img')
   })
 
   it('escapes author copy in the body to prevent markup injection', () => {
@@ -709,13 +749,14 @@ describe('renderSpecialisms (homepage "What I do" cards)', () => {
     expect(html).toContain('>Also<')
   })
 
-  it('piecesForStyle caps the selection (default three previews per card)', () => {
-    expect(piecesForStyle(pieces, 'fine-line').length).toBeLessThanOrEqual(3)
+  it('piecesForStyle caps the selection (default one photo per card)', () => {
+    expect(piecesForStyle(pieces, 'fine-line')).toHaveLength(1)
+    expect(piecesForStyle(pieces, 'fine-line', 3).length).toBeLessThanOrEqual(3)
     expect(piecesForStyle(pieces, 'fine-line').every(p => p.img && p.styles.includes('fine-line'))).toBe(true)
   })
 
   it('piecesForStyle skips slugs in the exclude set', () => {
-    const all = piecesForStyle(sample, 'fine-line')
+    const all = piecesForStyle(sample, 'fine-line', 3)
     const exclude = new Set([all[0].slug])
     expect(piecesForStyle(sample, 'fine-line', 3, exclude).map(p => p.slug)).not.toContain(all[0].slug)
   })

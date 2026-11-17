@@ -44,26 +44,15 @@
 .portrait-wrap .media-clip {
   display: block;
   width: 100%;
+  height: auto; /* without this a still's height="" attribute overrides the 4:5 frame */
   aspect-ratio: 4 / 5;
   object-fit: cover;
   object-position: center;
   border-radius: var(--radius);
   background: var(--bg-alt);
 }
-/* Optional caption overlaid on a live clip (shared class — both heroes can use
-   it; the homepage hero uses its own .hero-media-tag instead). */
-.media-caption {
-  position: absolute;
-  left: 20px;
-  bottom: 20px;
-  z-index: 1;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(var(--cream-rgb), 0.85);
-  text-shadow: 0 1px 6px rgba(var(--black-rgb), 0.45);
-}
+/* The caption under the frame (.media-caption) is the shared rule in
+   components/hero.css — it sits below the photo, never over it. */
 
 .intro-text {}
 

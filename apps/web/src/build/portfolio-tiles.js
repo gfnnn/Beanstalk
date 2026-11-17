@@ -23,7 +23,7 @@ export const GLYPHS = {
   branch:   '<path d="M30 80C35 50 50 30 70 25C60 45 55 65 50 85"/>',
 }
 
-// Display labels for the tile overlay + alt text live in src/data/taxonomy.js
+// Display labels for the tile caption + alt text live in src/data/taxonomy.js
 // (the single source the data tests and the Dropbox filename parser also read);
 // re-exported here so renderers and tests keep one import site. If the artist
 // renames a category, update the chip label in portfolio/index.html and the
@@ -34,18 +34,25 @@ import { STYLE_LABELS, PLACEMENT_LABELS } from '../data/taxonomy.js'
 export const styleLabel = t => STYLE_LABELS[t] || t
 export const placeLabel = t => PLACEMENT_LABELS[t] || t
 
-// Alt text formula (kept consistent for SEO): "<style> tattoo of <subject> on <placement>"
+// Alt text formula (kept consistent for SEO): "<style> tattoo of <subject> on <placement>".
+// The placement reads as part of the sentence, so it is lower-cased ("… on leg").
 export const altText = p =>
-  `${styleLabel(p.styles[0])} tattoo of ${p.subject} on ${placeLabel(p.placement)}`
+  `${styleLabel(p.styles[0])} tattoo of ${p.subject} on ${placeLabel(p.placement).toLowerCase()}`
+
+// The one-line caption under a photo, shared by every surface that captions a
+// piece (grid tiles, specialism cards, the hero): "<lead style> · <placement>".
+export const captionSub = p => `${styleLabel(p.styles[0])} · ${placeLabel(p.placement)}`
 
 // Real-photo markup — responsive <picture> with AVIF/WebP + JPEG fallback.
 // `eager` is passed for the first row so the LCP image isn't lazy-loaded.
 // `data-full` points the lightbox at the largest tier — without it the lightbox
 // would upscale whatever small srcset candidate the grid happened to load.
-function photo(p, eager) {
+// `sizes` defaults to the portfolio grid's columns; the specialism cards pass
+// their own (exported so there is one <picture> builder, not a copy per surface).
+const GRID_SIZES = '(min-width:1200px) 23vw, (min-width:900px) 31vw, 47vw'
+export function photo(p, eager, sizes = GRID_SIZES) {
   // esc() like the src/data-full below — attribute context, even for repo paths.
   const srcset = ext => `${esc(p.img)}-400.${ext} 400w, ${esc(p.img)}-800.${ext} 800w, ${esc(p.img)}-1200.${ext} 1200w`
-  const sizes  = '(min-width:1200px) 23vw, (min-width:900px) 31vw, 47vw'
   const loading = eager ? 'eager" fetchpriority="high' : 'lazy'
   return `<picture>
         <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
@@ -61,7 +68,7 @@ function photo(p, eager) {
 // not masters to derive 400/800/1200 tiers from. Still ships `width`/`height`
 // so the aspect-ratio box is reserved (no layout shift), and the lightbox reads
 // the same <img> as the responsive path.
-function singlePhoto(p, eager) {
+export function singlePhoto(p, eager) {
   const loading = eager ? 'eager" fetchpriority="high' : 'lazy'
   return `<img src="${esc(p.img)}" alt="${esc(altText(p))}"
              width="${p.w}" height="${p.h}" loading="${loading}" decoding="async">`
@@ -83,16 +90,21 @@ function placeholder(p) {
 // stays in lockstep with the build-time order. Exported for the data-contract test.
 export const dateKey = p => Number(String(p.date).replace(/-/g, ''))
 
+// The photo sits in `.tile-media` (which owns the 3:4 crop, the radius and the
+// tone swatch behind a loading image); the caption is a sibling UNDER it, so no
+// text is ever written over the work. `.tile-title` / `.tile-sub` are also what
+// the lightbox reads for its own caption — keep the class names.
 function tile(p, eager) {
   const dataStyle = p.styles.join(' ')          // space-separated → multi-style filter
-  const sub = `${styleLabel(p.styles[0])} · ${placeLabel(p.placement)}`
   const media = p.img ? (HAS_EXT.test(p.img) ? singlePhoto(p, eager) : photo(p, eager)) : placeholder(p)
-  return `    <a href="/portfolio/${esc(p.slug)}/" class="masonry-tile ${p.tone}"
+  return `    <a href="/portfolio/${esc(p.slug)}/" class="masonry-tile"
        data-style="${esc(dataStyle)}" data-placement="${esc(p.placement)}" data-order="${dateKey(p)}">
+      <div class="tile-media ${p.tone}">
       ${media}
-      <div class="tile-overlay">
+      </div>
+      <div class="tile-caption">
         <p class="tile-title">${esc(p.title)}</p>
-        <p class="tile-sub">${esc(sub)}</p>
+        <p class="tile-sub">${esc(captionSub(p))}</p>
       </div>
     </a>`
 }

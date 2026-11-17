@@ -1,6 +1,8 @@
 /* ── Portfolio piece detail page (/portfolio/<slug>/) ───────────────────────
-   Rendered from pieces.js by src/build/piece-page.js. Image left, details right
-   on desktop; stacks on mobile. Reuses global tone classes for the placeholder. */
+   Rendered from pieces.js by src/build/piece-page.js. Photo left (about 60% of
+   the layout), details right on desktop; stacks on mobile. The photo is never
+   cropped and never taller than the screen. Reuses global tone classes for the
+   placeholder. */
 .piece {
   padding: clamp(24px, 4vw, 48px) var(--pad-x) clamp(56px, 8vw, 96px);
   max-width: var(--max-w, 1200px);
@@ -24,19 +26,30 @@
   gap: clamp(28px, 4vw, 56px);
 }
 
-/* Media */
-.piece-media picture,
+/* Media — the whole photo, uncropped, capped to the screen height (so on a short
+   screen it is narrower than its column rather than running past the fold). */
+.piece-media {
+  display: flex;
+  justify-content: center;
+}
+.piece-media picture { display: contents; }
 .piece-media img {
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: auto;
+  max-height: max(360px, calc(100vh - var(--nav-h) - var(--space-6)));
+  max-height: max(360px, calc(100svh - var(--nav-h) - var(--space-6)));
   border-radius: var(--radius);
 }
 .piece-media-ph {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   aspect-ratio: 4 / 5;
+  max-height: max(360px, calc(100vh - var(--nav-h) - var(--space-6)));
+  max-height: max(360px, calc(100svh - var(--nav-h) - var(--space-6)));
   border-radius: var(--radius);
 }
 .piece-media-ph svg {
@@ -55,22 +68,29 @@
   color: var(--ink);
   margin: 6px 0 var(--space-4);
 }
-.piece-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: 22px;
+/* Style + placement, written out in words: a mono label over a serif value. */
+.piece-facts {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
 }
-.piece-tag {
+.piece-fact dt {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  background: var(--moss-bg);
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  padding: 5px var(--space-3);
+  margin-bottom: var(--space-1);
+}
+.piece-fact dd {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(18px, 2vw, 21px);
+  line-height: 1.3;
+  color: var(--ink);
 }
 .piece-actions {
   display: flex;
@@ -112,9 +132,16 @@
 /* ── Desktop two-column ──────────────────────────────────────────────────── */
 @media (min-width: 900px) {
   .piece-layout {
-    grid-template-columns: 1.25fr 1fr;
-    gap: clamp(48px, 6vw, 80px);
+    grid-template-columns: 3fr 2fr; /* photo column = 60% */
+    gap: clamp(40px, 5vw, 64px);
     align-items: start;
+  }
+  /* Also clear the page padding + breadcrumb above the photo (~128px), so the
+     whole photo sits inside the first screen. */
+  .piece-media img,
+  .piece-media-ph {
+    max-height: max(360px, calc(100vh - var(--nav-h) - 128px));
+    max-height: max(360px, calc(100svh - var(--nav-h) - 128px));
   }
   .piece-detail { position: sticky; top: calc(var(--nav-h) + 32px); padding-top: var(--space-2); }
 }

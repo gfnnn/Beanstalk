@@ -18,39 +18,6 @@ export function initNav() {
     })
   }, { passive: true })
 
-  // ── Homepage: transparent nav over the full-screen mobile hero ─────────────
-  // Keep the nav transparent (cream logo/burger — nav.css) while the video still
-  // sits behind it, then flip it solid once the video is scrolled past. The
-  // `.scrolled` 60px toggle is too eager (the video is a full screen tall), so
-  // this watches the intro overlay (the video's height) instead. Scoped to
-  // .page-home + mobile; a no-op on every other page/viewport.
-  const overTarget = document.querySelector('.hero-intro') || document.querySelector('.hero')
-  if (overTarget && document.body.classList.contains('page-home') && 'IntersectionObserver' in window) {
-    const desktop = window.matchMedia('(min-width: 900px)')
-    let overObs = null
-    const connectOver = () => {
-      if (desktop.matches) {
-        overObs?.disconnect()
-        overObs = null
-        nav.classList.remove('over-hero')
-        return
-      }
-      if (overObs) return
-      nav.classList.add('over-hero') // transparent from the first paint
-      // Offset the trigger by the nav's own height — read from the --nav-h token
-      // (the nav is `height: var(--nav-h)`), the same source sticky.js uses, rather
-      // than re-measuring offsetHeight with a magic-number fallback.
-      const navH = getComputedStyle(document.documentElement)
-        .getPropertyValue('--nav-h').trim() || '65px'
-      overObs = new IntersectionObserver(([e]) => {
-        nav.classList.toggle('over-hero', e.isIntersecting)
-      }, { rootMargin: `-${navH} 0px 0px 0px`, threshold: 0 })
-      overObs.observe(overTarget)
-    }
-    connectOver()
-    desktop.addEventListener?.('change', connectOver)
-  }
-
   // ── Active link ─────────────────────────────────────────
   // The mobile drawer is a SIBLING of #main-nav, not a descendant, so a query
   // scoped to `nav` would never reach its links — that's why the current-page
