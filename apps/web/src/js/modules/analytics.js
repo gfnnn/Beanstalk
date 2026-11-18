@@ -13,12 +13,21 @@
 // The opt-out check runs BEFORE dataLayer exists or the script is injected, so an
 // opted-out visitor makes zero requests to Google and gets no _ga cookies.
 //
+// WHEN the script loads: not at init. gtag.js is a large third-party script
+// that would otherwise download and run while the page is still arriving, so its
+// injection waits until the page has been revealed and has finished loading (see
+// afterReveal). The dataLayer and the gtag() stub exist from init, so an event
+// tracked in that window queues and is sent once the script arrives. The cost is
+// that a visitor who leaves before the script loads is not counted
+// (docs/ANALYTICS.md → Load timing).
+//
 // Lawful basis + what's collected: docs/ANALYTICS.md. Hard rule: no PII and no
 // form values ever leave the browser. That's enforced here, not trusted to call
 // sites: only the events in EVENTS are sent, and only with their listed param
 // values. Anything else is dropped.
 
 import { analytics as CONFIG } from '../../data/analytics.js'
+import { pageReady } from './loader.js'
 
 export const OPT_OUT_KEY = 'beansprout_analytics_optout'
 // Owner flag: set per browser with ?owner=1, cleared with ?owner=0. While set,
@@ -41,8 +50,36 @@ const EVENTS = {
   sign_up: { method: ['newsletter'] },
 }
 
+// How long after the reveal the script loads anyway if `load` hasn't fired (a page
+// with a slow image must not hold analytics back indefinitely), and how long the
+// browser may then take to find an idle moment.
+const LOAD_CAP_MS = 4000
+const IDLE_TIMEOUT_MS = 2000
+
 let activeId = '' // the ID gtag is live for on this page, or '' (no-op)
 let scriptLoaded = false
+
+// Run `fn` once the page is out of its critical window: revealed (pageReady, the
+// moment the preloader lifts), then loaded (or LOAD_CAP_MS later, whichever comes
+// first), then at the next idle moment. Safari has no requestIdleCallback, so it
+// gets a plain timeout.
+function afterReveal(fn) {
+  const idle = () => {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS })
+    } else {
+      setTimeout(fn, 1)
+    }
+  }
+  pageReady.then(() => {
+    if (document.readyState === 'complete') { idle(); return }
+    let fired = false
+    const once = () => { if (!fired) { fired = true; idle() } }
+    window.addEventListener('load', once, { once: true })
+    setTimeout(once, LOAD_CAP_MS)
+  })
+}
+let schedule = afterReveal
 
 /** The Measurement ID for a hostname, or '' when none applies (→ no script). */
 export function measurementIdFor(hostname, config = CONFIG) {
@@ -164,10 +201,16 @@ function loadGtag(id) {
     allow_ad_personalization_signals: false,
     cookie_expires: COOKIE_EXPIRES_S,
   })
-  const s = document.createElement('script')
-  s.async = true
-  s.src = `${GTAG_SRC}?id=${encodeURIComponent(id)}`
-  document.head.appendChild(s)
+  schedule(() => {
+    // Re-check at injection time: the visitor may have opted out (here or in
+    // another tab) while the script was waiting. Clearing scriptLoaded lets a
+    // later opt-in queue it again.
+    if (activeId !== id || isOptedOut() || isOwner()) { scriptLoaded = false; return }
+    const s = document.createElement('script')
+    s.async = true
+    s.src = `${GTAG_SRC}?id=${encodeURIComponent(id)}`
+    document.head.appendChild(s)
+  })
 }
 
 function stopTracking(id) {
@@ -280,8 +323,11 @@ export function initAnalytics({ hostname = location.hostname } = {}) {
   window.addEventListener('pageshow', e => { if (e.persisted) recheck() })
 }
 
-// Test-only: reset module state between cases.
-export function _resetForTests() {
+// Test-only: reset module state between cases. Pass `{ defer }` to replace the
+// script scheduler (e.g. `fn => fn()` to inject at once); `{ defer: null }`
+// restores the real one. Omitting it leaves the scheduler as it is.
+export function _resetForTests(opts) {
   activeId = ''
   scriptLoaded = false
+  if (opts && 'defer' in opts) schedule = opts.defer || afterReveal
 }

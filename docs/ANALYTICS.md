@@ -22,6 +22,17 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   or unreadable storage all mean gtag is never injected and no `dataLayer` exists: zero Google
   requests. Opting out mid-visit sets `window['ga-disable-<ID>']`, stops events and expires the
   `_ga` cookies; the choice persists (localStorage) and can be reversed.
+- **Load timing: after the page, not with it.** The `dataLayer` and the `gtag()` stub are set
+  up at init, but the `gtag.js` request itself waits until the page has been revealed (the
+  preloader lifting), then for `load` (or 4 s, whichever is first), then for an idle moment.
+  This keeps a large third-party script out of the window where the page is arriving
+  (measured on production: about 220–240 ms of main-thread time per page). Events tracked
+  while it waits are queued and sent when it arrives. **The cost:** a visitor who leaves
+  before the script loads is never counted, so very short bounces on slow connections go
+  missing (roughly 1–3 s more of that window than before on slow 4G; under 1 s on a fast
+  connection). Pageview counts from before and after this change aren't strictly
+  comparable. The opt-out is re-checked at the moment of injection, so opting out during the
+  wait means the script is never requested.
 - **gtag config is a no-op; GA4 admin owns these settings.** The code still passes
   `allow_google_signals: false`, `allow_ad_personalization_signals: false` and
   `cookie_expires` ≈ 13 months, but the Google tag's *Ignore duplicate instances of on-page
