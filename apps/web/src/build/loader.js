@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Build-time: the full-page preloader (overlay + its inline-critical CSS)
 // ─────────────────────────────────────────────────────────────────────────────
-// Why this exists: both the Google-Fonts stylesheet and the bundled main.css are
-// render-blocking, and the fonts ship `display=swap`. On a slow connection (the
+// Why this exists: the bundled main.css is render-blocking, and the (self-hosted)
+// fonts are `font-display: swap`. On a slow connection (the
 // reported iPad case) that means a blank hold, then content paints in fallback
 // fonts and visibly reflows when Fraunces/Karla swap in — and in the Vite dev
 // server, where CSS is injected by JS, it's a full flash of unstyled content. The

@@ -131,7 +131,8 @@ page's `<head>`, and `piece-page.js` takes the same string for the per-piece pag
 (which bypass the HTML transform). `connect-src` is pinned to the Worker origin the
 build points the forms at — derived from the `VITE_*_FN_URL` vars, falling back to the
 `config.js` default. The allowances map 1:1 to what the site loads (inline palette
-style + `style=""` attrs → `style-src 'unsafe-inline'`; Google Fonts; `blob:` image
+style + `style=""` attrs → `style-src 'unsafe-inline'`; self-hosted fonts (`public/fonts/` + `src/styles/fonts.css`) →
+`font-src 'self'`; `blob:` image
 previews; the `/visit/` Google-Maps iframe; GA4's documented host set for gtag.js and
 its collect hits, nothing wider). **Build/preview only** — a strict CSP
 breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**

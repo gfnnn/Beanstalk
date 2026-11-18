@@ -43,10 +43,12 @@ export function workerConnectOrigins(env = (typeof process !== 'undefined' ? pro
 //   script-src 'self' <gtag>        — the bundled main-*.js (gsap/lenis are
 //                                     npm deps, so they ship in it) + gtag.js. The JSON-LD
 //                                     blocks are non-executable data, exempt.
-//   style-src … 'unsafe-inline' …   — the injected <style id="palette"> block and
-//                                     a few inline style="" attributes need inline;
-//                                     fonts.googleapis.com serves the font CSS.
-//   font-src … fonts.gstatic.com    — the Google Fonts files (until self-hosted, P3).
+//   style-src 'self' 'unsafe-inline' — the injected <style id="palette"> block and
+//                                     a few inline style="" attributes need inline.
+//   font-src 'self'                 — the fonts are self-hosted (public/fonts/,
+//                                     src/styles/fonts.css), so no font origin is
+//                                     allowed beyond the site itself. Stated
+//                                     explicitly rather than left to default-src.
 //   img-src 'self' data: blob:      — local images; blob: is the enquiry image
 //                                     preview (URL.createObjectURL).
 //   connect-src 'self' <worker>     — the form/flash-status fetch() targets.
@@ -72,8 +74,8 @@ export function cspContent(connectOrigins = workerConnectOrigins()) {
     "base-uri 'self'",
     "object-src 'none'",
     `script-src 'self' ${GA_SCRIPT_ORIGIN}`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     `img-src 'self' data: blob: ${GA_IMG_ORIGINS.join(' ')}`,
     `connect-src ${["'self'", ...connectOrigins, ...GA_CONNECT_ORIGINS].join(' ')}`,
     'frame-src https://www.google.com https://maps.google.com',

@@ -41,11 +41,15 @@ describe('cspContent', () => {
   })
 
   it('allows the resources the site actually loads', () => {
-    expect(csp).toContain('https://fonts.googleapis.com') // font CSS (style-src)
-    expect(csp).toContain('https://fonts.gstatic.com')    // font files (font-src)
+    expect(csp).toContain("font-src 'self';")              // self-hosted fonts only
     expect(csp).toContain('blob:')                         // enquiry image preview
     expect(csp).toContain('https://maps.google.com')       // /visit/ embed (frame-src)
-    expect(csp).toContain("style-src 'self' 'unsafe-inline'") // palette + inline style attrs
+    expect(csp).toContain("style-src 'self' 'unsafe-inline';") // palette + inline style attrs, nothing else
+  })
+
+  it('allows no Google Fonts origin (the fonts are self-hosted)', () => {
+    expect(csp).not.toContain('fonts.googleapis.com')
+    expect(csp).not.toContain('fonts.gstatic.com')
   })
 })
 

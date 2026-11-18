@@ -140,10 +140,11 @@ describe('transformIndexHtml pipeline', () => {
     expect(out).toContain('http-equiv="Content-Security-Policy"')
     expect(out).toContain("default-src 'self'")
     expect(out).toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
-    // the policy must pin the Worker connect-src and the Google Fonts/Maps origins
+    // the policy must pin the Worker connect-src and keep fonts same-origin
     expect(out).toContain('connect-src')
     expect(out).toContain('workers.dev')
-    expect(out).toContain('https://fonts.gstatic.com')
+    expect(out).toContain("font-src 'self';")
+    expect(out).not.toContain('fonts.gstatic.com')
   })
 
   it('does not double-inject the security meta when the head already carries it', () => {
