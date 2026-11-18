@@ -26,8 +26,9 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   up at init, but the `gtag.js` request itself waits until the page has been revealed (the
   preloader lifting), then for `load` (or 4 s, whichever is first), then for an idle moment.
   This keeps a large third-party script out of the window where the page is arriving
-  (measured on production: about 220–240 ms of main-thread time per page). Events tracked
-  while it waits are queued and sent when it arrives. **The cost:** a visitor who leaves
+  (measured on production: about 220–240 ms of main-thread time per page). An event tracked
+  while it waits is queued, and brings the script forward at once, so a lead fired just
+  before a redirect isn't left behind an idle moment. **The cost:** a visitor who leaves
   before the script loads is never counted, so very short bounces on slow connections go
   missing (roughly 1–3 s more of that window than before on slow 4G; under 1 s on a fast
   connection). Pageview counts from before and after this change aren't strictly

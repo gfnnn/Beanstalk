@@ -428,11 +428,21 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     expect(gtagScript().src).toBe(`https://www.googletagmanager.com/gtag/js?id=${ID}`)
   })
 
-  it('queues an event tracked before the script has loaded', async () => {
+  it('an event tracked during the wait is queued and brings the script forward at once', async () => {
     initAnalytics({ hostname: 'staging.example' })
-    track('sign_up', { method: 'newsletter' })
     expect(gtagScript()).toBeNull()
+    track('sign_up', { method: 'newsletter' })
     expect(events()).toEqual([['event', 'sign_up', { method: 'newsletter' }]])
+    expect(gtagScript()).not.toBeNull() // no waiting on load/idle: the caller may be about to navigate
+    await flush()
+    vi.advanceTimersByTime(5000)
+    expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1) // the deferred run is a no-op
+  })
+
+  it('a dropped event does not bring the script forward', async () => {
+    initAnalytics({ hostname: 'staging.example' })
+    track('not_allowed', { anything: 'x' })
+    expect(gtagScript()).toBeNull()
   })
 
   it('never injects the script if the visitor opts out while it is waiting', async () => {
@@ -456,5 +466,22 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     await flush()
     vi.advanceTimersByTime(5000)
     expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1)
+  })
+
+  it('opting out, letting the wait run out, then opting back in configures gtag only once', async () => {
+    document.body.innerHTML = `<div data-analytics-optout hidden>
+      <p data-analytics-status></p><button data-analytics-toggle></button></div>`
+    initAnalytics({ hostname: 'staging.example' })
+    const btn = document.querySelector('[data-analytics-toggle]')
+    btn.click() // off
+    await flush()
+    vi.advanceTimersByTime(5000) // the deferred run finds the opt-out and stands down
+    expect(gtagScript()).toBeNull()
+    btn.click() // back on: queues the script again
+    await flush()
+    vi.advanceTimersByTime(5000)
+    expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1)
+    expect(pushed().filter(a => a[0] === 'config')).toHaveLength(1)
+    expect(pushed().filter(a => a[0] === 'js')).toHaveLength(1)
   })
 })
