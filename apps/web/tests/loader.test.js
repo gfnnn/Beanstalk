@@ -4,8 +4,11 @@
 //   · src/build/loader.js     — injects the overlay + its critical CSS at build
 //   · src/js/modules/loader.js — dismisses it once the page is ready
 // The overlay covers every page from the first paint so the slow CSS/font arrival
-// never shows as unstyled "broken" content; the module fades it out on
-// document.fonts.ready (with a hard ceiling so it can never trap the page).
+// never shows as unstyled "broken" content; the module fades it out once the key
+// fonts have loaded (with a hard ceiling so it can never trap the page). jsdom
+// has no FontFaceSet, so most cases here run the "no fonts API" path, which is
+// ready at once; the font wait itself is in 'which fonts the cold cover waits
+// for' below, and in a real browser in e2e/loader.spec.js.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { injectPageLoader, LOADER_STYLE, LOADER_MARKUP } from '../src/build/loader.js'
 import { initPageLoader, QUICK_LIFT_MS, MIN_SHOW_MS, KEY_FONTS } from '../src/js/modules/loader.js'
@@ -39,7 +42,7 @@ describe('injectPageLoader (build-time)', () => {
   })
 
   it('shows the preloader mark complete — never a reveal-from-invisible (mobile regression guard)', () => {
-    // The cover dismisses on fonts.ready, near-instant on a mobile/cached load, so
+    // The cover dismisses once the key fonts are ready, near-instant on a mobile/cached load, so
     // the mark must NOT animate from hidden — a clip-path/opacity reveal here left
     // it unseen on quick covers. It only breathes; the ink-rise draw lives on the
     // nav + confirmation marks (atmosphere.css), past the dismiss race.
@@ -103,7 +106,7 @@ describe('initPageLoader (runtime dismissal)', () => {
     vi.useFakeTimers()
     mountOverlay()
     initPageLoader() // cold (sessionStorage cleared) → holds the cover, then fades
-    // let the fonts.ready microtask settle, then run the removal-failsafe timer
+    // let the font-wait microtask settle, then run the removal-failsafe timer
     await vi.runAllTimersAsync()
     expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     expect(document.getElementById('page-loader')).toBeNull()
@@ -114,7 +117,7 @@ describe('initPageLoader (runtime dismissal)', () => {
     setReducedMotion(false)
     mountOverlay()
     initPageLoader()
-    await flush() // fonts.ready (Promise.resolve) → dismiss() runs, fade listener attached
+    await flush() // the font wait (ready at once here) → dismiss() runs, fade listener attached
     const loader = document.getElementById('page-loader')
     expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     expect(loader).not.toBeNull() // still present, mid-fade
@@ -230,7 +233,7 @@ describe('initPageLoader (runtime dismissal)', () => {
       coverVisibleFor(QUICK_LIFT_MS / 4) // a sub-perceptual glimpse
       mountOverlay()
       initPageLoader()
-      await flush() // fonts.ready → dismiss decides → no hold
+      await flush() // font wait → dismiss decides → no hold
       expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     })
 
@@ -242,7 +245,7 @@ describe('initPageLoader (runtime dismissal)', () => {
       coverVisibleFor(600) // past QUICK, 200ms short of MIN_SHOW → must hold 200ms
       mountOverlay()
       initPageLoader()
-      await vi.advanceTimersByTimeAsync(0) // fonts.ready resolves → dismiss decides
+      await vi.advanceTimersByTimeAsync(0) // the font wait resolves → dismiss decides
       // Committed: the page must NOT be revealed mid-performance…
       expect(document.documentElement.classList.contains('page-loaded')).toBe(false)
       // …the cover completes MIN_SHOW, then the fade (and the entrance) begin.
@@ -349,7 +352,7 @@ describe('initPageLoader (runtime dismissal)', () => {
       try {
         mountOverlay()
         initPageLoader()
-        await vi.advanceTimersByTimeAsync(0)  // fonts.ready → dismiss() arms the hold
+        await vi.advanceTimersByTimeAsync(0)  // font wait → dismiss() arms the hold
         pagereveal({ vt: true })              // VT removal wins the race
         expect(document.getElementById('page-loader')).toBeNull()
         await expect(vi.runAllTimersAsync()).resolves.not.toThrow() // held fadeOut + 3s ceiling no-op

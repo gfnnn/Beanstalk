@@ -83,7 +83,9 @@ The whole reveal hangs off one promise and one class.
      View Transition is doing the cross-fade, so the cover would only get in the way.
    - **Cold** load: the cover holds until the **key fonts** have loaded — Karla,
      Fraunces roman and JetBrains Mono (`KEY_FONTS` in `modules/loader.js`); it does
-     not wait for Fraunces italic, which swaps in on the few accent words it sets (the font swap is
+     not wait for Fraunces italic, so on a slow first visit the italic part of a
+     heading (on the homepage, the whole second line of the H1) shows in the
+     fallback serif and then swaps, usually mid blur-fade (the font swap is
      the real cause of the reflow), then lifts **all-or-nothing**: a cover that's
      been visible ≤0.4s lifts immediately (reads as "no preloader ran"), while one
      seen any longer commits — holding to a 0.8s minimum total so the cover reads

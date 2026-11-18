@@ -7,6 +7,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { injectFontPreloads, FONT_PRELOADS, PRELOADED_FONTS } from '../src/build/fonts.js'
+import { KEY_FONTS } from '../src/js/modules/loader.js'
 import { renderPiecePage } from '../src/build/piece-page.js'
 import { pieces } from '../src/data/pieces.js'
 
@@ -63,6 +64,16 @@ describe('font preloads (src/build/fonts.js)', () => {
 
   it('is carried by the per-piece pages, which bypass the HTML transform', () => {
     expect(renderPiecePage(pieces[0])).toContain(FONT_PRELOADS)
+  })
+})
+
+describe('the fonts the preloader waits for (KEY_FONTS in modules/loader.js)', () => {
+  it('each names a family that has a roman @font-face here', () => {
+    for (const font of KEY_FONTS) {
+      const family = font.replace(/^(\d+ )?1em /, '').replace(/"/g, '')
+      expect(css, `${font} has no @font-face`).toMatch(
+        new RegExp(`font-family: '${family}';\\s*font-style: normal;`))
+    }
   })
 })
 

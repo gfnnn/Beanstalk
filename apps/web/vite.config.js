@@ -211,7 +211,7 @@ const pageLoader = {
 
 // Preload the two self-hosted fonts behind most first-view text (dev AND build),
 // so they download alongside main.css instead of after it — the preloader holds
-// the page until the fonts are ready. The per-piece pages carry their own copy
+// the page until its key fonts are ready. The per-piece pages carry their own copy
 // via piece-page.js; the insert is idempotent. See src/build/fonts.js.
 const fontPreload = {
   name: 'beansprout-font-preload',

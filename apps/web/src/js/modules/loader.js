@@ -1,8 +1,8 @@
 // ── Page preloader dismissal ──────────────────────────────────────────────────
 // The overlay (#page-loader) and its critical CSS are injected at build time by
 // src/build/loader.js. It exists for ONE job: the COLD first load, where the
-// render-blocking CSS + `display=swap` fonts arrive slowly (the reported iPad
-// flash). It covers from first paint, then lifts once the page is genuinely ready
+// render-blocking CSS + `font-display: swap` fonts arrive slowly (the reported
+// iPad flash). It covers from first paint, then lifts once the page is genuinely ready
 // (its KEY fonts have loaded — the font swap is the main cause of the visible
 // reflow; see KEY_FONTS below for which, and why not all of them), with a hard
 // ceiling so a hung font/network never traps the visitor and a pure-CSS failsafe
@@ -68,11 +68,18 @@ export const MIN_SHOW_MS = 800
 // The faces the cover waits for: body copy (Karla), headings (Fraunces roman) and
 // the eyebrow/label face (JetBrains Mono) — everything the first view is set in
 // bar one. The one it does NOT wait for is Fraunces italic: it is the largest
-// file, it sets only the odd accent word, and on a slow connection it was holding
-// the whole page back for those few words. Those words show in the fallback
-// serif's italic until it arrives and then swap, usually while the heading is
-// still blur-fading in. Each entry is a CSS font shorthand for
-// document.fonts.load(); the faces themselves are declared in styles/fonts.css.
+// file and on a slow connection it was holding the whole page back. It is not
+// negligible on screen, though: the emphasised part of a heading is italic
+// (`h1 em`, `.page-title em`, `.section-title em`), which on the homepage is the
+// whole second line of the H1. On a slow first visit that text shows in the
+// fallback serif's italic and then swaps, usually while the heading is still
+// blur-fading in. If that swap ever reads badly, add the italic back to this list.
+//
+// Each entry is a CSS font shorthand for document.fonts.load(): `[weight] size
+// family`. The size is required by the syntax and otherwise irrelevant. The
+// weight only has to fall inside the face's declared range; Fraunces is asked for
+// at 300 because that is the weight the headings use. Every family here must have
+// an @font-face in styles/fonts.css (tests/fonts.test.js checks it).
 export const KEY_FONTS = ['300 1em Fraunces', '1em Karla', '1em "JetBrains Mono"']
 
 // Resolves when the key faces have loaded (or failed — a failed font must not
