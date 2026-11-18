@@ -5,7 +5,10 @@
    each family, declared exactly as Google's stylesheet declared them (same weight
    ranges, same unicode-range, display: swap), so text renders as it did before.
    Fraunces carries its optical-size axis as well as weight; the browser applies
-   it automatically from the font size.
+   it automatically from the font size. Karla and JetBrains Mono have had the
+   OpenType features nothing here uses (fractions, tabular figures, code
+   ligatures) removed to save bytes — public/fonts/README.txt has the detail, and
+   what to do if a rule ever needs one of those features.
 
    What is NOT here, on purpose:
      · Karla italic — no page sets Karla in italic. If body copy ever gains an
