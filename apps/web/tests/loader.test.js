@@ -193,14 +193,14 @@ describe('initPageLoader (runtime dismissal)', () => {
       // Fake ONLY the timers the hold uses — a blanket useFakeTimers() swaps the
       // performance internals, and the module would no longer see the FCP stub.
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-      coverVisibleFor(1000) // past QUICK, 600ms short of MIN_SHOW → must hold 600ms
+      coverVisibleFor(600) // past QUICK, 200ms short of MIN_SHOW → must hold 200ms
       mountOverlay()
       initPageLoader()
       await vi.advanceTimersByTimeAsync(0) // fonts.ready resolves → dismiss decides
       // Committed: the page must NOT be revealed mid-performance…
       expect(document.documentElement.classList.contains('page-loaded')).toBe(false)
       // …the cover completes MIN_SHOW, then the fade (and the entrance) begin.
-      await vi.advanceTimersByTimeAsync(MIN_SHOW_MS - 1000)
+      await vi.advanceTimersByTimeAsync(MIN_SHOW_MS - 600)
       expect(document.documentElement.classList.contains('page-loaded')).toBe(true)
     })
 

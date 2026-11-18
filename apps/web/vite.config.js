@@ -25,6 +25,7 @@ import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 import { renderFaviconSvg, renderMarkSvg } from './src/build/favicon.js'
 import { renderSecurityMeta } from './src/build/security.js'
 import { injectPageLoader } from './src/build/loader.js'
+import { injectFontPreloads } from './src/build/fonts.js'
 import { injectViewTransition } from './src/build/transition.js'
 
 // Generate grids from their data files (single sources of truth) and inject them
@@ -208,6 +209,18 @@ const pageLoader = {
   },
 }
 
+// Preload the two self-hosted fonts behind most first-view text (dev AND build),
+// so they download alongside main.css instead of after it — the preloader holds
+// the page until the fonts are ready. The per-piece pages carry their own copy
+// via piece-page.js; the insert is idempotent. See src/build/fonts.js.
+const fontPreload = {
+  name: 'beansprout-font-preload',
+  transformIndexHtml: {
+    order: 'post',
+    handler: html => injectFontPreloads(html),
+  },
+}
+
 // Inline the cross-document View Transition opt-in into every page's <head> (dev
 // AND build), so the browser arms the transition from the first parsed bytes
 // rather than after the main.css → atmosphere.css @import waterfall — a late
@@ -315,7 +328,7 @@ const sitemap = {
 
 export default defineConfig({
   root: '.',
-  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, viewTransition, piecePages, sitemap],
+  plugins: [palette, generatedGrids, seoHead, securityHeaders, pageLoader, fontPreload, viewTransition, piecePages, sitemap],
   // The dev server takes its port from PORT when one is handed in (Claude Code's
   // .claude/launch.json `autoPort` assigns a free one per worktree). Strict in that
   // case, so it fails loudly rather than drifting to a port nobody is looking at.

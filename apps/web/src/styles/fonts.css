@@ -17,15 +17,11 @@
        Google never served those for these families either, so they fall back to
        the next font in the stack, as before.
 
-   No <link rel="preload">, on purpose. Measured on throttled slow 4G: preloading
-   Karla + Fraunces makes the fonts ready ~0.3s sooner but delays first paint by
-   ~0.2s (they compete with main.css), and while the preloader holds its cover for
-   a 1.6s minimum (src/js/modules/loader.js) the earlier fonts buy nothing on most
-   pages. Revisit if that hold is ever shortened.
-
-   To add or swap a font: drop the woff2 in public/fonts/, add its @font-face
+   The two faces behind most first-view text (Karla, Fraunces roman) are preloaded
+   from the page head — src/build/fonts.js has the list and the measurement behind
+   it. To add or swap a font: drop the woff2 in public/fonts/, add its @font-face
    here, and keep tests/fonts.test.js passing (it checks every file referenced
-   here exists).
+   here, and every preload, exists).
    ════════════════════════════════════════════════════════════════════════════ */
 
 @font-face {

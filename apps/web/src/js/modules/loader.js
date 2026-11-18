@@ -16,8 +16,8 @@
 //     glimpse is sub-perceptual, and the page entrance starts as the fade begins,
 //     so the visitor never sits longer than that without content or motion.
 //   · COMMIT — seen any longer: the visitor has consciously registered the cover,
-//     so it holds to MIN_SHOW_MS total visible time (a full breathe beat), then
-//     fades. The performance always completes; it never half-plays.
+//     so it holds to MIN_SHOW_MS total visible time, then fades — long enough
+//     that the cover reads as a deliberate beat, not a flicker.
 // Visible time is measured from first-contentful-paint — the cover IS the first
 // contentful paint. Where paint timing is unavailable the clock starts at init,
 // which under-counts and so errs toward holding, never toward the flash. Reduced
@@ -54,10 +54,15 @@ const SESSION_KEY = 'bs-visited'
 
 // The bimodal thresholds (see above). QUICK_LIFT_MS is the perception budget for
 // "no preloader ran" — under it, a lift reads as the page simply arriving;
-// MIN_SHOW_MS is the committed cover's minimum total visible time, sized so the
-// mark plays a full breathe beat (half the 3.2s pl-breathe cycle) before the fade.
+// MIN_SHOW_MS is the committed cover's minimum total visible time: twice the
+// quick-lift budget, so a cover that registered is on screen long enough to read
+// as intended before it fades. It was 1600 (a full half-cycle of the 3.2s
+// pl-breathe); it was halved because, once the fonts were self-hosted, the page
+// was routinely ready well inside 1.6s and the hold itself had become the wait.
+// At 800 the mark eases about a quarter of the way through its breathe (the dim
+// is slight, opacity 1 → ~0.9) and the fade takes over from there.
 export const QUICK_LIFT_MS = 400
-export const MIN_SHOW_MS = 1600
+export const MIN_SHOW_MS = 800
 
 let signalReady
 /** Resolves when the page should be revealed (cover lifting / warm nav / no cover). */

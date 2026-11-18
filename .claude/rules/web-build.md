@@ -18,13 +18,14 @@ in `apps/web/vite.config.js` (the add-a-page rule is in `CLAUDE.md` → *Archite
 All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The eight Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+The nine Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
 work: `palette` (inject colour custom properties + emit the palette-coloured `favicon.svg`
 from the traced brand mark in `src/build/favicon.js`), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
 `<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see
 `docs/MOTION.md`),
-`viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
+`fontPreload` (preload the two self-hosted fonts behind most first-view text —
+`src/build/fonts.js`), `viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
 armed before the `main.css` `@import` waterfall — a late opt-in lets a slow inbound render
 skip the cross-fade; `src/build/transition.js`), `piecePages` (per-piece portfolio pages),
 and `sitemap`. Most run in **both dev and build**
