@@ -9,7 +9,7 @@
 // PER-PIECE FIELDS
 // ────────────────
 //   slug        URL segment → /portfolio/<slug>/         (required, unique)
-//   title       Display name shown in the tile overlay   (COPY)
+//   title       Display name in the caption under the tile (COPY)
 //   subject     What the piece depicts — feeds alt text   (COPY, e.g. "foxglove")
 //   styles      Array of style tokens. A piece can be MORE THAN ONE — it shows
 //               under every matching style chip. Tokens must match the chip

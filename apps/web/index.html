@@ -75,7 +75,7 @@
   }
   </script>
 </head>
-<body class="page-home">
+<body>
 <a class="skip-link" href="#maincontent">Skip to main content</a>
 
 <!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
@@ -154,34 +154,22 @@
 <section class="hero" aria-label="Introduction">
 
   <div class="hero-text">
+    <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
+
+    <h1><!-- homepage:hero-headline --></h1>
+
+    <p class="hero-body"><!-- homepage:hero-body --></p>
+
+    <div class="hero-actions">
+      <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
+      <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
+    </div>
+
     <!--
-      HERO INTRO — on mobile this group OVERLAYS the full-screen video (tagline +
-      headline, bottom-aligned, cream over a scrim). On desktop (≥900px) the
-      wrappers are `display:contents`, so eyebrow + h1 + the detail block below
-      stack in the .hero-text column exactly as before. See components/hero.css.
+      STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
+      src/data/homepage.js → `notices`. Whole block disappears when all are off.
     -->
-    <div class="hero-intro">
-      <p class="hero-eyebrow"><!-- homepage:hero-eyebrow --></p>
-
-      <h1><!-- homepage:hero-headline --></h1>
-    </div>
-
-    <!-- HERO DETAIL — below the fold on mobile (revealed as you scroll past the
-         video); part of the .hero-text column on desktop. -->
-    <div class="hero-detail">
-      <p class="hero-body"><!-- homepage:hero-body --></p>
-
-      <div class="hero-actions">
-        <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
-        <a href="/portfolio/" class="btn btn-outline">View the portfolio</a>
-      </div>
-
-      <!--
-        STUDIO NOTICES — the toggleable bars. Edit / show / hide them in
-        src/data/homepage.js → `notices`. Whole block disappears when all are off.
-      -->
-      <!-- homepage:notices -->
-    </div>
+    <!-- homepage:notices -->
   </div>
 
   <!--
@@ -201,10 +189,16 @@
     — Do NOT show faces, needle puncturing, or bright blood.
        Ink pooling/absorption is fine and intentional.
   -->
+  <!-- On phones the photo fills the first screen under the nav with nothing on
+       it, and the headline follows beneath; from 900px it is the right column,
+       shown whole within the first screen. Nothing is written over the media: the
+       caption (and any video credit) sit UNDER the frame. See components/hero.css. -->
   <div class="hero-media">
-    <!-- Hero media — the process clip. Generated from src/data/media.js → hero
-         (renderer src/build/media.js). Shows the placeholder below until that
-         slot's show:true; then it becomes a muted looping <video> (or GIF). -->
+   <div class="hero-figure">
+    <div class="hero-media-frame">
+    <!-- Hero media. Generated from src/data/media.js → hero (renderer
+         src/build/media.js): a still photo, a muted looping <video> or GIF, or
+         the placeholder while the slot is show:false. -->
     <!-- homepage:hero-media -->
 
     <!--
@@ -299,12 +293,17 @@
       </g>
     </svg>
 
-    <!-- COPY: studio location overlaid on video — src/data/homepage.js → hero.mediaTag -->
-    <span class="hero-media-tag"><!-- homepage:hero-media-tag --></span>
+    </div>
+
+    <!-- Caption under the media: names the piece and links to its page. Generated
+         from src/data/media.js → hero.piece (a slug in pieces.js); no `piece`, no
+         caption. -->
+    <!-- homepage:hero-caption -->
 
     <!-- Video credit (the person who shot the hero video) — off until confirmed.
          Toggle + copy in src/data/homepage.js → videoCredit. -->
     <!-- homepage:video-credit -->
+   </div>
   </div>
 
   <div class="scroll-hint" aria-hidden="true">Scroll</div>
@@ -329,82 +328,83 @@
 
     <!-- Home teaser thumbnails: a hand-picked selection of pieces from
          src/data/pieces.js, all 3:4 portrait responsive tiles so the grid is
-         uniform — keep this selection + captions in step with the data file. -->
-    <a href="/portfolio/monstera-adansonii/" class="tile gradient-sage">
-      <picture>
-        <source type="image/avif" srcset="/images/tattoos/monstera-adansonii-400.avif 400w, /images/tattoos/monstera-adansonii-800.avif 800w, /images/tattoos/monstera-adansonii-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/monstera-adansonii-400.webp 400w, /images/tattoos/monstera-adansonii-800.webp 800w, /images/tattoos/monstera-adansonii-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+         uniform — keep this selection + captions in step with the data file.
+         The caption sits under the photo (.tile-caption), never over it. -->
+    <a href="/portfolio/monstera-adansonii/" class="tile">
+      <div class="tile-media gradient-sage"><picture>
+        <source type="image/avif" srcset="/images/tattoos/monstera-adansonii-400.avif 400w, /images/tattoos/monstera-adansonii-800.avif 800w, /images/tattoos/monstera-adansonii-1200.avif 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
+        <source type="image/webp" srcset="/images/tattoos/monstera-adansonii-400.webp 400w, /images/tattoos/monstera-adansonii-800.webp 800w, /images/tattoos/monstera-adansonii-1200.webp 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
         <img src="/images/tattoos/monstera-adansonii-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
-             alt="Fine line tattoo of a monstera adansonii vine on a forearm">
-      </picture>
-      <div class="tile-overlay">
-        <p class="tile-meta-title">Monstera adansonii</p>
-        <p class="tile-meta-sub">Fine line · Forearm</p>
+             alt="Fine line tattoo of a monstera adansonii vine on an arm">
+      </picture></div>
+      <div class="tile-caption">
+        <p class="tile-title">Monstera adansonii</p>
+        <p class="tile-sub">Fine line · Arm</p>
       </div>
     </a>
 
-    <a href="/portfolio/dragonfly-daisies/" class="tile gradient-moss">
-      <picture>
-        <source type="image/avif" srcset="/images/tattoos/dragonfly-daisies-400.avif 400w, /images/tattoos/dragonfly-daisies-800.avif 800w, /images/tattoos/dragonfly-daisies-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/dragonfly-daisies-400.webp 400w, /images/tattoos/dragonfly-daisies-800.webp 800w, /images/tattoos/dragonfly-daisies-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+    <a href="/portfolio/dragonfly-daisies/" class="tile">
+      <div class="tile-media gradient-moss"><picture>
+        <source type="image/avif" srcset="/images/tattoos/dragonfly-daisies-400.avif 400w, /images/tattoos/dragonfly-daisies-800.avif 800w, /images/tattoos/dragonfly-daisies-1200.avif 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
+        <source type="image/webp" srcset="/images/tattoos/dragonfly-daisies-400.webp 400w, /images/tattoos/dragonfly-daisies-800.webp 800w, /images/tattoos/dragonfly-daisies-1200.webp 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
         <img src="/images/tattoos/dragonfly-daisies-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
-             alt="Fine line tattoo of a dragonfly and daisies on a forearm">
-      </picture>
-      <div class="tile-overlay">
-        <p class="tile-meta-title">Dragonfly &amp; daisies</p>
-        <p class="tile-meta-sub">Fine line · Forearm</p>
+             alt="Fine line tattoo of a dragonfly and daisies on an arm">
+      </picture></div>
+      <div class="tile-caption">
+        <p class="tile-title">Dragonfly &amp; daisies</p>
+        <p class="tile-sub">Fine line · Arm</p>
       </div>
     </a>
 
-    <a href="/portfolio/mouse-and-hare/" class="tile gradient-warm">
-      <picture>
-        <source type="image/avif" srcset="/images/tattoos/mouse-and-hare-400.avif 400w, /images/tattoos/mouse-and-hare-800.avif 800w, /images/tattoos/mouse-and-hare-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/mouse-and-hare-400.webp 400w, /images/tattoos/mouse-and-hare-800.webp 800w, /images/tattoos/mouse-and-hare-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+    <a href="/portfolio/mouse-and-hare/" class="tile">
+      <div class="tile-media gradient-warm"><picture>
+        <source type="image/avif" srcset="/images/tattoos/mouse-and-hare-400.avif 400w, /images/tattoos/mouse-and-hare-800.avif 800w, /images/tattoos/mouse-and-hare-1200.avif 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
+        <source type="image/webp" srcset="/images/tattoos/mouse-and-hare-400.webp 400w, /images/tattoos/mouse-and-hare-800.webp 800w, /images/tattoos/mouse-and-hare-1200.webp 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
         <img src="/images/tattoos/mouse-and-hare-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
              alt="Fine line tattoo of a mouse and hare with floral inlay on a leg">
-      </picture>
-      <div class="tile-overlay">
-        <p class="tile-meta-title">Mouse &amp; hare</p>
-        <p class="tile-meta-sub">Fine line · Leg</p>
+      </picture></div>
+      <div class="tile-caption">
+        <p class="tile-title">Mouse &amp; hare</p>
+        <p class="tile-sub">Fine line · Leg</p>
       </div>
     </a>
 
-    <a href="/portfolio/whale-sharks/" class="tile gradient-cream">
-      <picture>
-        <source type="image/avif" srcset="/images/tattoos/whale-sharks-400.avif 400w, /images/tattoos/whale-sharks-800.avif 800w, /images/tattoos/whale-sharks-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/whale-sharks-400.webp 400w, /images/tattoos/whale-sharks-800.webp 800w, /images/tattoos/whale-sharks-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+    <a href="/portfolio/whale-sharks/" class="tile">
+      <div class="tile-media gradient-cream"><picture>
+        <source type="image/avif" srcset="/images/tattoos/whale-sharks-400.avif 400w, /images/tattoos/whale-sharks-800.avif 800w, /images/tattoos/whale-sharks-1200.avif 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
+        <source type="image/webp" srcset="/images/tattoos/whale-sharks-400.webp 400w, /images/tattoos/whale-sharks-800.webp 800w, /images/tattoos/whale-sharks-1200.webp 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
         <img src="/images/tattoos/whale-sharks-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
              alt="Fine line tattoo of two whale sharks on a leg">
-      </picture>
-      <div class="tile-overlay">
-        <p class="tile-meta-title">Whale sharks</p>
-        <p class="tile-meta-sub">Fine line · Leg</p>
+      </picture></div>
+      <div class="tile-caption">
+        <p class="tile-title">Whale sharks</p>
+        <p class="tile-sub">Fine line · Leg</p>
       </div>
     </a>
 
-    <a href="/portfolio/stargazer-lilies/" class="tile gradient-clay">
-      <picture>
-        <source type="image/avif" srcset="/images/tattoos/stargazer-lilies-400.avif 400w, /images/tattoos/stargazer-lilies-800.avif 800w, /images/tattoos/stargazer-lilies-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/stargazer-lilies-400.webp 400w, /images/tattoos/stargazer-lilies-800.webp 800w, /images/tattoos/stargazer-lilies-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+    <a href="/portfolio/stargazer-lilies/" class="tile">
+      <div class="tile-media gradient-clay"><picture>
+        <source type="image/avif" srcset="/images/tattoos/stargazer-lilies-400.avif 400w, /images/tattoos/stargazer-lilies-800.avif 800w, /images/tattoos/stargazer-lilies-1200.avif 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
+        <source type="image/webp" srcset="/images/tattoos/stargazer-lilies-400.webp 400w, /images/tattoos/stargazer-lilies-800.webp 800w, /images/tattoos/stargazer-lilies-1200.webp 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
         <img src="/images/tattoos/stargazer-lilies-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
              alt="Fine line tattoo of a pair of stargazer lilies on a leg">
-      </picture>
-      <div class="tile-overlay">
-        <p class="tile-meta-title">Lilies</p>
-        <p class="tile-meta-sub">Fine line · Leg</p>
+      </picture></div>
+      <div class="tile-caption">
+        <p class="tile-title">Stargazer lilies</p>
+        <p class="tile-sub">Fine line · Leg</p>
       </div>
     </a>
 
-    <a href="/portfolio/lily-stem/" class="tile gradient-ink">
-      <picture>
-        <source type="image/avif" srcset="/images/tattoos/lily-stem-400.avif 400w, /images/tattoos/lily-stem-800.avif 800w, /images/tattoos/lily-stem-1200.avif 1200w" sizes="(min-width:900px) 32vw, 48vw">
-        <source type="image/webp" srcset="/images/tattoos/lily-stem-400.webp 400w, /images/tattoos/lily-stem-800.webp 800w, /images/tattoos/lily-stem-1200.webp 1200w" sizes="(min-width:900px) 32vw, 48vw">
+    <a href="/portfolio/lily-stem/" class="tile">
+      <div class="tile-media gradient-ink"><picture>
+        <source type="image/avif" srcset="/images/tattoos/lily-stem-400.avif 400w, /images/tattoos/lily-stem-800.avif 800w, /images/tattoos/lily-stem-1200.avif 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
+        <source type="image/webp" srcset="/images/tattoos/lily-stem-400.webp 400w, /images/tattoos/lily-stem-800.webp 800w, /images/tattoos/lily-stem-1200.webp 1200w" sizes="(min-width:900px) 32vw, (min-width:640px) 48vw, 100vw">
         <img src="/images/tattoos/lily-stem-800.jpg" width="800" height="1063" loading="lazy" decoding="async"
              alt="Fine line tattoo of a single lily stem on a leg">
-      </picture>
-      <div class="tile-overlay">
-        <p class="tile-meta-title">Lily</p>
-        <p class="tile-meta-sub">Fine line · Leg</p>
+      </picture></div>
+      <div class="tile-caption">
+        <p class="tile-title">Lily stem</p>
+        <p class="tile-sub">Fine line · Leg</p>
       </div>
     </a>
 
@@ -417,8 +417,8 @@
 <!--
   The three style cards are generated at build time from src/data/pieces.js by the
   generatedGrids plugin (vite.config.js → src/build/specialisms.js). Each card's
-  preview thumbnails are the newest portfolio pieces carrying that style, so they
-  stay in step with the catalogue. Choose the featured styles + author the per-card
+  one photo is the newest portfolio piece carrying that style, so it stays in
+  step with the catalogue; the card's labels all sit under the photo. Choose the featured styles + author the per-card
   copy in src/data/homepage.js → `specialisms` — don't hand-edit the cards here.
 
   COPY still NEEDED: the section heading + supporting sentence below, and each
@@ -565,7 +565,7 @@
 
 
 <!-- Mobile sticky CTA — visible only on small screens after hero exits viewport -->
-<aside class="mobile-cta" id="mobile-cta" aria-label="Start an enquiry" aria-hidden="true">
+<aside class="mobile-cta" id="mobile-cta" aria-label="Start an enquiry" aria-hidden="true" inert>
   <a href="/enquire/" class="btn btn-primary">Start an enquiry →</a>
 </aside>
 

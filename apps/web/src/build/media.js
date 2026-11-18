@@ -9,7 +9,8 @@
 // ONE shared component, used by BOTH heroes. renderHeroMedia() emits identical
 // markup for the homepage hero and the About hero — they differ only by which
 // placeholder shows while the clip is off (`variant`), and the CSS frame they sit
-// in (sized by the parent: `.hero-media` / `.portrait-wrap`). A slot renders one
+// in (sized by the parent: `.hero-media-frame` / `.portrait-wrap`). The caption
+// under the frame is the separate renderHeroCaption() below. A slot renders one
 // of two ways:
 //   • show:false → its page's ORIGINAL placeholder (the gradient frames on the
 //     pages today), so nothing changes visually until a clip is switched on;
@@ -21,6 +22,7 @@
 // starts a clip when it scrolls into view (motion allowed) and pauses it
 // off-screen. The poster is therefore both the LCP image and the still fallback.
 import { esc } from './html.js'
+import { captionSub } from './portfolio-tiles.js'
 
 // The active <video>: muted/looping/inline, no autoplay (the JS owns playback),
 // preload:none so the bytes stay off the critical path. data-media tags it for
@@ -96,10 +98,7 @@ const PLACEHOLDERS = {
 // placeholder for the off state; the live clip is rendered identically either way.
 export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
   if (slot?.show && slot.kind === 'image') {
-    const caption = slot.caption
-      ? `\n    <span class="media-caption">${esc(slot.caption)}</span>`
-      : ''
-    return imageEl(slot, { eager: variant === 'hero' }) + caption
+    return imageEl(slot, { eager: variant === 'hero' })
   }
   if (slot?.show) {
     // A portrait clip (homepage mobile only) makes the landscape one the
@@ -112,10 +111,32 @@ export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
     const portraitClip = hasPortrait
       ? videoEl(slot, slot.portrait, 'media-clip media-clip--portrait')
       : ''
-    const caption = slot.caption
-      ? `\n    <span class="media-caption">${esc(slot.caption)}</span>`
-      : ''
-    return clip + portraitClip + caption
+    return clip + portraitClip
   }
   return PLACEHOLDERS[variant] || ''
+}
+
+// The caption UNDER a hero frame — never over the media. Two sources, in order:
+//   • `piece` — a slug in pieces.js: the caption names that piece and links to its
+//     page ("Lioness · Black & grey · Arm"). An unknown slug THROWS, which fails
+//     the build (and shows in the dev overlay) rather than shipping a dead link.
+//   • `caption` — a plain line of text (the About frame's studio credit).
+// Neither set → no caption at all. A slot that is switched off (show:false) gets
+// no caption either — there is no media to caption — but its `piece` slug is
+// still checked, so a typo can't wait for the day the slot is switched on.
+// `slotName` only names the slot in the error.
+export function renderHeroCaption(slot = {}, pieces = [], slotName = 'hero') {
+  if (slot?.piece) {
+    const p = pieces.find(x => x.slug === slot.piece)
+    if (!p) {
+      throw new Error(
+        `src/data/media.js → ${slotName}.piece is "${slot.piece}", but no piece in `
+        + 'src/data/pieces.js has that slug. Fix the slug, or remove `piece` to drop the caption.')
+    }
+    if (!slot.show) return ''
+    return `<p class="media-caption"><a href="/portfolio/${esc(p.slug)}/">`
+      + `${esc(p.title)} · ${esc(captionSub(p))}</a></p>`
+  }
+  if (!slot?.show) return ''
+  return slot.caption ? `<p class="media-caption">${esc(slot.caption)}</p>` : ''
 }

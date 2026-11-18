@@ -45,9 +45,10 @@ comments document every field — **read them before editing**.
 | `pieces.js` (portfolio) | `portfolio-tiles.js`           | `<!-- pieces:masonry -->` → `portfolio/`             |
 | `flash.js`              | `flash-cards.js`               | `<!-- flash:grid -->` → `flash/` (+ `<!-- flash:drop -->` / `<!-- flash:season -->` eyebrow) |
 | `homepage.js`           | `homepage.js`                  | `<!-- homepage:* -->` (status light, notices, hero, specialisms) |
-| `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (previews pulled live from pieces) |
+| `homepage.js` + `pieces.js` | `specialisms.js`           | `<!-- homepage:specialisms -->` → home (one photo per card, pulled live from pieces) |
 | `testimonials.js`       | `testimonials.js`              | `<!-- testimonials -->` → home                       |
 | `media.js`              | `media.js` (one shared hero renderer) | `<!-- homepage:hero-media -->` → home / `<!-- about:hero-media -->` → about |
+| `media.js` + `pieces.js` | `media.js` (`renderHeroCaption`)      | `<!-- homepage:hero-caption -->` → home / `<!-- about:hero-caption -->` → about (the caption under the frame; a slot's unknown `piece` slug throws and fails the build) |
 | (none)                  | `newsletter-inline.js`         | `<!-- newsletter:inline -->` → home / flash / post-enquiry |
 | `business.js`           | `business.js`                  | `<!-- reply-time -->` → enquire + enquiry-received (shared so the promised turnaround can't drift) |
 | (none)                  | `favicon.js` (`renderMarkSvg`) | `<!-- brand:mark -->` → every page's nav lockup + the `/enquiry-received/` confirmation mark |

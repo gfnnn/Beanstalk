@@ -91,37 +91,19 @@ export function initHeroAnimation() {
   if (media) {
     const mm = gsap.matchMedia()
 
-    // Mobile: the media is now the full-screen video opener. It eases up first
-    // (covering the viewport), then the overlay elements reveal in sequence over
-    // it — on the homepage that includes the nav (logo → burger → Enquire) and
-    // the video credit; the eyebrow + h1 ride the shared timeline above. The nav
-    // bits are guarded against first-paint flash in motion.css (.page-home only).
+    // Below 900px the photo fills the first screen with nothing on it. It simply
+    // fades in — no travel: a full-screen image sliding is not calm — while the
+    // nav above it is solid and paints immediately, and the text timeline above
+    // plays under it. (ORGANIC, as for every asset that arrives.)
     mm.add('(max-width: 899px)', () => {
-      const onHome = document.body.classList.contains('page-home')
-      const navBits = onHome
-        ? ['#main-nav .nav-logo', '#main-nav .nav-hamburger', '#main-nav .nav-right .btn']
-            .map(s => document.querySelector(s)).filter(Boolean)
-        : []
-      const credit = document.querySelector('.hero-video-credit')
-
-      const mtl = gsap.timeline({ defaults: { ease: SOFT }, delay: 0.1 })
-      mtl.from(media, { opacity: 0, y: 20, duration: 0.85, ease: ORGANIC }, 0)
-      // Nav items fade in with NO y-shift. They're persistent controls that carry
-      // their own springy CSS `transition: transform` (buttons.css), so a GSAP
-      // y-translate fights that transition and can leave the Enquire button resting
-      // a few px high — opacity-only keeps every nav item pinned to its true layout
-      // position (flush with the hamburger) while still revealing over the video.
-      if (navBits.length) mtl.from(navBits, { opacity: 0, stagger: 0.12, duration: 0.6 }, 0.3)
-      if (credit)         mtl.from(credit,  { opacity: 0, y: 10, duration: 0.6, clearProps: 'transform' }, '>-0.1')
+      gsap.from(media, { opacity: 0, duration: 0.85, ease: ORGANIC, delay: 0.1 })
     })
 
     // Desktop: media is the right column, slide in from the right edge (ORGANIC —
-    // an asset settling in). The studio-location tag sits over the media and used
-    // to be static; reveal it as a gentle late beat so the hero arrives together.
+    // an asset settling in). Its caption sits inside the column, so it arrives
+    // with the photo rather than as a separate beat.
     mm.add('(min-width: 900px)', () => {
       gsap.from(media, { opacity: 0, x: 24, duration: 0.95, ease: ORGANIC, delay: 0.1 })
-      const tag = document.querySelector('.hero-media-tag')
-      if (tag) gsap.from(tag, { opacity: 0, y: 8, duration: 0.6, ease: SOFT, delay: 0.5 })
     })
   }
 }

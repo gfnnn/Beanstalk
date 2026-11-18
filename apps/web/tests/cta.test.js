@@ -37,10 +37,13 @@ describe('initMobileCta', () => {
     ioInstances[0].fire({ isIntersecting: false }) // hero scrolled out → CTA shows
     expect(cta.classList.contains('visible')).toBe(true)
     expect(cta.getAttribute('aria-hidden')).toBe('false')
+    expect(cta.hasAttribute('inert')).toBe(false)   // shown → its link is focusable
 
     ioInstances[0].fire({ isIntersecting: true })  // hero back in view → CTA hides
     expect(cta.classList.contains('visible')).toBe(false)
     expect(cta.getAttribute('aria-hidden')).toBe('true')
+    // hidden → inert too, so focus can't land on the off-screen link
+    expect(cta.hasAttribute('inert')).toBe(true)
   })
 
   // The inner-page (no-hero) path is driven by a live matchMedia, not a one-shot

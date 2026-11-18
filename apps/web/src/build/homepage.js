@@ -43,13 +43,7 @@ export function renderHeroEyebrow(hero = {})  { return esc(hero.eyebrow) }
 export function renderHeroHeadline(hero = {}) { return `${esc(hero.headLead)}<br><em>${esc(hero.headEm)}</em>` }
 export function renderHeroBody(hero = {})     { return esc(hero.body) }
 
-// The studio tag overlaid on the hero media. It's a click-through to /visit/
-// (location, map, hours) — the label text stays authored in homepage.js.
-export function renderHeroMediaTag(hero = {}) {
-  return `<a href="/visit/" class="hero-media-tag-link">${esc(hero.mediaTag)}</a>`
-}
-
-// Credit line for whoever shot the hero video, overlaid on the media column.
+// Credit line for whoever shot the hero video, shown under the media frame.
 // Returns '' until `videoCredit.show` is true (no video/credit yet). When a `url`
 // is set the name links out (new tab, rel-safe); otherwise it's plain text.
 export function renderVideoCredit(credit = {}) {

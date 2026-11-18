@@ -340,6 +340,14 @@ import, no build step, no path edits.
    time by [`apps/web/src/build/media.js`](../apps/web/src/build/media.js) — you
    never hand-edit the `<video>`/`<img>`.
 
+**Captions sit under the frame, never on the media.** A slot may name the piece
+it shows with an optional `piece` (a `slug` from `pieces.js`): the page then
+renders a caption under the frame that names the piece and links to its page
+("Lioness · Black & grey · Arm"). No `piece`, no caption; a slug that isn't in
+`pieces.js` **fails the build** with a message naming the slot. `caption` is the
+plain-text alternative (the About frame's studio line). Every field is documented
+in the header of `media.js`.
+
 Until a slot is `show: true`, the page renders its existing placeholder, so the
 site looks unchanged. Playback is progressive enhancement
 ([`apps/web/src/js/modules/media.js`](../apps/web/src/js/modules/media.js)): a

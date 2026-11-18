@@ -15,11 +15,11 @@ import { renderTestimonials } from './src/build/testimonials.js'
 import { homepage } from './src/data/homepage.js'
 import {
   renderStatus, renderNotices,
-  renderHeroEyebrow, renderHeroHeadline, renderHeroBody, renderHeroMediaTag,
+  renderHeroEyebrow, renderHeroHeadline, renderHeroBody,
   renderVideoCredit,
 } from './src/build/homepage.js'
 import { media } from './src/data/media.js'
-import { renderHeroMedia } from './src/build/media.js'
+import { renderHeroMedia, renderHeroCaption } from './src/build/media.js'
 import { renderSpecialisms } from './src/build/specialisms.js'
 import { renderPaletteStyle, themeColor } from './src/build/palette.js'
 import { renderFaviconSvg, renderMarkSvg } from './src/build/favicon.js'
@@ -96,8 +96,13 @@ const generatedGrids = {
       if (html.includes('<!-- homepage:hero-body -->')) {
         html = html.replace('<!-- homepage:hero-body -->', () => renderHeroBody(homepage.hero))
       }
-      if (html.includes('<!-- homepage:hero-media-tag -->')) {
-        html = html.replace('<!-- homepage:hero-media-tag -->', () => renderHeroMediaTag(homepage.hero))
+      // The caption UNDER each hero frame. Throws (failing the build) when a
+      // slot's `piece` names a slug that isn't in pieces.js.
+      if (html.includes('<!-- homepage:hero-caption -->')) {
+        html = html.replace('<!-- homepage:hero-caption -->', () => renderHeroCaption(media.hero, pieces, 'hero'))
+      }
+      if (html.includes('<!-- about:hero-caption -->')) {
+        html = html.replace('<!-- about:hero-caption -->', () => renderHeroCaption(media.aboutHero, pieces, 'aboutHero'))
       }
       if (html.includes('<!-- homepage:video-credit -->')) {
         html = html.replace('<!-- homepage:video-credit -->', () => renderVideoCredit(homepage.videoCredit))
