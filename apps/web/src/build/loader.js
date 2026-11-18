@@ -11,7 +11,7 @@
 //
 // Fix: cover every page from the very first paint with a cream overlay carrying a
 // small sprig mark, then fade it out once the page is genuinely ready
-// (src/js/modules/loader.js dismisses it on document.fonts.ready). The styling is
+// (src/js/modules/loader.js dismisses it once the key fonts have loaded). The styling is
 // INLINE-CRITICAL in <head> on purpose — it must apply before main.css loads — and
 // is CSP-safe because style-src allows 'unsafe-inline' (src/build/security.js).
 // No inline <script> is used (script-src is 'self'); the bundle does the dismissal,
@@ -53,7 +53,7 @@ html.page-loaded #page-loader{opacity:0;visibility:hidden;pointer-events:none}
 // The mark is shown FULLY FORMED at full opacity from the first painted frame,
 // with only a gentle COMPOSITOR-only opacity breathe. It deliberately does NOT
 // draw/reveal here — and this is the key lesson: the cover dismisses on
-// document.fonts.ready, which on a warm-ish or mobile load (cached fonts) can be
+// its key fonts being ready, which on a warm-ish or mobile load (cached fonts) can be
 // near-instant, so any reveal-FROM-INVISIBLE animation (a clip-path wipe or a
 // stroke-dashoffset self-ink) would still be hidden when the cover lifts — the
 // mark simply wouldn't show (the reported "missing on mobile" regression). A draw
