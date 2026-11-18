@@ -1,11 +1,12 @@
 // ── Page preloader dismissal ──────────────────────────────────────────────────
 // The overlay (#page-loader) and its critical CSS are injected at build time by
 // src/build/loader.js. It exists for ONE job: the COLD first load, where the
-// render-blocking CSS + `display=swap` fonts arrive slowly (the reported iPad
-// flash). It covers from first paint, then lifts once the page is genuinely ready
-// (document.fonts.ready — the font swap is the main cause of the visible reflow),
-// with a hard ceiling so a hung font/network never traps the visitor and a pure-CSS
-// failsafe in case this bundle never runs.
+// render-blocking CSS + `font-display: swap` fonts arrive slowly (the reported
+// iPad flash). It covers from first paint, then lifts once the page is genuinely ready
+// (its KEY fonts have loaded — the font swap is the main cause of the visible
+// reflow; see KEY_FONTS below for which, and why not all of them), with a hard
+// ceiling so a hung font/network never traps the visitor and a pure-CSS failsafe
+// in case this bundle never runs.
 //
 // HOW LONG the cover stays is bimodal — all-or-nothing, tuned to perception.
 // Lifting the moment the page was ready (the old behaviour) made awkward middles:
@@ -16,8 +17,8 @@
 //     glimpse is sub-perceptual, and the page entrance starts as the fade begins,
 //     so the visitor never sits longer than that without content or motion.
 //   · COMMIT — seen any longer: the visitor has consciously registered the cover,
-//     so it holds to MIN_SHOW_MS total visible time (a full breathe beat), then
-//     fades. The performance always completes; it never half-plays.
+//     so it holds to MIN_SHOW_MS total visible time, then fades — long enough
+//     that the cover reads as a deliberate beat, not a flicker.
 // Visible time is measured from first-contentful-paint — the cover IS the first
 // contentful paint. Where paint timing is unavailable the clock starts at init,
 // which under-counts and so errs toward holding, never toward the flash. Reduced
@@ -54,10 +55,46 @@ const SESSION_KEY = 'bs-visited'
 
 // The bimodal thresholds (see above). QUICK_LIFT_MS is the perception budget for
 // "no preloader ran" — under it, a lift reads as the page simply arriving;
-// MIN_SHOW_MS is the committed cover's minimum total visible time, sized so the
-// mark plays a full breathe beat (half the 3.2s pl-breathe cycle) before the fade.
+// MIN_SHOW_MS is the committed cover's minimum total visible time: twice the
+// quick-lift budget, so a cover that registered is on screen long enough to read
+// as intended before it fades. It was 1600 (a full half-cycle of the 3.2s
+// pl-breathe); it was halved because, once the fonts were self-hosted, the page
+// was routinely ready well inside 1.6s and the hold itself had become the wait.
+// At 800 the mark eases about a quarter of the way through its breathe (the dim
+// is slight, opacity 1 → ~0.9) and the fade takes over from there.
 export const QUICK_LIFT_MS = 400
-export const MIN_SHOW_MS = 1600
+export const MIN_SHOW_MS = 800
+
+// The faces the cover waits for: body copy (Karla), headings (Fraunces roman) and
+// the eyebrow/label face (JetBrains Mono) — everything the first view is set in
+// bar one. The one it does NOT wait for is Fraunces italic: it is the largest
+// file and on a slow connection it was holding the whole page back. It is not
+// negligible on screen, though: the emphasised part of a heading is italic
+// (`h1 em`, `.page-title em`, `.section-title em`), which on the homepage is the
+// whole second line of the H1. On a slow first visit that text shows in the
+// fallback serif's italic and then swaps, usually while the heading is still
+// blur-fading in. If that swap ever reads badly, add the italic back to this list.
+//
+// Each entry is a CSS font shorthand for document.fonts.load(): `[weight] size
+// family`. The size is required by the syntax and otherwise irrelevant. The
+// weight only has to fall inside the face's declared range; Fraunces is asked for
+// at 300 because that is the weight the headings use. Every family here must have
+// an @font-face in styles/fonts.css (tests/fonts.test.js checks it).
+export const KEY_FONTS = ['300 1em Fraunces', '1em Karla', '1em "JetBrains Mono"']
+
+// Resolves when the key faces have loaded (or failed — a failed font must not
+// hold the page; the ceiling below is the backstop for one that hangs). Falls
+// back to "every font" (document.fonts.ready) where load() is unavailable, and
+// also when load() matched no face at all: that means the @font-face rules were
+// not there to match, so lifting now would uncover unstyled text.
+function keyFontsReady() {
+  const fonts = document.fonts
+  if (typeof fonts?.load !== 'function') return Promise.resolve(fonts?.ready)
+  return Promise.allSettled(KEY_FONTS.map(font => fonts.load(font))).then(results => {
+    const matched = results.some(r => r.status === 'fulfilled' && r.value?.length)
+    return matched ? undefined : fonts.ready
+  })
+}
 
 let signalReady
 /** Resolves when the page should be revealed (cover lifting / warm nav / no cover). */
@@ -158,7 +195,6 @@ export function initPageLoader() {
     else fadeOut()
   }
 
-  const fontsReady = (document.fonts?.ready) || Promise.resolve()
-  Promise.resolve(fontsReady).then(dismiss)
+  keyFontsReady().then(dismiss, dismiss)
   setTimeout(dismiss, 3000) // hard ceiling — never trap the page behind the overlay
 }

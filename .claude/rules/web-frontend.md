@@ -32,7 +32,8 @@ filter and flash), `aftercare`, `faq`, `enquire`,
 homepage notice after its `until` day), `media` (homepage + About hero video/GIF clips: reduced-motion-aware,
 on-screen-only playback), `analytics` (GA4 behind `track()`: gtag.js loads at runtime only on a
 host with an ID in `src/data/analytics.js` and only if the visitor hasn't opted out via GPC
-or the `/privacy/` control; `track()` sends only an allowlist of events/params, so no form
+or the `/privacy/` control, and not until the page has been revealed and loaded — it waits on
+`pageReady` from `loader`; `track()` sends only an allowlist of events/params, so no form
 values can leak — call sites never touch gtag; see `docs/ANALYTICS.md`), `loader` (dismisses the full-page
 preloader), `spinner` (shared button busy-state: swaps a button's label for an
 animated `.btn-spinner` + "Loading…"/"Sending…" while an async action runs, used by

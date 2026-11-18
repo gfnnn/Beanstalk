@@ -1,8 +1,8 @@
 // Tests for src/build/security.js — the build-time CSP/Referrer meta. The policy
 // must pin connect-src to whatever Worker origin the build points the forms at
 // (the VITE_*_FN_URL vars), fall back to the documented default when unset, and
-// keep the allowances the site actually needs (inline styles, Google fonts/maps,
-// blob: image previews).
+// keep the allowances the site actually needs (inline styles, the Google Maps
+// embed, blob: image previews) and nothing for fonts beyond 'self'.
 import { describe, it, expect } from 'vitest'
 import { cspContent, workerConnectOrigins, renderSecurityMeta, REFERRER_POLICY } from '../src/build/security.js'
 
@@ -41,11 +41,15 @@ describe('cspContent', () => {
   })
 
   it('allows the resources the site actually loads', () => {
-    expect(csp).toContain('https://fonts.googleapis.com') // font CSS (style-src)
-    expect(csp).toContain('https://fonts.gstatic.com')    // font files (font-src)
+    expect(csp).toContain("font-src 'self';")              // self-hosted fonts only
     expect(csp).toContain('blob:')                         // enquiry image preview
     expect(csp).toContain('https://maps.google.com')       // /visit/ embed (frame-src)
-    expect(csp).toContain("style-src 'self' 'unsafe-inline'") // palette + inline style attrs
+    expect(csp).toContain("style-src 'self' 'unsafe-inline';") // palette + inline style attrs, nothing else
+  })
+
+  it('allows no Google Fonts origin (the fonts are self-hosted)', () => {
+    expect(csp).not.toContain('fonts.googleapis.com')
+    expect(csp).not.toContain('fonts.gstatic.com')
   })
 })
 

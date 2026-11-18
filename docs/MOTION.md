@@ -81,11 +81,15 @@ The whole reveal hangs off one promise and one class.
      session — `sessionStorage['bs-visited']`, *except* a reload, which counts as
      cold): the cover is dropped instantly and `pageReady` resolves right away. The
      View Transition is doing the cross-fade, so the cover would only get in the way.
-   - **Cold** load: the cover holds until `document.fonts.ready` (the font swap is
+   - **Cold** load: the cover holds until the **key fonts** have loaded — Karla,
+     Fraunces roman and JetBrains Mono (`KEY_FONTS` in `modules/loader.js`); it does
+     not wait for Fraunces italic, so on a slow first visit the italic part of a
+     heading (on the homepage, the whole second line of the H1) shows in the
+     fallback serif and then swaps, usually mid blur-fade (the font swap is
      the real cause of the reflow), then lifts **all-or-nothing**: a cover that's
      been visible ≤0.4s lifts immediately (reads as "no preloader ran"), while one
-     seen any longer commits — holding to a 1.6s minimum total so the mark plays a
-     full breathe beat — and only then fades. Either way `pageReady` resolves as the
+     seen any longer commits — holding to a 0.8s minimum total so the cover reads
+     as a deliberate beat — and only then fades. Either way `pageReady` resolves as the
      fade *begins*, so the entrance plays **as the cover lifts**, not behind it.
      Full decision table in the loader section below. A 3s JS ceiling and a 6s
      pure-CSS failsafe guarantee the cover can never trap the page.
@@ -168,8 +172,9 @@ entrance* waits on `pageReady`.
 
 ## Full-page loader (`build/loader.js` + `modules/loader.js`)
 
-Why it exists: both the Google-Fonts stylesheet and the bundled `main.css` are
-render-blocking, and the fonts ship `display=swap`. On a slow **cold** load that
+Why it exists: the bundled `main.css` is render-blocking, and the fonts
+(self-hosted — `styles/fonts.css`, with the two main faces preloaded by
+`build/fonts.js`) are `font-display: swap`. On a slow **cold** load that
 means a blank hold, then content paints in fallback fonts and visibly reflows when
 Fraunces/Karla swap in (the reported iPad flash). The FOUC guard only covers the
 GSAP *entrance* elements, not whole-page CSS/font arrival — so the loader covers the
@@ -182,7 +187,7 @@ whole page from first paint.
   inserts are idempotent).
 - The mark is shown **fully formed** with only a gentle compositor **opacity
   breathe** — it deliberately does *not* reveal-from-hidden. The cover dismisses on
-  `document.fonts.ready` (near-instant on a mobile/cached load), so a draw or fade-in
+  the key fonts being ready (near-instant on a mobile/cached load), so a draw or fade-in
   *here* would still be hidden when the cover lifts (the "missing on mobile"
   regression). The ink-rise draw lives on the nav logo + confirmation mark instead,
   past the dismiss race — see *Brand-mark ink-rise* below.
@@ -195,15 +200,15 @@ unconditional (it *is* the FOUC cover). The orchestration is entirely about **wh
 it lifts**, and it is **all-or-nothing** so the visitor never sees a half-played
 performance (the old "ready at 0.5–1.5s" jank zone, where the cover registered and
 was then yanked mid-breathe). The thresholds are `QUICK_LIFT_MS` (400) and
-`MIN_SHOW_MS` (1600) in `modules/loader.js`; visible time is measured from
+`MIN_SHOW_MS` (800) in `modules/loader.js`; visible time is measured from
 first-contentful-paint (the cover *is* the FCP — falling back to init time, which
 errs toward holding, never flashing).
 
 | Situation | What happens |
 |---|---|
 | Cold, ready while cover seen **≤ 0.4s** | Lift immediately — reads as "no preloader ran"; the entrance starts as the fade begins, so there's never >0.4s without content or motion |
-| Cold, ready when cover seen **> 0.4s** | **Commit**: hold to 1.6s total visible (a full breathe beat), then fade — the performance always completes |
-| Cold, ready **after 1.6s** | Already played out — fade with no extra hold |
+| Cold, ready when cover seen **> 0.4s** | **Commit**: hold to 0.8s total visible, then fade — the cover never flickers off the instant it registers |
+| Cold, ready **after 0.8s** | Already played out — fade with no extra hold |
 | Warm in-session navigation | No cover (instant drop before the View Transition snapshot); the VT cross-fades real content |
 | **Mid-session reload** | Counts as **cold** — a reload re-fetches the render-blocking CSS/fonts and has no inbound VT, so the warm instant-drop would re-expose the font-swap flash |
 | Fonts hang | 3s JS ceiling forces the dismissal decision |
@@ -256,8 +261,8 @@ bytes, before any stylesheet fetch, so the transition is armed as early as possi
 the leading fix for "transitions feel inconsistent" (a skip degrades silently to a
 hard cut, load-dependent). The `::view-transition-*` animations stay in
 `atmosphere.css`: they only run once a transition is live, by when `main.css` is
-loaded. (Inbound first-paint latency — the render-blocking Google-Fonts request — is
-the *other* lever on skip rate, not yet pulled.)
+loaded. (Inbound first-paint latency is the *other* lever on skip rate; self-hosting the
+fonts removed the render-blocking Google-Fonts request from it.)
 
 > ⚠️ This is why the transition is a View Transition and **not** a JS
 > "fade-out → navigate → fade-in" engine. Across an MPA navigation a JS fade can't

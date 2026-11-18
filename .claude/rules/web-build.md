@@ -18,13 +18,14 @@ in `apps/web/vite.config.js` (the add-a-page rule is in `CLAUDE.md` → *Archite
 All pages load the same bundle: `<link href="/src/styles/main.css">`
 (which `@import`s every partial) and `<script type="module" src="/src/js/main.js">`.
 
-The eight Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
+The nine Vite plugins (in `vite.config.js`, applied in this order) do all the build-time
 work: `palette` (inject colour custom properties + emit the palette-coloured `favicon.svg`
 from the traced brand mark in `src/build/favicon.js`), `generatedGrids` (the content pipeline
 below), `seoHead` (structural SEO tags), `securityHeaders` (CSP + Referrer-Policy
 `<meta>` — see SEO/security below), `pageLoader` (the full-page preloader — see
 `docs/MOTION.md`),
-`viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
+`fontPreload` (preload the two self-hosted fonts behind most first-view text —
+`src/build/fonts.js`), `viewTransition` (inline the cross-document View-Transition opt-in into `<head>` so it's
 armed before the `main.css` `@import` waterfall — a late opt-in lets a slow inbound render
 skip the cross-fade; `src/build/transition.js`), `piecePages` (per-piece portfolio pages),
 and `sitemap`. Most run in **both dev and build**
@@ -131,7 +132,8 @@ page's `<head>`, and `piece-page.js` takes the same string for the per-piece pag
 (which bypass the HTML transform). `connect-src` is pinned to the Worker origin the
 build points the forms at — derived from the `VITE_*_FN_URL` vars, falling back to the
 `config.js` default. The allowances map 1:1 to what the site loads (inline palette
-style + `style=""` attrs → `style-src 'unsafe-inline'`; Google Fonts; `blob:` image
+style + `style=""` attrs → `style-src 'unsafe-inline'`; self-hosted fonts (`public/fonts/` + `src/styles/fonts.css`) →
+`font-src 'self'`; `blob:` image
 previews; the `/visit/` Google-Maps iframe; GA4's documented host set for gtag.js and
 its collect hits, nothing wider). **Build/preview only** — a strict CSP
 breaks the dev server's HMR, so `npm run dev` runs without it. A `<meta>` CSP **can't**

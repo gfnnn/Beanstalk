@@ -17,10 +17,9 @@ import { renderStatus } from './homepage.js'
 import { renderPaletteStyle, themeColor } from './palette.js'
 import { renderMarkSvg } from './favicon.js'
 import { LOADER_STYLE, LOADER_MARKUP } from './loader.js'
+import { FONT_PRELOADS } from './fonts.js'
 import { VIEW_TRANSITION_STYLE } from './transition.js'
 import { homepage } from '../data/homepage.js'
-
-const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Karla:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap'
 
 // JSON-LD sits inside a <script> element, where esc() would corrupt the JSON but
 // a raw "</script>" in a value (e.g. a pasted title) would terminate the element
@@ -131,9 +130,7 @@ ${renderPaletteStyle()}
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="${FONTS}" rel="stylesheet">
+${FONT_PRELOADS}
 <link rel="stylesheet" href="${cssHref}">
 ${LOADER_STYLE}
 <script type="application/ld+json">${jsonLd(breadcrumb)}</script>
