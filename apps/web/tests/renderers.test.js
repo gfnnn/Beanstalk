@@ -367,7 +367,7 @@ describe('renderHeroCaption (the caption UNDER a hero frame)', () => {
 })
 
 describe('renderHeroMedia (the one shared hero component — both pages)', () => {
-  it('renders a still as a responsive <picture>, eager on the homepage and lazy on About', () => {
+  it('renders a still as a responsive <picture>, eager + high priority on both pages (each is its LCP image)', () => {
     const slot = { show: true, kind: 'image', img: '/images/tattoos/x', w: 800, h: 1063, alt: 'A "quoted" alt', sizes: '50vw', caption: 'Cap' }
     const hero = renderHeroMedia(slot, { variant: 'hero' })
     expect(hero).toContain('<source type="image/avif" srcset="/images/tattoos/x-400.avif 400w, /images/tattoos/x-800.avif 800w, /images/tattoos/x-1200.avif 1200w" sizes="50vw">')
@@ -377,7 +377,9 @@ describe('renderHeroMedia (the one shared hero component — both pages)', () =>
     expect(hero).toContain('loading="eager" fetchpriority="high"')
     expect(hero).not.toContain('media-caption') // the caption is rendered under the frame, separately
     expect(hero).not.toContain('<video')
-    expect(renderHeroMedia(slot, { variant: 'about' })).toContain('loading="lazy"')
+    const about = renderHeroMedia(slot, { variant: 'about' })
+    expect(about).toContain('loading="eager" fetchpriority="high"')
+    expect(about).not.toContain('loading="lazy"')
   })
 
   it('falls back to each page placeholder when off, per variant', () => {

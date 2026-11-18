@@ -51,15 +51,15 @@ function gifEl(slot) {
 // that are on the pages today, so the off state is byte-identical.
 // A still photo in the same frame (kind: 'image') — for launching without a clip.
 // `img` is a no-extension base path following the portfolio's multi-size
-// convention (<img>-400/-800/-1200 in avif/webp/jpg). The homepage hero is the
-// page's largest paint, so it loads eagerly at high priority; the About frame
-// sits lower and stays lazy.
-function imageEl(slot, { eager = false } = {}) {
+// convention (<img>-400/-800/-1200 in avif/webp/jpg). Both hero frames are their
+// page's largest paint (the About frame is the measured LCP element on mobile),
+// so the still always loads eagerly at high priority.
+function imageEl(slot) {
   const base = esc(slot.img)
   const srcset = ext => [400, 800, 1200].map(w => `${base}-${w}.${ext} ${w}w`).join(', ')
   const sizes = esc(slot.sizes || '100vw')
   const dims = slot.w && slot.h ? ` width="${esc(slot.w)}" height="${esc(slot.h)}"` : ''
-  const load = eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'
+  const load = 'loading="eager" fetchpriority="high"'
   return `<picture>`
     + `<source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">`
     + `<source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">`
@@ -98,7 +98,7 @@ const PLACEHOLDERS = {
 // placeholder for the off state; the live clip is rendered identically either way.
 export function renderHeroMedia(slot = {}, { variant = 'hero' } = {}) {
   if (slot?.show && slot.kind === 'image') {
-    return imageEl(slot, { eager: variant === 'hero' })
+    return imageEl(slot)
   }
   if (slot?.show) {
     // A portrait clip (homepage mobile only) makes the landscape one the
