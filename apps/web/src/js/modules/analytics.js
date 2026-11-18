@@ -15,8 +15,8 @@
 //
 // WHEN the script loads: not at init. gtag.js is a large third-party script
 // that would otherwise download and run while the page is still arriving, so its
-// injection waits until the page has been revealed and has finished loading (see
-// afterPageSettles). The dataLayer and the gtag() stub exist from init, so an event
+// injection waits until the page has been revealed, its entrance has played and
+// it has finished loading (see afterPageSettles). The dataLayer and the gtag() stub exist from init, so an event
 // tracked in that window queues, and tracking one brings the script forward at
 // once rather than leaving a conversion waiting on an idle moment. The cost is
 // that a visitor who leaves before the script loads is not counted
@@ -56,6 +56,13 @@ const EVENTS = {
 // browser may then take to find an idle moment.
 const LOAD_CAP_MS = 4000
 const IDLE_TIMEOUT_MS = 2000
+// How long after the reveal the entrance is given to play before the script may
+// load. The reveal only STARTS the entrance: the first view fades in as a wave
+// over the next second or so (animations.js), and the page's largest element is
+// part of it. Measured on production, a script injected right at the reveal
+// downloaded and ran in the middle of that, and cost the largest paint ~1.5s on a
+// slow connection. Two seconds clears the wave with margin.
+export const ENTRANCE_SETTLE_MS = 2000
 
 let activeId = '' // the ID gtag is live for on this page, or '' (no-op)
 let configured = false // the gtag() stub exists and its js/config calls are queued
@@ -64,7 +71,8 @@ let configured = false // the gtag() stub exists and its js/config calls are que
 let scriptState = 'none'
 
 // Run `fn` once the page is out of its critical window: revealed (pageReady, the
-// moment the preloader lifts), then loaded (or LOAD_CAP_MS later, whichever comes
+// moment the preloader lifts), then BOTH the entrance has had ENTRANCE_SETTLE_MS
+// to play AND the page has loaded (or LOAD_CAP_MS has passed, whichever comes
 // first), then at the next idle moment. Safari has no requestIdleCallback, so it
 // gets a plain timeout.
 function afterPageSettles(fn) {
@@ -76,11 +84,14 @@ function afterPageSettles(fn) {
     }
   }
   pageReady.then(() => {
-    if (document.readyState === 'complete') { idle(); return }
-    let fired = false
-    const once = () => { if (!fired) { fired = true; idle() } }
-    window.addEventListener('load', once, { once: true })
-    setTimeout(once, LOAD_CAP_MS)
+    const entrancePlayed = new Promise(resolve => setTimeout(resolve, ENTRANCE_SETTLE_MS))
+    const loaded = document.readyState === 'complete'
+      ? Promise.resolve()
+      : new Promise(resolve => {
+        window.addEventListener('load', resolve, { once: true })
+        setTimeout(resolve, LOAD_CAP_MS)
+      })
+    Promise.all([entrancePlayed, loaded]).then(idle)
   })
 }
 // What defers the script. Only ever replaced by tests (see _resetForTests).

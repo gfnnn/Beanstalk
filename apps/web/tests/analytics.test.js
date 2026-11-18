@@ -17,7 +17,7 @@ vi.mock('../src/data/analytics.js', () => ({
 
 import {
   track, initAnalytics, measurementIdFor, optOutReason, safeParams,
-  OPT_OUT_KEY, OWNER_KEY, isOwner, _resetForTests,
+  OPT_OUT_KEY, OWNER_KEY, isOwner, _resetForTests, ENTRANCE_SETTLE_MS,
 } from '../src/js/modules/analytics.js'
 import { initPageLoader } from '../src/js/modules/loader.js'
 
@@ -408,10 +408,11 @@ describe('the owner flag (?owner=1 → gtag never loads)', () => {
   })
 })
 
-describe('gtag.js load timing (deferred until the page has been revealed and loaded)', () => {
+describe('gtag.js load timing (deferred until the page has been revealed, its entrance has played, and it has loaded)', () => {
   // The real scheduler: pageReady (resolved here by a page with no preloader) →
-  // load → an idle moment. jsdom is already `complete` and has no
-  // requestIdleCallback, so that last step is the 1 ms timeout fallback.
+  // ENTRANCE_SETTLE_MS for the entrance, and load → an idle moment. jsdom is
+  // already `complete` and has no requestIdleCallback, so that last step is the
+  // 1 ms timeout fallback.
   const flush = async () => { for (let i = 0; i < 5; i++) await Promise.resolve() }
   beforeEach(() => {
     _resetForTests({ defer: null })
@@ -424,7 +425,9 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     expect(gtagScript()).toBeNull()
     expect(pushed().some(a => a[0] === 'config' && a[1] === ID)).toBe(true)
     await flush()
-    vi.advanceTimersByTime(1)
+    await vi.advanceTimersByTimeAsync(ENTRANCE_SETTLE_MS - 1)
+    expect(gtagScript()).toBeNull() // revealed and loaded, but the entrance is still playing
+    await vi.advanceTimersByTimeAsync(10)
     expect(gtagScript().src).toBe(`https://www.googletagmanager.com/gtag/js?id=${ID}`)
   })
 
@@ -435,7 +438,7 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     expect(events()).toEqual([['event', 'sign_up', { method: 'newsletter' }]])
     expect(gtagScript()).not.toBeNull() // no waiting on load/idle: the caller may be about to navigate
     await flush()
-    vi.advanceTimersByTime(5000)
+    await vi.advanceTimersByTimeAsync(5000)
     expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1) // the deferred run is a no-op
   })
 
@@ -451,7 +454,7 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     initAnalytics({ hostname: 'staging.example' })
     document.querySelector('[data-analytics-toggle]').click() // off, before the script loads
     await flush()
-    vi.advanceTimersByTime(5000)
+    await vi.advanceTimersByTimeAsync(5000)
     expect(gtagScript()).toBeNull()
     expect(window[`ga-disable-${ID}`]).toBe(true)
   })
@@ -464,7 +467,7 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     btn.click() // off
     btn.click() // back on
     await flush()
-    vi.advanceTimersByTime(5000)
+    await vi.advanceTimersByTimeAsync(5000)
     expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1)
   })
 
@@ -475,11 +478,11 @@ describe('gtag.js load timing (deferred until the page has been revealed and loa
     const btn = document.querySelector('[data-analytics-toggle]')
     btn.click() // off
     await flush()
-    vi.advanceTimersByTime(5000) // the deferred run finds the opt-out and stands down
+    await vi.advanceTimersByTimeAsync(5000) // the deferred run finds the opt-out and stands down
     expect(gtagScript()).toBeNull()
     btn.click() // back on: queues the script again
     await flush()
-    vi.advanceTimersByTime(5000)
+    await vi.advanceTimersByTimeAsync(5000)
     expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1)
     expect(pushed().filter(a => a[0] === 'config')).toHaveLength(1)
     expect(pushed().filter(a => a[0] === 'js')).toHaveLength(1)
