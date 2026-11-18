@@ -17,6 +17,7 @@ import { renderStatus } from './homepage.js'
 import { renderPaletteStyle, themeColor } from './palette.js'
 import { renderMarkSvg } from './favicon.js'
 import { LOADER_STYLE, LOADER_MARKUP } from './loader.js'
+import { FONT_PRELOADS } from './fonts.js'
 import { VIEW_TRANSITION_STYLE } from './transition.js'
 import { homepage } from '../data/homepage.js'
 
@@ -129,6 +130,7 @@ ${renderPaletteStyle()}
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
+${FONT_PRELOADS}
 <link rel="stylesheet" href="${cssHref}">
 ${LOADER_STYLE}
 <script type="application/ld+json">${jsonLd(breadcrumb)}</script>

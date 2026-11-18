@@ -84,8 +84,8 @@ The whole reveal hangs off one promise and one class.
    - **Cold** load: the cover holds until `document.fonts.ready` (the font swap is
      the real cause of the reflow), then lifts **all-or-nothing**: a cover that's
      been visible ≤0.4s lifts immediately (reads as "no preloader ran"), while one
-     seen any longer commits — holding to a 1.6s minimum total so the mark plays a
-     full breathe beat — and only then fades. Either way `pageReady` resolves as the
+     seen any longer commits — holding to a 0.8s minimum total so the cover reads
+     as a deliberate beat — and only then fades. Either way `pageReady` resolves as the
      fade *begins*, so the entrance plays **as the cover lifts**, not behind it.
      Full decision table in the loader section below. A 3s JS ceiling and a 6s
      pure-CSS failsafe guarantee the cover can never trap the page.
@@ -169,7 +169,8 @@ entrance* waits on `pageReady`.
 ## Full-page loader (`build/loader.js` + `modules/loader.js`)
 
 Why it exists: the bundled `main.css` is render-blocking, and the fonts
-(self-hosted — `styles/fonts.css`) are `font-display: swap`. On a slow **cold** load that
+(self-hosted — `styles/fonts.css`, with the two main faces preloaded by
+`build/fonts.js`) are `font-display: swap`. On a slow **cold** load that
 means a blank hold, then content paints in fallback fonts and visibly reflows when
 Fraunces/Karla swap in (the reported iPad flash). The FOUC guard only covers the
 GSAP *entrance* elements, not whole-page CSS/font arrival — so the loader covers the
@@ -195,15 +196,15 @@ unconditional (it *is* the FOUC cover). The orchestration is entirely about **wh
 it lifts**, and it is **all-or-nothing** so the visitor never sees a half-played
 performance (the old "ready at 0.5–1.5s" jank zone, where the cover registered and
 was then yanked mid-breathe). The thresholds are `QUICK_LIFT_MS` (400) and
-`MIN_SHOW_MS` (1600) in `modules/loader.js`; visible time is measured from
+`MIN_SHOW_MS` (800) in `modules/loader.js`; visible time is measured from
 first-contentful-paint (the cover *is* the FCP — falling back to init time, which
 errs toward holding, never flashing).
 
 | Situation | What happens |
 |---|---|
 | Cold, ready while cover seen **≤ 0.4s** | Lift immediately — reads as "no preloader ran"; the entrance starts as the fade begins, so there's never >0.4s without content or motion |
-| Cold, ready when cover seen **> 0.4s** | **Commit**: hold to 1.6s total visible (a full breathe beat), then fade — the performance always completes |
-| Cold, ready **after 1.6s** | Already played out — fade with no extra hold |
+| Cold, ready when cover seen **> 0.4s** | **Commit**: hold to 0.8s total visible, then fade — the cover never flickers off the instant it registers |
+| Cold, ready **after 0.8s** | Already played out — fade with no extra hold |
 | Warm in-session navigation | No cover (instant drop before the View Transition snapshot); the VT cross-fades real content |
 | **Mid-session reload** | Counts as **cold** — a reload re-fetches the render-blocking CSS/fonts and has no inbound VT, so the warm instant-drop would re-expose the font-swap flash |
 | Fonts hang | 3s JS ceiling forces the dismissal decision |
