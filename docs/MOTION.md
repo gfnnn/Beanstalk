@@ -168,8 +168,8 @@ entrance* waits on `pageReady`.
 
 ## Full-page loader (`build/loader.js` + `modules/loader.js`)
 
-Why it exists: both the Google-Fonts stylesheet and the bundled `main.css` are
-render-blocking, and the fonts ship `display=swap`. On a slow **cold** load that
+Why it exists: the bundled `main.css` is render-blocking, and the fonts
+(self-hosted — `styles/fonts.css`) are `font-display: swap`. On a slow **cold** load that
 means a blank hold, then content paints in fallback fonts and visibly reflows when
 Fraunces/Karla swap in (the reported iPad flash). The FOUC guard only covers the
 GSAP *entrance* elements, not whole-page CSS/font arrival — so the loader covers the
@@ -256,8 +256,8 @@ bytes, before any stylesheet fetch, so the transition is armed as early as possi
 the leading fix for "transitions feel inconsistent" (a skip degrades silently to a
 hard cut, load-dependent). The `::view-transition-*` animations stay in
 `atmosphere.css`: they only run once a transition is live, by when `main.css` is
-loaded. (Inbound first-paint latency — the render-blocking Google-Fonts request — is
-the *other* lever on skip rate, not yet pulled.)
+loaded. (Inbound first-paint latency is the *other* lever on skip rate; self-hosting the
+fonts removed the render-blocking Google-Fonts request from it.)
 
 > ⚠️ This is why the transition is a View Transition and **not** a JS
 > "fade-out → navigate → fade-in" engine. Across an MPA navigation a JS fade can't
