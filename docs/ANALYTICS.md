@@ -24,13 +24,16 @@ Privacy Control). Don't add anything that breaks one of those without a new deci
   `_ga` cookies; the choice persists (localStorage) and can be reversed.
 - **Load timing: after the page, not with it.** The `dataLayer` and the `gtag()` stub are set
   up at init, but the `gtag.js` request itself waits until the page has been revealed (the
-  preloader lifting), then for `load` (or 4 s, whichever is first), then for an idle moment.
+  preloader lifting), then for both 2 s of entrance (`ENTRANCE_SETTLE_MS`) and `load` (or
+  4 s, whichever is first), then for an idle moment. The 2 s matters: the reveal only starts
+  the entrance, and a script injected right then ran in the middle of it and delayed the
+  page's largest paint by about 1.5 s on a slow connection (measured on production).
   This keeps a large third-party script out of the window where the page is arriving
   (measured on production: about 220–240 ms of main-thread time per page). An event tracked
   while it waits is queued, and brings the script forward at once, so a lead fired just
   before a redirect isn't left behind an idle moment. **The cost:** a visitor who leaves
   before the script loads is never counted, so very short bounces on slow connections go
-  missing (roughly 1–3 s more of that window than before on slow 4G; under 1 s on a fast
+  missing (the script now loads at least 2 s after the page is revealed, on any
   connection). Pageview counts from before and after this change aren't strictly
   comparable. The opt-out is re-checked at the moment of injection, so opting out during the
   wait means the script is never requested.
