@@ -13,12 +13,22 @@
 // The opt-out check runs BEFORE dataLayer exists or the script is injected, so an
 // opted-out visitor makes zero requests to Google and gets no _ga cookies.
 //
+// WHEN the script loads: not at init. gtag.js is a large third-party script
+// that would otherwise download and run while the page is still arriving, so its
+// injection waits until the page has been revealed and has finished loading (see
+// afterPageSettles). The dataLayer and the gtag() stub exist from init, so an event
+// tracked in that window queues, and tracking one brings the script forward at
+// once rather than leaving a conversion waiting on an idle moment. The cost is
+// that a visitor who leaves before the script loads is not counted
+// (docs/ANALYTICS.md → Load timing).
+//
 // Lawful basis + what's collected: docs/ANALYTICS.md. Hard rule: no PII and no
 // form values ever leave the browser. That's enforced here, not trusted to call
 // sites: only the events in EVENTS are sent, and only with their listed param
 // values. Anything else is dropped.
 
 import { analytics as CONFIG } from '../../data/analytics.js'
+import { pageReady } from './loader.js'
 
 export const OPT_OUT_KEY = 'beansprout_analytics_optout'
 // Owner flag: set per browser with ?owner=1, cleared with ?owner=0. While set,
@@ -41,8 +51,53 @@ const EVENTS = {
   sign_up: { method: ['newsletter'] },
 }
 
+// How long after the reveal the script loads anyway if `load` hasn't fired (a page
+// with a slow image must not hold analytics back indefinitely), and how long the
+// browser may then take to find an idle moment.
+const LOAD_CAP_MS = 4000
+const IDLE_TIMEOUT_MS = 2000
+
 let activeId = '' // the ID gtag is live for on this page, or '' (no-op)
-let scriptLoaded = false
+let configured = false // the gtag() stub exists and its js/config calls are queued
+// Where the gtag.js <script> is: 'none' (not requested), 'waiting' (queued behind
+// `defer`) or 'injected' (in the document).
+let scriptState = 'none'
+
+// Run `fn` once the page is out of its critical window: revealed (pageReady, the
+// moment the preloader lifts), then loaded (or LOAD_CAP_MS later, whichever comes
+// first), then at the next idle moment. Safari has no requestIdleCallback, so it
+// gets a plain timeout.
+function afterPageSettles(fn) {
+  const idle = () => {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS })
+    } else {
+      setTimeout(fn, 1)
+    }
+  }
+  pageReady.then(() => {
+    if (document.readyState === 'complete') { idle(); return }
+    let fired = false
+    const once = () => { if (!fired) { fired = true; idle() } }
+    window.addEventListener('load', once, { once: true })
+    setTimeout(once, LOAD_CAP_MS)
+  })
+}
+// What defers the script. Only ever replaced by tests (see _resetForTests).
+let defer = afterPageSettles
+
+// Put the gtag.js <script> in the document, unless that is no longer wanted: the
+// visitor may have opted out (here or in another tab) while it was waiting.
+// Dropping back to 'none' lets a later opt-in queue it again.
+function injectScript(id) {
+  if (scriptState === 'injected') return
+  if (activeId !== id || isOptedOut() || isOwner()) { scriptState = 'none'; return }
+  scriptState = 'injected'
+  const s = document.createElement('script')
+  s.async = true
+  s.src = `${GTAG_SRC}?id=${encodeURIComponent(id)}`
+  document.head.appendChild(s)
+}
 
 /** The Measurement ID for a hostname, or '' when none applies (→ no script). */
 export function measurementIdFor(hostname, config = CONFIG) {
@@ -146,28 +201,28 @@ function loadGtag(id) {
   if (isOwner()) return
   window[`ga-disable-${id}`] = false
   activeId = id
-  if (scriptLoaded) return
-  scriptLoaded = true
-  window.dataLayer = window.dataLayer || []
-  // gtag.js reads the `arguments` object itself off dataLayer, so this must
-  // push `arguments` (not a rest array), exactly as Google's snippet does.
-  // biome-ignore lint/complexity/noArguments: gtag.js requires the arguments object
-  window.gtag = function gtag() { window.dataLayer.push(arguments) }
-  window.gtag('js', new Date())
-  // These params are NOT what enforces the policy. The Google tag ignores the
-  // on-page config (its "Ignore duplicate instances of on-page configuration"
-  // setting is on), so signals, ad personalisation and the cookie lifetime are
-  // set in GA4 admin (docs/ANALYTICS.md → GA4 admin setup). Kept as a fallback
-  // should that setting ever be turned off.
-  window.gtag('config', id, {
-    allow_google_signals: false,
-    allow_ad_personalization_signals: false,
-    cookie_expires: COOKIE_EXPIRES_S,
-  })
-  const s = document.createElement('script')
-  s.async = true
-  s.src = `${GTAG_SRC}?id=${encodeURIComponent(id)}`
-  document.head.appendChild(s)
+  if (!configured) {
+    configured = true
+    window.dataLayer = window.dataLayer || []
+    // gtag.js reads the `arguments` object itself off dataLayer, so this must
+    // push `arguments` (not a rest array), exactly as Google's snippet does.
+    // biome-ignore lint/complexity/noArguments: gtag.js requires the arguments object
+    window.gtag = function gtag() { window.dataLayer.push(arguments) }
+    window.gtag('js', new Date())
+    // These params are NOT what enforces the policy. The Google tag ignores the
+    // on-page config (its "Ignore duplicate instances of on-page configuration"
+    // setting is on), so signals, ad personalisation and the cookie lifetime are
+    // set in GA4 admin (docs/ANALYTICS.md → GA4 admin setup). Kept as a fallback
+    // should that setting ever be turned off.
+    window.gtag('config', id, {
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
+      cookie_expires: COOKIE_EXPIRES_S,
+    })
+  }
+  if (scriptState !== 'none') return
+  scriptState = 'waiting'
+  defer(() => injectScript(id))
 }
 
 function stopTracking(id) {
@@ -193,6 +248,9 @@ function send(event, props, done) {
   if (import.meta.env.DEV) console.debug('[track]', event, params)
   if (!params || !activeId || typeof window.gtag !== 'function') return false
   window.gtag('event', event, done ? { ...params, event_callback: done } : params)
+  // An event means the visitor has done something worth counting, and the caller
+  // may be about to navigate: don't leave the hit queued behind an idle moment.
+  if (scriptState === 'waiting') injectScript(activeId)
   return true
 }
 
@@ -280,8 +338,12 @@ export function initAnalytics({ hostname = location.hostname } = {}) {
   window.addEventListener('pageshow', e => { if (e.persisted) recheck() })
 }
 
-// Test-only: reset module state between cases.
-export function _resetForTests() {
+// Test-only: reset module state between cases. Pass `{ defer }` to replace what
+// defers the script (e.g. `fn => fn()` to inject at once); `{ defer: null }`
+// restores the real one. Omitting it leaves it as it is.
+export function _resetForTests(opts) {
   activeId = ''
-  scriptLoaded = false
+  configured = false
+  scriptState = 'none'
+  if (opts && 'defer' in opts) defer = opts.defer || afterPageSettles
 }

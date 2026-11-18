@@ -19,6 +19,7 @@ import {
   track, initAnalytics, measurementIdFor, optOutReason, safeParams,
   OPT_OUT_KEY, OWNER_KEY, isOwner, _resetForTests,
 } from '../src/js/modules/analytics.js'
+import { initPageLoader } from '../src/js/modules/loader.js'
 
 const ID = 'G-TEST123'
 const gtagScript = () => document.querySelector('script[src^="https://www.googletagmanager.com/gtag/js"]')
@@ -28,7 +29,9 @@ const pushed = () => (window.dataLayer || []).map(a => Array.from(a))
 const events = () => pushed().filter(a => a[0] === 'event')
 
 beforeEach(() => {
-  _resetForTests()
+  // Inject the script at once: the suites below are about WHETHER gtag loads.
+  // WHEN it loads is covered in 'gtag.js load timing' at the bottom.
+  _resetForTests({ defer: fn => fn() })
   document.head.innerHTML = ''
   document.body.innerHTML = ''
   delete window.dataLayer
@@ -402,5 +405,83 @@ describe('the owner flag (?owner=1 → gtag never loads)', () => {
     expect(() => initAnalytics({ hostname: 'staging.example' })).not.toThrow()
     expect(isOwner()).toBe(false)
     expect(location.search).toBe('')
+  })
+})
+
+describe('gtag.js load timing (deferred until the page has been revealed and loaded)', () => {
+  // The real scheduler: pageReady (resolved here by a page with no preloader) →
+  // load → an idle moment. jsdom is already `complete` and has no
+  // requestIdleCallback, so that last step is the 1 ms timeout fallback.
+  const flush = async () => { for (let i = 0; i < 5; i++) await Promise.resolve() }
+  beforeEach(() => {
+    _resetForTests({ defer: null })
+    vi.useFakeTimers()
+    initPageLoader()
+  })
+
+  it('sets up the queue at init but injects the script only afterwards', async () => {
+    initAnalytics({ hostname: 'staging.example' })
+    expect(gtagScript()).toBeNull()
+    expect(pushed().some(a => a[0] === 'config' && a[1] === ID)).toBe(true)
+    await flush()
+    vi.advanceTimersByTime(1)
+    expect(gtagScript().src).toBe(`https://www.googletagmanager.com/gtag/js?id=${ID}`)
+  })
+
+  it('an event tracked during the wait is queued and brings the script forward at once', async () => {
+    initAnalytics({ hostname: 'staging.example' })
+    expect(gtagScript()).toBeNull()
+    track('sign_up', { method: 'newsletter' })
+    expect(events()).toEqual([['event', 'sign_up', { method: 'newsletter' }]])
+    expect(gtagScript()).not.toBeNull() // no waiting on load/idle: the caller may be about to navigate
+    await flush()
+    vi.advanceTimersByTime(5000)
+    expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1) // the deferred run is a no-op
+  })
+
+  it('a dropped event does not bring the script forward', async () => {
+    initAnalytics({ hostname: 'staging.example' })
+    track('not_allowed', { anything: 'x' })
+    expect(gtagScript()).toBeNull()
+  })
+
+  it('never injects the script if the visitor opts out while it is waiting', async () => {
+    document.body.innerHTML = `<div data-analytics-optout hidden>
+      <p data-analytics-status></p><button data-analytics-toggle></button></div>`
+    initAnalytics({ hostname: 'staging.example' })
+    document.querySelector('[data-analytics-toggle]').click() // off, before the script loads
+    await flush()
+    vi.advanceTimersByTime(5000)
+    expect(gtagScript()).toBeNull()
+    expect(window[`ga-disable-${ID}`]).toBe(true)
+  })
+
+  it('loads once after opting out and back in during the wait', async () => {
+    document.body.innerHTML = `<div data-analytics-optout hidden>
+      <p data-analytics-status></p><button data-analytics-toggle></button></div>`
+    initAnalytics({ hostname: 'staging.example' })
+    const btn = document.querySelector('[data-analytics-toggle]')
+    btn.click() // off
+    btn.click() // back on
+    await flush()
+    vi.advanceTimersByTime(5000)
+    expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1)
+  })
+
+  it('opting out, letting the wait run out, then opting back in configures gtag only once', async () => {
+    document.body.innerHTML = `<div data-analytics-optout hidden>
+      <p data-analytics-status></p><button data-analytics-toggle></button></div>`
+    initAnalytics({ hostname: 'staging.example' })
+    const btn = document.querySelector('[data-analytics-toggle]')
+    btn.click() // off
+    await flush()
+    vi.advanceTimersByTime(5000) // the deferred run finds the opt-out and stands down
+    expect(gtagScript()).toBeNull()
+    btn.click() // back on: queues the script again
+    await flush()
+    vi.advanceTimersByTime(5000)
+    expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1)
+    expect(pushed().filter(a => a[0] === 'config')).toHaveLength(1)
+    expect(pushed().filter(a => a[0] === 'js')).toHaveLength(1)
   })
 })
