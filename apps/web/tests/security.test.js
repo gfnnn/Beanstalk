@@ -1,8 +1,8 @@
 // Tests for src/build/security.js — the build-time CSP/Referrer meta. The policy
 // must pin connect-src to whatever Worker origin the build points the forms at
 // (the VITE_*_FN_URL vars), fall back to the documented default when unset, and
-// keep the allowances the site actually needs (inline styles, Google fonts/maps,
-// blob: image previews).
+// keep the allowances the site actually needs (inline styles, the Google Maps
+// embed, blob: image previews) and nothing for fonts beyond 'self'.
 import { describe, it, expect } from 'vitest'
 import { cspContent, workerConnectOrigins, renderSecurityMeta, REFERRER_POLICY } from '../src/build/security.js'
 
