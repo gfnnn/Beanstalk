@@ -9,10 +9,8 @@
   background: var(--cream);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 28px var(--space-6);
   display: flex;
   flex-direction: column;
-  position: relative;
   overflow: hidden;
   transition: border-color var(--dur), transform var(--dur) var(--ease);
   will-change: transform, opacity;
@@ -22,8 +20,21 @@
   transform: translateY(-2px);
 }
 
-/* Large italic numeral in background */
-.specialism-card::before {
+/* One photo per card, flush to the card's top edge; every label sits under it.
+   The frame + hover lift are the shared .tile-media rules (gallery.css) — the
+   card clips its corners, so the frame's own radius is dropped. */
+.specialism-photo { border-radius: 0; }
+.specialism-photo:hover img { transform: scale(1.04); filter: brightness(1.04); }
+
+.specialism-content {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  padding: var(--space-6);
+}
+
+/* Large italic numeral behind the text (never the photo) */
+.specialism-content::before {
   content: attr(data-num);
   position: absolute;
   top: -18px;
@@ -38,40 +49,16 @@
   user-select: none;
   z-index: 0;
 }
+.specialism-content > * { position: relative; z-index: 1; }
 
 .specialism-num {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--moss);
-  margin-bottom: 36px;
-  position: relative;
-  z-index: 1;
+  margin-bottom: var(--space-6);
 }
-
-.specialism-content { position: relative; z-index: 1; }
-
-.specialism-previews {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-.specialism-previews .preview {
-  flex: 1;
-  aspect-ratio: 1;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--bg-alt);
-  display: block;
-}
-.specialism-previews .preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 500ms var(--ease), filter 500ms var(--ease);
-}
-.specialism-previews .preview:hover img { transform: scale(1.04); filter: brightness(1.04); }
 
 .specialism-title {
   font-family: var(--serif);
@@ -107,8 +94,7 @@
 
 @media (min-width: 640px) {
   .specialism-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
-  .specialism-card { padding: var(--space-8); }
-  .specialism-num  { margin-bottom: 44px; }
+  .specialism-content { padding: var(--space-8); }
   .specialism-title { font-size: 32px; }
 }
 

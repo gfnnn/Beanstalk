@@ -46,7 +46,8 @@ approximation.
 
 **Direction & texture vocabulary.** Text **rises** (`y`); eyebrows **slide from the
 left** (their leading hairline grows in too); the hero media **slides from the
-edge**. A faint **blur-to-focus** ("coming into focus through foliage", §3-C) rides
+edge** on desktop and, below 900px where the photo fills the first screen, only
+**fades** (no travel). A faint **blur-to-focus** ("coming into focus through foliage", §3-C) rides
 **headings only**. The sprig **draws / grows** (§3-A line-drawing, §3-B living ink);
 the page gains shallow **depth** on scroll (§3-D, the sprig parallax); surfaces get a
 "light falling on it" lift on hover (§3-F); the whole sits on **paper grain** (§3-H);
@@ -104,6 +105,10 @@ entrance* waits on `pageReady`.
 - **Hero (home)** and **page-header (inner pages)** play an on-load GSAP timeline:
   eyebrow → title (blur-rise) → descriptor/body. Eyebrows **fade only** — the
   leftward motion is carried by the eyebrow's leading rule growing in (see below).
+  The home hero's photo and the caption under it arrive as **one** element
+  (`.hero-media`): nothing is overlaid on the photo, so there are no separate
+  overlay beats, and the nav is never part of the entrance (it is solid and paints
+  immediately at every width).
 - **`revealGroup(items, …)`** is the shared card/tile cascade. Two deliberate
   choices make it read right everywhere:
   - **Per-item stagger (`each`), not a fixed total.** A fixed total split across a

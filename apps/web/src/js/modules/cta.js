@@ -8,17 +8,26 @@
 // This is a FUNCTIONAL control, not decoration — so it deliberately lives
 // outside animations.js and is never gated on prefers-reduced-motion (it used
 // to be, which hid the homepage CTA from reduced-motion users entirely).
+//
+// While the bar is off-screen it is `aria-hidden` AND `inert`: aria-hidden alone
+// hides it from screen readers but leaves its link in the tab order, so keyboard
+// focus could land on a control nobody can see. The markup ships in that hidden
+// state, so it is right before (and without) JS.
 // No-ops when the page has no #mobile-cta.
 export function initMobileCta() {
   const mobileCta = document.getElementById('mobile-cta')
   if (!mobileCta) return
 
+  const setShown = show => {
+    mobileCta.classList.toggle('visible', show)
+    mobileCta.setAttribute('aria-hidden', String(!show))
+    mobileCta.toggleAttribute('inert', !show)
+  }
+
   const hero = document.querySelector('.hero')
   if (hero) {
     const obs = new IntersectionObserver(([e]) => {
-      const show = !e.isIntersecting
-      mobileCta.classList.toggle('visible', show)
-      mobileCta.setAttribute('aria-hidden', String(!show))
+      setShown(!e.isIntersecting)
     }, { threshold: 0 })
     obs.observe(hero)
   } else {
@@ -26,10 +35,7 @@ export function initMobileCta() {
     // portrait after load would otherwise have the bar's box displayed by the
     // CSS breakpoint but never given .visible — present yet off-screen forever.
     const mq = window.matchMedia('(max-width: 639px)')
-    const apply = () => {
-      mobileCta.classList.toggle('visible', mq.matches)
-      mobileCta.setAttribute('aria-hidden', String(!mq.matches))
-    }
+    const apply = () => setShown(mq.matches)
     apply()
     mq.addEventListener?.('change', apply)
   }

@@ -356,7 +356,7 @@ describe('motion.css FOUC guard covers the woven-in above-the-fold elements', ()
     '.newsletter-band-title',
     '.newsletter-band-sub',
     '.scroll-hint',
-    '.hero-media-tag',
+    '.hero-media',
     '.filter-bar .filter-toggle',
   ])('guards %s', sel => {
     expect(motionCss).toContain(sel)

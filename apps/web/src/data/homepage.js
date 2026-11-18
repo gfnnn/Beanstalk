@@ -40,13 +40,13 @@
 //
 // ── specialisms — the "What I do" cards (homepage only) ───────────────────────
 //   The three style cards under the portfolio teaser. Each card showcases ONE
-//   portfolio style and pulls its preview thumbnails LIVE from src/data/pieces.js
-//   (the newest pieces with a photo carrying that style — see
+//   portfolio style and pulls its ONE photo LIVE from src/data/pieces.js
+//   (the newest piece with a photo carrying that style — see
 //   src/build/specialisms.js). You only choose the style + the copy here:
 //     style  a portfolio style TOKEN — must match the chips / STYLE_LABELS:
 //            fine-line · high-detail · realism · black-grey · colour · dotwork ·
 //            cybersigilism · script
-//            The card title + "Browse … work" link + previews all derive from it.
+//            The card title + "Browse … work" link + photo all derive from it.
 //     em     the italic adjective after the style name in the <h3>          (COPY)
 //     body   2–3 sentences describing the style — what it is, who it suits  (COPY)
 //   Card order = array order; the "0X / 0Y" numbering is computed from it. The
@@ -57,7 +57,7 @@
 //   Keep the always-on featured styles to three.
 //
 // ── videoCredit — crediting whoever shot the hero video ───────────────────────
-//   A small credit line over the hero media (the column that will hold the
+//   A small credit line under the hero media (the column that will hold the
 //   process video). Off until the video + credit are confirmed.
 //     show    true → render the line, false → leave it off entirely
 //     label   short mono lead-in, e.g. 'Film by'                            (COPY)
@@ -83,7 +83,6 @@ export const homepage = {
     headLead: 'Quietly considered',
     headEm:   'bespoke tattoo.',
     body:     "I'm Roxy, the fine line, high detail and realism tattoo artist behind Beansprout, working out of Tiny Knives in Winchester. Bespoke pieces, drawn for one person, at a pace that never feels rushed.",
-    mediaTag: 'Beansprout · By appointment',
   },
 
   specialisms: [

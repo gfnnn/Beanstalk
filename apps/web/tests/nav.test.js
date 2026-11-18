@@ -183,109 +183,23 @@ describe('initNav', () => {
     })
   })
 
-  // The homepage's full-screen mobile hero needs the nav transparent over the
-  // video, then solid once it's scrolled past. nav.js owns that with an
-  // IntersectionObserver scoped to .page-home + mobile (the IO *firing* is E2E —
-  // hero-mobile.spec.js — but the setup/lifecycle is synchronous and pinned here:
-  // jsdom has no IO/matchMedia, so both are mocked, reusing the cta/media pattern).
-  describe('homepage hero nav (over-hero, mobile)', () => {
-    let ioInstances, mqListeners, mq
-
-    class MockIO {
-      constructor(cb) { this.cb = cb; this.observed = []; this.disconnected = false; ioInstances.push(this) }
-      observe(el) { this.observed.push(el) }
-      disconnect() { this.disconnected = true }
-      fire(isIntersecting) { this.cb([{ isIntersecting }]) }
-    }
-    // A controllable `(min-width: 900px)` query: `matches` is mutable and the
-    // change listeners can be fired to simulate a resize across the breakpoint.
-    const stubDesktop = matches => {
-      mqListeners = []
-      mq = { matches, addEventListener: (_, fn) => mqListeners.push(fn) }
-      window.matchMedia = () => mq
-    }
-    const resizeTo = matches => { mq.matches = matches; mqListeners.forEach(fn => fn()) }
-
-    // Homepage fixture: body.page-home + the full-screen intro the observer watches.
-    const homeSetup = () => {
-      document.body.classList.add('page-home')
-      document.body.innerHTML = `
-        <nav id="main-nav"><div class="nav-links"></div><button id="nav-hamburger" aria-expanded="false"></button></nav>
-        <div id="nav-drawer" class="nav-drawer" aria-hidden="true"></div>
-        <section class="hero-intro"></section>
-      `
-    }
-    const over = () => $('main-nav').classList.contains('over-hero')
-
-    beforeEach(() => { ioInstances = []; vi.stubGlobal('IntersectionObserver', MockIO) })
-    afterEach(() => {
-      vi.unstubAllGlobals()
-      delete window.matchMedia
-      document.body.classList.remove('page-home')
-    })
-
-    it('on mobile, goes transparent from first paint and observes the hero intro', () => {
-      homeSetup(); stubDesktop(false) // mobile
-      initNav()
-      expect(over()).toBe(true)
-      expect(ioInstances).toHaveLength(1)
-      expect(ioInstances[0].observed).toContain(document.querySelector('.hero-intro'))
-    })
-
-    it('toggles over-hero off when the intro scrolls out of view, and back on when it returns', () => {
-      homeSetup(); stubDesktop(false)
-      initNav()
-      ioInstances[0].fire(false)              // intro scrolled past → solid nav
-      expect(over()).toBe(false)
-      ioInstances[0].fire(true)               // back over the intro → transparent
-      expect(over()).toBe(true)
-    })
-
-    it('does nothing on desktop — no observer, never transparent', () => {
-      homeSetup(); stubDesktop(true) // desktop
-      initNav()
-      expect(over()).toBe(false)
-      expect(ioInstances).toHaveLength(0)
-    })
-
-    it('connects on a resize down to mobile and disconnects (no leak) on the way back up', () => {
-      homeSetup(); stubDesktop(true) // load on desktop
-      initNav()
-      expect(ioInstances).toHaveLength(0)
-
-      resizeTo(false)                         // → mobile: connect + transparent
-      expect(over()).toBe(true)
-      expect(ioInstances).toHaveLength(1)
-
-      resizeTo(true)                          // → desktop: disconnect + solid
-      expect(ioInstances[0].disconnected).toBe(true)
-      expect(over()).toBe(false)
-    })
-
-    it('no-ops off the homepage and when there is no hero target', () => {
-      stubDesktop(false)
-      // page-home but no .hero-intro/.hero target
-      document.body.classList.add('page-home')
-      document.body.innerHTML = '<nav id="main-nav"></nav>'
-      initNav()
-      expect(over()).toBe(false)
-      expect(ioInstances).toHaveLength(0)
-
-      // a hero target but NOT the homepage
-      document.body.classList.remove('page-home')
-      document.body.innerHTML = '<nav id="main-nav"></nav><section class="hero-intro"></section>'
-      initNav()
-      expect(over()).toBe(false)
-      expect(ioInstances).toHaveLength(0)
-    })
-
-    it('no-ops (no throw) when IntersectionObserver is unavailable', () => {
-      homeSetup(); stubDesktop(false)
-      vi.stubGlobal('IntersectionObserver', undefined)
-      delete window.IntersectionObserver // make `'IntersectionObserver' in window` false
-      expect(() => initNav()).not.toThrow()
-      expect(over()).toBe(false)
-    })
+  // The mobile homepage hero used to float a transparent nav over the photo.
+  // Nothing sits on the photo any more, so the nav is the same solid bar on the
+  // homepage as everywhere else: no `over-hero` state, no observer.
+  it('keeps the nav solid on the mobile homepage (no transparent over-hero state)', () => {
+    const observed = []
+    vi.stubGlobal('IntersectionObserver', class { observe(el) { observed.push(el) } disconnect() {} })
+    window.matchMedia = () => ({ matches: false, addEventListener() {} })
+    document.body.innerHTML = `
+      <nav id="main-nav"><div class="nav-links"></div><button id="nav-hamburger" aria-expanded="false"></button></nav>
+      <div id="nav-drawer" class="nav-drawer" aria-hidden="true"></div>
+      <section class="hero"><div class="hero-media"></div></section>
+    `
+    initNav()
+    expect($('main-nav').classList.contains('over-hero')).toBe(false)
+    expect(observed).toHaveLength(0)
+    vi.unstubAllGlobals()
+    delete window.matchMedia
   })
 
   describe('scroll state', () => {

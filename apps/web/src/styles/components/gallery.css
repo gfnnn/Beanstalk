@@ -1,71 +1,73 @@
 /* ── Portfolio tiles (home page teaser) ──────────────────────────────────────
    Every piece is exported to the same 700×930 portrait spec, so the teaser is a
-   uniform grid — no spanning, no per-tile aspect overrides (those cropped the
-   portrait sources to landscape and left ragged gaps).
-   Mobile:  2 cols × 3 rows.   Desktop: 3 cols × 2 rows.
+   uniform grid — no spanning, no per-tile aspect overrides.
+   Phone: 1 column.   Tablet: 2 columns.   Desktop: 3 columns × 2 rows.
+
+   The caption sits UNDER the photo on every grid (here and the full portfolio
+   grid in masonry.css) — nothing is written over the work, on any device, and
+   nothing is revealed on hover. The shared tile parts are defined once below.
    ─────────────────────────────────────────────────────────────────────────── */
 
 .portfolio-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: 1fr;
+  gap: var(--space-8) var(--space-2);
 }
 
-/* Uniform portrait tile, matching the 700×930 export ratio so nothing crops */
 .tile {
-  position: relative;
-  overflow: hidden;
-  background: var(--bg-alt);
-  border-radius: var(--radius);
+  display: block;
   cursor: pointer;
-  aspect-ratio: 700 / 930;
   will-change: transform, opacity;
 }
 
-.tile img {
+/* ── Shared tile parts (home teaser .tile + portfolio .masonry-tile) ───────── */
+/* The photo frame: owns the crop, the radius and the tone swatch that shows
+   until the image loads (or the line-art placeholder when there is no photo). */
+.tile-media {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius);
+  background-color: var(--bg-alt);
+}
+/* The home teaser keeps the 700×930 export ratio so nothing crops. */
+.tile .tile-media { aspect-ratio: 700 / 930; }
+
+.tile-media img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 500ms var(--ease), filter 500ms var(--ease);
 }
-/* scale + a co-timed brightness lift — "light falling on it", softer than a hard overlay (§3-F) */
-.tile:hover img { transform: scale(1.04); filter: brightness(1.04); }
+/* Hover is the image lift only: a scale + co-timed brightness nudge — "light
+   falling on it" (§3-F). No text appears or moves. */
+.tile:hover .tile-media img,
+.masonry-tile:hover .tile-media img { transform: scale(1.04); filter: brightness(1.04); }
 
-/* Hover overlay */
-.tile-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(transparent 45%, rgba(var(--ink-rgb), 0.68) 100%);
-  opacity: 0;
-  transition: opacity var(--dur) var(--ease);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 18px;
+/* The caption under the photo: title, then one line of style · placement. */
+.tile-caption {
+  display: block;
+  padding-top: var(--space-2);
 }
-.tile:hover .tile-overlay { opacity: 1; }
-
-/* Always-visible caption on touch devices (no hover) */
-@media (hover: none) {
-  .tile-overlay {
-    opacity: 1;
-    background: linear-gradient(transparent 55%, rgba(var(--ink-rgb), 0.55) 100%);
-  }
-}
-
-.tile-meta-title {
+.tile-title {
+  display: block;
   font-family: var(--serif);
-  font-size: 15px;
   font-weight: 300;
-  color: var(--cream);
-  margin-bottom: 3px;
+  font-size: 15px;
+  line-height: 1.25;
+  color: var(--ink);
 }
-.tile-meta-sub {
+.tile-sub {
+  display: block;
+  margin-top: var(--space-1);
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
   text-transform: uppercase;
-  color: rgba(var(--cream-rgb), 0.6);
+  color: var(--ink-soft);
 }
 
 /* Gradient placeholder swatches */
@@ -81,9 +83,15 @@
 /* Hero tile swatches (.gradient-*) are defined once in components/tones.css,
    driven by the palette in src/data/palette.js. */
 
+/* Tablet — 2 across */
+@media (min-width: 640px) {
+  .portfolio-grid { grid-template-columns: 1fr 1fr; }
+}
+
 /* Desktop — 3 across, two clean rows of six uniform portrait tiles */
 @media (min-width: 900px) {
-  .portfolio-grid { grid-template-columns: repeat(3, 1fr); }
+  .portfolio-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-8) var(--space-3); }
+  .tile-title     { font-size: 16px; }
 }
 
 

@@ -46,7 +46,8 @@ function media(p) {
                width="${p.w}" height="${p.h}" fetchpriority="high" decoding="async">`
     }
     const srcset = ext => `${esc(p.img)}-400.${ext} 400w, ${esc(p.img)}-800.${ext} 800w, ${esc(p.img)}-1200.${ext} 1200w`
-    const sizes  = '(min-width:900px) 56vw, 100vw'
+    // ~60% of the 1200px content column from 900px; full width when stacked.
+    const sizes  = '(min-width:1200px) 640px, (min-width:900px) 55vw, 100vw'
     return `<picture>
           <source type="image/avif" srcset="${srcset('avif')}" sizes="${sizes}">
           <source type="image/webp" srcset="${srcset('webp')}" sizes="${sizes}">
@@ -58,6 +59,15 @@ function media(p) {
   return `<div class="piece-media-ph ${p.tone}" role="img" aria-label="${esc(altText(p))} — photo coming soon">
           <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">${glyph}</svg>
         </div>`
+}
+
+// ["Fine line", "Black & grey", "Realism"] → "Fine line, black & grey and realism"
+// (a sentence, so only the first label keeps its capital).
+export function wordList(labels) {
+  const words = labels.map((l, i) => (i ? l.toLowerCase() : l))
+  return words.length > 1
+    ? `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`
+    : words.join('')
 }
 
 const pagerLink = (rel, label, piece) => piece
@@ -78,8 +88,10 @@ export function renderPiecePage(p, { prev, next, cssHref = '/src/styles/main.css
   // Alt for the share image: the piece's own description when it has a photo,
   // else the brand default (it falls back to OG_IMAGE above).
   const ogImageAlt = p.img ? altText(p) : OG_IMAGE_ALT
-  const tags    = [...p.styles.map(styleLabel), placeLabel(p.placement)]
-    .map(t => `<li class="piece-tag">${esc(t)}</li>`).join('')
+  // Style(s) and placement, written out in words ("Fine line, black & grey and
+  // realism"). No date: most `date` values are import dates, not the day the
+  // piece was made — the field only orders the grid.
+  const styles  = wordList(p.styles.map(styleLabel))
 
   const breadcrumb = {
     '@context': 'https://schema.org',
@@ -184,10 +196,12 @@ ${LOADER_MARKUP}
     <div class="piece-detail">
       <p class="page-eyebrow reveal reveal-d1">Portfolio</p>
       <h1 class="piece-title reveal reveal-d2">${esc(p.title)}</h1>
-      <ul class="piece-tags reveal reveal-d2" role="list">${tags}</ul>
+      <dl class="piece-facts reveal reveal-d2">
+        <div class="piece-fact"><dt>${p.styles.length > 1 ? 'Styles' : 'Style'}</dt><dd>${esc(styles)}</dd></div>
+        <div class="piece-fact"><dt>Placement</dt><dd>${esc(placeLabel(p.placement))}</dd></div>
+      </dl>
       <div class="piece-actions reveal reveal-d3">
         <a href="/enquire/" class="btn btn-primary">Enquire about a piece like this →</a>
-        <a href="/portfolio/" class="btn btn-outline">See more work</a>
       </div>
     </div>
   </div>
