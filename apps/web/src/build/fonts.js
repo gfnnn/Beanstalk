@@ -6,7 +6,7 @@
 //
 // Without a hint the browser only discovers a font once main.css has arrived AND
 // layout has found text that uses it, which is late: the preloader holds the page
-// until document.fonts.ready (src/js/modules/loader.js), so late fonts are a late
+// until its key fonts have loaded (src/js/modules/loader.js), so late fonts are a late
 // page. Preloading starts the two faces behind almost all first-view text — Karla
 // (body) and Fraunces roman (headings) — alongside the stylesheet. The other two
 // (Fraunces italic, JetBrains Mono) are left to normal discovery: preloading

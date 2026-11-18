@@ -81,7 +81,9 @@ The whole reveal hangs off one promise and one class.
      session — `sessionStorage['bs-visited']`, *except* a reload, which counts as
      cold): the cover is dropped instantly and `pageReady` resolves right away. The
      View Transition is doing the cross-fade, so the cover would only get in the way.
-   - **Cold** load: the cover holds until `document.fonts.ready` (the font swap is
+   - **Cold** load: the cover holds until the **key fonts** have loaded — Karla,
+     Fraunces roman and JetBrains Mono (`KEY_FONTS` in `modules/loader.js`); it does
+     not wait for Fraunces italic, which swaps in on the few accent words it sets (the font swap is
      the real cause of the reflow), then lifts **all-or-nothing**: a cover that's
      been visible ≤0.4s lifts immediately (reads as "no preloader ran"), while one
      seen any longer commits — holding to a 0.8s minimum total so the cover reads
@@ -183,7 +185,7 @@ whole page from first paint.
   inserts are idempotent).
 - The mark is shown **fully formed** with only a gentle compositor **opacity
   breathe** — it deliberately does *not* reveal-from-hidden. The cover dismisses on
-  `document.fonts.ready` (near-instant on a mobile/cached load), so a draw or fade-in
+  the key fonts being ready (near-instant on a mobile/cached load), so a draw or fade-in
   *here* would still be hidden when the cover lifts (the "missing on mobile"
   regression). The ink-rise draw lives on the nav logo + confirmation mark instead,
   past the dismiss race — see *Brand-mark ink-rise* below.

@@ -3,9 +3,10 @@
 // src/build/loader.js. It exists for ONE job: the COLD first load, where the
 // render-blocking CSS + `display=swap` fonts arrive slowly (the reported iPad
 // flash). It covers from first paint, then lifts once the page is genuinely ready
-// (document.fonts.ready — the font swap is the main cause of the visible reflow),
-// with a hard ceiling so a hung font/network never traps the visitor and a pure-CSS
-// failsafe in case this bundle never runs.
+// (its KEY fonts have loaded — the font swap is the main cause of the visible
+// reflow; see KEY_FONTS below for which, and why not all of them), with a hard
+// ceiling so a hung font/network never traps the visitor and a pure-CSS failsafe
+// in case this bundle never runs.
 //
 // HOW LONG the cover stays is bimodal — all-or-nothing, tuned to perception.
 // Lifting the moment the page was ready (the old behaviour) made awkward middles:
@@ -63,6 +64,30 @@ const SESSION_KEY = 'bs-visited'
 // is slight, opacity 1 → ~0.9) and the fade takes over from there.
 export const QUICK_LIFT_MS = 400
 export const MIN_SHOW_MS = 800
+
+// The faces the cover waits for: body copy (Karla), headings (Fraunces roman) and
+// the eyebrow/label face (JetBrains Mono) — everything the first view is set in
+// bar one. The one it does NOT wait for is Fraunces italic: it is the largest
+// file, it sets only the odd accent word, and on a slow connection it was holding
+// the whole page back for those few words. Those words show in the fallback
+// serif's italic until it arrives and then swap, usually while the heading is
+// still blur-fading in. Each entry is a CSS font shorthand for
+// document.fonts.load(); the faces themselves are declared in styles/fonts.css.
+export const KEY_FONTS = ['300 1em Fraunces', '1em Karla', '1em "JetBrains Mono"']
+
+// Resolves when the key faces have loaded (or failed — a failed font must not
+// hold the page; the ceiling below is the backstop for one that hangs). Falls
+// back to "every font" (document.fonts.ready) where load() is unavailable, and
+// also when load() matched no face at all: that means the @font-face rules were
+// not there to match, so lifting now would uncover unstyled text.
+function keyFontsReady() {
+  const fonts = document.fonts
+  if (typeof fonts?.load !== 'function') return Promise.resolve(fonts?.ready)
+  return Promise.allSettled(KEY_FONTS.map(font => fonts.load(font))).then(results => {
+    const matched = results.some(r => r.status === 'fulfilled' && r.value?.length)
+    return matched ? undefined : fonts.ready
+  })
+}
 
 let signalReady
 /** Resolves when the page should be revealed (cover lifting / warm nav / no cover). */
@@ -163,7 +188,6 @@ export function initPageLoader() {
     else fadeOut()
   }
 
-  const fontsReady = (document.fonts?.ready) || Promise.resolve()
-  Promise.resolve(fontsReady).then(dismiss)
+  keyFontsReady().then(dismiss, dismiss)
   setTimeout(dismiss, 3000) // hard ceiling — never trap the page behind the overlay
 }

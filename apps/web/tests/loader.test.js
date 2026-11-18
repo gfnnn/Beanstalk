@@ -8,7 +8,7 @@
 // document.fonts.ready (with a hard ceiling so it can never trap the page).
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { injectPageLoader, LOADER_STYLE, LOADER_MARKUP } from '../src/build/loader.js'
-import { initPageLoader, QUICK_LIFT_MS, MIN_SHOW_MS } from '../src/js/modules/loader.js'
+import { initPageLoader, QUICK_LIFT_MS, MIN_SHOW_MS, KEY_FONTS } from '../src/js/modules/loader.js'
 
 const doc = body =>
   `<!doctype html><html><head><title>t</title></head><body>${body}</body></html>`
@@ -138,6 +138,52 @@ describe('initPageLoader (runtime dismissal)', () => {
     await vi.advanceTimersByTimeAsync(700)
     expect(document.getElementById('page-loader')).toBeNull()
     vi.useRealTimers()
+  })
+
+  describe('which fonts the cold cover waits for', () => {
+    const never = new Promise(() => {})
+
+    it('lifts once the key faces have loaded, without waiting for every font', async () => {
+      setReducedMotion(true) // no hold, no fade: isolates the font wait
+      const load = vi.fn(() => Promise.resolve([{}]))
+      document.fonts = { load, ready: never } // e.g. the italic face is still downloading
+      mountOverlay()
+      initPageLoader()
+      await flush()
+      expect(load.mock.calls.map(c => c[0])).toEqual(KEY_FONTS)
+      expect(document.getElementById('page-loader')).toBeNull()
+    })
+
+    it('stays covered while a key face is still loading', async () => {
+      setReducedMotion(true)
+      document.fonts = { load: font => (font.includes('Karla') ? never : Promise.resolve([{}])), ready: never }
+      mountOverlay()
+      initPageLoader()
+      await flush()
+      expect(document.getElementById('page-loader')).not.toBeNull()
+    })
+
+    it('a key face that fails to load does not hold the page', async () => {
+      setReducedMotion(true)
+      document.fonts = { load: font => (font.includes('Karla') ? Promise.reject(new Error('network')) : Promise.resolve([{}])), ready: never }
+      mountOverlay()
+      initPageLoader()
+      await flush()
+      expect(document.getElementById('page-loader')).toBeNull()
+    })
+
+    it('falls back to every font when load() matches no face (the @font-face rules are missing)', async () => {
+      setReducedMotion(true)
+      let allReady
+      document.fonts = { load: () => Promise.resolve([]), ready: new Promise(r => { allReady = r }) }
+      mountOverlay()
+      initPageLoader()
+      await flush()
+      expect(document.getElementById('page-loader')).not.toBeNull()
+      allReady()
+      await flush()
+      expect(document.getElementById('page-loader')).toBeNull()
+    })
   })
 
   it('cold: the 3s hard ceiling dismisses even if fonts.ready never resolves', async () => {
