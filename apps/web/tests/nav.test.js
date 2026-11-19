@@ -136,6 +136,35 @@ describe('initNav', () => {
       expect(document.body.style.overflow).toBe('')
     })
 
+    // The real drawer ships with `inert` (index.html), so its links are out of the
+    // tab order and the a11y tree while it is closed. Opening must lift that and
+    // EVERY way of closing must put it back, or a keyboard user tabs into an
+    // invisible menu.
+    it('lifts inert while open and restores it on each way of closing', () => {
+      setup()
+      const drawer = $('nav-drawer')
+      drawer.setAttribute('inert', '')
+      initNav()
+      const burger = $('nav-hamburger')
+
+      click(burger)
+      expect(drawer.hasAttribute('inert')).toBe(false)
+      click(burger)
+      expect(drawer.hasAttribute('inert')).toBe(true)
+
+      click(burger)
+      keydown('Escape')
+      expect(drawer.hasAttribute('inert')).toBe(true)
+
+      click(burger)
+      expect(drawer.hasAttribute('inert')).toBe(false)
+      const restore = new window.Event('pageshow')
+      Object.defineProperty(restore, 'persisted', { value: true })
+      window.dispatchEvent(restore)
+      expect(drawer.hasAttribute('inert')).toBe(true)
+      expect(drawer.getAttribute('aria-hidden')).toBe('true')
+    })
+
     it('stays open when a drawer link is followed, so the page transition carries it', () => {
       setup(); initNav()
       click($('nav-hamburger'))                       // open

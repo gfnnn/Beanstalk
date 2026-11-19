@@ -5,7 +5,8 @@
 // can't silently regress it. We assert the structural, automatable a11y floor that
 // doesn't need a real browser — landmark/heading structure, a working skip-link,
 // language + viewport, and alt-text presence on images. The richer browser-only
-// checks (focus order, colour contrast, motion) stay with the Playwright/axe tier.
+// checks (focus order, colour contrast, motion) are NOT automated anywhere yet: the
+// Playwright tier covers behaviour, and there is no axe pass. They are checked by hand.
 //
 // It runs over the AUTHORED page HTML (the *.html files Vite serves) plus a
 // rendered per-piece page (those are generated, so they're checked via the

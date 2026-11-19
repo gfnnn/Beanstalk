@@ -151,49 +151,65 @@ describe('initLoadMore', () => {
     expect(revealed.style.opacity).toBe('')
   })
 
-  it('holds the loading state until the revealed batch images load, then restores', async () => {
-    vi.useFakeTimers()
-    setup(20)
-    // Give the second-page tiles a still-loading image so settleBatch must wait on
-    // them (jsdom never fires load on its own — we control it).
+  // settleBatch races the images against a 1600 ms ceiling, then applies a 300 ms
+  // floor. These step the clock instead of draining it: running every timer fires
+  // the ceiling, so the button restores whether or not the image events are wired.
+  const pendingImages = () => {
     tiles().slice(PAGE_SIZE).forEach(t => {
       const img = document.createElement('img')
       Object.defineProperty(img, 'complete', { value: false })
       t.appendChild(img)
     })
+  }
+  const settle = type => document.querySelectorAll('.masonry-tile img').forEach(img =>
+    img.dispatchEvent(new window.Event(type)),
+  )
+
+  it.each(['load', 'error'])('holds the loading state until the batch images %s, then restores before the ceiling', async (type) => {
+    vi.useFakeTimers()
+    setup(20)
+    pendingImages()   // jsdom never fires load on its own — we control it
     initLoadMore()
     const btn = document.getElementById('load-more-btn')
     btn.innerHTML = 'Load more work →'
 
     click(btn)
-    expect(btn.disabled).toBe(true) // pinned open while the images are pending
+    expect(btn.disabled).toBe(true)
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(btn.disabled).toBe(true)        // past the floor, still waiting on the images
 
-    // Settle the pending images → the race resolves and (after the floor) restores.
-    document.querySelectorAll('.masonry-tile img').forEach(img =>
-      img.dispatchEvent(new window.Event('load')),
-    )
-    await vi.runAllTimersAsync()
-
+    settle(type)
+    await vi.advanceTimersByTimeAsync(50)  // t=1050, well short of the 1600 ms ceiling
     expect(btn.disabled).toBe(false)
     expect(btn.innerHTML).toBe('Load more work →')
     vi.useRealTimers()
   })
 
-  it('restores even if a pending image errors rather than loads', async () => {
+  it('images that settle at once still hold the spinner for the 300 ms floor', async () => {
     vi.useFakeTimers()
     setup(20)
-    tiles().slice(PAGE_SIZE).forEach(t => {
-      const img = document.createElement('img')
-      Object.defineProperty(img, 'complete', { value: false })
-      t.appendChild(img)
-    })
+    pendingImages()
     initLoadMore()
     const btn = document.getElementById('load-more-btn')
     click(btn)
-    document.querySelectorAll('.masonry-tile img').forEach(img =>
-      img.dispatchEvent(new window.Event('error')),
-    )
-    await vi.runAllTimersAsync()
+    settle('load')
+    await vi.advanceTimersByTimeAsync(250)
+    expect(btn.disabled).toBe(true)
+    await vi.advanceTimersByTimeAsync(100)
+    expect(btn.disabled).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('the ceiling frees the button when an image never settles', async () => {
+    vi.useFakeTimers()
+    setup(20)
+    pendingImages()
+    initLoadMore()
+    const btn = document.getElementById('load-more-btn')
+    click(btn)
+    await vi.advanceTimersByTimeAsync(1550)
+    expect(btn.disabled).toBe(true)
+    await vi.advanceTimersByTimeAsync(100)
     expect(btn.disabled).toBe(false)
     vi.useRealTimers()
   })
