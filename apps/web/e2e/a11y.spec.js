@@ -21,12 +21,15 @@ const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
 // Wait out any CSS transition still running (the drawer, the lightbox), so a
 // half-faded surface isn't what gets measured. Looping animations never finish
-// and are skipped.
-const atRest = page => page.evaluate(() => Promise.all(
-  document.getAnimations()
-    .filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime))
-    .map(a => a.finished.catch(() => {})),
-))
+// and are skipped; the 2s cap is for one that is paused and so never would.
+const atRest = page => page.evaluate(() => Promise.race([
+  Promise.all(
+    document.getAnimations()
+      .filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime))
+      .map(a => a.finished.catch(() => {})),
+  ),
+  new Promise(resolve => setTimeout(resolve, 2000)),
+]))
 
 // Scan the page as it stands; fail with one line per offending element, naming
 // the page, the width, the rule and the selector.

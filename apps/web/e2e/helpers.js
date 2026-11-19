@@ -42,9 +42,10 @@ export const VIEWPORTS = [
 
 // Load a page and wait until it has been revealed: the preloader is gone and the
 // bundle has run the entrance step (`motion-ready`, set in main.js on pageReady).
+// The 10s allows for the loader's own 3s font ceiling on a slow runner.
 export async function gotoRevealed(page, path) {
   await page.goto(path)
-  await expect(page.locator('#page-loader')).toHaveCount(0)
+  await expect(page.locator('#page-loader')).toHaveCount(0, { timeout: 10_000 })
   await expect(page.locator('html')).toHaveClass(/motion-ready/)
 }
 

@@ -14,9 +14,11 @@ import { ALL_PAGES, VIEWPORTS, gotoRevealed, stubWorker } from './helpers.js'
 
 test.use({ contextOptions: { reducedMotion: 'reduce' } })
 
-// What the motion layer animates: every `.from()` target in
-// src/js/modules/animations.js (the home hero, the inner-page header, the section
-// registry, the card/tile groups, the filter bar, the enquiry form, `.reveal`).
+// What the motion layer animates on load and on scroll: the `.from()` targets of
+// initHeroAnimation and initScrollAnimations in src/js/modules/animations.js (the
+// home hero, the inner-page header, the section registry, the card/tile groups,
+// the filter bar, the enquiry form, `.reveal`). Not covered: `cascadeReveal`,
+// which a page module calls after an interaction (the aftercare route picker).
 const MOTION_TARGETS = [
   '.reveal',
   '.hero-eyebrow', '.hero h1', '.hero-body', '.hero-actions .btn', '.studio-notices',
@@ -31,20 +33,35 @@ const MOTION_TARGETS = [
   '.filter-bar .filter-toggle', '.filter-bar .chip', '.filter-bar .chip-more', '.filter-bar .filter-select',
 ].join(', ')
 
-// The targets that are not fully shown and at rest, as `selector: what is wrong`.
-const moving = page => page.evaluate(selector => {
+// How many targets the page has, and those that are not fully shown and at rest,
+// as `selector: what is wrong`.
+const motionTargets = page => page.evaluate(selector => {
   const name = el => el.tagName.toLowerCase() + (el.id ? `#${el.id}` : '') +
     [...el.classList].map(c => `.${c}`).join('')
-  const out = []
-  for (const el of document.querySelectorAll(selector)) {
+  const targets = document.querySelectorAll(selector)
+  const moving = []
+  for (const el of targets) {
     const cs = getComputedStyle(el)
     const wrong = []
     if (cs.opacity !== '1') wrong.push(`opacity ${cs.opacity}`)
     if (cs.transform !== 'none') wrong.push(`transform ${cs.transform}`)
-    if (wrong.length) out.push(`${name(el)}: ${wrong.join(', ')}`)
+    if (wrong.length) moving.push(`${name(el)}: ${wrong.join(', ')}`)
   }
-  return out
+  return { count: targets.length, moving }
 }, MOTION_TARGETS)
+
+// Under reduce the cover is removed in the same task that reveals the page
+// (`page-loaded`), with no fade. Otherwise it stays in the DOM while it fades, so
+// "gone eventually" can't tell the two apart. Record, from before the bundle runs,
+// whether the cover was still there just after the reveal.
+const watchCover = page => page.addInitScript(() => {
+  new MutationObserver((_, observer) => {
+    if (!document.documentElement?.classList.contains('page-loaded')) return
+    window.__coverOutlivedReveal = !!document.getElementById('page-loader')
+    observer.disconnect()
+  // `document`, not <html>: an init script runs before the parser has made one.
+  }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] })
+})
 
 const hasLenis = page => page.evaluate(() => document.documentElement.classList.contains('lenis'))
 
@@ -67,13 +84,20 @@ for (const viewport of VIEWPORTS) {
       test(`${name} (${path}) holds still, on load and after scrolling`, async ({ page }) => {
         const where = `${path} at ${viewport.width}px`
         await stubWorker(page)
+        await watchCover(page)
         await gotoRevealed(page, path)
 
+        expect(await page.evaluate(() => window.__coverOutlivedReveal),
+          `${where}: the preloader faded out instead of being removed at once`).toBe(false)
         expect(await hasLenis(page), `${where}: <html> has the lenis class`).toBe(false)
-        expect(await moving(page), `${where}: animated on load`).toEqual([])
+        const onLoad = await motionTargets(page)
+        // Every page has something the motion layer would animate; none found means
+        // the selectors have drifted from animations.js and the check is empty.
+        expect(onLoad.count, `${where}: no motion targets found`).toBeGreaterThan(0)
+        expect(onLoad.moving, `${where}: animated on load`).toEqual([])
 
         await scrollToBottom(page)
-        expect(await moving(page), `${where}: animated on scroll`).toEqual([])
+        expect((await motionTargets(page)).moving, `${where}: animated on scroll`).toEqual([])
         expect(await hasLenis(page), `${where}: <html> has the lenis class after scrolling`).toBe(false)
         await expect(page.locator('#page-loader')).toHaveCount(0)
       })
