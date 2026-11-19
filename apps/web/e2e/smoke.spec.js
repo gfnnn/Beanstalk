@@ -33,6 +33,34 @@ test.describe('smoke: every page loads cleanly', () => {
   }
 })
 
+// 404.html is in the Vite input map but is not a route, so the sweep above never
+// loads it. GitHub Pages serves this one file for EVERY unknown URL at any depth,
+// which is why its asset URLs must be root-absolute: a relative one resolves
+// against the missing path and the page arrives unstyled with no script.
+test.describe('smoke: the not-found page', () => {
+  test('404.html loads cleanly and offers a way back', async ({ page }) => {
+    await stubWorker(page)
+    const errors = watchForErrors(page)
+
+    const res = await page.goto('/404.html', { waitUntil: 'networkidle' })
+    expect(res.status()).toBeLessThan(400)
+    await expect(page.locator('#main-nav')).toBeVisible()
+    await expect(page.locator('h1').first()).toBeVisible()
+    await expect(page.locator('#page-loader')).toHaveCount(0)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+    await expect(page.locator('main a[href="/"]').first()).toBeVisible()
+
+    const assets = await page.evaluate(() => [
+      ...[...document.querySelectorAll('script[src]')].map(el => el.getAttribute('src')),
+      ...[...document.querySelectorAll('link[rel="stylesheet"], link[rel="modulepreload"]')].map(el => el.getAttribute('href')),
+    ])
+    expect(assets.length).toBeGreaterThan(0)
+    for (const url of assets) expect(url, 'asset URL must be root-absolute').toMatch(/^\/(?!\/)/)
+
+    errors.assertClean()
+  })
+})
+
 test.describe('smoke: SEO/static endpoints', () => {
   test('serves a staging-aware robots.txt and matching sitemap', async ({ page }) => {
     const robots = await page.request.get('/robots.txt')

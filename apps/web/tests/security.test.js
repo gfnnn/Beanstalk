@@ -5,12 +5,34 @@
 // embed, blob: image previews) and nothing for fonts beyond 'self'.
 import { describe, it, expect } from 'vitest'
 import { cspContent, workerConnectOrigins, renderSecurityMeta, REFERRER_POLICY } from '../src/build/security.js'
+import { ENQUIRY_FN_URL, NEWSLETTER_FN_URL, FLASH_STATUS_FN_URL } from '../src/js/modules/config.js'
 
 describe('workerConnectOrigins', () => {
   it('falls back to the default workers.dev origin when no env vars are set', () => {
     const origins = workerConnectOrigins({})
     expect(origins).toHaveLength(1)
     expect(origins[0]).toMatch(/workers\.dev$/)
+  })
+
+  // The default lives in two files (security.js for the policy, config.js for the
+  // fetch() targets). If they drift, a build with no VITE_*_FN_URL set ships forms
+  // whose every submission the page's own CSP blocks, with green unit tests.
+  // Both sides read the same env here, so a local .env override can't fail this;
+  // with none set (CI) it compares the two hard-coded defaults.
+  it('allows exactly the origins the client modules actually fetch()', () => {
+    const allowed = workerConnectOrigins(import.meta.env)
+    const targets = { ENQUIRY_FN_URL, NEWSLETTER_FN_URL, FLASH_STATUS_FN_URL }
+    for (const [name, url] of Object.entries(targets)) {
+      expect(allowed, name).toContain(new URL(url).origin)
+    }
+    const connectSrc = cspContent(allowed).split('; ').find(d => d.startsWith('connect-src '))
+    for (const url of Object.values(targets)) expect(connectSrc.split(' ')).toContain(new URL(url).origin)
+  })
+
+  it('each client URL targets its own Worker route', () => {
+    expect(new URL(ENQUIRY_FN_URL).pathname).toBe('/enquiry')
+    expect(new URL(NEWSLETTER_FN_URL).pathname).toBe('/newsletter')
+    expect(new URL(FLASH_STATUS_FN_URL).pathname).toBe('/flash-status')
   })
 
   it('derives distinct origins from the VITE_*_FN_URL build vars', () => {
