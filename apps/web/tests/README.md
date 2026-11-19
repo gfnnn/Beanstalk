@@ -30,7 +30,10 @@ renderer/data tests.
 | `tests/palette.test.js` | `src/build/palette.js`: hex→channels maths and the per-palette token contract. |
 | `tests/html.test.js` | `src/build/html.js`: the shared `esc()` escaper and the `HAS_EXT` image-path predicate. |
 | `tests/fonts.test.js` | the self-hosted fonts: every `@font-face` in `src/styles/fonts.css` points at a same-origin woff2 that exists in `public/fonts/`, the head preloads and the preloader's `KEY_FONTS` only name fonts declared there, and no page (hand-written or per-piece) references Google Fonts. |
-| `tests/build-pipeline.test.js` | `vite.config.js` integration: the markers are plumbed in, plugin order (palette+grids `pre`, SEO `post`), and the sitemap / per-piece `generateBundle` emitters. |
+| `tests/build-pipeline.test.js` | `vite.config.js` integration: the markers are plumbed in, plugin order (palette+grids `pre`, SEO `post`), the sitemap / per-piece `generateBundle` emitters, every authored page run through the real pipeline (no marker survives; `ARTIST-COPY` and noindex per build mode), and the repo contracts: page folders ↔ the `input` map ↔ `ROUTES` ↔ the E2E `PAGES` list, and no literal colour in `src/styles`. |
+| `tests/security.test.js` | `src/build/security.js`: the CSP/Referrer meta, and that `connect-src` allows the Worker origin `src/js/modules/config.js` actually fetches. |
+| `tests/form-contract.test.js` | the **real** `enquire/index.html` and newsletter markup, driven by the real client modules, posted into the **real Worker handlers** (`apps/functions`): every field the page submits is required or rendered by the Worker, hidden conditional answers stay out of the payload, and the stored consent statement matches the words beside the checkbox. The one place page, bundle and Worker meet outside production. |
+| `tests/run-e2e.test.js` | `scripts/run-e2e.mjs`, run as a child process with no browser installed: skips with exit 0 locally, fails with exit 1 in CI. |
 | `tests/enquire.test.js` · `tests/filter.test.js` · `tests/loadmore.test.js` | the synchronous, correctness-critical logic of the matching `src/js/modules/` modules, driven under **jsdom** (step-gating validation, conditional-field disabling, filter/sort/window cooperation). |
 | `tests/flash.test.js` | `src/js/modules/flash.js` under **jsdom**: the drop/archive model (current drop vs. the self-hiding "Past" archive), drop-scoped count badges, filter + sort, the live-availability reconcile (claims map → status/badge/button, never downgrading claimed→pending), empty-state + footer-CTA visibility, the claim modal open/close, and the submit path incl. the **409 "claimed first"** branch. `lenis` is mocked; `fetch` is mocked. |
 | `tests/newsletter.test.js` | `src/js/modules/newsletter.js` under **jsdom**: email/consent validation (no network on failure), the `{ fields }` POST shape, and the success / "already subscribed" / inline-fallback / error branches with the submit button restored. |
@@ -53,7 +56,6 @@ tests:
 
 Genuinely untestable-without-a-browser-AND-low-value paths remain uncovered by
 design: **smooth-scroll / GSAP** (`lenis.js`, `animations.js`) and the
-scroll-reveal hooks. `src/js/**` is excluded from the headline coverage *report*
-(see `vitest.config.js`) so those don't skew it, but the synchronous,
-correctness-critical modules (`flash`, `newsletter`, `faq`, `nav`, `enquire`,
-`filter`, `loadmore`) are exercised under jsdom regardless.
+scroll-reveal hooks. `src/js/**` is in the coverage report except the four
+browser-only files `vitest.config.js` excludes (`main.js`, `animations.js`,
+`lenis.js`, `lightbox.js`).

@@ -7,8 +7,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   limitsFrom, persistSubmission, persistConsent, getFlashClaims,
   reserveFlashPiece, releaseFlashPiece, rateLimit,
+  listUnsentSubmissions, markSubmissionsReported,
+  recordPayment, getPayment, markPaymentStatus, promoteFlashClaim,
+  expirePendingClaims, hasWebhookEvent, recordWebhookEvent,
 } from '../src/lib/db.js'
-import { makeD1, brokenD1, flashMap } from './helpers/fake-d1.js'
+import { makeD1, brokenD1, rejectingD1, flashMap } from './helpers/fake-d1.js'
 
 const env = () => ({ DB: makeD1().DB })
 const broken = { DB: brokenD1() }
@@ -303,5 +306,64 @@ describe('defaults & non-Error fail-safes', () => {
     expect(await reserveFlashPiece(strThrow, 'p')).toEqual({ ok: true })
     await expect(releaseFlashPiece(strThrow, 'p')).resolves.toBeUndefined()
     expect((await rateLimit(strThrow, '1.1.1.1', { storeName: 's' })).ok).toBe(true)
+  })
+})
+
+describe('persistSubmission — the email column used for erasure lookups', () => {
+  // docs/DATA-COMPLIANCE.md finds a person's rows by this column, so it must be
+  // normalised however the visitor typed the address. The JSON keeps what they sent.
+  it('stores the address trimmed and lowercased, and null when there is none', async () => {
+    const d1 = makeD1()
+    const e = { DB: d1.DB }
+    const id = await persistSubmission(e, { kind: 'enquiry', fields: { email: '  Ada.Lovelace@Example.COM ' } })
+    expect(d1.data.submissions.get(id).email).toBe('ada.lovelace@example.com')
+    expect(JSON.parse(d1.data.submissions.get(id).fields).email).toBe('  Ada.Lovelace@Example.COM ')
+
+    const blank = await persistSubmission(e, { kind: 'enquiry', fields: { email: '   ' } })
+    expect(d1.data.submissions.get(blank).email).toBeNull()
+  })
+})
+
+describe('digest queries fail safe', () => {
+  it('listUnsentSubmissions returns [] and markSubmissionsReported resolves when the DB is down', async () => {
+    for (const DB of [brokenD1(), rejectingD1(), rejectingD1('string boom')]) {
+      expect(await listUnsentSubmissions({ DB }, '2026-01-01T00:00:00Z')).toEqual([])
+      await expect(markSubmissionsReported({ DB }, ['a', 'b'])).resolves.toBeUndefined()
+    }
+  })
+})
+
+describe('every storage helper fails safe when D1 rejects asynchronously', () => {
+  // Real D1 fails at execution time, not at prepare(). Each helper must still
+  // resolve to its documented fail-safe value rather than reject into a handler.
+  const down = { DB: rejectingD1(), PAYMENTS_ENABLED: 'true' }
+
+  it.each([
+    ['persistSubmission (new)',  () => persistSubmission(down, { kind: 'enquiry', fields: {} }), null],
+    ['persistSubmission (kept)', () => persistSubmission(down, { fields: {} }, 'kept-id'), 'kept-id'],
+    ['persistConsent',           () => persistConsent(down, { email: 'a@b.co' }), null],
+    ['listUnsentSubmissions',    () => listUnsentSubmissions(down, 'x'), []],
+    ['markSubmissionsReported',  () => markSubmissionsReported(down, ['a']), undefined],
+    // `now` must clear the module-level sweep throttle, which an earlier test in
+    // this file leaves at 1e13 — otherwise the sweep is skipped and only the
+    // SELECT rejects.
+    ['getFlashClaims (sweep + read)', () => getFlashClaims(down, 2e13), {}],
+    ['reserveFlashPiece',        () => reserveFlashPiece(down, 'p'), { ok: true }],
+    ['releaseFlashPiece',        () => releaseFlashPiece(down, 'p'), undefined],
+    ['promoteFlashClaim',        () => promoteFlashClaim(down, 'p'), null],
+    ['expirePendingClaims',      () => expirePendingClaims(down), 0],
+    ['recordPayment',            () => recordPayment(down, { id: 'x', amountPence: 1 }), false],
+    ['getPayment',               () => getPayment(down, 'x'), null],
+    ['markPaymentStatus',        () => markPaymentStatus(down, 'x', 'paid'), false],
+    ['hasWebhookEvent',          () => hasWebhookEvent(down, 'evt'), false],
+    ['recordWebhookEvent',       () => recordWebhookEvent(down, 'evt', 't'), { fresh: true }],
+  ])('%s', async (_name, call, expected) => {
+    await expect(call()).resolves.toEqual(expected)
+  })
+
+  it('rateLimit fails OPEN and its commit() never rejects', async () => {
+    const limiter = await rateLimit(down, '1.1.1.1', { storeName: 's' })
+    expect(limiter.ok).toBe(true)
+    await expect(limiter.commit()).resolves.toBeUndefined()
   })
 })

@@ -33,6 +33,47 @@ test.describe('smoke: every page loads cleanly', () => {
   }
 })
 
+// 404.html is in the Vite input map but is not a route, so the sweep above never
+// loads it. GitHub Pages serves this one file for EVERY unknown URL at any depth,
+// which is why its asset URLs must be root-absolute: a relative one resolves
+// against the missing path and the page arrives unstyled with no script.
+test.describe('smoke: the not-found page', () => {
+  test('404.html loads cleanly and offers a way back', async ({ page }) => {
+    await stubWorker(page)
+    const errors = watchForErrors(page)
+
+    const res = await page.goto('/404.html', { waitUntil: 'networkidle' })
+    expect(res.status()).toBeLessThan(400)
+    await expect(page.locator('#main-nav')).toBeVisible()
+    await expect(page.locator('h1').first()).toBeVisible()
+    await expect(page.locator('#page-loader')).toHaveCount(0)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+    await expect(page.locator('main a[href="/"]').first()).toBeVisible()
+
+    // Every URL the document carries, not just the bundle: a relative favicon,
+    // font preload, image or nav link breaks the same way at a deep missing path.
+    const urls = await page.evaluate(() => {
+      const out = []
+      for (const el of document.querySelectorAll('[src], [href], [srcset], [poster]')) {
+        for (const attr of ['src', 'href', 'poster']) {
+          const v = el.getAttribute(attr)
+          if (v != null) out.push(`${el.tagName.toLowerCase()}[${attr}]=${v}`)
+        }
+        const set = el.getAttribute('srcset')
+        if (set) for (const part of set.split(',')) out.push(`${el.tagName.toLowerCase()}[srcset]=${part.trim().split(/\s+/)[0]}`)
+      }
+      return out
+    })
+    const local = urls.filter(u => !/=(?:https?:|mailto:|tel:|data:|blob:|#)/.test(u))
+    expect(local.some(u => u.startsWith('script[src]='))).toBe(true)
+    expect(local.some(u => u.startsWith('link[href]='))).toBe(true)
+    expect(local.some(u => u.startsWith('a[href]='))).toBe(true)
+    expect(local.filter(u => !/=\/(?!\/)/.test(u)), 'URLs that are not root-absolute').toEqual([])
+
+    errors.assertClean()
+  })
+})
+
 test.describe('smoke: SEO/static endpoints', () => {
   test('serves a staging-aware robots.txt and matching sitemap', async ({ page }) => {
     const robots = await page.request.get('/robots.txt')

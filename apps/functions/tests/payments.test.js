@@ -143,22 +143,37 @@ describe('expirePendingClaims', () => {
     expect(await expirePendingClaims(broken)).toBe(0)
   })
 
+  // getFlashClaims throttles its sweep per module instance (`lastSweepAt`), so
+  // each case here passes its own `now`, an hour past the previous one. Without
+  // that, whichever case ran second would be blocked by the throttle alone and
+  // the PAYMENTS_ENABLED assertion below could never fail.
+  const T0 = Date.now() + 3600e3
+
   it('getFlashClaims sweeps lapsed holds on read when payments are ON (lazy release, no cron)', async () => {
     const d1 = makeD1()
     const e  = { DB: d1.DB, PAYMENTS_ENABLED: 'true' }
     await reserveFlashPiece(e, 'lapsed', '2000-01-01T00:00:00Z')   // expired
     await reserveFlashPiece(e, 'fresh',  futureISO())              // still held
-    expect(await getFlashClaims(e)).toEqual({ fresh: 'pending' })  // lapsed gone
+    expect(await getFlashClaims(e, T0)).toEqual({ fresh: 'pending' })  // lapsed gone
     expect(d1.data.flash.has('lapsed')).toBe(false)
   })
 
-  it('getFlashClaims does NOT sweep when payments are OFF — the non-payment grid is untouched', async () => {
+  it.each([
+    ['unset', undefined], ['"false"', 'false'], ['empty', ''], ['"TRUE"', 'TRUE'], ['"1"', '1'],
+  ])('getFlashClaims does NOT sweep when PAYMENTS_ENABLED is %s, even with the throttle open', async (_label, flag) => {
     const d1 = makeD1()
-    const e  = { DB: d1.DB }   // no PAYMENTS_ENABLED
+    const e  = { DB: d1.DB, PAYMENTS_ENABLED: flag }
     await reserveFlashPiece(e, 'lapsed', '2000-01-01T00:00:00Z')
     // The sweep is skipped entirely, so even a (hypothetical) lapsed hold is reported as-is.
-    expect(await getFlashClaims(e)).toEqual({ lapsed: 'pending' })
+    expect(await getFlashClaims(e, T0 + 2 * 3600e3)).toEqual({ lapsed: 'pending' })
     expect(d1.data.flash.has('lapsed')).toBe(true)
+  })
+
+  it('control: the same call with the flag ON does sweep (so the cases above test the gate)', async () => {
+    const d1 = makeD1()
+    const e  = { DB: d1.DB, PAYMENTS_ENABLED: 'true' }
+    await reserveFlashPiece(e, 'lapsed', '2000-01-01T00:00:00Z')
+    expect(await getFlashClaims(e, T0 + 4 * 3600e3)).toEqual({})
   })
 })
 
