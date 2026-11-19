@@ -148,14 +148,14 @@ Rules that hold whatever you're touching:
 | JS modules, design system (palette, contrast floors, motion language) | `.claude/rules/web-frontend.md` |
 | Worker handlers, D1 storage, CORS, secrets, response headers | `.claude/rules/worker.md` |
 | GitHub Actions security | `.claude/rules/ci.md` |
-| Branch roles, releases, rulesets, staging setup, backlog hygiene | [`docs/BRANCHING.md`](docs/BRANCHING.md) |
+| Branch roles, releases, the production rollback, rulesets, staging setup, backlog hygiene | [`docs/BRANCHING.md`](docs/BRANCHING.md) |
 | Loader, entrance, page transitions — read before changing any motion | [`docs/MOTION.md`](docs/MOTION.md) |
 | Image/video pipeline, Dropbox sync | [`docs/MEDIA.md`](docs/MEDIA.md) |
 | Forms, newsletter and email setup; day-to-day operation | [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md), [`docs/EMAIL-DOMAIN-SETUP.md`](docs/EMAIL-DOMAIN-SETUP.md) |
 | GDPR retention, erasure, backup | [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md) |
 | Stripe checkout (model, build spec, operator runbook) | [`docs/PAYMENTS.md`](docs/PAYMENTS.md) |
 | GA4 analytics | [`docs/ANALYTICS.md`](docs/ANALYTICS.md) |
-| The 2026-11-15 cutover record, its follow-ups, the rollback | [`docs/CUTOVER.md`](docs/CUTOVER.md) |
+| The 2026-11-15 cutover record and its follow-ups | [`docs/CUTOVER.md`](docs/CUTOVER.md) |
 
 ## Deploy targets — `main` is production
 
@@ -164,8 +164,8 @@ One repo, three independent deploys; none drags another along.
 - **`main` → GitHub Pages → `beansprout.ink`.** `.github/workflows/deploy-web.yml` builds
   `apps/web` and is path-gated to `apps/web/**`. **A merge to `main` is a deploy to the live
   site.** `apps/web/public/CNAME` is what makes a build a production build; don't remove it or
-  the Pages custom domain except as the rollback in `docs/CUTOVER.md` → Phase 4. The old v1
-  repo (`gfnnn/beansprout`) is kept idle as that rollback target.
+  the Pages custom domain. Rolling production back is a revert PR on `main`
+  ([`docs/BRANCHING.md`](docs/BRANCHING.md) → *Rolling back production*).
 - **`develop` → Cloudflare Pages staging** (`*.pages.dev`), built in staging mode (noindex, no
   sitemap).
 - **Worker → Cloudflare Workers Builds.** Git-connected on Cloudflare's side: a push to `main`

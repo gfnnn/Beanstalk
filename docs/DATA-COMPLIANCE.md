@@ -152,12 +152,18 @@ database being deleted/recreated, and it is **not** a GDPR loophole: a genuine e
 must not be silently restored — only use restore to recover from an *operator error*,
 and re-run the erasure afterwards if the subject's data comes back with it.
 
-**Off-platform copy (not yet set up — 👤).** Time Travel lives inside the database,
+**Off-platform copy (in place — 👤 monthly).** Time Travel lives inside the database,
 so deleting the database or losing the Cloudflare account loses everything, including
 paid `payments` rows that must be kept six years. Once a month, and before any
-migration, take an export and store it somewhere private and encrypted (it contains
-personal and health data, so it falls under the same retention and erasure rules):
+migration, take an export and store it **outside this repo**, private and encrypted (it
+contains personal and health data, so it falls under the same retention and erasure rules).
+**Keep the latest three exports and delete the older ones**, so an erasure or a prune
+reaches every backup within three months. If an export is ever restored, re-run the
+erasures made since it was taken.
 
 ```bash
 wrangler d1 export beansprout --remote --output beansprout-$(date +%F).sql
 ```
+
+`beansprout-*.sql` is gitignored, so an export left in the checkout can't be committed by
+accident. Move it out all the same.
