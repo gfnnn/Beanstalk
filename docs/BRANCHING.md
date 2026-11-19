@@ -57,6 +57,37 @@ next release. Use sparingly — the normal path is always through `develop`. A h
 any rollback) still goes through a PR: `main` has no admin bypass — see
 [Ruleset A](#ruleset-a--main-production) for the emergency override.
 
+## Rolling back production
+
+The production rollback is a **revert PR on `main`**: it undoes a release and redeploys the
+previous build. There is no domain or DNS step: the Pages custom domain and
+`apps/web/public/CNAME` stay exactly as they are. (The launch-window route, handing the
+domain back to the v1 site, closed when v1 was retired:
+[`CUTOVER.md`](./CUTOVER.md) → Phase 4.)
+
+1. **Find the release's merge commit:**
+   `git fetch origin && git log --merges --first-parent -5 origin/main`.
+2. **Revert it on a branch off `main`.** A release is a merge commit, so the revert needs
+   `-m 1` (keep `main`'s side):
+   ```bash
+   git switch -c revert/<release> origin/main
+   git revert -m 1 <merge-sha>
+   git push -u origin revert/<release>
+   gh pr create --base main --title "revert: <release>"
+   ```
+   The **Revert** button on the merged release PR opens the same PR.
+3. **Merge it once the checks are green.** It deploys like a release: GitHub Pages rebuilds
+   if `apps/web/**` changed, the Worker redeploys if functions changed. Then run
+   `npm run smoke -- https://beansprout.ink`.
+4. **Bring the revert back to `develop`**, as for a hotfix, so the two branches agree. Git
+   now counts the reverted commits as merged, so a later release will not bring them back by
+   itself: to re-land the work, revert the revert on a feature branch and fix it there.
+
+It goes through a PR like everything else, because `main` has no admin bypass
+([Ruleset A](#ruleset-a--main-production)). A revert undoes **code only**: an applied D1
+migration, a Worker secret and a repo or Cloudflare setting stay as they are, and stored
+data is untouched.
+
 ## Several features in flight
 
 The failure mode is branches cut from `develop` that then sit: when one squash-merges, the
