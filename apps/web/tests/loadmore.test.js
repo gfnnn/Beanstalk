@@ -5,7 +5,7 @@
 // tiles are shown and flagged data-shown="true", the rest hidden and flagged
 // "false". Clicking reveals the next page; reset() returns to the first page after
 // a sort. We pin that windowing and the progress UI against a fixture DOM.
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { initLoadMore } from '../src/js/modules/loadmore.js'
 
 const PAGE_SIZE = 16
@@ -28,6 +28,10 @@ function setup(total) {
 const tiles = () => [...document.querySelectorAll('.masonry-tile')]
 const shownTiles = () => tiles().filter(t => t.dataset.shown === 'true')
 const click = el => el.dispatchEvent(new window.Event('click', { bubbles: true }))
+
+// Here rather than at the end of each test: a failed assertion would skip it and
+// leave fake timers on for every test after.
+afterEach(() => { vi.useRealTimers() })
 
 beforeEach(() => {
   // loadmore schedules the reveal opacity bump on requestAnimationFrame; run it
@@ -182,7 +186,6 @@ describe('initLoadMore', () => {
     await vi.advanceTimersByTimeAsync(50)  // t=1050, well short of the 1600 ms ceiling
     expect(btn.disabled).toBe(false)
     expect(btn.innerHTML).toBe('Load more work →')
-    vi.useRealTimers()
   })
 
   it('images that settle at once still hold the spinner for the 300 ms floor', async () => {
@@ -197,7 +200,6 @@ describe('initLoadMore', () => {
     expect(btn.disabled).toBe(true)
     await vi.advanceTimersByTimeAsync(100)
     expect(btn.disabled).toBe(false)
-    vi.useRealTimers()
   })
 
   it('the ceiling frees the button when an image never settles', async () => {
@@ -211,7 +213,6 @@ describe('initLoadMore', () => {
     expect(btn.disabled).toBe(true)
     await vi.advanceTimersByTimeAsync(100)
     expect(btn.disabled).toBe(false)
-    vi.useRealTimers()
   })
 
   it('puts the button into a spinner/aria-busy loading state on click, then restores it', async () => {
@@ -235,6 +236,5 @@ describe('initLoadMore', () => {
     expect(btn.disabled).toBe(false)
     expect(btn.hasAttribute('aria-busy')).toBe(false)
     expect(btn.innerHTML).toBe('Load more work →') // restored verbatim
-    vi.useRealTimers()
   })
 })

@@ -177,7 +177,7 @@ describe('checkout handler — happy path', () => {
 
   it('spends no rate-limit slot when Stripe rejects the intent or the piece is taken', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 402, json: async () => ({ error: { message: 'card_declined' } }) })
-    expect((await H(post(claim()))).statusCode).toBeGreaterThanOrEqual(400)
+    expect((await H(post(claim()))).statusCode).toBe(502)
     expect(d1.data.rate).toEqual([])
 
     d1.data.flash.set(PIECE, { status: 'claimed', updated_at: 'x', expires_at: null })

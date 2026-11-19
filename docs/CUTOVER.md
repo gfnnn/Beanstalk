@@ -64,7 +64,7 @@ Consequences:
       says none to apply.
 - [x] **P3 · Take a D1 export** — skipped 2026-11-15: the database holds test submissions
       only. The monthly off-platform export (`DATA-COMPLIANCE.md` → *Backup & recovery*)
-      starts once real enquiries arrive.
+      has since been set up.
 - [x] **P4 · Resend capacity** — ✅ 2026-11-15, free plan (3,000/month, 100/day). Each submission now sends **two** emails (artist
       notification + sender receipt), and the daily ceiling defaults to 45 submissions. On
       Resend's free tier (100/day) that's fine for launch; raise `RATE_MAX_PER_DAY` only on
@@ -125,7 +125,7 @@ from the shipped HTML (`CLAUDE.md` → *Artist-copy markers*), so they stay in t
 each block is approved. After X2, confirm with
 `curl -s https://gfnnn.github.io/Beanstalk/ | grep -c ARTIST-COPY` → `0`.
 
-### Abort conditions
+### Abort conditions (launch window only)
 NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENABLED` is
 `true`; or a visitor-facing content item above is neither green nor waived.
 

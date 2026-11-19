@@ -325,6 +325,16 @@ describe('persistSubmission — the email column used for erasure lookups', () =
 })
 
 describe('digest queries fail safe', () => {
+  // The D1 fake re-implements this query's filter and sort in JS, so the digest
+  // tests would still pass if the SQL lost either. Pin the statement itself.
+  it('listUnsentSubmissions asks D1 for the grace comparison and the oldest-first order', async () => {
+    let sql = ''
+    const DB = { prepare: s => { sql = s.replace(/\s+/g, ' '); return { bind: () => ({ all: async () => ({ results: [] }) }) } } }
+    await listUnsentSubmissions({ DB }, '2026-01-01T00:00:00Z')
+    expect(sql).toContain("email_status = 'pending' AND received_at < ?1")
+    expect(sql).toContain('ORDER BY received_at')
+  })
+
   it('listUnsentSubmissions returns [] and markSubmissionsReported resolves when the DB is down', async () => {
     for (const DB of [brokenD1(), rejectingD1(), rejectingD1('string boom')]) {
       expect(await listUnsentSubmissions({ DB }, '2026-01-01T00:00:00Z')).toEqual([])

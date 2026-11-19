@@ -31,7 +31,9 @@ describe('workerConnectOrigins', () => {
     const connectSrc = cspContent(allowed).split('; ').find(d => d.startsWith('connect-src ')).split(' ').slice(1)
     for (const origin of fetched) expect(connectSrc).toContain(origin)
     const others = connectSrc.filter(o => o !== "'self'" && !fetched.includes(o))
-    for (const o of others) expect(o, 'unexpected connect-src origin').toMatch(/google|analytics\.google\.com|googletagmanager/)
+    expect(new Set(others)).toEqual(new Set([
+      'https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com',
+    ]))
   })
 
   it('each client URL targets its own Worker route', () => {

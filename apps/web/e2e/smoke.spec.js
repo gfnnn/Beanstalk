@@ -68,7 +68,7 @@ test.describe('smoke: the not-found page', () => {
     expect(local.some(u => u.startsWith('script[src]='))).toBe(true)
     expect(local.some(u => u.startsWith('link[href]='))).toBe(true)
     expect(local.some(u => u.startsWith('a[href]='))).toBe(true)
-    expect(local.filter(u => !/=\/(?!\/)/.test(u)), 'URLs that are not root-absolute').toEqual([])
+    expect(local.filter(u => !/^[^=]+=\/(?!\/)/.test(u)), 'URLs that are not root-absolute').toEqual([])
 
     errors.assertClean()
   })
