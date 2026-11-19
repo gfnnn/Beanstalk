@@ -431,7 +431,8 @@ describe('E2E smoke PAGES ↔ ROUTES', () => {
   })
 
   it('lists no static path that is not a real page', () => {
-    const real = new Set([...ROUTES.map(r => r.path), '/enquiry-received/'])
+    // 404.html is a built page but not a route: only the every-page sweeps load it.
+    const real = new Set([...ROUTES.map(r => r.path), '/enquiry-received/', '/404.html'])
     for (const p of swept.filter(p => !p.includes('${'))) expect(real.has(p), p).toBe(true)
   })
 })

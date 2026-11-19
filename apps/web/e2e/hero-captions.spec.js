@@ -140,24 +140,3 @@ test.describe('desktop (1280×800): the whole hero photo sits inside the first s
     await expect(page.locator('main time')).toHaveCount(0)
   })
 })
-
-test.describe('reduced motion', () => {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
-    test(`the hero is static and fully visible at ${viewport.width}px`, async ({ page }) => {
-      await page.setViewportSize(viewport)
-      await page.emulateMedia({ reducedMotion: 'reduce' })
-      await stubWorker(page)
-      await page.goto('/')
-
-      // The FOUC guard is scoped to no-preference, and animations.js bails under
-      // reduce — so everything is simply visible, never animated in.
-      for (const sel of ['.hero h1', '.hero-media', '.media-caption', '.nav-logo']) {
-        await expect(page.locator(sel).first()).toBeVisible()
-        const opacity = await page.locator(sel).first().evaluate(el => Number(getComputedStyle(el).opacity))
-        expect(opacity, sel).toBe(1)
-      }
-      const transform = await page.locator('.hero-media').evaluate(el => getComputedStyle(el).transform)
-      expect(transform).toBe('none')
-    })
-  }
-})

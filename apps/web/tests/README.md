@@ -52,10 +52,11 @@ tests:
 - **the lightbox** (`lightbox.js`): open-on-tile, paging, image-viewer transitions;
 - **the mobile nav drawer** at a real viewport (`nav.js`): the synchronous logic
   is unit-tested here, the real-CSS-driven drawer in E2E;
-- a whole-site **smoke sweep** (every page loads without throwing).
+- whole-site sweeps of every page: a **smoke sweep** (loads without throwing),
+  the **reduced-motion contract**, and an **axe** pass (WCAG 2.1 A + AA).
 
-Genuinely untestable-without-a-browser-AND-low-value paths remain uncovered by
-design: **smooth-scroll / GSAP** (`lenis.js`, `animations.js`) and the
-scroll-reveal hooks. `src/js/**` is in the coverage report except the four
+The motion itself, **smooth-scroll / GSAP** (`lenis.js`, `animations.js`) and the
+scroll-reveal hooks, has no test of how it plays; E2E only checks that none of
+it runs under reduced motion. `src/js/**` is in the coverage report except the four
 browser-only files `vitest.config.js` excludes (`main.js`, `animations.js`,
 `lenis.js`, `lightbox.js`).
