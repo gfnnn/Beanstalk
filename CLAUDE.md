@@ -60,7 +60,8 @@ A real machine: a shell, full git and `gh`, a browser. Everything is exercisable
   session has; if it has none, say in the PR that the visual check was not done.
 - **E2E.** `npm run test:e2e` drives the production build in Chromium for the paths jsdom can't
   reach: the enquiry form (image preview/downscale, multi-step flow), the portfolio lightbox,
-  the mobile nav drawer, the flash claim modal, plus a whole-site load sweep. It **skips
+  the mobile nav drawer, the flash claim modal, plus whole-site sweeps (load, reduced motion,
+  axe). It **skips
   cleanly (exit 0) when Chromium isn't installed, and a skip validates nothing** — install it
   once (`cd apps/web && npx playwright install chromium`). When you add browser-only behaviour,
   add or extend a spec under `apps/web/e2e/`. The E2E workflow also runs on every PR that

@@ -431,6 +431,32 @@ describe('gtag.js load timing (deferred until the page has been revealed, its en
     expect(gtagScript().src).toBe(`https://www.googletagmanager.com/gtag/js?id=${ID}`)
   })
 
+  // A reduced-motion visitor skips the preloader's hold and the whole entrance,
+  // but must still be counted: the reveal still resolves pageReady, so the script
+  // still arrives after the same settle window. Fresh module instances, because
+  // pageReady is a module-level promise the suite above has already resolved.
+  it('a reduced-motion visitor is still counted: the script loads after the settle window', async () => {
+    vi.resetModules()
+    sessionStorage.clear() // a cold load: the cover is really shown
+    window.matchMedia = () => ({ matches: true }) // prefers-reduced-motion: reduce
+    document.body.innerHTML = '<div id="page-loader"></div>'
+    try {
+      const loader = await import('../src/js/modules/loader.js')
+      const analytics = await import('../src/js/modules/analytics.js')
+      loader.initPageLoader()
+      analytics.initAnalytics({ hostname: 'staging.example' })
+      expect(gtagScript()).toBeNull()
+      await flush()
+      expect(document.getElementById('page-loader')).toBeNull() // lifted with no hold
+      await vi.advanceTimersByTimeAsync(ENTRANCE_SETTLE_MS - 1)
+      expect(gtagScript()).toBeNull()
+      await vi.advanceTimersByTimeAsync(10)
+      expect(gtagScript().src).toBe(`https://www.googletagmanager.com/gtag/js?id=${ID}`)
+    } finally {
+      delete window.matchMedia
+    }
+  })
+
   it('an event tracked during the wait is queued and brings the script forward at once', async () => {
     initAnalytics({ hostname: 'staging.example' })
     expect(gtagScript()).toBeNull()

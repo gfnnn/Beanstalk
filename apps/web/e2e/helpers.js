@@ -29,6 +29,25 @@ export const PAGES = [
   { path: '/enquiry-received/',      name: 'enquiry-received (noindex)' },
 ]
 
+// Every page a visitor can land on: the routes above plus the not-found page.
+// 404.html is not a route (GitHub Pages serves it for any unknown URL), so the
+// sweeps that must hold on EVERY page (reduced motion, axe) use this list.
+export const ALL_PAGES = [...PAGES, { path: '/404.html', name: 'not found (404)' }]
+
+// The two widths those sweeps run at: a phone and a laptop.
+export const VIEWPORTS = [
+  { width: 390, height: 844 },
+  { width: 1280, height: 800 },
+]
+
+// Load a page and wait until it has been revealed: the preloader is gone and the
+// bundle has run the entrance step (`motion-ready`, set in main.js on pageReady).
+export async function gotoRevealed(page, path) {
+  await page.goto(path)
+  await expect(page.locator('#page-loader')).toHaveCount(0)
+  await expect(page.locator('html')).toHaveClass(/motion-ready/)
+}
+
 // Stub the forms' Cloudflare Worker so the suite is hermetic and offline — no
 // real Resend/D1 call, no CORS flake, no dependence on the Worker being up.
 // Matches the three routes by suffix, regardless of the baked workers.dev host.

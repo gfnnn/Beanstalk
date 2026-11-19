@@ -56,6 +56,8 @@ cd apps/web && npx playwright install chromium     # add --with-deps on Linux/CI
 | File | Covers |
 | --- | --- |
 | `smoke.spec.js` | Every page (the `seo.js` routes + the noindex confirmation page) serves 2xx, mounts the shared JS bundle (`#main-nav`), has a `<title>` + `<h1>`, and throws **no** uncaught error / console error on load. Plus the staging-aware `robots.txt`/sitemap (staging: blanket `Disallow:` + no sitemap; apex: crawlable + served sitemap) and the home canonical/JSON-LD. And `404.html`, which is not a route: it loads cleanly with root-absolute asset URLs (Pages serves it at any depth). The net for a broken build, a page missing from the Vite input map, or a renderer that blew up. |
+| `reduced-motion.spec.js` | The reduced-motion contract ([`docs/MOTION.md`](../../../docs/MOTION.md)) on **every page plus `404.html`, at 390px and 1280px**, with `prefers-reduced-motion: reduce` emulated: the preloader is gone, `<html>` never gets the `lenis` class, and every entrance / scroll-reveal target (`MOTION_TARGETS` in the spec) is at opacity 1 with no transform, on load and again after scrolling to the bottom. Home: the hero is visible and the sprig's SMIL animation is paused. |
+| `a11y.spec.js` | **axe** (`@axe-core/playwright`; tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`) on every page plus `404.html` at both widths, and on three states: the open mobile nav drawer, the open portfolio lightbox, and the enquiry form showing validation errors. Any violation fails, and the failure names the page, width, rule and selector. Scans run with reduced motion emulated and after the preloader has gone, so nothing is measured mid-fade. No rule is disabled; an exclusion is per element, in the scan that needs it, with the reason beside it. |
 | `loader.spec.js` | The cold-load preloader's **font wait** (`KEY_FONTS` in `src/js/modules/loader.js`), with one font request held open: the page is revealed without waiting for the italic face, and a held key font keeps the cover up until the 3s ceiling frees it. |
 | `lightbox.spec.js` | `src/js/modules/lightbox.js`: opens on a tile click (intercepting the tile link), populates title/counter, pages prev/next with the ends disabled, and closes on ✕ / Escape, restoring body scroll. |
 | `enquire.spec.js` | The enquiry form's **browser-only image pipeline**: the live thumbnail preview (`URL.createObjectURL`) and the submit-time downscale (`createImageBitmap` → canvas → `toBlob` → base64), asserted on the exact JSON the browser POSTs. Plus the error-banner path. |
@@ -71,5 +73,10 @@ cd apps/web && npx playwright install chromium     # add --with-deps on Linux/CI
   and console errors but ignores `Failed to load resource`, because real photography is
   still being added (see `.claude/rules/web-frontend.md`), so some `/images/...` files 404 until then.
 - **Keep `PAGES` in step with `src/build/seo.js`** when adding an indexable page.
+  The reduced-motion and axe sweeps read the same list (as `ALL_PAGES`, which adds
+  `404.html`), so a page added there is covered by both.
+- **Emulate reduced motion with `contextOptions`**: `test.use({ contextOptions:
+  { reducedMotion: 'reduce' } })`. A bare `test.use({ reducedMotion })` is not a
+  Playwright test option and is silently ignored.
 - Specs are `*.spec.js` under `e2e/`; the unit suites are `*.test.js` under
   `tests/`. The two runners never see each other's files.
