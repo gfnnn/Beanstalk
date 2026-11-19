@@ -443,7 +443,12 @@ describe('stylesheets take colour only from palette custom properties', () => {
   const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(d =>
     d.isDirectory() ? walk(join(dir, d.name)) : d.name.endsWith('.css') ? [join(dir, d.name)] : [])
   const files = walk(resolve(WEB_ROOT, 'src/styles'))
-  const NAMED = 'white|black|red|green|blue|gray|grey|silver|orange|yellow|purple|pink|brown|beige|ivory|tan|olive|navy|teal'
+  // Every CSS named colour (CSS Color 4), so `gold` or `linen` is caught as surely
+  // as `white`. `transparent`, `currentColor` and the CSS-wide keywords are not
+  // colours from a palette's point of view and stay allowed.
+  const NAMED = new Set(
+    'aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen'.split(' '),
+  )
 
   // Declarations only (`prop: value`), comments stripped, so an id selector that
   // happens to look like hex (#fade) or prose in a comment can't trip it.
@@ -456,7 +461,7 @@ describe('stylesheets take colour only from palette custom properties', () => {
       const v = value.replace(/url\([^)]*\)/g, '').replace(/var\(--[\w-]+/g, 'var(')
       if (/#[0-9a-fA-F]{3,8}\b/.test(v)) found.push(`${prop}: ${value.trim()}`)
       else if (/\b(?:rgb|hsl|hwb|lab|lch|oklab|oklch)a?\(\s*[\d.]/.test(v)) found.push(`${prop}: ${value.trim()}`)
-      else if (new RegExp(`(^|[\\s,(])(${NAMED})([\\s,);]|$)`, 'i').test(v)) found.push(`${prop}: ${value.trim()}`)
+      else if ((v.toLowerCase().match(/[a-z]+(?:-[a-z]+)*/g) || []).some(word => NAMED.has(word))) found.push(`${prop}: ${value.trim()}`)
     }
     return found
   }
@@ -471,7 +476,13 @@ describe('stylesheets take colour only from palette custom properties', () => {
     expect(offences('a{color:#B05138}')).toHaveLength(1)
     expect(offences('a{background: rgb(10 20 30 / .5);}')).toHaveLength(1)
     expect(offences('a{box-shadow: 0 1px 2px rgba(0,0,0,.2)}')).toHaveLength(1)
-    expect(offences('a{border:1px solid white}')).toHaveLength(1)
+    expect(NAMED.size).toBe(148)
+    for (const name of ['white', 'gold', 'linen', 'wheat', 'crimson', 'rebeccapurple', 'Maroon', 'KHAKI']) {
+      expect(offences(`a{border:1px solid ${name}}`), name).toHaveLength(1)
+      expect(offences(`a{background:${name};}`), name).toHaveLength(1)
+    }
+    // Words that merely contain a colour name are not colours.
+    expect(offences('a{background-repeat:no-repeat; white-space:nowrap; mask:var(--tan-mask); display:inline-block}')).toEqual([])
     expect(offences('/* #fff */ #fade{color:rgb(var(--ink-rgb) / .2); background:var(--moss); border-color:transparent; fill:currentColor}')).toEqual([])
   })
 })

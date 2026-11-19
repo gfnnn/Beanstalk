@@ -10,7 +10,8 @@
 // outside production. No network: both fetch() hops are mocked, D1 is the fake.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { initEnquire } from '../src/js/modules/enquire.js'
 import { ENQUIRY_FN_URL } from '../src/js/modules/config.js'
 import { initNewsletter } from '../src/js/modules/newsletter.js'
@@ -23,7 +24,8 @@ import { makeD1 } from '../../functions/tests/helpers/fake-d1.js'
 // track() is stubbed to a no-op, so success doesn't navigate away.
 vi.mock('../src/js/modules/analytics.js', () => ({ track: vi.fn() }))
 
-const readPage = rel => readFileSync(resolve(process.cwd(), rel), 'utf8')   // Vitest runs from apps/web
+const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const readPage = rel => readFileSync(resolve(WEB_ROOT, rel), 'utf8')
 const pageHtml = readPage('enquire/index.html')
 
 const iso = d => d.toISOString().slice(0, 10)
@@ -189,9 +191,24 @@ describe('enquiry form: real page → real module → real Worker', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     document.getElementById('enquiry-form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+    // Validation is synchronous inside the submit handler, so the error state is
+    // already on the page: exactly one field is flagged, and it is the consent box.
+    const flagged = [...document.querySelectorAll('.field.error')]
+    expect(flagged).toHaveLength(1)
+    expect(flagged[0].contains(consent)).toBe(true)
+    expect(consent.getAttribute('aria-invalid')).toBe('true')
     await new Promise(r => setTimeout(r, 20))
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(consent.closest('.field, .checkbox-row, .checkbox-group')).toBeTruthy()
+
+    // Control: with nothing typed in the health field the same unticked box is fine.
+    const health = document.getElementById('allergies')
+    const typed = health.value
+    health.value = ''
+    health.dispatchEvent(new window.Event('input', { bubbles: true }))
+    expect(consent.required).toBe(false)
+    health.value = typed
+    health.dispatchEvent(new window.Event('input', { bubbles: true }))
+    expect(consent.required).toBe(true)
 
     // …and a client that skipped the page's check is refused server-side.
     consent.checked = true

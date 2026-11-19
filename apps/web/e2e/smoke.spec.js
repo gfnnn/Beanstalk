@@ -50,12 +50,25 @@ test.describe('smoke: the not-found page', () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
     await expect(page.locator('main a[href="/"]').first()).toBeVisible()
 
-    const assets = await page.evaluate(() => [
-      ...[...document.querySelectorAll('script[src]')].map(el => el.getAttribute('src')),
-      ...[...document.querySelectorAll('link[rel="stylesheet"], link[rel="modulepreload"]')].map(el => el.getAttribute('href')),
-    ])
-    expect(assets.length).toBeGreaterThan(0)
-    for (const url of assets) expect(url, 'asset URL must be root-absolute').toMatch(/^\/(?!\/)/)
+    // Every URL the document carries, not just the bundle: a relative favicon,
+    // font preload, image or nav link breaks the same way at a deep missing path.
+    const urls = await page.evaluate(() => {
+      const out = []
+      for (const el of document.querySelectorAll('[src], [href], [srcset], [poster]')) {
+        for (const attr of ['src', 'href', 'poster']) {
+          const v = el.getAttribute(attr)
+          if (v != null) out.push(`${el.tagName.toLowerCase()}[${attr}]=${v}`)
+        }
+        const set = el.getAttribute('srcset')
+        if (set) for (const part of set.split(',')) out.push(`${el.tagName.toLowerCase()}[srcset]=${part.trim().split(/\s+/)[0]}`)
+      }
+      return out
+    })
+    const local = urls.filter(u => !/=(?:https?:|mailto:|tel:|data:|blob:|#)/.test(u))
+    expect(local.some(u => u.startsWith('script[src]='))).toBe(true)
+    expect(local.some(u => u.startsWith('link[href]='))).toBe(true)
+    expect(local.some(u => u.startsWith('a[href]='))).toBe(true)
+    expect(local.filter(u => !/=\/(?!\/)/.test(u)), 'URLs that are not root-absolute').toEqual([])
 
     errors.assertClean()
   })

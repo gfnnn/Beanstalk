@@ -17,16 +17,21 @@ describe('workerConnectOrigins', () => {
   // The default lives in two files (security.js for the policy, config.js for the
   // fetch() targets). If they drift, a build with no VITE_*_FN_URL set ships forms
   // whose every submission the page's own CSP blocks, with green unit tests.
-  // Both sides read the same env here, so a local .env override can't fail this;
-  // with none set (CI) it compares the two hard-coded defaults.
+  // Both sides read the same env here. With none set (CI) this compares the two
+  // hard-coded defaults; with all three set it compares the overrides. A PARTIAL
+  // override (one or two of the three) fails it, and that is a true report: the
+  // policy drops the default origin as soon as any override is set, while the
+  // client still falls back to the default for the others.
   it('allows exactly the origins the client modules actually fetch()', () => {
     const allowed = workerConnectOrigins(import.meta.env)
-    const targets = { ENQUIRY_FN_URL, NEWSLETTER_FN_URL, FLASH_STATUS_FN_URL }
-    for (const [name, url] of Object.entries(targets)) {
-      expect(allowed, name).toContain(new URL(url).origin)
-    }
-    const connectSrc = cspContent(allowed).split('; ').find(d => d.startsWith('connect-src '))
-    for (const url of Object.values(targets)) expect(connectSrc.split(' ')).toContain(new URL(url).origin)
+    const fetched = [ENQUIRY_FN_URL, NEWSLETTER_FN_URL, FLASH_STATUS_FN_URL].map(u => new URL(u).origin)
+    expect(new Set(allowed)).toEqual(new Set(fetched))
+
+    // …and the policy carries those, 'self', and nothing else but the GA4 hosts.
+    const connectSrc = cspContent(allowed).split('; ').find(d => d.startsWith('connect-src ')).split(' ').slice(1)
+    for (const origin of fetched) expect(connectSrc).toContain(origin)
+    const others = connectSrc.filter(o => o !== "'self'" && !fetched.includes(o))
+    for (const o of others) expect(o, 'unexpected connect-src origin').toMatch(/google|analytics\.google\.com|googletagmanager/)
   })
 
   it('each client URL targets its own Worker route', () => {

@@ -344,7 +344,10 @@ describe('every storage helper fails safe when D1 rejects asynchronously', () =>
     ['persistConsent',           () => persistConsent(down, { email: 'a@b.co' }), null],
     ['listUnsentSubmissions',    () => listUnsentSubmissions(down, 'x'), []],
     ['markSubmissionsReported',  () => markSubmissionsReported(down, ['a']), undefined],
-    ['getFlashClaims',           () => getFlashClaims(down, Date.now() + 86_400_000), {}],
+    // `now` must clear the module-level sweep throttle, which an earlier test in
+    // this file leaves at 1e13 — otherwise the sweep is skipped and only the
+    // SELECT rejects.
+    ['getFlashClaims (sweep + read)', () => getFlashClaims(down, 2e13), {}],
     ['reserveFlashPiece',        () => reserveFlashPiece(down, 'p'), { ok: true }],
     ['releaseFlashPiece',        () => releaseFlashPiece(down, 'p'), undefined],
     ['promoteFlashClaim',        () => promoteFlashClaim(down, 'p'), null],
