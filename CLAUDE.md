@@ -60,7 +60,8 @@ A real machine: a shell, full git and `gh`, a browser. Everything is exercisable
   session has; if it has none, say in the PR that the visual check was not done.
 - **E2E.** `npm run test:e2e` drives the production build in Chromium for the paths jsdom can't
   reach: the enquiry form (image preview/downscale, multi-step flow), the portfolio lightbox,
-  the mobile nav drawer, the flash claim modal, plus a whole-site load sweep. It **skips
+  the mobile nav drawer, the flash claim modal, plus whole-site sweeps (load, reduced motion,
+  axe). It **skips
   cleanly (exit 0) when Chromium isn't installed, and a skip validates nothing** — install it
   once (`cd apps/web && npx playwright install chromium`). When you add browser-only behaviour,
   add or extend a spec under `apps/web/e2e/`. The E2E workflow also runs on every PR that
@@ -148,14 +149,14 @@ Rules that hold whatever you're touching:
 | JS modules, design system (palette, contrast floors, motion language) | `.claude/rules/web-frontend.md` |
 | Worker handlers, D1 storage, CORS, secrets, response headers | `.claude/rules/worker.md` |
 | GitHub Actions security | `.claude/rules/ci.md` |
-| Branch roles, releases, rulesets, staging setup, backlog hygiene | [`docs/BRANCHING.md`](docs/BRANCHING.md) |
+| Branch roles, releases, the production rollback, rulesets, staging setup, backlog hygiene | [`docs/BRANCHING.md`](docs/BRANCHING.md) |
 | Loader, entrance, page transitions — read before changing any motion | [`docs/MOTION.md`](docs/MOTION.md) |
 | Image/video pipeline, Dropbox sync | [`docs/MEDIA.md`](docs/MEDIA.md) |
 | Forms, newsletter and email setup; day-to-day operation | [`docs/ENQUIRY-SETUP.md`](docs/ENQUIRY-SETUP.md), [`docs/EMAIL-DOMAIN-SETUP.md`](docs/EMAIL-DOMAIN-SETUP.md) |
 | GDPR retention, erasure, backup | [`docs/DATA-COMPLIANCE.md`](docs/DATA-COMPLIANCE.md) |
 | Stripe checkout (model, build spec, operator runbook) | [`docs/PAYMENTS.md`](docs/PAYMENTS.md) |
 | GA4 analytics | [`docs/ANALYTICS.md`](docs/ANALYTICS.md) |
-| The 2026-11-15 cutover record, its follow-ups, the rollback | [`docs/CUTOVER.md`](docs/CUTOVER.md) |
+| The 2026-11-15 cutover record and its follow-ups | [`docs/CUTOVER.md`](docs/CUTOVER.md) |
 
 ## Deploy targets — `main` is production
 
@@ -164,8 +165,8 @@ One repo, three independent deploys; none drags another along.
 - **`main` → GitHub Pages → `beansprout.ink`.** `.github/workflows/deploy-web.yml` builds
   `apps/web` and is path-gated to `apps/web/**`. **A merge to `main` is a deploy to the live
   site.** `apps/web/public/CNAME` is what makes a build a production build; don't remove it or
-  the Pages custom domain except as the rollback in `docs/CUTOVER.md` → Phase 4. The old v1
-  repo (`gfnnn/beansprout`) is kept idle as that rollback target.
+  the Pages custom domain. Rolling production back is a revert PR on `main`
+  ([`docs/BRANCHING.md`](docs/BRANCHING.md) → *Rolling back production*).
 - **`develop` → Cloudflare Pages staging** (`*.pages.dev`), built in staging mode (noindex, no
   sitemap).
 - **Worker → Cloudflare Workers Builds.** Git-connected on Cloudflare's side: a push to `main`
@@ -192,7 +193,7 @@ Features are designed outside this repo and arrive as a **brief**; delivery runs
    the owner's call. Rebase your other live branches onto `develop` after any merge.
 6. **Release in batches.** A `develop → main` PR titled `release: <date / summary>`,
    **merge-committed** (not squashed). `main` receives nothing else: no feature PRs, no direct
-   commits.
+   commits. The one exception is a hotfix or revert PR ([`docs/BRANCHING.md`](docs/BRANCHING.md)).
 7. **Never rewrite published history on `develop` or `main`.** Rebasing your *own* feature
    branch and `--force-with-lease`-ing it is fine.
 8. **Verify repo settings before documenting them** — don't assert a setting's state from

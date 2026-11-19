@@ -4,8 +4,10 @@
 // baseline by hand; this pins it down so a new page (or an edit to an existing one)
 // can't silently regress it. We assert the structural, automatable a11y floor that
 // doesn't need a real browser — landmark/heading structure, a working skip-link,
-// language + viewport, and alt-text presence on images. The richer browser-only
-// checks (focus order, colour contrast, motion) stay with the Playwright/axe tier.
+// language + viewport, and alt-text presence on images. The checks that need a real
+// browser live in the Playwright tier: e2e/a11y.spec.js runs axe (WCAG 2.1 A + AA,
+// colour contrast included) on every page, and e2e/reduced-motion.spec.js holds the
+// reduced-motion contract. Focus order is still checked by hand.
 //
 // It runs over the AUTHORED page HTML (the *.html files Vite serves) plus a
 // rendered per-piece page (those are generated, so they're checked via the

@@ -5,12 +5,41 @@
 // embed, blob: image previews) and nothing for fonts beyond 'self'.
 import { describe, it, expect } from 'vitest'
 import { cspContent, workerConnectOrigins, renderSecurityMeta, REFERRER_POLICY } from '../src/build/security.js'
+import { ENQUIRY_FN_URL, NEWSLETTER_FN_URL, FLASH_STATUS_FN_URL } from '../src/js/modules/config.js'
 
 describe('workerConnectOrigins', () => {
   it('falls back to the default workers.dev origin when no env vars are set', () => {
     const origins = workerConnectOrigins({})
     expect(origins).toHaveLength(1)
     expect(origins[0]).toMatch(/workers\.dev$/)
+  })
+
+  // The default lives in two files (security.js for the policy, config.js for the
+  // fetch() targets). If they drift, a build with no VITE_*_FN_URL set ships forms
+  // whose every submission the page's own CSP blocks, with green unit tests.
+  // Both sides read the same env here. With none set (CI) this compares the two
+  // hard-coded defaults; with all three set it compares the overrides. A PARTIAL
+  // override (one or two of the three) fails it, and that is a true report: the
+  // policy drops the default origin as soon as any override is set, while the
+  // client still falls back to the default for the others.
+  it('allows exactly the origins the client modules actually fetch()', () => {
+    const allowed = workerConnectOrigins(import.meta.env)
+    const fetched = [ENQUIRY_FN_URL, NEWSLETTER_FN_URL, FLASH_STATUS_FN_URL].map(u => new URL(u).origin)
+    expect(new Set(allowed)).toEqual(new Set(fetched))
+
+    // …and the policy carries those, 'self', and nothing else but the GA4 hosts.
+    const connectSrc = cspContent(allowed).split('; ').find(d => d.startsWith('connect-src ')).split(' ').slice(1)
+    for (const origin of fetched) expect(connectSrc).toContain(origin)
+    const others = connectSrc.filter(o => o !== "'self'" && !fetched.includes(o))
+    expect(new Set(others)).toEqual(new Set([
+      'https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com',
+    ]))
+  })
+
+  it('each client URL targets its own Worker route', () => {
+    expect(new URL(ENQUIRY_FN_URL).pathname).toBe('/enquiry')
+    expect(new URL(NEWSLETTER_FN_URL).pathname).toBe('/newsletter')
+    expect(new URL(FLASH_STATUS_FN_URL).pathname).toBe('/flash-status')
   })
 
   it('derives distinct origins from the VITE_*_FN_URL build vars', () => {

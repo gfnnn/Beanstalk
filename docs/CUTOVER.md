@@ -1,8 +1,9 @@
 # v2 launch — go-live & apex cutover runbook
 
 The runbook that moved `beansprout.ink` from **v1** (`gfnnn/beansprout`) to **v2** (this
-repo) on 2026-11-15, kept as the record of what was done, the **rollback procedure**
-(Phase 4) and the open **follow-ups** (Phase 5).
+repo) on 2026-11-15, kept as the record of what was done, the launch-window rollback
+(Phase 4, historical) and the open **follow-ups** (Phase 5). The rollback in force today is
+in [`BRANCHING.md`](./BRANCHING.md#rolling-back-production).
 
 Architecture/guardrails are in [`CLAUDE.md`](../CLAUDE.md), the email round-trip is the
 "run b" acceptance test in Phase 3 below, data/erasure is
@@ -14,7 +15,9 @@ code actions are the release PR (R1) and the `CNAME` commit (X2). Nothing runs i
 **Status:** `live` — `beansprout.ink` has been served by v2 since **2026-11-15 16:10 UTC**
 (the handover took three seconds; the certificate carried over, so there was no HTTPS wait;
 the CDN kept v1's cached homepage for about six minutes). The automated probe passes on the
-apex. The launch is closed; what remains is the unticked follow-up in Phase 5.
+apex. The launch is closed: Resend is verified, deliverability passes and v1 was retired on
+**2026-11-19**. What remains are the unticked follow-ups in Phase 5 (the first-day check and
+the DMARC tightening).
 
 > `apps/web/public/CNAME` is now committed, so a plain build is a production build. The
 > Cloudflare Pages staging site is the exception: it builds in staging mode (noindex, no
@@ -29,7 +32,7 @@ GitHub (apex `A` → `185.199.108–111.153`, `www` `CNAME` → `gfnnn.github.io
 routes the domain to whichever repo **claims it as its Pages custom domain** — v1 before the
 cutover (legacy branch build, a `CNAME` file on `main`), v2 since.
 
-So **the cutover was not a DNS change**, and neither is a rollback. It's a custom-domain handover between two repos:
+So **the cutover was not a DNS change**. It was a custom-domain handover between two repos:
 
 1. release `beansprout.ink` from v1's Pages settings, then
 2. claim it in v2's Pages settings.
@@ -39,7 +42,8 @@ Consequences:
 - **Downtime is the gap between the two clicks** (seconds) plus HTTPS certificate
   re-issue for v2 (usually minutes, can be up to an hour; HTTP serves meanwhile). Do it at
   a quiet hour.
-- **Rollback is the same handover in reverse** — just as quick, no propagation wait.
+- **During the launch window, rollback was the same handover in reverse** (Phase 4). v1 has
+  since been retired, so that route is closed.
 - **v2 deploys through Actions, so GitHub ignores the `CNAME` *file* for routing.** The
   custom domain **must** be set in v2's Pages settings (step X5). The file still matters:
   it's what flips the build to production mode (`isProductionBuild()` in
@@ -60,7 +64,7 @@ Consequences:
       says none to apply.
 - [x] **P3 · Take a D1 export** — skipped 2026-11-15: the database holds test submissions
       only. The monthly off-platform export (`DATA-COMPLIANCE.md` → *Backup & recovery*)
-      starts once real enquiries arrive.
+      has since been set up.
 - [x] **P4 · Resend capacity** — ✅ 2026-11-15, free plan (3,000/month, 100/day). Each submission now sends **two** emails (artist
       notification + sender receipt), and the daily ceiling defaults to 45 submissions. On
       Resend's free tier (100/day) that's fine for launch; raise `RATE_MAX_PER_DAY` only on
@@ -88,7 +92,8 @@ Run the day before. **Every line must be green, or explicitly waived by the oper
 ### Privacy & email
 - [x] ICO reference `ZC165794` renders on staging `/privacy/` (✅ applied).
 - [x] Erasure path dry-run done (✅ 2026-06-08).
-- [ ] `beansprout.ink` shows **Verified** in Resend (SPF/DKIM/DMARC) — needed before X4.
+- [x] `beansprout.ink` shows **Verified** in Resend (SPF/DKIM/DMARC) — needed before X4.
+      ✅ confirmed 2026-11-19.
 
 ### Content — the MVP gate (operator go/no-go)
 
@@ -120,7 +125,7 @@ from the shipped HTML (`CLAUDE.md` → *Artist-copy markers*), so they stay in t
 each block is approved. After X2, confirm with
 `curl -s https://gfnnn.github.io/Beanstalk/ | grep -c ARTIST-COPY` → `0`.
 
-### Abort conditions
+### Abort conditions (launch window only)
 NO-GO if: any engineering check is red; Resend domain unverified; `PAYMENTS_ENABLED` is
 `true`; or a visitor-facing content item above is neither green nor waived.
 
@@ -221,9 +226,15 @@ doesn't arrive (or lands in spam). **Roll back rather than debug on the live ape
 
 ---
 
-## Phase 4 — Rollback
+## Phase 4 — Rollback (historical: the launch window only)
 
-Same handover in reverse; minutes, no DNS propagation.
+> **This is no longer how production rolls back.** v1 was retired on 2026-11-19 (Phase 5),
+> so the launch-window rollback target is gone and the domain is never handed back. The current
+> rollback is a revert PR on `main`:
+> [`BRANCHING.md`](./BRANCHING.md#rolling-back-production). The steps below are kept only as
+> the record of the launch-day plan.
+
+The plan was the same handover in reverse; minutes, no DNS propagation.
 
 1. **Traffic:** `gfnnn/Beanstalk` → Pages → Custom domain → **Remove**; then
    `gfnnn/beansprout` → Pages → Custom domain → `beansprout.ink` → Save (re-commits v1's
@@ -235,8 +246,6 @@ Same handover in reverse; minutes, no DNS propagation.
 4. **Data is safe.** D1 is untouched by any of this; enquiries taken during the live window
    are persisted (persist-before-email), and Time Travel covers operator error.
 
-v1 stays **idle, not deleted**, so it's always a working rollback target.
-
 ---
 
 ## Phase 5 — Post-cutover
@@ -245,13 +254,15 @@ v1 stays **idle, not deleted**, so it's always a working rollback target.
 - [x] **Post-launch smoke test** — ✅ 2026-11-15: `npm run smoke -- https://beansprout.ink`
       passed 19/19 again after the analytics releases, and the run "b" test submissions were
       pruned from D1.
-- [ ] **Email deliverability:** watch for a few days that receipts and notifications reach
-      the inbox, not spam (a new sending domain builds reputation slowly).
+- [x] **Email deliverability:** watch for a few days that receipts and notifications reach
+      the inbox, not spam (a new sending domain builds reputation slowly) — ✅ 2026-11-19:
+      both land in the inbox and SPF/DKIM/DMARC pass.
 - [ ] **First day:** the D1 `SELECT` from run "b" shows real enquiries with
       `email_status = 'sent'`; no failed-send digest email arrives at 08:00 UTC.
 - [x] **Search Console:** add the `beansprout.ink` property and submit `/sitemap.xml` — ✅ 2026-11-15 (Domain property; submit the full URL `https://beansprout.ink/sitemap.xml`).
-- [ ] **Keep v1 idle 1–2 weeks**, then decide on retiring it: archive `gfnnn/beansprout`
-      (and disable its Pages).
+- [x] **Retire v1** — ✅ 2026-11-19: `gfnnn/beansprout` has its Pages site unpublished and
+      the repo archived. Production now rolls back with a revert PR on `main`
+      ([`BRANCHING.md`](./BRANCHING.md#rolling-back-production)).
 - [ ] **DMARC:** after a few clean weeks of reports, tighten `p=none` → `quarantine`
       (`EMAIL-DOMAIN-SETUP.md`).
 - [ ] Deferred, not part of this cutover: flash goes live (`live: true` once a real drop is

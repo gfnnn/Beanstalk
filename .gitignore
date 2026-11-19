@@ -39,4 +39,6 @@ project-docs/
 *.log
 *.sqlite
 *.sqlite3
+# D1 exports only (not *.sql: the migrations are .sql and are committed)
+beansprout-*.sql
 .dev.vars.*

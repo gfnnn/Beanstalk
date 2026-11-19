@@ -181,6 +181,17 @@ export function brokenD1() {
   return { prepare: boom, batch: boom }
 }
 
+// The same outage shaped the way real D1 fails: prepare()/bind() succeed and the
+// promise from run()/all()/first()/batch() REJECTS. brokenD1() above throws
+// synchronously at prepare(), which a `return stmt.first()` without `await` inside
+// a try block would also survive — this variant would escape that catch, so the
+// fail-safe suites run against both.
+export function rejectingD1(reason = new Error('D1 down')) {
+  const fail = async () => { throw reason }
+  const stmt = { bind: () => stmt, run: fail, all: fail, first: fail }
+  return { prepare: () => stmt, batch: fail }
+}
+
 // Convenience: the flash inventory as a plain { piece_id: status } map.
 export const flashMap = (data) =>
   Object.fromEntries([...data.flash.entries()].map(([k, v]) => [k, v.status]))

@@ -12,6 +12,44 @@ describe('corsFor', () => {
     }
   })
 
+  // The loop above reads the exported set, so it can't notice an origin being
+  // added. This is the list the site is actually served from; widening it is a
+  // deliberate act that should have to touch this test.
+  it('allows exactly the known site origins', () => {
+    expect([...ALLOWED_ORIGINS].sort()).toEqual([
+      'http://localhost:5173',
+      'http://localhost:8888',
+      'https://beansprout.ink',
+      'https://beanstalk-e61.pages.dev',
+      'https://gfnnn.github.io',
+      'https://www.beansprout.ink',
+    ])
+    expect(ALLOWED_ORIGINS.has(CANONICAL_ORIGIN)).toBe(true)
+  })
+
+  it.each([
+    'https://beansprout.ink.evil.com',     // allowed origin as a prefix
+    'https://evil-beansprout.ink',         // as a suffix
+    'https://evil.com/?https://beansprout.ink',
+    'http://beansprout.ink',               // scheme downgrade
+    'https://beansprout.ink:8443',         // other port
+    'https://BEANSPROUT.INK',
+    'https://sub.beansprout.ink',
+    'https://other.pages.dev',
+    'http://localhost:3000',
+    'null',
+    '*',
+    '',
+  ])('does not echo the lookalike origin %j', (origin) => {
+    expect(corsFor({ headers: { origin } })['Access-Control-Allow-Origin']).toBe(CANONICAL_ORIGIN)
+  })
+
+  it('never answers with a wildcard', () => {
+    for (const origin of ['*', '', 'https://evil.example', 'https://beansprout.ink']) {
+      expect(corsFor({ headers: { origin } })['Access-Control-Allow-Origin']).not.toBe('*')
+    }
+  })
+
   it('falls back to the canonical origin for a disallowed origin', () => {
     expect(corsFor({ headers: { origin: 'https://evil.example' } })['Access-Control-Allow-Origin']).toBe(CANONICAL_ORIGIN)
   })
@@ -49,6 +87,11 @@ describe('replyWith', () => {
     // security headers and CORS coexist; CORS is spread last so it can override
     expect(res.headers['Access-Control-Allow-Origin']).toBe('https://beansprout.ink')
     expect(res.headers['X-Content-Type-Options']).toBe('nosniff')
+  })
+
+  it('spreads the per-request headers last, so an overlapping key takes the request value', () => {
+    const res = replyWith({ 'Referrer-Policy': 'same-origin' })(200, {})
+    expect(res.headers['Referrer-Policy']).toBe('same-origin')
   })
 })
 

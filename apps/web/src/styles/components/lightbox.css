@@ -87,7 +87,7 @@
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(var(--bg-rgb), 0.4);
+  color: rgba(var(--bg-rgb), 0.7); /* small text: must clear 4.5:1 on the ink backdrop (0.4 did not) */
 }
 
 /* Close button */
@@ -159,7 +159,7 @@
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(var(--bg-rgb), 0.35);
+  color: rgba(var(--bg-rgb), 0.7); /* as .lightbox-caption-sub */
   white-space: nowrap;
 }
 

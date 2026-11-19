@@ -11,6 +11,17 @@ Everything here is **progressive enhancement**: it all sits behind
 pure-CSS failsafe, so a reduced-motion visitor — or one whose JS never runs — still
 gets a fully visible, static page.
 
+**The reduced-motion contract is tested.** `apps/web/e2e/reduced-motion.spec.js`
+loads every page at 390px and 1280px with `prefers-reduced-motion: reduce` and
+fails if the preloader is still there, if `<html>` has the `lenis` class, or if any
+entrance or scroll-reveal target is not at opacity 1 with no transform, on load
+and again after scrolling to the bottom; on the homepage it also checks the sprig's
+SMIL animation is paused. The list of targets it reads is `MOTION_TARGETS` in that
+spec: **when you add a `.from()` target in `animations.js`, add its selector
+there.** That a reduced-motion visitor is still counted by analytics is a unit test
+(`apps/web/tests/analytics.test.js` → *gtag.js load timing*), because the E2E tier
+runs on localhost, where gtag never loads.
+
 ## The layers
 
 | Layer | Lives in | Job |
