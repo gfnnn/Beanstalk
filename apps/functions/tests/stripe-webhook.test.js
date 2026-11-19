@@ -69,6 +69,26 @@ describe('verifyStripeSignature', () => {
     expect(await verifyStripeSignature(raw, header, SECRET, { toleranceSec: 2000 })).toBe(true)
   })
 
+  it('rejects a timestamp too far in the FUTURE as well as the past', async () => {
+    const t = Math.floor(Date.now() / 1000) + 3600
+    const { raw, header } = await sign({ id: 'evt_future' }, { t })
+    expect(await verifyStripeSignature(raw, header, SECRET)).toBe(false)
+  })
+
+  it('ignores a v0 scheme signature — only v1 authenticates', async () => {
+    const { raw, header } = await sign({ id: 'evt_v0' })
+    expect(await verifyStripeSignature(raw, header.replace('v1=', 'v0='), SECRET)).toBe(false)
+  })
+
+  it('accepts when any one of several v1 signatures matches (secret rotation)', async () => {
+    const { raw, header } = await sign({ id: 'evt_rot' })
+    const [t, good] = header.split(',')
+    const stale = `v1=${'0'.repeat(64)}`
+    expect(await verifyStripeSignature(raw, `${t},${stale},${good}`, SECRET)).toBe(true)
+    expect(await verifyStripeSignature(raw, `${t},${good},${stale}`, SECRET)).toBe(true)
+    expect(await verifyStripeSignature(raw, `${t},${stale},${stale}`, SECRET)).toBe(false)
+  })
+
   it('rejects a malformed header: missing t, non-numeric t, or no v1 signature', async () => {
     const { raw, header } = await sign({ id: 'evt_x' })
     const v1 = header.split('v1=')[1]
@@ -406,5 +426,33 @@ describe('stripe-webhook — notification emails', () => {
     const payloads = fired()
     expect(payloads).toHaveLength(1)
     expect(payloads[0].to).toEqual(['ada@example.com'])
+  })
+})
+
+describe('stripe-webhook — email content is escaped', () => {
+  // metadata.name is whatever the visitor typed into the claim form (checkout
+  // copies it onto the PaymentIntent), and it lands in the artist's inbox.
+  it('escapes visitor-controlled values in both HTML emails', async () => {
+    await seedCheckout()
+    const evil = 'Ada<img src=x onerror="alert(1)">'
+    const { raw, header } = await sign(succeeded({}, { name: evil }))
+    expect((await H(post(raw, header))).statusCode).toBe(200)
+
+    const payloads = fetchMock.mock.calls.map(c => JSON.parse(c[1].body))
+    expect(payloads).toHaveLength(2)
+    for (const p of payloads) {
+      expect(p.html).not.toContain('<img')
+      expect(p.html).toContain('Ada&lt;img src=x onerror=&quot;alert(1)&quot;&gt;')
+    }
+  })
+
+  it('escapes a hostile receipt address shown to the artist when there is no ledger row', async () => {
+    await reserveFlashPiece(env, PIECE, new Date(Date.now() + 3600e3).toISOString())
+    const { raw, header } = await sign(succeeded({ receipt_email: '"><script>x</script>@evil.test' }))
+    expect((await H(post(raw, header))).statusCode).toBe(200)
+    const artist = fetchMock.mock.calls.map(c => JSON.parse(c[1].body)).find(p => p.to.includes('artist@studio.test'))
+    expect(artist).toBeTruthy()
+    expect(artist.html).not.toContain('<script')
+    expect(artist.html).toContain('&lt;script&gt;')
   })
 })

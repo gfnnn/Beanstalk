@@ -5,12 +5,12 @@
 // and the per-piece pages. It imports the REAL config so a renamed marker or an
 // unregistered plugin fails here instead of silently shipping a broken page.
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, relative, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import config from '../vite.config.js'
 import { pieces } from '../src/data/pieces.js'
-import { flash, season } from '../src/data/flash.js'
+import { flash, season, live as flashLive } from '../src/data/flash.js'
 import { replyTime } from '../src/data/business.js'
 import { themeColor } from '../src/build/palette.js'
 import { ROUTES } from '../src/build/seo.js'
@@ -47,6 +47,7 @@ describe('vite.config plugins are all registered', () => {
     'beansprout-seo-head',
     'beansprout-security-headers',
     'beansprout-page-loader',
+    'beansprout-font-preload',
     'beansprout-view-transition',
     'beansprout-piece-pages',
     'beansprout-sitemap',
@@ -235,16 +236,16 @@ describe('sitemap + robots generateBundle (production / apex build)', () => {
 })
 
 describe('sitemap + robots generateBundle (staging build — no real-life SEO artifacts)', () => {
+  // SITE_ENV=staging forces staging whatever else is true of the checkout (the
+  // apex CNAME is committed now), so these assert unconditionally. They used to
+  // derive "is this staging?" from the very output under test and return early.
   const emitted = emitWithEnv('staging')
-  const isStaging = !emitted.some(f => f.fileName === 'sitemap.xml')
 
   it('emits NO sitemap.xml on a staging build', () => {
-    if (!isStaging) return // a local apex/CNAME build legitimately would emit one
     expect(emitted.some(f => f.fileName === 'sitemap.xml')).toBe(false)
   })
 
   it('emits a blanket Disallow robots.txt that never advertises the production sitemap', () => {
-    if (!isStaging) return
     const robots = emitted.find(f => f.fileName === 'robots.txt')
     expect(robots).toBeTruthy()
     expect(robots.source).toContain('Disallow: /')
@@ -344,6 +345,134 @@ describe('sitemap ROUTES ↔ vite input parity', () => {
     expect(received).toBeTruthy()
     expect(received.indexable).toBe(false)
     expect(ROUTES.some(r => r.path === '/enquiry-received/')).toBe(false)
+  })
+})
+
+// The per-marker tests above feed the pipeline synthetic one-marker pages, which
+// proves a marker is handled but not that the REAL pages are fully processed.
+// These run every authored page through the same pipeline and assert on what
+// would ship: no generation marker left behind (a renamed marker or a renderer
+// dropped from the plugin leaves a bare HTML comment and an empty section, with
+// nothing else failing), and the sign-off markers handled per build mode.
+describe('every authored page through the real pipeline', () => {
+  const inputs = Object.entries(config.build.rollupOptions.input)
+  const GENERATION_MARKER = /<!--\s*(?:[a-z]+:[a-z-]+|reply-time|testimonials)\s*-->/g
+  const withSiteEnv = (val, fn) => {
+    const prev = process.env.SITE_ENV
+    process.env.SITE_ENV = val
+    try { return fn() } finally {
+      if (prev === undefined) delete process.env.SITE_ENV
+      else process.env.SITE_ENV = prev
+    }
+  }
+  const sources = inputs.map(([name, abs]) => [name, readFileSync(abs, 'utf8')])
+
+  it('the authored pages do carry markers (so the checks below are not vacuous)', () => {
+    expect(sources.length).toBeGreaterThan(10)
+    expect(sources.filter(([, html]) => (html.match(GENERATION_MARKER) || []).length > 0).length).toBe(sources.length)
+    expect(sources.some(([, html]) => html.includes('ARTIST-COPY'))).toBe(true)
+  })
+
+  it.each(sources)('%s: no generation marker survives the build', (_name, html) => {
+    const out = withSiteEnv('production', () => transformHtml(html))
+    expect(out.match(GENERATION_MARKER) || []).toEqual([])
+  })
+
+  it.each(sources)('%s: production strips the ARTIST-COPY sign-off markers and adds no noindex', (name, html) => {
+    const out = withSiteEnv('production', () => transformHtml(html))
+    expect(out).not.toContain('ARTIST-COPY')
+    // A page that is noindex on purpose stays so: its own meta, or the flash page
+    // while the drop is held back (the flash gate adds it).
+    const heldBackFlash = name === 'flash' && !flashLive
+    if (!heldBackFlash && !/name=["']robots["'][^>]+noindex/i.test(html)) {
+      expect(out).not.toMatch(/name=["']robots["'][^>]+noindex/i)
+    }
+  })
+
+  it.each(sources)('%s: staging is noindex and keeps the markers as a review aid', (_name, html) => {
+    const out = withSiteEnv('staging', () => transformHtml(html))
+    expect(out).toMatch(/<meta name="robots" content="noindex/)
+    if (html.includes('ARTIST-COPY')) expect(out).toContain('ARTIST-COPY')
+  })
+})
+
+// "A new page needs its folder + index.html AND an entry in the input map, or it
+// won't be built" (CLAUDE.md). The parity check above starts from the input map,
+// so a folder that was never added to it is invisible there. This starts from disk.
+describe('page folders on disk ↔ vite input map', () => {
+  const NOT_PAGES = new Set(['node_modules', 'dist', 'public', 'src', 'tests', 'e2e', 'scripts', 'coverage', 'playwright-report', 'test-results'])
+  const onDisk = ['index.html', '404.html', ...readdirSync(WEB_ROOT, { withFileTypes: true })
+    .filter(d => d.isDirectory() && !d.name.startsWith('.') && !NOT_PAGES.has(d.name))
+    .filter(d => existsSync(join(WEB_ROOT, d.name, 'index.html')))
+    .map(d => `${d.name}/index.html`)]
+  const inMap = Object.values(config.build.rollupOptions.input)
+    .map(abs => relative(WEB_ROOT, abs).split('\\').join('/'))
+
+  it('every page on disk is built, and every input exists on disk', () => {
+    expect(onDisk.length).toBeGreaterThan(10)
+    expect([...inMap].sort()).toEqual([...onDisk].sort())
+  })
+})
+
+// The E2E smoke sweep only vouches for the pages listed in e2e/helpers.js PAGES,
+// which is kept in step with ROUTES by hand. Read as text: importing the helper
+// would pull the Playwright runner into Vitest.
+describe('E2E smoke PAGES ↔ ROUTES', () => {
+  const helpers = readFileSync(resolve(WEB_ROOT, 'e2e/helpers.js'), 'utf8')
+  const swept = [...helpers.matchAll(/path:\s*['`]([^'`]+)['`]/g)].map(m => m[1])
+
+  it('sweeps every indexable route and the noindex confirmation page', () => {
+    for (const { path } of ROUTES) expect(swept, `e2e/helpers.js PAGES is missing ${path}`).toContain(path)
+    expect(swept).toContain('/enquiry-received/')
+  })
+
+  it('sweeps a generated per-piece page (a separate render path)', () => {
+    expect(swept.some(p => p.startsWith('/portfolio/${'))).toBe(true)
+  })
+
+  it('lists no static path that is not a real page', () => {
+    const real = new Set([...ROUTES.map(r => r.path), '/enquiry-received/'])
+    for (const p of swept.filter(p => !p.includes('${'))) expect(real.has(p), p).toBe(true)
+  })
+})
+
+// "No CSS hard-codes a colour" (CLAUDE.md): colour comes from src/data/palette.js
+// as custom properties, so a palette swap recolours the whole site. A literal in
+// a stylesheet silently opts that rule out of the palette.
+describe('stylesheets take colour only from palette custom properties', () => {
+  const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(d =>
+    d.isDirectory() ? walk(join(dir, d.name)) : d.name.endsWith('.css') ? [join(dir, d.name)] : [])
+  const files = walk(resolve(WEB_ROOT, 'src/styles'))
+  const NAMED = 'white|black|red|green|blue|gray|grey|silver|orange|yellow|purple|pink|brown|beige|ivory|tan|olive|navy|teal'
+
+  // Declarations only (`prop: value`), comments stripped, so an id selector that
+  // happens to look like hex (#fade) or prose in a comment can't trip it.
+  const offences = source => {
+    const css = source.replace(/\/\*[\s\S]*?\*\//g, '')
+    const found = []
+    for (const m of css.matchAll(/([\w-]+)\s*:\s*([^;{}]+)[;}]/g)) {
+      const [, prop, value] = m
+      if (/^(content|font-family|grid-template-areas|grid-area|transition|transition-property|will-change|animation|animation-name|view-transition-name)$/.test(prop)) continue
+      const v = value.replace(/url\([^)]*\)/g, '').replace(/var\(--[\w-]+/g, 'var(')
+      if (/#[0-9a-fA-F]{3,8}\b/.test(v)) found.push(`${prop}: ${value.trim()}`)
+      else if (/\b(?:rgb|hsl|hwb|lab|lch|oklab|oklch)a?\(\s*[\d.]/.test(v)) found.push(`${prop}: ${value.trim()}`)
+      else if (new RegExp(`(^|[\\s,(])(${NAMED})([\\s,);]|$)`, 'i').test(v)) found.push(`${prop}: ${value.trim()}`)
+    }
+    return found
+  }
+
+  it('finds the stylesheets', () => { expect(files.length).toBeGreaterThan(20) })
+
+  it.each(files.map(f => [relative(WEB_ROOT, f), f]))('%s has no literal colour', (_rel, file) => {
+    expect(offences(readFileSync(file, 'utf8'))).toEqual([])
+  })
+
+  it('the detector catches each kind of literal and passes palette-derived values (self-check)', () => {
+    expect(offences('a{color:#B05138}')).toHaveLength(1)
+    expect(offences('a{background: rgb(10 20 30 / .5);}')).toHaveLength(1)
+    expect(offences('a{box-shadow: 0 1px 2px rgba(0,0,0,.2)}')).toHaveLength(1)
+    expect(offences('a{border:1px solid white}')).toHaveLength(1)
+    expect(offences('/* #fff */ #fade{color:rgb(var(--ink-rgb) / .2); background:var(--moss); border-color:transparent; fill:currentColor}')).toEqual([])
   })
 })
 

@@ -234,10 +234,27 @@ describe('renderRobots (no real-life SEO artifacts on the staging copy)', () => 
   })
 
   it('defaults to the active build mode (isProductionBuild)', () => {
-    // Pre-launch repo invariant: no apex CNAME → staging → blanket disallow.
-    if (isProductionBuild()) return
-    expect(renderRobots()).toContain('Disallow: /')
-    expect(renderRobots()).not.toContain('Sitemap:')
+    // Drive both modes explicitly: this used to return early whenever the checkout
+    // was a production one, which it always is now that public/CNAME is committed.
+    const under = (val, fn) => {
+      const prev = process.env.SITE_ENV
+      process.env.SITE_ENV = val
+      try { return fn() } finally {
+        if (prev === undefined) delete process.env.SITE_ENV
+        else process.env.SITE_ENV = prev
+      }
+    }
+    under('staging', () => {
+      expect(isProductionBuild()).toBe(false)
+      expect(renderRobots()).toBe(renderRobots({ production: false }))
+      expect(renderRobots()).toContain('Disallow: /')
+      expect(renderRobots()).not.toContain('Sitemap:')
+    })
+    under('production', () => {
+      expect(isProductionBuild()).toBe(true)
+      expect(renderRobots()).toBe(renderRobots({ production: true }))
+      expect(renderRobots()).toContain('Sitemap:')
+    })
   })
 })
 

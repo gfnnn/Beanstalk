@@ -159,6 +159,42 @@ describe('enquiry handler — happy path & email', () => {
     expect(sent.html).toContain('&lt;img')
   })
 
+  // esc() is applied on four separate paths in the handler (free text, array
+  // values, coded fields, and the name in the footer / skipped-file note); the
+  // test above only reaches the first.
+  it('escapes every user-controlled value that reaches the artist email, on every path', async () => {
+    const X = '<script>alert(1)</script>'
+    const notAnImage = Buffer.from('plain text, not an image at all').toString('base64')
+    await H({
+      ...post(validEnquiry()),
+      body: JSON.stringify({
+        kind: 'enquiry',
+        fields: {
+          ...validEnquiry().fields,
+          first_name: `Ada${X}`, last_name: `L${X}`,
+          idea: X, placement: X, size: X,
+          style: [X, 'fine-line'], 'style[]': [X],
+          tattoo_type: X, colour: X, budget: X, referral_source: X,
+        },
+        images: [{ name: 'x.txt', type: 'image/png', data: notAnImage }],   // triggers the skipped-file note
+      }),
+    })
+    const { html } = sentBody(fetchMock)
+    expect(html).toContain('skipped')
+    expect(html).toContain('&lt;script&gt;')
+    expect(html).not.toMatch(/<script/i)
+    expect(html).not.toContain('alert(1)</')
+  })
+
+  it('escapes the name in the confirmation sent back to the enquirer', async () => {
+    await H(post(validEnquiry({ first_name: 'Ada<img src=x onerror=alert(1)>' })))
+    for (const call of fetchMock.mock.calls) {
+      const { html } = JSON.parse(call[1].body)
+      if (html) expect(html).not.toContain('<img src=x')
+    }
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(0)
+  })
+
   it('returns 502 when Resend responds with an error', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 422, text: async () => 'bad', json: async () => ({}) })
     expect((await H(post(validEnquiry()))).statusCode).toBe(502)
@@ -240,6 +276,44 @@ describe('enquiry handler — image sniffing & filenames', () => {
     const body = sentBody(fetchMock)
     expect(body.attachments).toBeUndefined() // nothing attached
     expect(body.html).toContain('skipped')
+  })
+
+  // Near-misses: the right container signature with the wrong payload. A sniffer
+  // that checked only the first four bytes ('RIFF') or only the 'ftyp' box would
+  // let audio/video through labelled as an image.
+  it.each([
+    ['a RIFF container that is not WebP (WAVE audio)', b64([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45])],
+    ['a RIFF container that is AVI video',             b64([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x41, 0x56, 0x49, 0x20])],
+    ['an MP4 video (ftyp isom)',                       isoBrand('isom')],
+    ['an MP4 video (ftyp mp42)',                       isoBrand('mp42')],
+    ['a QuickTime movie (ftyp qt)',                    isoBrand('qt  ')],
+    ['a brand that only starts like heic',             isoBrand('hei\0')],
+    ['WEBP marker without the RIFF header',            b64([0, 0, 0, 0, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])],
+    ['a Windows executable (MZ)',                      b64([0x4D, 0x5A, 0x90, 0x00])],
+    ['a PDF',                                          b64([0x25, 0x50, 0x44, 0x46])],
+    ['an SVG document',                                Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)">').toString('base64')],
+  ])('drops %s even when it claims to be an image', async (_label, data) => {
+    await H({
+      ...post(validEnquiry()),
+      body: JSON.stringify({ ...validEnquiry(), images: [{ name: 'ref.png', type: 'image/png', data }] }),
+    })
+    const body = sentBody(fetchMock)
+    expect(body.attachments).toBeUndefined()
+    expect(body.html).toContain('skipped')
+  })
+
+  it('keeps the real images and drops only the impostor in a mixed upload', async () => {
+    await H({
+      ...post(validEnquiry()),
+      body: JSON.stringify({ ...validEnquiry(), images: [
+        { name: 'a.jpg', type: 'image/jpeg', data: IMG.jpeg },
+        { name: 'b.mp4', type: 'image/jpeg', data: isoBrand('isom') },
+        { name: 'c.png', type: 'image/png', data: IMG.png },
+      ] }),
+    })
+    const body = sentBody(fetchMock)
+    expect(body.attachments.map(a => a.content_type)).toEqual(['image/jpeg', 'image/png'])
+    expect(body.html).toContain('1 attached file was skipped')
   })
 
   it('renames attachments to the sniffed extension, stripping path & double extensions', async () => {

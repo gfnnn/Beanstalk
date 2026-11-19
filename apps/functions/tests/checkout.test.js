@@ -52,11 +52,18 @@ describe('checkout handler — protocol & gating', () => {
     expect((await H({ httpMethod: 'GET', headers: {} })).statusCode).toBe(405)
   })
 
-  it('is OFF by default — 503 and no Stripe call unless PAYMENTS_ENABLED === "true"', async () => {
-    const res = await H(post(claim()), { ...env, PAYMENTS_ENABLED: 'false' })
+  // Unset is the production state today (wrangler.toml leaves the var commented
+  // out), so it leads. Only the exact string "true" may open the route.
+  it.each([
+    ['unset', undefined], ['"false"', 'false'], ['empty', ''], ['"TRUE"', 'TRUE'],
+    ['"1"', '1'], ['"yes"', 'yes'], ['" true"', ' true'],
+  ])('is OFF by default — 503, no Stripe call, nothing stored when PAYMENTS_ENABLED is %s', async (_label, flag) => {
+    const res = await H(post(claim()), { STRIPE_SECRET_KEY: 'sk_test', DB: d1.DB, PAYMENTS_ENABLED: flag })
     expect(res.statusCode).toBe(503)
     expect(fetchMock).not.toHaveBeenCalled()
     expect(flashMap(d1.data)).toEqual({})   // nothing reserved
+    expect(d1.data.payments.size).toBe(0)
+    expect(d1.data.rate).toEqual([])
   })
 
   it('returns 500 when the Stripe key is missing', async () => {
@@ -166,6 +173,16 @@ describe('checkout handler — happy path', () => {
   it('spends a rate-limit slot only on success', async () => {
     await H(post(claim()))
     expect(d1.data.rate.some(r => r.bucket.startsWith('checkout-rate:ip:'))).toBe(true)
+  })
+
+  it('spends no rate-limit slot when Stripe rejects the intent or the piece is taken', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 402, json: async () => ({ error: { message: 'card_declined' } }) })
+    expect((await H(post(claim()))).statusCode).toBeGreaterThanOrEqual(400)
+    expect(d1.data.rate).toEqual([])
+
+    d1.data.flash.set(PIECE, { status: 'claimed', updated_at: 'x', expires_at: null })
+    expect((await H(post(claim()))).statusCode).toBe(409)
+    expect(d1.data.rate).toEqual([])
   })
 })
 
