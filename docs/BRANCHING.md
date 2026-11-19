@@ -53,7 +53,8 @@ one batch:
 
 **Hotfix exception.** A genuine production emergency may branch `fix/*` off `main`, PR
 straight into `main`, then merge `main` back into `develop` so the fix isn't lost on the
-next release. Use sparingly — the normal path is always through `develop`. A hotfix (and
+next release: a `main → develop` PR, **merge-committed** (not squashed), so `develop` has
+the fix in its history and not just its content. Use sparingly — the normal path is always through `develop`. A hotfix (and
 any rollback) still goes through a PR: `main` has no admin bypass — see
 [Ruleset A](#ruleset-a--main-production) for the emergency override.
 
@@ -227,8 +228,9 @@ are `test (@beansprout/web)` and `test (@beansprout/functions)` (from
   - ✅ **Require a pull request before merging** (Required approvals: **0**)
   - ✅ **Require status checks to pass** → add the same two `test (…)` checks ("up to date"
     is **OFF** here too)
-  - ✅ **Require linear history** *(optional but tidy — feature PRs squash-merge, so `develop`
-    stays linear)*
+  - *(Leave "Require linear history" **OFF** for `develop` too* — a hotfix or a revert comes
+    back from `main` as a **merge commit**, which a linear-history rule forbids. Feature PRs
+    still squash-merge.)*
 
 > Feature branches (`feat/*`, `fix/*`) need **no** ruleset — they're disposable.
 
