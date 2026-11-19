@@ -61,8 +61,12 @@ cd apps/web && npx playwright install chromium     # add --with-deps on Linux/CI
 | `loader.spec.js` | The cold-load preloader's **font wait** (`KEY_FONTS` in `src/js/modules/loader.js`), with one font request held open: the page is revealed without waiting for the italic face, and a held key font keeps the cover up until the 3s ceiling frees it. |
 | `lightbox.spec.js` | `src/js/modules/lightbox.js`: opens on a tile click (intercepting the tile link), populates title/counter, pages prev/next with the ends disabled, and closes on ✕ / Escape, restoring body scroll. |
 | `enquire.spec.js` | The enquiry form's **browser-only image pipeline**: the live thumbnail preview (`URL.createObjectURL`) and the submit-time downscale (`createImageBitmap` → canvas → `toBlob` → base64), asserted on the exact JSON the browser POSTs. Plus the error-banner path. |
-| `nav.spec.js` | The mobile drawer (open/close, scroll-lock, close-on-link, Escape) at a real mobile viewport, and the desktop "More" dropdown. |
+| `nav.spec.js` | The mobile drawer (open/close, scroll-lock, a followed link landing on a closed drawer, Escape) at a real mobile viewport, and the desktop "More" dropdown. |
 | `flash.spec.js` | The claim modal's real open/close (the rAF `.open` transition + scroll-lock) and the **live-availability reconcile** (`/flash-status` → the static grid reflects a piece claimed since the build). The claim submit branches (success/409/error) are unit-tested under jsdom, so they're not repeated here. |
+| `analytics.spec.js` | The privacy guarantees of `src/js/modules/analytics.js`: no page makes a request to a Google analytics host on localhost, and the `/privacy/` opt-out toggles and survives a reload. |
+| `filter-bar.spec.js` | The mobile "Filters" toggle (`filter-collapse.js`): the real CSS collapses the bar on a phone and shows it on desktop. |
+| `hero-captions.spec.js` | Layout only a browser can measure: the homepage hero photo and caption at phone and desktop width, grid captions under their photos, and the per-piece page's photo. |
+| `mobile-cta.spec.js` | The mobile sticky "Enquire" bar is shown on phones on every page that carries it (a cascade bug jsdom can't see). |
 
 ## Conventions
 

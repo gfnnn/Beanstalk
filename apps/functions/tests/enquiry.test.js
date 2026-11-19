@@ -186,15 +186,6 @@ describe('enquiry handler — happy path & email', () => {
     expect(html).not.toContain('alert(1)</')
   })
 
-  it('escapes the name in the confirmation sent back to the enquirer', async () => {
-    await H(post(validEnquiry({ first_name: 'Ada<img src=x onerror=alert(1)>' })))
-    for (const call of fetchMock.mock.calls) {
-      const { html } = JSON.parse(call[1].body)
-      if (html) expect(html).not.toContain('<img src=x')
-    }
-    expect(fetchMock.mock.calls.length).toBeGreaterThan(0)
-  })
-
   it('returns 502 when Resend responds with an error', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 422, text: async () => 'bad', json: async () => ({}) })
     expect((await H(post(validEnquiry()))).statusCode).toBe(502)

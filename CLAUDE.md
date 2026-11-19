@@ -193,7 +193,7 @@ Features are designed outside this repo and arrive as a **brief**; delivery runs
    the owner's call. Rebase your other live branches onto `develop` after any merge.
 6. **Release in batches.** A `develop → main` PR titled `release: <date / summary>`,
    **merge-committed** (not squashed). `main` receives nothing else: no feature PRs, no direct
-   commits.
+   commits. The one exception is a hotfix or revert PR ([`docs/BRANCHING.md`](docs/BRANCHING.md)).
 7. **Never rewrite published history on `develop` or `main`.** Rebasing your *own* feature
    branch and `--force-with-lease`-ing it is fine.
 8. **Verify repo settings before documenting them** — don't assert a setting's state from

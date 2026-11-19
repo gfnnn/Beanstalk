@@ -83,10 +83,8 @@ domain back to the v1 site, closed when v1 was retired:
    now counts the reverted commits as merged, so a later release will not bring them back by
    itself: to re-land the work, revert the revert on a feature branch and fix it there.
 
-It goes through a PR like everything else, because `main` has no admin bypass
-([Ruleset A](#ruleset-a--main-production)). A revert undoes **code only**: an applied D1
-migration, a Worker secret and a repo or Cloudflare setting stay as they are, and stored
-data is untouched.
+A revert undoes **code only**: an applied D1 migration, a Worker secret and a repo or
+Cloudflare setting stay as they are, and stored data is untouched.
 
 ## Several features in flight
 

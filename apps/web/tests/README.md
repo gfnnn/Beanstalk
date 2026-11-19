@@ -22,6 +22,9 @@ renderer/data tests.
 
 ## What's covered
 
+Not every suite has a row here. Each `tests/*.test.js` opens with a comment saying
+what it pins; the table is the map for the larger ones.
+
 | File | Tests |
 | --- | --- |
 | `tests/renderers.test.js` | `renderPortfolioTiles` / `renderFlashCards` and the homepage/piece-page/testimonials/specialisms/newsletter renderers: responsive `<picture>` vs. placeholder, eager/lazy LCP loading, status-gated claim buttons, HTML escaping, sort order. |
@@ -38,7 +41,7 @@ renderer/data tests.
 | `tests/flash.test.js` | `src/js/modules/flash.js` under **jsdom**: the drop/archive model (current drop vs. the self-hiding "Past" archive), drop-scoped count badges, filter + sort, the live-availability reconcile (claims map → status/badge/button, never downgrading claimed→pending), empty-state + footer-CTA visibility, the claim modal open/close, and the submit path incl. the **409 "claimed first"** branch. `lenis` is mocked; `fetch` is mocked. |
 | `tests/newsletter.test.js` | `src/js/modules/newsletter.js` under **jsdom**: email/consent validation (no network on failure), the `{ fields }` POST shape, and the success / "already subscribed" / inline-fallback / error branches with the submit button restored. |
 | `tests/faq.test.js` | `src/js/modules/faq.js` under **jsdom**: the single-open accordion (+ keyboard + `aria-expanded`), the exclusive category filter, the live search (resets chips to "All"), and the shared empty-state. |
-| `tests/nav.test.js` | `src/js/modules/nav.js` under **jsdom**: current-page active-link marking (incl. the More-dropdown trigger), the dropdown open/close (toggle, outside-click, Escape), the mobile drawer (open/close, close-on-link, Escape, body scroll-lock), and the `.scrolled` state. |
+| `tests/nav.test.js` | `src/js/modules/nav.js` under **jsdom**: current-page active-link marking (incl. the More-dropdown trigger), the dropdown open/close (toggle, outside-click, Escape), the mobile drawer (open/close, staying open while a followed link navigates, Escape, body scroll-lock, `inert` while closed), and the `.scrolled` state. |
 
 ## Not covered here (lives in the E2E tier instead)
 
